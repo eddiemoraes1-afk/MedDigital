@@ -119,18 +119,19 @@ function AgendarConteudo() {
       body: JSON.stringify({
         medico_id: medicoSelecionado.id,
         data_hora: dataHoraBrasilia,
-        observacoes
+        observacoes,
+        reagendado_de: reagendarId || null,
       })
     })
 
     const data = await res.json()
 
-    // Se for reagendamento, cancela o agendamento antigo
+    // Se for reagendamento, marca o antigo como 'reagendado' (não 'cancelado')
     if (res.ok && reagendarId) {
       await fetch('/api/agendamento/cancelar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agendamento_id: reagendarId })
+        body: JSON.stringify({ agendamento_id: reagendarId, status: 'reagendado' })
       })
     }
 

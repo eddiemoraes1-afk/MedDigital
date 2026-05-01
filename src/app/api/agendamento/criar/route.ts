@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ erro: 'Não autenticado' }, { status: 401 })
 
-  const { medico_id, data_hora, observacoes } = await request.json()
+  const { medico_id, data_hora, observacoes, reagendado_de } = await request.json()
   if (!medico_id || !data_hora) {
     return NextResponse.json({ erro: 'Dados obrigatórios faltando' }, { status: 400 })
   }
@@ -44,6 +44,7 @@ export async function POST(request: Request) {
       status: 'confirmado',
       tipo: 'virtual',
       observacoes: observacoes || null,
+      reagendado_de: reagendado_de || null,
     })
     .select()
     .single()

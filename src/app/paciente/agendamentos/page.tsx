@@ -34,13 +34,14 @@ export default async function AgendamentosPage() {
   ;(medicos || []).forEach((m: any) => { medicoMap[m.id] = m })
 
   const agora = new Date()
-  const proximos = (agendamentos || []).filter((a: any) => new Date(a.data_hora) >= agora && a.status !== 'cancelado')
+  const proximos = (agendamentos || []).filter((a: any) => new Date(a.data_hora) >= agora && !['cancelado', 'reagendado'].includes(a.status))
   const passados = (agendamentos || []).filter((a: any) => new Date(a.data_hora) < agora || a.status === 'cancelado')
 
   const corStatus: Record<string, string> = {
     confirmado: 'bg-green-100 text-green-700',
     pendente: 'bg-yellow-100 text-yellow-700',
     cancelado: 'bg-red-100 text-red-700',
+    reagendado: 'bg-orange-100 text-orange-700',
     concluido: 'bg-gray-100 text-gray-600',
   }
 
@@ -48,6 +49,7 @@ export default async function AgendamentosPage() {
     confirmado: 'Confirmado',
     pendente: 'Pendente',
     cancelado: 'Cancelado',
+    reagendado: 'Reagendado',
     concluido: 'Concluído',
   }
 
@@ -62,9 +64,16 @@ export default async function AgendamentosPage() {
               <User className="w-5 h-5 text-[#2E75B6]" />
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-[#1A3A5C] text-sm">
-                Dr(a). {medico?.nome || 'Médico'}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="font-semibold text-[#1A3A5C] text-sm">
+                  Dr(a). {medico?.nome || 'Médico'}
+                </p>
+                {a.reagendado_de && (
+                  <span className="text-xs bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full">
+                    Reagendado
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-gray-400">{medico?.especialidade}</p>
               <div className="flex items-center gap-3 mt-2">
                 <span className="flex items-center gap-1 text-xs text-gray-500">

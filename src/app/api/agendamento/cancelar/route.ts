@@ -6,8 +6,9 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ erro: 'Não autenticado' }, { status: 401 })
 
-  const { agendamento_id } = await request.json()
+  const { agendamento_id, status: novoStatus } = await request.json()
   if (!agendamento_id) return NextResponse.json({ erro: 'agendamento_id obrigatório' }, { status: 400 })
+  const statusFinal = novoStatus === 'reagendado' ? 'reagendado' : 'cancelado'
 
   const adminSupabase = createAdminClient()
 
@@ -28,11 +29,13 @@ export async function POST(request: Request) {
 
   if (!agendamento) return NextResponse.json({ erro: 'Agendamento não encontrado' }, { status: 404 })
   if (agendamento.paciente_id !== paciente.id) return NextResponse.json({ erro: 'Não autorizado' }, { status: 403 })
-  if (agendamento.status === 'cancelado') return NextResponse.json({ erro: 'Já cancelado' }, { status: 400 })
+  if (['cancelado', 'reagendado'].includes(agendamento.status)) {
+    return NextResponse.json({ erro: 'Já encerrado' }, { status: 400 })
+  }
 
   const { error } = await adminSupabase
     .from('agendamentos')
-    .update({ status: 'cancelado' })
+    .update({ status: statusFinal })
     .eq('id', agendamento_id)
 
   if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
