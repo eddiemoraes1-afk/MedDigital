@@ -1,4 +1,5 @@
-// Notificações por email (Resend) e WhatsApp (Twilio)
+// Notificações por email (Gmail SMTP) e WhatsApp (Twilio)
+import nodemailer from 'nodemailer'
 
 interface DadosAgendamento {
   pacienteNome: string
@@ -20,12 +21,22 @@ function formatarDataHora(dataHora: Date) {
   return { data, hora }
 }
 
-// ─── EMAIL via Resend REST API ───────────────────────────────────────────────
+// ─── EMAIL via Gmail SMTP ────────────────────────────────────────────────────
 
 export async function enviarEmailConfirmacao(dados: DadosAgendamento) {
-  const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) { console.error('RESEND_API_KEY não configurada'); return }
+  const gmailUser = process.env.GMAIL_USER
+  const gmailPass = process.env.GMAIL_APP_PASSWORD
+  if (!gmailUser || !gmailPass) {
+    console.error('GMAIL_USER ou GMAIL_APP_PASSWORD não configurados')
+    return
+  }
+
   const { data, hora } = formatarDataHora(dados.dataHora)
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: gmailUser, pass: gmailPass },
+  })
 
   const html = `
     <!DOCTYPE html>
@@ -42,7 +53,7 @@ export async function enviarEmailConfirmacao(dados: DadosAgendamento) {
         .greeting { font-size: 16px; color: #374151; margin-bottom: 24px; }
         .card { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 12px; padding: 20px; margin: 20px 0; }
         .card-row { display: flex; margin-bottom: 12px; }
-        .card-label { color: #6B7280; font-size: 13px; width: 90px; shrink: 0; }
+        .card-label { color: #6B7280; font-size: 13px; width: 90px; }
         .card-value { color: #1A3A5C; font-size: 13px; font-weight: 600; }
         .badge { display: inline-block; background: #22C55E; color: white; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
         .footer { background: #F9FAFB; padding: 20px 32px; text-align: center; }
@@ -90,25 +101,13 @@ export async function enviarEmailConfirmacao(dados: DadosAgendamento) {
   `
 
   try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'MedDigital <onboarding@resend.dev>',
-        to: [dados.pacienteEmail],
-        subject: `✅ Consulta confirmada — ${data} às ${hora}`,
-        html,
-      }),
+    const info = await transporter.sendMail({
+      from: `MedDigital <${gmailUser}>`,
+      to: dados.pacienteEmail,
+      subject: `✅ Consulta confirmada — ${data} às ${hora}`,
+      html,
     })
-    const result = await response.json()
-    if (!response.ok) {
-      console.error('Resend erro:', JSON.stringify(result))
-    } else {
-      console.log('Email enviado para', dados.pacienteEmail, '| id:', result.id)
-    }
+    console.log('Email enviado para', dados.pacienteEmail, '| messageId:', info.messageId)
   } catch (err) {
     console.error('Erro ao enviar email:', err)
   }
@@ -122,7 +121,6 @@ export async function enviarWhatsAppConfirmacao(dados: DadosAgendamento) {
 
   const { data, hora } = formatarDataHora(dados.dataHora)
 
-  // Formatar telefone para padrão internacional
   let telefone = dados.pacienteTelefone.replace(/\D/g, '')
   if (!telefone.startsWith('55')) telefone = '55' + telefone
 
