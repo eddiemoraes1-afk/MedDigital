@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Heart, ArrowLeft, Calendar, Clock, User, ChevronRight, Loader2, CheckCircle2 } from 'lucide-react'
 
@@ -33,6 +33,10 @@ function gerarDias(diasComDisponibilidade: number[]) {
 }
 
 export default function AgendarPage() {
+  const searchParams = useSearchParams()
+  const reagendarId = searchParams.get('reagendar')   // id do agendamento a cancelar
+  const medicoIdParam = searchParams.get('medico_id') // pré-selecionar médico
+
   const [passo, setPasso] = useState(1)
   const [medicos, setMedicos] = useState<Medico[]>([])
   const [medicoSelecionado, setMedicoSelecionado] = useState<Medico | null>(null)
@@ -55,6 +59,22 @@ export default function AgendarPage() {
         .eq('status', 'aprovado')
         .order('nome')
       setMedicos(data || [])
+
+      // Se vier parâmetro de reagendamento, pré-selecionar médico e pular para passo 2
+      if (medicoIdParam && data) {
+        const medico = data.find((m: Medico) => m.id === medicoIdParam)
+        if (medico) {
+          const { data: horarios } = await supabase
+            .from('horarios_medico')
+            .select('dia_semana')
+            .eq('medico_id', medico.id)
+            .eq('ativo', true)
+          const dias = [...new Set((horarios || []).map((h: any) => h.dia_semana))]
+          setMedicoSelecionado(medico)
+          setDiasDisponiveis(dias)
+          setPasso(2)
+        }
+      }
     }
     carregarMedicos()
   }, [])
@@ -104,6 +124,16 @@ export default function AgendarPage() {
     })
 
     const data = await res.json()
+
+    // Se for reagendamento, cancela o agendamento antigo
+    if (res.ok && reagendarId) {
+      await fetch('/api/agendamento/cancelar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agendamento_id: reagendarId })
+      })
+    }
+
     setCarregando(false)
 
     if (res.ok) {
@@ -155,8 +185,14 @@ export default function AgendarPage() {
 
       <main className="max-w-3xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[#1A3A5C]">Agendar consulta</h1>
-          <p className="text-gray-500 mt-1">Escolha o médico, data e horário</p>
+          <h1 className="text-2xl font-bold text-[#1A3A5C]">
+            {reagendarId ? 'Reagendar consulta' : 'Agendar consulta'}
+          </h1>
+          <p className="text-gray-500 mt-1">
+            {reagendarId
+              ? 'Escolha uma nova data e horário — o agendamento anterior será cancelado automaticamente'
+              : 'Escolha o médico, data e horário'}
+          </p>
         </div>
 
         {/* Indicador de passos */}

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Heart, LogOut, ArrowLeft, Calendar, Clock, User, Plus } from 'lucide-react'
+import BotoesAgendamento from './BotoesAgendamento'
 
 export default async function AgendamentosPage() {
   const supabase = await createClient()
@@ -50,17 +51,17 @@ export default async function AgendamentosPage() {
     concluido: 'Concluído',
   }
 
-  function CartaoAgendamento({ a }: { a: any }) {
+  function CartaoAgendamento({ a, futuro }: { a: any; futuro: boolean }) {
     const medico = medicoMap[a.medico_id]
     const dataHora = new Date(a.data_hora)
     return (
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-50">
         <div className="flex items-start justify-between">
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-1">
             <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
               <User className="w-5 h-5 text-[#2E75B6]" />
             </div>
-            <div>
+            <div className="flex-1">
               <p className="font-semibold text-[#1A3A5C] text-sm">
                 Dr(a). {medico?.nome || 'Médico'}
               </p>
@@ -78,9 +79,16 @@ export default async function AgendamentosPage() {
               {a.observacoes && (
                 <p className="text-xs text-gray-400 mt-1 italic">"{a.observacoes}"</p>
               )}
+              {futuro && a.status !== 'cancelado' && (
+                <BotoesAgendamento
+                  agendamentoId={a.id}
+                  medicoId={a.medico_id}
+                  medicoNome={medico?.nome || 'Médico'}
+                />
+              )}
             </div>
           </div>
-          <span className={`text-xs font-medium px-2 py-1 rounded-full ${corStatus[a.status] || 'bg-gray-100 text-gray-600'}`}>
+          <span className={`text-xs font-medium px-2 py-1 rounded-full shrink-0 ${corStatus[a.status] || 'bg-gray-100 text-gray-600'}`}>
             {labelStatus[a.status] || a.status}
           </span>
         </div>
@@ -141,7 +149,7 @@ export default async function AgendamentosPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {proximos.map((a: any) => <CartaoAgendamento key={a.id} a={a} />)}
+              {proximos.map((a: any) => <CartaoAgendamento key={a.id} a={a} futuro={true} />)}
             </div>
           )}
         </div>
@@ -151,7 +159,7 @@ export default async function AgendamentosPage() {
           <div>
             <h2 className="font-semibold text-[#1A3A5C] mb-3">Histórico</h2>
             <div className="space-y-3 opacity-70">
-              {passados.map((a: any) => <CartaoAgendamento key={a.id} a={a} />)}
+              {passados.map((a: any) => <CartaoAgendamento key={a.id} a={a} futuro={false} />)}
             </div>
           </div>
         )}
