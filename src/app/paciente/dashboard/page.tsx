@@ -101,7 +101,7 @@ export default async function PacienteDashboard() {
           {[
             { icon: Brain, label: 'Nova triagem', href: '/paciente/triagem', cor: '#2E75B6' },
             { icon: Video, label: 'Consulta virtual', href: '/paciente/consulta', cor: '#1A7340' },
-            { icon: Calendar, label: 'Agendamentos', href: '/paciente/agendamentos', cor: '#7B3FA0' },
+            { icon: Calendar, label: 'Agendar consulta', href: '/paciente/agendar', cor: '#7B3FA0' },
             { icon: FileText, label: 'Prontuário', href: '/paciente/prontuario', cor: '#C0392B' },
           ].map((item) => (
             <Link key={item.label} href={item.href}

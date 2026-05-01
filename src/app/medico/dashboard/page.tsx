@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Heart, Users, Clock, Video, CheckCircle2, LogOut, AlertTriangle } from 'lucide-react'
+import { Heart, Users, Clock, Video, CheckCircle2, LogOut, AlertTriangle, Calendar } from 'lucide-react'
 
 export default async function MedicoDashboard() {
   const supabase = await createClient()
@@ -106,6 +106,30 @@ export default async function MedicoDashboard() {
               <div className="text-sm text-gray-500 mt-1">{item.label}</div>
             </div>
           ))}
+        </div>
+
+        {/* Atalhos */}
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <Link href="/medico/disponibilidade"
+            className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 group">
+            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+              <Clock className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-[#1A3A5C] text-sm">Minha disponibilidade</p>
+              <p className="text-xs text-gray-400">Gerenciar horários de atendimento</p>
+            </div>
+          </Link>
+          <Link href="/medico/agendamentos"
+            className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 group">
+            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-[#1A3A5C] text-sm">Agenda</p>
+              <p className="text-xs text-gray-400">Ver consultas agendadas</p>
+            </div>
+          </Link>
         </div>
 
         {/* Fila de pacientes */}
