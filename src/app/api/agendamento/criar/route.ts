@@ -1,5 +1,6 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { enviarEmailConfirmacao, enviarWhatsAppConfirmacao } from '@/lib/notifications'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -49,17 +50,28 @@ export async function POST(request: Request) {
 
   if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
 
-  // Buscar dados do médico para notificação
+  // Buscar dados do médico
   const { data: medico } = await adminSupabase
     .from('medicos')
     .select('nome, especialidade')
     .eq('id', medico_id)
     .single()
 
-  return NextResponse.json({
-    sucesso: true,
-    agendamento,
-    medico,
-    paciente: { nome: paciente.nome, email: user.email, telefone: paciente.telefone }
-  })
+  // Enviar notificações (sem bloquear a resposta)
+  const dadosNotificacao = {
+    pacienteNome: paciente.nome,
+    pacienteEmail: user.email!,
+    pacienteTelefone: paciente.telefone,
+    medicoNome: medico?.nome || 'Médico',
+    medicoEspecialidade: medico?.especialidade || '',
+    dataHora: new Date(data_hora),
+  }
+
+  // Disparar em paralelo, sem await (não bloqueia)
+  Promise.all([
+    enviarEmailConfirmacao(dadosNotificacao),
+    enviarWhatsAppConfirmacao(dadosNotificacao),
+  ]).catch(err => console.error('Erro nas notificações:', err))
+
+  return NextResponse.json({ sucesso: true, agendamento })
 }
