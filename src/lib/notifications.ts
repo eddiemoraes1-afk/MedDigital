@@ -90,13 +90,17 @@ export async function enviarEmailConfirmacao(dados: DadosAgendamento) {
   `
 
   try {
-    await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'MedDigital <noreply@resend.dev>',
+    const result = await resend.emails.send({
+      from: 'MedDigital <onboarding@resend.dev>',
       to: dados.pacienteEmail,
       subject: `✅ Consulta confirmada — ${data} às ${hora}`,
       html,
     })
-    console.log('Email enviado para', dados.pacienteEmail)
+    if ((result as any).error) {
+      console.error('Resend erro:', JSON.stringify((result as any).error))
+    } else {
+      console.log('Email enviado para', dados.pacienteEmail, '| id:', (result as any).data?.id)
+    }
   } catch (err) {
     console.error('Erro ao enviar email:', err)
   }
