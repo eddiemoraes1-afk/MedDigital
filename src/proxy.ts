@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -29,7 +29,6 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
-  // Rotas protegidas
   const rotasProtegidas = ['/paciente', '/medico', '/admin']
   const rotaProtegida = rotasProtegidas.some(r => pathname.startsWith(r))
 
@@ -37,7 +36,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Se já está logado e tenta acessar login/cadastro, redirecionar
   if (user && (pathname === '/login' || pathname === '/cadastro')) {
     return NextResponse.redirect(new URL('/paciente/dashboard', request.url))
   }
