@@ -27,19 +27,27 @@ export async function GET(request: Request) {
     return NextResponse.json({ slots: [] })
   }
 
-  // Buscar agendamentos já existentes nesse dia
-  const dataInicio = data + 'T00:00:00'
-  const dataFim = data + 'T23:59:59'
+  // Buscar agendamentos já existentes nesse dia (usando range UTC que cobre o dia em SP)
+  const dataInicioUTC = new Date(`${data}T00:00:00-03:00`).toISOString()
+  const dataFimUTC = new Date(`${data}T23:59:59-03:00`).toISOString()
   const { data: agendados } = await supabase
     .from('agendamentos')
     .select('data_hora')
     .eq('medico_id', medicoId)
-    .gte('data_hora', dataInicio)
-    .lte('data_hora', dataFim)
-    .neq('status', 'cancelado')
+    .gte('data_hora', dataInicioUTC)
+    .lte('data_hora', dataFimUTC)
+    .not('status', 'in', '("cancelado","reagendado")')
 
+  // Converter cada agendamento para horário de Brasília para comparar com os slots
   const horariosOcupados = new Set(
-    (agendados || []).map(a => a.data_hora.slice(11, 16))
+    (agendados || []).map(a => {
+      const d = new Date(a.data_hora)
+      return d.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/Sao_Paulo',
+      })
+    })
   )
 
   // Gerar slots
