@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -32,7 +32,7 @@ function gerarDias(diasComDisponibilidade: number[]) {
   return dias
 }
 
-export default function AgendarPage() {
+function AgendarConteudo() {
   const searchParams = useSearchParams()
   const reagendarId = searchParams.get('reagendar')   // id do agendamento a cancelar
   const medicoIdParam = searchParams.get('medico_id') // pré-selecionar médico
@@ -352,5 +352,17 @@ export default function AgendarPage() {
         )}
       </main>
     </div>
+  )
+}
+
+export default function AgendarPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#F4F7FB] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#2E75B6]" />
+      </div>
+    }>
+      <AgendarConteudo />
+    </Suspense>
   )
 }
