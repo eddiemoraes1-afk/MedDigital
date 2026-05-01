@@ -20,11 +20,11 @@ function formatarDataHora(dataHora: Date) {
   return { data, hora }
 }
 
-// ─── EMAIL via Resend ────────────────────────────────────────────────────────
+// ─── EMAIL via Resend REST API ───────────────────────────────────────────────
 
 export async function enviarEmailConfirmacao(dados: DadosAgendamento) {
-  const { Resend } = await import('resend')
-  const resend = new Resend(process.env.RESEND_API_KEY)
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) { console.error('RESEND_API_KEY não configurada'); return }
   const { data, hora } = formatarDataHora(dados.dataHora)
 
   const html = `
@@ -90,16 +90,24 @@ export async function enviarEmailConfirmacao(dados: DadosAgendamento) {
   `
 
   try {
-    const result = await resend.emails.send({
-      from: 'MedDigital <onboarding@resend.dev>',
-      to: dados.pacienteEmail,
-      subject: `✅ Consulta confirmada — ${data} às ${hora}`,
-      html,
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'MedDigital <onboarding@resend.dev>',
+        to: [dados.pacienteEmail],
+        subject: `✅ Consulta confirmada — ${data} às ${hora}`,
+        html,
+      }),
     })
-    if ((result as any).error) {
-      console.error('Resend erro:', JSON.stringify((result as any).error))
+    const result = await response.json()
+    if (!response.ok) {
+      console.error('Resend erro:', JSON.stringify(result))
     } else {
-      console.log('Email enviado para', dados.pacienteEmail, '| id:', (result as any).data?.id)
+      console.log('Email enviado para', dados.pacienteEmail, '| id:', result.id)
     }
   } catch (err) {
     console.error('Erro ao enviar email:', err)
