@@ -67,8 +67,8 @@ export async function POST(request: Request) {
     dataHora: new Date(data_hora),
   }
 
-  // Disparar em paralelo, sem await (não bloqueia)
-  Promise.all([
+  // Enviar notificações aguardando conclusão (Vercel encerra função antes de promises soltas)
+  await Promise.all([
     enviarEmailConfirmacao(dadosNotificacao),
     enviarWhatsAppConfirmacao(dadosNotificacao),
   ]).catch(err => console.error('Erro nas notificações:', err))
