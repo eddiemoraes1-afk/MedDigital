@@ -1,5 +1,6 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { enviarEmailCancelamento } from '@/lib/notifications'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
   // Verificar que o agendamento pertence a este paciente
   const { data: paciente } = await adminSupabase
     .from('pacientes')
-    .select('id')
+    .select('id, nome, telefone')
     .eq('usuario_id', user.id)
     .single()
 
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
 
   const { data: agendamento } = await adminSupabase
     .from('agendamentos')
-    .select('id, paciente_id, status')
+    .select('id, paciente_id, status, data_hora, medico_id')
     .eq('id', agendamento_id)
     .single()
 
@@ -39,6 +40,25 @@ export async function POST(request: Request) {
     .eq('id', agendamento_id)
 
   if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
+
+  // Enviar email de cancelamento apenas no cancelamento real (não no reagendamento,
+  // pois o novo agendamento já envia email de confirmação)
+  if (statusFinal === 'cancelado') {
+    const { data: medico } = await adminSupabase
+      .from('medicos')
+      .select('nome, especialidade')
+      .eq('id', agendamento.medico_id)
+      .single()
+
+    await enviarEmailCancelamento({
+      pacienteNome: paciente.nome,
+      pacienteEmail: user.email!,
+      pacienteTelefone: paciente.telefone,
+      medicoNome: medico?.nome || 'Médico',
+      medicoEspecialidade: medico?.especialidade || '',
+      dataHora: new Date(agendamento.data_hora),
+    }).catch(err => console.error('Erro ao enviar email de cancelamento:', err))
+  }
 
   return NextResponse.json({ sucesso: true })
 }

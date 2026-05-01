@@ -115,6 +115,95 @@ export async function enviarEmailConfirmacao(dados: DadosAgendamento) {
   }
 }
 
+// ─── EMAIL CANCELAMENTO ──────────────────────────────────────────────────────
+
+export async function enviarEmailCancelamento(dados: DadosAgendamento) {
+  const gmailUser = process.env.GMAIL_USER
+  const gmailPass = process.env.GMAIL_APP_PASSWORD
+  if (!gmailUser || !gmailPass) return
+
+  const { data, hora } = formatarDataHora(dados.dataHora)
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: gmailUser, pass: gmailPass },
+  })
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F4F7FB; margin: 0; padding: 20px; }
+        .container { max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .header { background: #1A3A5C; padding: 32px; text-align: center; }
+        .header h1 { color: white; margin: 0; font-size: 22px; }
+        .header p { color: #93C5FD; margin: 8px 0 0; font-size: 14px; }
+        .body { padding: 32px; }
+        .greeting { font-size: 16px; color: #374151; margin-bottom: 24px; }
+        .card { background: #FEF2F2; border: 1px solid #FECACA; border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .card-row { display: flex; margin-bottom: 12px; }
+        .card-label { color: #6B7280; font-size: 13px; width: 90px; }
+        .card-value { color: #1A3A5C; font-size: 13px; font-weight: 600; }
+        .badge { display: inline-block; background: #EF4444; color: white; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
+        .footer { background: #F9FAFB; padding: 20px 32px; text-align: center; }
+        .footer p { color: #9CA3AF; font-size: 12px; margin: 0; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>💙 MedDigital</h1>
+          <p>Sua saúde em boas mãos</p>
+        </div>
+        <div class="body">
+          <p class="greeting">Olá, <strong>${dados.pacienteNome}</strong>!</p>
+          <span class="badge">❌ Consulta cancelada</span>
+          <div class="card">
+            <div class="card-row">
+              <span class="card-label">Médico</span>
+              <span class="card-value">Dr(a). ${dados.medicoNome}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Especialidade</span>
+              <span class="card-value">${dados.medicoEspecialidade}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Data</span>
+              <span class="card-value">${data}</span>
+            </div>
+            <div class="card-row" style="margin-bottom: 0">
+              <span class="card-label">Horário</span>
+              <span class="card-value">${hora}</span>
+            </div>
+          </div>
+          <p style="color: #6B7280; font-size: 14px; line-height: 1.6;">
+            Sua consulta foi cancelada com sucesso. Caso queira reagendar, acesse o aplicativo a qualquer momento.
+          </p>
+        </div>
+        <div class="footer">
+          <p>MedDigital — Telemedicina com Inteligência Artificial</p>
+          <p style="margin-top: 4px;">med-digital.vercel.app</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+
+  try {
+    const info = await transporter.sendMail({
+      from: `MedDigital <${gmailUser}>`,
+      to: dados.pacienteEmail,
+      subject: `❌ Consulta cancelada — ${data} às ${hora}`,
+      html,
+    })
+    console.log('Email cancelamento enviado para', dados.pacienteEmail, '| messageId:', info.messageId)
+  } catch (err) {
+    console.error('Erro ao enviar email de cancelamento:', err)
+  }
+}
+
 // ─── WHATSAPP via Twilio ─────────────────────────────────────────────────────
 
 export async function enviarWhatsAppConfirmacao(dados: DadosAgendamento) {
