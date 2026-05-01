@@ -20,7 +20,7 @@ export default function LoginPage() {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password: senha })
 
     if (error) {
-      setErro('E-mail ou senha incorretos. Verifique e tente novamente.')
+      setErro(`ERRO TÉCNICO: ${error.message} | Código: ${error.status} | URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL?.slice(0, 30)}`)
       setCarregando(false)
       return
     }
