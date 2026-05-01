@@ -191,7 +191,7 @@ export default function DisponibilidadePage() {
                       <div className="flex items-center gap-3">
                         <Clock className="w-4 h-4 text-[#2E75B6]" />
                         <span className="text-sm font-medium text-gray-700">
-                          {h.hora_inicio} — {h.hora_fim}
+                          {h.hora_inicio.slice(0, 5)} — {h.hora_fim.slice(0, 5)}
                         </span>
                         <span className="text-xs text-gray-400">({h.duracao_minutos} min/consulta)</span>
                       </div>
