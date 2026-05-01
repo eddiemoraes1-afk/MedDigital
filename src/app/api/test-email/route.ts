@@ -1,14 +1,29 @@
 import { NextResponse } from 'next/server'
+import { enviarEmailConfirmacao } from '@/lib/notifications'
 
 export async function GET() {
-  const apiKey = process.env.RESEND_API_KEY
+  const logs: string[] = []
 
-  if (!apiKey) {
-    return NextResponse.json({ erro: 'RESEND_API_KEY não encontrada no ambiente' }, { status: 500 })
+  // Teste 1: variável de ambiente
+  const apiKey = process.env.RESEND_API_KEY
+  logs.push(apiKey ? `RESEND_API_KEY: OK (${apiKey.slice(0,8)}...)` : 'RESEND_API_KEY: AUSENTE')
+
+  // Teste 2: chamar a função exata que o agendamento usa
+  try {
+    await enviarEmailConfirmacao({
+      pacienteNome: 'Maria da Silva',
+      pacienteEmail: 'metaemultipla@gmail.com',
+      pacienteTelefone: undefined,
+      medicoNome: 'Marcelo Rovaris',
+      medicoEspecialidade: 'Gastroenterologia',
+      dataHora: new Date('2026-05-02T11:00:00.000Z'),
+    })
+    logs.push('enviarEmailConfirmacao: executou sem exceção')
+  } catch (err: any) {
+    logs.push(`enviarEmailConfirmacao: EXCEÇÃO — ${err?.message || String(err)}`)
   }
 
-  const keyPreview = apiKey.slice(0, 8) + '...' + apiKey.slice(-4)
-
+  // Teste 3: fetch direto para confirmar
   try {
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -19,24 +34,15 @@ export async function GET() {
       body: JSON.stringify({
         from: 'MedDigital <onboarding@resend.dev>',
         to: ['eddiemoraes1@gmail.com'],
-        subject: '🧪 Teste MedDigital — Resend funcionando',
-        html: '<h2>Teste bem-sucedido!</h2><p>O Resend está configurado corretamente no MedDigital.</p>',
+        subject: '🧪 Teste direto',
+        html: '<p>Teste fetch direto OK</p>',
       }),
     })
-
     const result = await response.json()
-
-    return NextResponse.json({
-      status: response.status,
-      ok: response.ok,
-      keyUsada: keyPreview,
-      respostaResend: result,
-    })
+    logs.push(`fetch direto: status ${response.status} — ${JSON.stringify(result)}`)
   } catch (err: any) {
-    return NextResponse.json({
-      erro: 'Exceção ao chamar Resend',
-      detalhe: err?.message || String(err),
-      keyUsada: keyPreview,
-    }, { status: 500 })
+    logs.push(`fetch direto: EXCEÇÃO — ${err?.message}`)
   }
+
+  return NextResponse.json({ logs })
 }
