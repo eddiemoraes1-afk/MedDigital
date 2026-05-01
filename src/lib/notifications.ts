@@ -11,13 +11,15 @@ interface DadosAgendamento {
 }
 
 function formatarDataHora(dataHora: Date) {
+  const tz = 'America/Sao_Paulo'
   const data = dataHora.toLocaleDateString('pt-BR', {
     weekday: 'long',
     day: '2-digit',
     month: 'long',
     year: 'numeric',
+    timeZone: tz,
   })
-  const hora = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  const hora = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: tz })
   return { data, hora }
 }
 

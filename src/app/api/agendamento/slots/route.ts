@@ -11,7 +11,8 @@ export async function GET(request: Request) {
   }
 
   const supabase = createAdminClient()
-  const dataObj = new Date(data + 'T00:00:00')
+  // Forçar interpretação em Brasília para obter o dia da semana correto
+  const dataObj = new Date(data + 'T12:00:00-03:00')
   const diaSemana = dataObj.getDay()
 
   // Buscar horários disponíveis do médico nesse dia

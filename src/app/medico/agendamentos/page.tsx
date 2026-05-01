@@ -174,7 +174,7 @@ export default async function MedicoAgendamentosPage({
                     <p className="text-center text-xs text-gray-300 py-4">—</p>
                   ) : (
                     agsDia.map((a: any) => {
-                      const hora = new Date(a.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+                      const hora = new Date(a.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
                       const paciente = pacienteMap[a.paciente_id]
                       const primeiroNomePac = (paciente?.nome || 'Paciente').split(' ')[0]
                       return (
@@ -221,11 +221,11 @@ export default async function MedicoAgendamentosPage({
                         <div className="flex items-center gap-3 mt-0.5">
                           <span className="flex items-center gap-1 text-xs text-gray-400">
                             <Calendar className="w-3 h-3" />
-                            {dataHora.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })}
+                            {dataHora.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', timeZone: 'America/Sao_Paulo' })}
                           </span>
                           <span className="flex items-center gap-1 text-xs text-gray-400">
                             <Clock className="w-3 h-3" />
-                            {dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                            {dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}
                           </span>
                         </div>
                         {a.observacoes && (

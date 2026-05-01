@@ -68,11 +68,11 @@ export default async function AgendamentosPage() {
               <div className="flex items-center gap-3 mt-2">
                 <span className="flex items-center gap-1 text-xs text-gray-500">
                   <Calendar className="w-3 h-3" />
-                  {dataHora.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })}
+                  {dataHora.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', timeZone: 'America/Sao_Paulo' })}
                 </span>
                 <span className="flex items-center gap-1 text-xs text-gray-500">
                   <Clock className="w-3 h-3" />
-                  {dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  {dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}
                 </span>
               </div>
               {a.observacoes && (

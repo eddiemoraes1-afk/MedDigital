@@ -89,16 +89,16 @@ export default function AgendarPage() {
     if (!medicoSelecionado || !dataSelecionada || !slotSelecionado) return
     setCarregando(true)
 
-    const [hora, min] = slotSelecionado.split(':')
-    const dataHora = new Date(dataSelecionada)
-    dataHora.setHours(Number(hora), Number(min), 0, 0)
+    // Construir datetime com offset de Brasília para evitar conversão UTC errada
+    const dataStr = dataSelecionada.toLocaleDateString('en-CA') // YYYY-MM-DD
+    const dataHoraBrasilia = `${dataStr}T${slotSelecionado}:00-03:00`
 
     const res = await fetch('/api/agendamento/criar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         medico_id: medicoSelecionado.id,
-        data_hora: dataHora.toISOString(),
+        data_hora: dataHoraBrasilia,
         observacoes
       })
     })
