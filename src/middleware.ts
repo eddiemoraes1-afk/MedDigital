@@ -25,8 +25,21 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Renova o token de sessão a cada requisição
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const pathname = request.nextUrl.pathname
+
+  const rotasProtegidas = ['/paciente', '/medico', '/admin', '/empresa']
+  const rotaProtegida = rotasProtegidas.some(r => pathname.startsWith(r))
+
+  if (rotaProtegida && !user) {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
+  // Usuário logado tentando acessar login/cadastro → redireciona para o painel correto
+  if (user && (pathname === '/login' || pathname === '/cadastro')) {
+    return NextResponse.redirect(new URL('/api/auth/redirect', request.url))
+  }
 
   return supabaseResponse
 }
