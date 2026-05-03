@@ -8,14 +8,14 @@ interface Props {
 export default function AdminHeader({ ativo }: Props) {
   const linkBase = 'text-sm flex items-center gap-1.5 transition-colors'
   const linkAtivo = 'text-[#5BBD9B] font-semibold'
-  const linkInativo = 'text-gray-500 hover:text-[#5BBD9B]'
+  const linkInativo = 'text-green-200 hover:text-white'
 
   return (
-    <header className="bg-white border-b border-gray-100 shadow-sm px-6 py-3">
+    <header className="bg-[#1A3A2C] text-white px-6 py-4">
       <div className="max-w-6xl mx-auto flex items-center justify-between">
         <Link href="/admin" className="flex items-center gap-3">
-          <img src="/logo.svg" alt="RovarisMed" className="h-9" />
-          <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full flex items-center gap-1">
+          <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
+          <span className="text-xs text-green-300 ml-1 flex items-center gap-1">
             <Shield className="w-3 h-3" /> Admin
           </span>
         </Link>
@@ -33,7 +33,7 @@ export default function AdminHeader({ ativo }: Props) {
             <UserCheck className="w-4 h-4" /> Médicos
           </Link>
           <form action="/api/auth/signout" method="POST">
-            <button type="submit" className="text-sm text-gray-400 hover:text-red-500 flex items-center gap-1.5 transition-colors">
+            <button type="submit" className="text-sm text-green-300 hover:text-white flex items-center gap-1.5 transition-colors">
               <LogOut className="w-4 h-4" /> Sair
             </button>
           </form>

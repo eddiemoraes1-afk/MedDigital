@@ -185,7 +185,7 @@ function AgendarConteudo() {
       <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/logo-branca.svg" alt="RovarisMed" className="h-8" />
+            <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
           </div>
           <Link href="/paciente/dashboard" className="text-sm text-green-200 hover:text-white flex items-center gap-1">
             <ArrowLeft className="w-4 h-4" /> Voltar

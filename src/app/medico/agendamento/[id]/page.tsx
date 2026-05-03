@@ -100,7 +100,7 @@ export default async function AgendamentoDetalhePage({
       <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/logo-branca.svg" alt="RovarisMed" className="h-8" />
+            <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
             <span className="text-xs text-green-300 ml-1">Painel do Médico</span>
           </div>
           <Link href="/medico/agendamentos" className="text-sm text-green-200 hover:text-white flex items-center gap-1">

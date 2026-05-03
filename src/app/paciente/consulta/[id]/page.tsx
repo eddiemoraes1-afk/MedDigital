@@ -69,7 +69,7 @@ export default function ConsultaPaciente() {
       {/* Header */}
       <div className="bg-[#1A3A2C] px-6 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <img src="/logo-branca.svg" alt="RovarisMed" className="h-8" />
+          <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
           <span className="text-green-300 text-xs">— Consulta Virtual</span>
         </div>
 

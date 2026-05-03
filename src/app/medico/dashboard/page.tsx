@@ -68,7 +68,7 @@ export default async function MedicoDashboard() {
       <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/logo-branca.svg" alt="RovarisMed" className="h-8" />
+            <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
             <span className="text-xs text-green-300 ml-2">Painel do Médico</span>
           </div>
           <div className="flex items-center gap-4">
