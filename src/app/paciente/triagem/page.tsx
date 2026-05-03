@@ -431,9 +431,19 @@ export default function TriagemPage() {
       <header className="bg-[#1A3A2C] text-white px-6 py-4 shrink-0">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/paciente/dashboard" className="text-green-200 hover:text-white">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
+            {etapa === 'triagem' ? (
+              <button
+                onClick={() => { setEtapa('validacao'); setMensagens([]); setResultado(null); trocasRef.current = 0 }}
+                className="text-green-200 hover:text-white"
+                aria-label="Voltar para identificação"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            ) : (
+              <Link href="/paciente/dashboard" className="text-green-200 hover:text-white">
+                <ArrowLeft className="w-5 h-5" />
+              </Link>
+            )}
             <div className="flex items-center gap-2">
               <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
               <span className="text-xs text-green-300 ml-1">Triagem por IA</span>
