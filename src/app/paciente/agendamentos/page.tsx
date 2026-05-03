@@ -3,6 +3,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Heart, LogOut, ArrowLeft, Calendar, Clock, User, Plus } from 'lucide-react'
 import BotoesAgendamento from './BotoesAgendamento'
+import BotaoEntrarConsulta from './BotaoEntrarConsulta'
 
 export default async function AgendamentosPage() {
   const supabase = await createClient()
@@ -89,11 +90,17 @@ export default async function AgendamentosPage() {
                 <p className="text-xs text-gray-400 mt-1 italic">"{a.observacoes}"</p>
               )}
               {futuro && a.status !== 'cancelado' && (
-                <BotoesAgendamento
-                  agendamentoId={a.id}
-                  medicoId={a.medico_id}
-                  medicoNome={medico?.nome || 'Médico'}
-                />
+                <>
+                  <BotaoEntrarConsulta
+                    agendamentoId={a.id}
+                    dataHora={a.data_hora}
+                  />
+                  <BotoesAgendamento
+                    agendamentoId={a.id}
+                    medicoId={a.medico_id}
+                    medicoNome={medico?.nome || 'Médico'}
+                  />
+                </>
               )}
             </div>
           </div>

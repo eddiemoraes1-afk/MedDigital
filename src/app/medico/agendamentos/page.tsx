@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Heart, LogOut, ArrowLeft, Calendar, Clock, User, ChevronLeft, ChevronRight, XCircle } from 'lucide-react'
+import BotaoEntrarConsultaMedico from './BotaoEntrarConsultaMedico'
 
 export default async function MedicoAgendamentosPage({
   searchParams,
@@ -220,6 +221,12 @@ export default async function MedicoAgendamentosPage({
                             <User className="w-3 h-3 shrink-0" />
                             <span className="truncate">{primeiroNomePac}</span>
                           </div>
+                          {!isCancelado && (
+                            <BotaoEntrarConsultaMedico
+                              agendamentoId={a.id}
+                              dataHora={a.data_hora}
+                            />
+                          )}
                         </div>
                       )
                     })
@@ -275,6 +282,12 @@ export default async function MedicoAgendamentosPage({
                         )}
                         {isCancelado && !a.motivo_cancelamento && (
                           <p className="text-xs text-red-300 mt-1 italic">Cancelado sem motivo informado</p>
+                        )}
+                        {!isCancelado && (
+                          <BotaoEntrarConsultaMedico
+                            agendamentoId={a.id}
+                            dataHora={a.data_hora}
+                          />
                         )}
                       </div>
                     </div>
