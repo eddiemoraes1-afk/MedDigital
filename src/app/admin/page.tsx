@@ -18,6 +18,8 @@ export default async function AdminDashboardPage() {
     { count: totalPacientes },
     { count: totalAgendamentos },
     { count: agendamentosHoje },
+    { count: totalMedicos },
+    { count: consultasFuturas },
   ] = await Promise.all([
     adminSupabase.from('empresas').select('*', { count: 'exact', head: true }),
     adminSupabase.from('vinculos_empresa').select('*', { count: 'exact', head: true }).eq('ativo', true),
@@ -26,6 +28,10 @@ export default async function AdminDashboardPage() {
     adminSupabase.from('agendamentos').select('*', { count: 'exact', head: true })
       .gte('data_hora', new Date().toISOString().slice(0, 10))
       .lt('data_hora', new Date(Date.now() + 86400000).toISOString().slice(0, 10)),
+    adminSupabase.from('medicos').select('*', { count: 'exact', head: true }),
+    adminSupabase.from('agendamentos').select('*', { count: 'exact', head: true })
+      .gt('data_hora', new Date().toISOString())
+      .neq('status', 'cancelado'),
   ])
 
   // Empresas recentes
@@ -83,7 +89,7 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
           <Link href="/admin/empresas" className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:border hover:border-[#2E75B6] transition-all">
             <div className="flex items-center justify-between mb-3">
               <Building2 className="w-5 h-5 text-[#2E75B6]" />
@@ -127,6 +133,24 @@ export default async function AdminDashboardPage() {
             </div>
             <p className="text-3xl font-bold text-[#2E75B6]">{agendamentosHoje ?? 0}</p>
             <p className="text-xs text-gray-500 mt-1">consultas hoje</p>
+          </Link>
+
+          <Link href="/admin/medicos" className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:border hover:border-indigo-300 transition-all">
+            <div className="flex items-center justify-between mb-3">
+              <UserCheck className="w-5 h-5 text-indigo-500" />
+              <span className="text-xs text-gray-400">médicos</span>
+            </div>
+            <p className="text-3xl font-bold text-[#1A3A5C]">{totalMedicos ?? 0}</p>
+            <p className="text-xs text-gray-500 mt-1">cadastrados</p>
+          </Link>
+
+          <Link href="/admin/agendamentos" className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:border hover:border-teal-300 transition-all">
+            <div className="flex items-center justify-between mb-3">
+              <Calendar className="w-5 h-5 text-teal-500" />
+              <span className="text-xs text-gray-400">agendadas</span>
+            </div>
+            <p className="text-3xl font-bold text-teal-600">{consultasFuturas ?? 0}</p>
+            <p className="text-xs text-gray-500 mt-1">consultas futuras</p>
           </Link>
         </div>
 
