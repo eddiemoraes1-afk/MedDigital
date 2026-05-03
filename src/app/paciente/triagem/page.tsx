@@ -36,6 +36,7 @@ interface DadosSintomas {
   outraLocalizacaoDor: string
   intensidadeDor: number | null
   tomouRemedio: boolean | null
+  oQueTomou: string
   remedioMelhorou: 'sim' | 'nao' | 'parcial' | null
   remedioContinuo: boolean | null
   remedioContinuoQuais: string
@@ -283,6 +284,7 @@ function EtapaSintomas({ onProximo }: { onProximo: (dados: DadosSintomas) => voi
   const [outraLocalizacaoDor, setOutraLocalizacaoDor] = useState('')
   const [intensidadeDor, setIntensidadeDor] = useState<number | null>(null)
   const [tomouRemedio, setTomouRemedio] = useState<boolean | null>(null)
+  const [oQueTomou, setOQueTomou] = useState('')
   const [remedioMelhorou, setRemedioMelhorou] = useState<'sim' | 'nao' | 'parcial' | null>(null)
   const [remedioContinuo, setRemedioContinuo] = useState<boolean | null>(null)
   const [remedioContinuoQuais, setRemedioContinuoQuais] = useState('')
@@ -323,7 +325,7 @@ function EtapaSintomas({ onProximo }: { onProximo: (dados: DadosSintomas) => voi
     setErro('')
     onProximo({
       motivosPrincipais, outroMotivo, locaisDor, outraLocalizacaoDor,
-      intensidadeDor, tomouRemedio, remedioMelhorou, remedioContinuo, remedioContinuoQuais,
+      intensidadeDor, tomouRemedio, oQueTomou, remedioMelhorou, remedioContinuo, remedioContinuoQuais,
     })
   }
 
@@ -434,7 +436,7 @@ function EtapaSintomas({ onProximo }: { onProximo: (dados: DadosSintomas) => voi
               const val = op === 'Sim'
               const ativo = tomouRemedio === val
               return (
-                <button key={op} type="button" onClick={() => { setTomouRemedio(val); if (!val) setRemedioMelhorou(null) }}
+                <button key={op} type="button" onClick={() => { setTomouRemedio(val); if (!val) { setRemedioMelhorou(null); setOQueTomou('') } }}
                   className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors
                     ${ativo ? 'bg-[#1A3A2C] text-white border-[#1A3A2C]' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
                   {op}
@@ -444,16 +446,28 @@ function EtapaSintomas({ onProximo }: { onProximo: (dados: DadosSintomas) => voi
           </div>
 
           {tomouRemedio && (
-            <div className="mt-4">
-              <p className="text-sm font-semibold text-[#1A3A2C] mb-3">Melhorou?</p>
-              <div className="flex gap-3">
-                {([{ label: 'Sim', val: 'sim' }, { label: 'Parcialmente', val: 'parcial' }, { label: 'Não', val: 'nao' }] as const).map(op => (
-                  <button key={op.val} type="button" onClick={() => setRemedioMelhorou(op.val)}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors
-                      ${remedioMelhorou === op.val ? 'bg-[#1A3A2C] text-white border-[#1A3A2C]' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
-                    {op.label}
-                  </button>
-                ))}
+            <div className="mt-4 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-[#1A3A2C] mb-1">O que tomou ou fez?</label>
+                <textarea
+                  value={oQueTomou}
+                  onChange={e => setOQueTomou(e.target.value)}
+                  placeholder="Ex: Dipirona 500mg, compressa fria, chá de camomila..."
+                  rows={2}
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none"
+                />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[#1A3A2C] mb-3">Melhorou?</p>
+                <div className="flex gap-3">
+                  {([{ label: 'Sim', val: 'sim' }, { label: 'Parcialmente', val: 'parcial' }, { label: 'Não', val: 'nao' }] as const).map(op => (
+                    <button key={op.val} type="button" onClick={() => setRemedioMelhorou(op.val)}
+                      className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors
+                        ${remedioMelhorou === op.val ? 'bg-[#1A3A2C] text-white border-[#1A3A2C]' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                      {op.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
