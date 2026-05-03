@@ -9,13 +9,12 @@ interface Props {
   dataHora: string // ISO UTC string do banco
 }
 
-function formatarHoraSP(date: Date): string {
-  return new Intl.DateTimeFormat('pt-BR', {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'America/Sao_Paulo',
-    hour12: false,
-  }).format(date)
+// São Paulo é sempre UTC-3 (Brasil aboliu horário de verão em 2019)
+function horarySP(utcDate: Date): string {
+  const sp = new Date(utcDate.getTime() - 3 * 60 * 60 * 1000)
+  const h = String(sp.getUTCHours()).padStart(2, '0')
+  const m = String(sp.getUTCMinutes()).padStart(2, '0')
+  return `${h}:${m}`
 }
 
 export default function BotaoEntrarConsulta({ agendamentoId, dataHora }: Props) {
@@ -31,12 +30,12 @@ export default function BotaoEntrarConsulta({ agendamentoId, dataHora }: Props) 
 
   if (!dentroJanela) {
     if (diffMin > 60) {
-      // Mostrar quando a sala abre (60 min antes do horário SP)
-      const abreUTC = new Date(consulta.getTime() - 60 * 60000)
+      // Mostrar quando a sala abre (60 min antes), calculado em UTC-3 puro
+      const abreUTC = new Date(consulta.getTime() - 60 * 60 * 1000)
       return (
         <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
           <Video className="w-3 h-3" />
-          Sala abre às {formatarHoraSP(abreUTC)}
+          Sala abre às {horarySP(abreUTC)}
         </p>
       )
     }
