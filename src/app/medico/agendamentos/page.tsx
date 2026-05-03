@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Heart, LogOut, ArrowLeft, Calendar, Clock, User, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Heart, LogOut, ArrowLeft, Calendar, Clock, User, ChevronLeft, ChevronRight, XCircle } from 'lucide-react'
 
 export default async function MedicoAgendamentosPage({
   searchParams,
@@ -38,14 +38,13 @@ export default async function MedicoAgendamentosPage({
   domingo.setDate(segunda.getDate() + 6)
   domingo.setHours(23, 59, 59, 999)
 
-  // Buscar agendamentos da semana
+  // Buscar TODOS os agendamentos da semana (incluindo cancelados e reagendados)
   const { data: agendamentos } = await adminSupabase
     .from('agendamentos')
     .select('*')
     .eq('medico_id', medico.id)
     .gte('data_hora', segunda.toISOString())
     .lte('data_hora', domingo.toISOString())
-    .neq('status', 'cancelado')
     .order('data_hora', { ascending: true })
 
   // Buscar dados dos pacientes
@@ -71,20 +70,34 @@ export default async function MedicoAgendamentosPage({
   })
   ;(agendamentos || []).forEach((a: any) => {
     const d = new Date(a.data_hora)
-    const key = d.toDateString()
+    // Usar data no fuso de SP para chave do dia
+    const spDate = new Date(d.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }))
+    spDate.setHours(0, 0, 0, 0)
+    const key = spDate.toDateString()
     if (agendamentosPorDia[key]) {
       agendamentosPorDia[key].push(a)
     }
   })
 
   const labelMes = segunda.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
-  const totalSemana = agendamentos?.length || 0
+  const totalAtivos = (agendamentos || []).filter((a: any) => !['cancelado', 'reagendado'].includes(a.status)).length
+  const totalCancelados = (agendamentos || []).filter((a: any) => a.status === 'cancelado').length
   const primeiroNome = medico.nome.split(' ')[0]
 
   const corStatus: Record<string, string> = {
     confirmado: 'bg-green-100 text-green-700 border-green-200',
     pendente: 'bg-yellow-100 text-yellow-700 border-yellow-200',
     concluido: 'bg-gray-100 text-gray-500 border-gray-200',
+    cancelado: 'bg-red-50 text-red-400 border-red-100',
+    reagendado: 'bg-orange-50 text-orange-400 border-orange-100',
+  }
+
+  const labelStatus: Record<string, string> = {
+    confirmado: 'Confirmado',
+    pendente: 'Pendente',
+    concluido: 'Concluído',
+    cancelado: 'Cancelado',
+    reagendado: 'Reagendado',
   }
 
   return (
@@ -118,7 +131,12 @@ export default async function MedicoAgendamentosPage({
             <h1 className="text-2xl font-bold text-[#1A3A5C] flex items-center gap-2">
               <Calendar className="w-6 h-6" /> Minha Agenda
             </h1>
-            <p className="text-gray-500 mt-1 capitalize">{labelMes} — {totalSemana} consulta{totalSemana !== 1 ? 's' : ''} esta semana</p>
+            <p className="text-gray-500 mt-1 capitalize">
+              {labelMes} — {totalAtivos} consulta{totalAtivos !== 1 ? 's' : ''} ativa{totalAtivos !== 1 ? 's' : ''}
+              {totalCancelados > 0 && (
+                <span className="text-red-400 ml-2">· {totalCancelados} cancelada{totalCancelados !== 1 ? 's' : ''}</span>
+              )}
+            </p>
           </div>
 
           {/* Navegação de semana */}
@@ -147,6 +165,8 @@ export default async function MedicoAgendamentosPage({
             const isHoje = dia.toDateString() === new Date().toDateString()
             const agsDia = agendamentosPorDia[dia.toDateString()] || []
             const isPast = dia < hoje && !isHoje
+            const ativos = agsDia.filter((a: any) => !['cancelado', 'reagendado'].includes(a.status))
+            const cancelados = agsDia.filter((a: any) => a.status === 'cancelado')
 
             return (
               <div
@@ -160,11 +180,20 @@ export default async function MedicoAgendamentosPage({
                     {dia.getDate()}
                   </p>
                   {agsDia.length > 0 && (
-                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium mt-1 inline-block ${
-                      isHoje ? 'bg-white/20 text-white' : 'bg-[#2E75B6]/10 text-[#2E75B6]'
-                    }`}>
-                      {agsDia.length}
-                    </span>
+                    <div className="flex justify-center gap-1 mt-1">
+                      {ativos.length > 0 && (
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                          isHoje ? 'bg-white/20 text-white' : 'bg-[#2E75B6]/10 text-[#2E75B6]'
+                        }`}>
+                          {ativos.length}
+                        </span>
+                      )}
+                      {cancelados.length > 0 && (
+                        <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-red-100 text-red-400">
+                          -{cancelados.length}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
 
@@ -177,16 +206,17 @@ export default async function MedicoAgendamentosPage({
                       const hora = new Date(a.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
                       const paciente = pacienteMap[a.paciente_id]
                       const primeiroNomePac = (paciente?.nome || 'Paciente').split(' ')[0]
+                      const isCancelado = a.status === 'cancelado'
                       return (
                         <div
                           key={a.id}
                           className={`rounded-lg p-2 border text-xs ${corStatus[a.status] || 'bg-blue-50 text-blue-700 border-blue-100'}`}
                         >
-                          <div className="flex items-center gap-1 font-semibold">
-                            <Clock className="w-3 h-3 shrink-0" />
+                          <div className={`flex items-center gap-1 font-semibold ${isCancelado ? 'line-through opacity-60' : ''}`}>
+                            {isCancelado ? <XCircle className="w-3 h-3 shrink-0" /> : <Clock className="w-3 h-3 shrink-0" />}
                             {hora}
                           </div>
-                          <div className="flex items-center gap-1 mt-0.5 text-gray-600 truncate">
+                          <div className={`flex items-center gap-1 mt-0.5 truncate ${isCancelado ? 'opacity-60' : 'text-gray-600'}`}>
                             <User className="w-3 h-3 shrink-0" />
                             <span className="truncate">{primeiroNomePac}</span>
                           </div>
@@ -201,7 +231,7 @@ export default async function MedicoAgendamentosPage({
         </div>
 
         {/* Lista detalhada */}
-        {totalSemana > 0 && (
+        {(agendamentos || []).length > 0 && (
           <div className="mt-8 bg-white rounded-2xl shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100">
               <h2 className="font-bold text-[#1A3A5C]">Detalhes da semana</h2>
@@ -210,14 +240,20 @@ export default async function MedicoAgendamentosPage({
               {(agendamentos || []).map((a: any) => {
                 const paciente = pacienteMap[a.paciente_id]
                 const dataHora = new Date(a.data_hora)
+                const isCancelado = a.status === 'cancelado'
                 return (
-                  <div key={a.id} className="px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
-                        <User className="w-5 h-5 text-[#2E75B6]" />
+                  <div key={a.id} className={`px-6 py-4 flex items-start justify-between ${isCancelado ? 'opacity-70' : ''}`}>
+                    <div className="flex items-start gap-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isCancelado ? 'bg-red-50' : 'bg-blue-50'}`}>
+                        {isCancelado
+                          ? <XCircle className="w-5 h-5 text-red-300" />
+                          : <User className="w-5 h-5 text-[#2E75B6]" />
+                        }
                       </div>
                       <div>
-                        <p className="font-medium text-gray-800">{paciente?.nome || 'Paciente'}</p>
+                        <p className={`font-medium ${isCancelado ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                          {paciente?.nome || 'Paciente'}
+                        </p>
                         <div className="flex items-center gap-3 mt-0.5">
                           <span className="flex items-center gap-1 text-xs text-gray-400">
                             <Calendar className="w-3 h-3" />
@@ -231,10 +267,19 @@ export default async function MedicoAgendamentosPage({
                         {a.observacoes && (
                           <p className="text-xs text-gray-400 mt-0.5 italic">"{a.observacoes}"</p>
                         )}
+                        {isCancelado && a.motivo_cancelamento && (
+                          <p className="text-xs text-red-400 mt-1 flex items-center gap-1">
+                            <XCircle className="w-3 h-3" />
+                            Motivo: <span className="italic">"{a.motivo_cancelamento}"</span>
+                          </p>
+                        )}
+                        {isCancelado && !a.motivo_cancelamento && (
+                          <p className="text-xs text-red-300 mt-1 italic">Cancelado sem motivo informado</p>
+                        )}
                       </div>
                     </div>
-                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${corStatus[a.status] || 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-                      {a.status === 'confirmado' ? 'Confirmado' : a.status === 'pendente' ? 'Pendente' : a.status === 'concluido' ? 'Concluído' : a.status}
+                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${corStatus[a.status] || 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                      {labelStatus[a.status] || a.status}
                     </span>
                   </div>
                 )
@@ -243,7 +288,7 @@ export default async function MedicoAgendamentosPage({
           </div>
         )}
 
-        {totalSemana === 0 && (
+        {(agendamentos || []).length === 0 && (
           <div className="mt-8 bg-white rounded-2xl p-12 shadow-sm text-center">
             <Calendar className="w-14 h-14 text-gray-200 mx-auto mb-4" />
             <p className="text-gray-400 font-medium">Nenhuma consulta esta semana</p>

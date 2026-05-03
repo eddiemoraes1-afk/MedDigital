@@ -7,7 +7,7 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ erro: 'Não autenticado' }, { status: 401 })
 
-  const { agendamento_id, status: novoStatus } = await request.json()
+  const { agendamento_id, status: novoStatus, motivo_cancelamento } = await request.json()
   if (!agendamento_id) return NextResponse.json({ erro: 'agendamento_id obrigatório' }, { status: 400 })
   const statusFinal = novoStatus === 'reagendado' ? 'reagendado' : 'cancelado'
 
@@ -34,15 +34,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ erro: 'Já encerrado' }, { status: 400 })
   }
 
+  const updateData: Record<string, any> = { status: statusFinal }
+  if (statusFinal === 'cancelado' && motivo_cancelamento) {
+    updateData.motivo_cancelamento = motivo_cancelamento
+  }
+
   const { error } = await adminSupabase
     .from('agendamentos')
-    .update({ status: statusFinal })
+    .update(updateData)
     .eq('id', agendamento_id)
 
   if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
 
-  // Enviar email de cancelamento apenas no cancelamento real (não no reagendamento,
-  // pois o novo agendamento já envia email de confirmação)
+  // Enviar email de cancelamento apenas no cancelamento real (não no reagendamento)
   if (statusFinal === 'cancelado') {
     const { data: medico } = await adminSupabase
       .from('medicos')
@@ -57,6 +61,7 @@ export async function POST(request: Request) {
       medicoNome: medico?.nome || 'Médico',
       medicoEspecialidade: medico?.especialidade || '',
       dataHora: new Date(agendamento.data_hora),
+      motivoCancelamento: motivo_cancelamento || undefined,
     }).catch(err => console.error('Erro ao enviar email de cancelamento:', err))
   }
 

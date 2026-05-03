@@ -8,6 +8,7 @@ interface DadosAgendamento {
   medicoNome: string
   medicoEspecialidade: string
   dataHora: Date
+  motivoCancelamento?: string
 }
 
 function formatarDataHora(dataHora: Date) {
@@ -178,6 +179,11 @@ export async function enviarEmailCancelamento(dados: DadosAgendamento) {
               <span class="card-value">${hora}</span>
             </div>
           </div>
+          ${dados.motivoCancelamento ? `
+          <div style="background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; padding: 12px 16px; margin: 16px 0;">
+            <p style="color: #6B7280; font-size: 12px; margin: 0 0 4px; font-weight: 600;">Motivo informado:</p>
+            <p style="color: #374151; font-size: 13px; margin: 0; font-style: italic;">"${dados.motivoCancelamento}"</p>
+          </div>` : ''}
           <p style="color: #6B7280; font-size: 14px; line-height: 1.6;">
             Sua consulta foi cancelada com sucesso. Caso queira reagendar, acesse o aplicativo a qualquer momento.
           </p>
