@@ -48,6 +48,7 @@ function AgendarConteudo() {
   const [carregando, setCarregando] = useState(false)
   const [carregandoSlots, setCarregandoSlots] = useState(false)
   const [confirmado, setConfirmado] = useState(false)
+  const [erroConfirmacao, setErroConfirmacao] = useState('')
   const supabase = createClient()
   const router = useRouter()
 
@@ -108,37 +109,46 @@ function AgendarConteudo() {
   async function confirmarAgendamento() {
     if (!medicoSelecionado || !dataSelecionada || !slotSelecionado) return
     setCarregando(true)
+    setErroConfirmacao('')
 
-    // Construir datetime com offset de Brasília para evitar conversão UTC errada
-    const dataStr = dataSelecionada.toLocaleDateString('en-CA') // YYYY-MM-DD
-    const dataHoraBrasilia = `${dataStr}T${slotSelecionado}:00-03:00`
+    try {
+      // Construir datetime com offset de Brasília para evitar conversão UTC errada
+      const dataStr = dataSelecionada.toLocaleDateString('en-CA') // YYYY-MM-DD
+      const dataHoraBrasilia = `${dataStr}T${slotSelecionado}:00-03:00`
 
-    const res = await fetch('/api/agendamento/criar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        medico_id: medicoSelecionado.id,
-        data_hora: dataHoraBrasilia,
-        observacoes,
-        reagendado_de: reagendarId || null,
-      })
-    })
-
-    const data = await res.json()
-
-    // Se for reagendamento, marca o antigo como 'reagendado' (não 'cancelado')
-    if (res.ok && reagendarId) {
-      await fetch('/api/agendamento/cancelar', {
+      const res = await fetch('/api/agendamento/criar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agendamento_id: reagendarId, status: 'reagendado' })
+        body: JSON.stringify({
+          medico_id: medicoSelecionado.id,
+          data_hora: dataHoraBrasilia,
+          observacoes,
+          reagendado_de: reagendarId || null,
+        })
       })
-    }
 
-    setCarregando(false)
+      const data = await res.json()
 
-    if (res.ok) {
+      if (!res.ok) {
+        setErroConfirmacao(data.erro || data.error || `Erro ${res.status}: não foi possível agendar`)
+        setCarregando(false)
+        return
+      }
+
+      // Se for reagendamento, marca o antigo como 'reagendado'
+      if (reagendarId) {
+        await fetch('/api/agendamento/cancelar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ agendamento_id: reagendarId, status: 'reagendado' })
+        })
+      }
+
       setConfirmado(true)
+    } catch (err: any) {
+      setErroConfirmacao('Erro de conexão. Tente novamente.')
+    } finally {
+      setCarregando(false)
     }
   }
 
@@ -342,6 +352,11 @@ function AgendarConteudo() {
                 rows={3}
               />
             </div>
+            {erroConfirmacao && (
+              <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+                {erroConfirmacao}
+              </div>
+            )}
             <button
               onClick={confirmarAgendamento}
               disabled={carregando}

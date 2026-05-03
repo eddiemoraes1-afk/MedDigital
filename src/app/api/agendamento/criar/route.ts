@@ -30,15 +30,16 @@ export async function POST(request: Request) {
   if (!paciente) return NextResponse.json({ erro: 'Paciente não encontrado' }, { status: 404 })
 
   // Verificar se slot ainda está disponível (comparar com UTC armazenado)
-  const { data: conflito } = await adminSupabase
+  const { data: conflitos } = await adminSupabase
     .from('agendamentos')
     .select('id')
     .eq('medico_id', medico_id)
     .eq('data_hora', dataHoraUTC)
-    .not('status', 'in', '("cancelado","reagendado")')
-    .single()
+    .not('status', 'in', '(cancelado,reagendado)')
 
-  if (conflito) return NextResponse.json({ erro: 'Horário já ocupado' }, { status: 409 })
+  if (conflitos && conflitos.length > 0) {
+    return NextResponse.json({ erro: 'Horário já ocupado' }, { status: 409 })
+  }
 
   // Criar agendamento com timestamp UTC
   const { data: agendamento, error } = await adminSupabase
