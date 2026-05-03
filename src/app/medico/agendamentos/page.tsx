@@ -131,7 +131,7 @@ export default async function MedicoAgendamentosPage({
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-blue-200">Dr(a). {primeiroNome}</span>
-            <form action="/api/auth/logout" method="POST">
+            <form action="/api/auth/signout" method="POST">
               <button type="submit">
                 <LogOut className="w-4 h-4 text-blue-200 hover:text-white" />
               </button>

@@ -86,7 +86,7 @@ export default async function PacienteDashboard() {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-blue-200">Olá, {primeiroNome}</span>
-            <form action="/api/auth/logout" method="POST">
+            <form action="/api/auth/signout" method="POST">
               <button type="submit" className="flex items-center gap-1 text-sm text-blue-200 hover:text-white">
                 <LogOut className="w-4 h-4" />
               </button>
