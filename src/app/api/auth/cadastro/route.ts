@@ -23,15 +23,27 @@ export async function POST(req: NextRequest) {
 
   // Criar registro na tabela correspondente
   if (tipo === 'paciente') {
-    const { error } = await adminSupabase.from('pacientes').insert({
+    const cpfLimpo = cpf?.replace(/\D/g, '') || null
+
+    const { data: novoPaciente, error } = await adminSupabase.from('pacientes').insert({
       usuario_id: userId,
       nome,
-      cpf: cpf?.replace(/\D/g, '') || null,
+      cpf: cpfLimpo,
       telefone: telefone?.replace(/\D/g, '') || null,
-    })
+    }).select('id').single()
+
     if (error) {
       console.error('Erro ao inserir paciente:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // Vínculo automático: se o CPF constar em vinculos_empresa, linkar paciente_id
+    if (cpfLimpo && novoPaciente?.id) {
+      await adminSupabase
+        .from('vinculos_empresa')
+        .update({ paciente_id: novoPaciente.id })
+        .eq('cpf', cpfLimpo)
+        .is('paciente_id', null)
     }
   } else {
     const { error } = await adminSupabase.from('medicos').insert({
