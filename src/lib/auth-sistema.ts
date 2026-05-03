@@ -57,10 +57,12 @@ export async function requireAdmin(): Promise<PerfilSistema> {
 }
 
 /**
- * Garante que o usuário é empresa. Redireciona para /login se não for.
+ * Garante que o usuário é empresa (ou admin). Redireciona corretamente se não for.
  */
 export async function requireEmpresa(): Promise<PerfilSistema> {
   const perfil = await getPerfilSistema()
-  if (!perfil || perfil.role !== 'empresa') redirect('/login')
+  if (!perfil) redirect('/login')
+  if (perfil.role === 'admin') redirect('/admin')           // admin vai para o painel admin
+  if (perfil.role !== 'empresa') redirect('/paciente/dashboard')
   return perfil
 }
