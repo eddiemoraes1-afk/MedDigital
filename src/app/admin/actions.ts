@@ -10,7 +10,7 @@ export async function aprovarMedico(medicoId: string) {
     .update({ status: 'aprovado' })
     .eq('id', medicoId)
   if (error) throw new Error(error.message)
-  revalidatePath('/admin/dashboard')
+  revalidatePath('/admin')
 }
 
 export async function reprovarMedico(medicoId: string) {
@@ -20,5 +20,5 @@ export async function reprovarMedico(medicoId: string) {
     .update({ status: 'reprovado' })
     .eq('id', medicoId)
   if (error) throw new Error(error.message)
-  revalidatePath('/admin/dashboard')
+  revalidatePath('/admin')
 }

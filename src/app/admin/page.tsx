@@ -3,8 +3,9 @@ import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import {
   Heart, Building2, Users, Activity, LogOut,
-  TrendingUp, Calendar, Shield
+  TrendingUp, Calendar, Shield, Clock, CheckCircle2, UserCheck
 } from 'lucide-react'
+import BotoesAprovacao from './components/BotoesAprovacao'
 
 export default async function AdminDashboardPage() {
   await requireAdmin()
@@ -34,12 +35,12 @@ export default async function AdminDashboardPage() {
     .order('criado_em', { ascending: false })
     .limit(5)
 
-  // Agendamentos recentes
-  const { data: agendamentosRecentes } = await adminSupabase
-    .from('agendamentos')
-    .select('id, data_hora, status, paciente_id')
-    .order('criado_em', { ascending: false })
-    .limit(5)
+  // Médicos pendentes de aprovação
+  const { data: medicosPendentes } = await adminSupabase
+    .from('medicos')
+    .select('id, nome, especialidade, crm, crm_uf, criado_em')
+    .eq('status', 'em_analise')
+    .order('criado_em', { ascending: true })
 
   return (
     <div className="min-h-screen bg-[#F4F7FB]">
@@ -116,6 +117,46 @@ export default async function AdminDashboardPage() {
             <p className="text-3xl font-bold text-[#2E75B6]">{agendamentosHoje ?? 0}</p>
             <p className="text-xs text-gray-500 mt-1">consultas hoje</p>
           </div>
+        </div>
+
+        {/* Médicos aguardando aprovação */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="font-bold text-[#1A3A5C] flex items-center gap-2">
+              <Clock className="w-4 h-4 text-amber-500" /> Médicos aguardando aprovação
+            </h2>
+            {medicosPendentes && medicosPendentes.length > 0 && (
+              <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                {medicosPendentes.length} pendente{medicosPendentes.length > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+          {!medicosPendentes || medicosPendentes.length === 0 ? (
+            <div className="py-10 text-center">
+              <CheckCircle2 className="w-10 h-10 text-green-200 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">Nenhum médico aguardando aprovação</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {medicosPendentes.map((m: any) => (
+                <div key={m.id} className="px-6 py-5 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
+                      <UserCheck className="w-5 h-5 text-[#2E75B6]" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-800">{m.nome}</p>
+                      <p className="text-sm text-gray-500">{m.especialidade} · CRM {m.crm}/{m.crm_uf}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Cadastro: {new Date(m.criado_em).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
+                  <BotoesAprovacao medicoId={m.id} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
