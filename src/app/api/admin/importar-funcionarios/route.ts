@@ -173,17 +173,18 @@ export async function POST(request: NextRequest) {
       pacienteId = paciente?.id ?? null
     }
 
-    // Normalizar data de nascimento (aceita DD/MM/YYYY ou YYYY-MM-DD)
-    function parseDataNasc(raw: string): string | null {
+    // Normaliza datas: aceita YYYY-MM-DD, DD/MM/YYYY e DD-MM-YYYY → sempre devolve YYYY-MM-DD
+    function parseData(raw: string): string | null {
       if (!raw) return null
       const s = raw.trim()
       if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s
-      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+      const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/)
       if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`
       return null
     }
 
-    const dataNasc = parseDataNasc(reg['data_nascimento'] || '')
+    const dataNasc = parseData(reg['data_nascimento'] || '')
+    const dataAdmissao = parseData(reg['data_admissao'] || '')
     const sexoRaw = (reg['sexo'] || '').toLowerCase().trim()
     const sexoValido = ['masculino','feminino','outro','nao_informado'].includes(sexoRaw) ? sexoRaw : null
 
@@ -195,7 +196,7 @@ export async function POST(request: NextRequest) {
       registro_funcional: reg['registro_funcional']?.trim() || null,
       cargo: reg['cargo']?.trim() || null,
       departamento: reg['departamento']?.trim() || null,
-      data_admissao: reg['data_admissao']?.trim() || null,
+      data_admissao: dataAdmissao,
       data_nascimento: dataNasc,
       sexo: sexoValido,
       paciente_id: pacienteId,
