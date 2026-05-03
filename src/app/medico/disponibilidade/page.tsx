@@ -165,22 +165,22 @@ export default function DisponibilidadePage() {
   }
 
   if (carregando) return (
-    <div className="min-h-screen bg-[#F4F7FB] flex items-center justify-center">
-      <Loader2 className="w-8 h-8 animate-spin text-[#2E75B6]" />
+    <div className="min-h-screen bg-[#F3FAF7] flex items-center justify-center">
+      <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
     </div>
   )
 
   const horariosPorDia = DIAS.map((_, i) => horarios.filter(h => h.dia_semana === i))
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB]">
-      <header className="bg-[#1A3A5C] text-white px-6 py-4">
+    <div className="min-h-screen bg-[#F3FAF7]">
+      <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Heart className="w-6 h-6 text-[#2E75B6]" fill="currentColor" />
-            <span className="font-bold">MedDigital</span>
+            <Heart className="w-6 h-6 text-[#5BBD9B]" fill="currentColor" />
+            <span className="font-bold">RovarisMed</span>
           </div>
-          <Link href="/medico/dashboard" className="text-sm text-blue-200 hover:text-white flex items-center gap-1">
+          <Link href="/medico/dashboard" className="text-sm text-green-200 hover:text-white flex items-center gap-1">
             <ArrowLeft className="w-4 h-4" /> Voltar
           </Link>
         </div>
@@ -188,7 +188,7 @@ export default function DisponibilidadePage() {
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[#1A3A5C] flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[#1A3A2C] flex items-center gap-2">
             <Clock className="w-6 h-6" /> Minha Disponibilidade
           </h1>
           <p className="text-gray-500 mt-1">Defina os dias e horários em que atende. Todas as alterações são registradas no log.</p>
@@ -196,7 +196,7 @@ export default function DisponibilidadePage() {
 
         {/* Adicionar novo horário */}
         <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-          <h2 className="font-bold text-[#1A3A5C] mb-4">Adicionar disponibilidade</h2>
+          <h2 className="font-bold text-[#1A3A2C] mb-4">Adicionar disponibilidade</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <div>
               <label className="block text-xs text-gray-500 mb-1">Dia da semana</label>
@@ -246,7 +246,7 @@ export default function DisponibilidadePage() {
           <button
             onClick={adicionarHorario}
             disabled={salvando}
-            className="flex items-center gap-2 bg-[#1A3A5C] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#2E75B6] disabled:opacity-50"
+            className="flex items-center gap-2 bg-[#1A3A2C] text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#5BBD9B] disabled:opacity-50"
           >
             {salvando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {sucesso ? '✅ Salvo!' : 'Adicionar horário'}
@@ -260,14 +260,14 @@ export default function DisponibilidadePage() {
             if (horariosDodia.length === 0) return null
             return (
               <div key={dia} className="bg-white rounded-2xl p-5 shadow-sm">
-                <h3 className="font-semibold text-[#1A3A5C] mb-3">{dia}</h3>
+                <h3 className="font-semibold text-[#1A3A2C] mb-3">{dia}</h3>
                 <div className="space-y-2">
                   {horariosDodia.map(h => (
-                    <div key={h.id} className={`rounded-xl border transition-all ${h.ativo ? 'border-blue-100 bg-blue-50' : 'border-gray-100 bg-gray-50 opacity-60'} ${editandoId === h.id ? 'border-[#2E75B6] bg-white opacity-100' : ''}`}>
+                    <div key={h.id} className={`rounded-xl border transition-all ${h.ativo ? 'border-green-100 bg-green-50' : 'border-gray-100 bg-gray-50 opacity-60'} ${editandoId === h.id ? 'border-[#5BBD9B] bg-white opacity-100' : ''}`}>
                       {editandoId === h.id ? (
                         /* Modo edição inline */
                         <div className="p-4">
-                          <p className="text-xs font-semibold text-[#1A3A5C] mb-3">Editando horário de {dia}</p>
+                          <p className="text-xs font-semibold text-[#1A3A2C] mb-3">Editando horário de {dia}</p>
                           <div className="grid grid-cols-3 gap-3 mb-3">
                             <div>
                               <label className="block text-xs text-gray-500 mb-1">Início</label>
@@ -307,7 +307,7 @@ export default function DisponibilidadePage() {
                           <div className="flex gap-2">
                             <button
                               onClick={() => salvarEdicao(h.id!)}
-                              className="flex items-center gap-1.5 bg-[#1A3A5C] text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-[#2E75B6]"
+                              className="flex items-center gap-1.5 bg-[#1A3A2C] text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-[#5BBD9B]"
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" /> Salvar
                             </button>
@@ -323,7 +323,7 @@ export default function DisponibilidadePage() {
                         /* Modo visualização */
                         <div className="flex items-center justify-between p-3">
                           <div className="flex items-center gap-3">
-                            <Clock className="w-4 h-4 text-[#2E75B6]" />
+                            <Clock className="w-4 h-4 text-[#5BBD9B]" />
                             <span className="text-sm font-medium text-gray-700">
                               {h.hora_inicio.slice(0, 5)} — {h.hora_fim.slice(0, 5)}
                             </span>
@@ -338,7 +338,7 @@ export default function DisponibilidadePage() {
                             </button>
                             <button
                               onClick={() => iniciarEdicao(h)}
-                              className="p-1.5 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                              className="p-1.5 text-blue-400 hover:text-green-600 hover:bg-green-50 rounded-lg"
                               title="Editar horário"
                             >
                               <Pencil className="w-4 h-4" />

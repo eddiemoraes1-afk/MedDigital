@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
               <p className="text-green-700 font-medium">Email enviado! Verifique sua caixa de entrada.</p>
               <p className="text-green-600 text-sm mt-1">Clique no link do email para redefinir sua senha.</p>
             </div>
-            <Link href="/login" className="block text-center text-blue-600 hover:underline">
+            <Link href="/login" className="block text-center text-green-600 hover:underline">
               Voltar para o login
             </Link>
           </div>

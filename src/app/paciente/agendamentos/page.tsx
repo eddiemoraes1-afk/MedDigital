@@ -61,12 +61,12 @@ export default async function AgendamentosPage() {
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-50">
         <div className="flex items-start justify-between">
           <div className="flex gap-3 flex-1">
-            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
-              <User className="w-5 h-5 text-[#2E75B6]" />
+            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
+              <User className="w-5 h-5 text-[#5BBD9B]" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <p className="font-semibold text-[#1A3A5C] text-sm">
+                <p className="font-semibold text-[#1A3A2C] text-sm">
                   Dr(a). {medico?.nome || 'Médico'}
                 </p>
                 {a.reagendado_de && (
@@ -113,18 +113,18 @@ export default async function AgendamentosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB]">
-      <header className="bg-[#1A3A5C] text-white px-6 py-4">
+    <div className="min-h-screen bg-[#F3FAF7]">
+      <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Heart className="w-6 h-6 text-[#2E75B6]" fill="currentColor" />
-            <span className="font-bold">MedDigital</span>
+            <Heart className="w-6 h-6 text-[#5BBD9B]" fill="currentColor" />
+            <span className="font-bold">RovarisMed</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-blue-200">{paciente.nome}</span>
+            <span className="text-sm text-green-200">{paciente.nome}</span>
             <form action="/api/auth/signout" method="POST">
               <button type="submit">
-                <LogOut className="w-4 h-4 text-blue-200 hover:text-white" />
+                <LogOut className="w-4 h-4 text-green-200 hover:text-white" />
               </button>
             </form>
           </div>
@@ -132,20 +132,20 @@ export default async function AgendamentosPage() {
       </header>
 
       <main className="max-w-3xl mx-auto px-6 py-8">
-        <Link href="/paciente/dashboard" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#1A3A5C] mb-6">
+        <Link href="/paciente/dashboard" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#1A3A2C] mb-6">
           <ArrowLeft className="w-4 h-4" /> Voltar ao painel
         </Link>
 
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-[#1A3A5C] flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-[#1A3A2C] flex items-center gap-2">
               <Calendar className="w-6 h-6" /> Meus Agendamentos
             </h1>
             <p className="text-gray-500 mt-1">Consultas agendadas</p>
           </div>
           <Link
             href="/paciente/agendar"
-            className="flex items-center gap-2 bg-[#1A3A5C] text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#2E75B6]"
+            className="flex items-center gap-2 bg-[#1A3A2C] text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#5BBD9B]"
           >
             <Plus className="w-4 h-4" /> Novo agendamento
           </Link>
@@ -153,13 +153,13 @@ export default async function AgendamentosPage() {
 
         {/* Próximas consultas */}
         <div className="mb-8">
-          <h2 className="font-semibold text-[#1A3A5C] mb-3">Próximas consultas</h2>
+          <h2 className="font-semibold text-[#1A3A2C] mb-3">Próximas consultas</h2>
           {proximos.length === 0 ? (
             <div className="bg-white rounded-2xl p-10 shadow-sm text-center">
               <Calendar className="w-12 h-12 text-gray-200 mx-auto mb-3" />
               <p className="text-gray-400">Nenhuma consulta agendada</p>
               <Link href="/paciente/agendar"
-                className="mt-3 inline-block text-sm text-[#2E75B6] font-medium hover:underline">
+                className="mt-3 inline-block text-sm text-[#5BBD9B] font-medium hover:underline">
                 Agendar agora →
               </Link>
             </div>
@@ -173,7 +173,7 @@ export default async function AgendamentosPage() {
         {/* Consultas passadas */}
         {passados.length > 0 && (
           <div>
-            <h2 className="font-semibold text-[#1A3A5C] mb-3">Histórico</h2>
+            <h2 className="font-semibold text-[#1A3A2C] mb-3">Histórico</h2>
             <div className="space-y-3 opacity-70">
               {passados.map((a: any) => <CartaoAgendamento key={a.id} a={a} futuro={false} />)}
             </div>

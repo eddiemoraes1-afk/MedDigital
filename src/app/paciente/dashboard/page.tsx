@@ -76,18 +76,18 @@ export default async function PacienteDashboard() {
   const totalConsultas = proximasConsultas?.length || 0
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB]">
+    <div className="min-h-screen bg-[#F3FAF7]">
       {/* Header */}
-      <header className="bg-[#1A3A5C] text-white px-6 py-4">
+      <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Heart className="w-6 h-6 text-[#2E75B6]" fill="currentColor" />
-            <span className="font-bold">MedDigital</span>
+            <Heart className="w-6 h-6 text-[#5BBD9B]" fill="currentColor" />
+            <span className="font-bold">RovarisMed</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-blue-200">Olá, {primeiroNome}</span>
+            <span className="text-sm text-green-200">Olá, {primeiroNome}</span>
             <form action="/api/auth/signout" method="POST">
-              <button type="submit" className="flex items-center gap-1 text-sm text-blue-200 hover:text-white">
+              <button type="submit" className="flex items-center gap-1 text-sm text-green-200 hover:text-white">
                 <LogOut className="w-4 h-4" />
               </button>
             </form>
@@ -98,22 +98,22 @@ export default async function PacienteDashboard() {
       <main className="max-w-5xl mx-auto px-6 py-8">
         {/* Saudação */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[#1A3A5C]">{saudacao}, {primeiroNome}! 👋</h1>
+          <h1 className="text-2xl font-bold text-[#1A3A2C]">{saudacao}, {primeiroNome}! 👋</h1>
           <p className="text-gray-500 mt-1">Como você está se sentindo hoje?</p>
         </div>
 
         {/* Próximas consultas — destaque quando houver agendamentos */}
         {totalConsultas > 0 && (
-          <div className="bg-white border border-blue-100 rounded-2xl p-5 mb-6 shadow-sm">
+          <div className="bg-white border border-green-100 rounded-2xl p-5 mb-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-[#1A3A5C] flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[#2E75B6]" />
+              <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-[#5BBD9B]" />
                 Próximas consultas
-                <span className="text-xs font-medium bg-[#2E75B6] text-white px-2 py-0.5 rounded-full">
+                <span className="text-xs font-medium bg-[#5BBD9B] text-white px-2 py-0.5 rounded-full">
                   {totalConsultas}
                 </span>
               </h2>
-              <Link href="/paciente/agendamentos" className="text-xs text-[#2E75B6] hover:underline font-medium">
+              <Link href="/paciente/agendamentos" className="text-xs text-[#5BBD9B] hover:underline font-medium">
                 Ver todas →
               </Link>
             </div>
@@ -122,18 +122,18 @@ export default async function PacienteDashboard() {
                 const medico = medicoMap[a.medico_id]
                 const dataHora = new Date(a.data_hora)
                 return (
-                  <div key={a.id} className="flex items-center gap-3 bg-blue-50 rounded-xl px-4 py-3">
-                    <div className="w-9 h-9 bg-[#2E75B6]/10 rounded-xl flex items-center justify-center shrink-0">
-                      <User className="w-4 h-4 text-[#2E75B6]" />
+                  <div key={a.id} className="flex items-center gap-3 bg-green-50 rounded-xl px-4 py-3">
+                    <div className="w-9 h-9 bg-[#5BBD9B]/10 rounded-xl flex items-center justify-center shrink-0">
+                      <User className="w-4 h-4 text-[#5BBD9B]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#1A3A5C] truncate">
+                      <p className="text-sm font-semibold text-[#1A3A2C] truncate">
                         Dr(a). {medico?.nome || 'Médico'}
                       </p>
                       <p className="text-xs text-gray-400">{medico?.especialidade}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-xs font-semibold text-[#2E75B6]">
+                      <p className="text-xs font-semibold text-[#5BBD9B]">
                         {dataHora.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', timeZone: 'America/Sao_Paulo' })}
                       </p>
                       <p className="text-xs text-gray-500">
@@ -148,19 +148,19 @@ export default async function PacienteDashboard() {
         )}
 
         {/* Ação Principal — Iniciar Triagem */}
-        <div className="bg-gradient-to-br from-[#1A3A5C] to-[#2E75B6] rounded-2xl p-8 text-white mb-8">
+        <div className="bg-gradient-to-br from-[#1A3A2C] to-[#5BBD9B] rounded-2xl p-8 text-white mb-8">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
               <Brain className="w-6 h-6" />
             </div>
             <div>
               <h2 className="text-xl font-bold">Precisa de atendimento?</h2>
-              <p className="text-blue-200 text-sm">Nossa IA faz a triagem em poucos minutos</p>
+              <p className="text-green-200 text-sm">Nossa IA faz a triagem em poucos minutos</p>
             </div>
           </div>
           <Link
             href="/paciente/triagem"
-            className="inline-flex items-center gap-2 bg-white text-[#1A3A5C] hover:bg-blue-50 px-6 py-3 rounded-xl font-semibold text-sm"
+            className="inline-flex items-center gap-2 bg-white text-[#1A3A2C] hover:bg-green-50 px-6 py-3 rounded-xl font-semibold text-sm"
           >
             Iniciar triagem agora
             <ChevronRight className="w-4 h-4" />
@@ -170,7 +170,7 @@ export default async function PacienteDashboard() {
         {/* Cards de acesso rápido */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { icon: Brain, label: 'Nova triagem', href: '/paciente/triagem', cor: '#2E75B6' },
+            { icon: Brain, label: 'Nova triagem', href: '/paciente/triagem', cor: '#5BBD9B' },
             { icon: Video, label: 'Consulta virtual', href: '/paciente/consulta', cor: '#1A7340' },
             {
               icon: Calendar,
@@ -192,7 +192,7 @@ export default async function PacienteDashboard() {
                 style={{ backgroundColor: item.cor + '15' }}>
                 <item.icon className="w-5 h-5" style={{ color: item.cor }} />
               </div>
-              <span className="text-sm font-medium text-[#1A3A5C]">{item.label}</span>
+              <span className="text-sm font-medium text-[#1A3A2C]">{item.label}</span>
             </Link>
           ))}
         </div>
@@ -201,8 +201,8 @@ export default async function PacienteDashboard() {
           {/* Últimas triagens */}
           <div className="bg-white rounded-2xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-[#1A3A5C]">Últimas triagens</h3>
-              <Link href="/paciente/triagens" className="text-xs text-[#2E75B6] hover:underline">Ver todas</Link>
+              <h3 className="font-bold text-[#1A3A2C]">Últimas triagens</h3>
+              <Link href="/paciente/triagens" className="text-xs text-[#5BBD9B] hover:underline">Ver todas</Link>
             </div>
             {triagens && triagens.length > 0 ? (
               <div className="space-y-3">
@@ -224,7 +224,7 @@ export default async function PacienteDashboard() {
               <div className="text-center py-8">
                 <Clock className="w-10 h-10 text-gray-200 mx-auto mb-3" />
                 <p className="text-sm text-gray-400">Nenhuma triagem realizada ainda</p>
-                <Link href="/paciente/triagem" className="text-sm text-[#2E75B6] font-medium mt-2 inline-block">
+                <Link href="/paciente/triagem" className="text-sm text-[#5BBD9B] font-medium mt-2 inline-block">
                   Fazer primeira triagem →
                 </Link>
               </div>
@@ -234,8 +234,8 @@ export default async function PacienteDashboard() {
           {/* Últimos atendimentos */}
           <div className="bg-white rounded-2xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-[#1A3A5C]">Histórico de atendimentos</h3>
-              <Link href="/paciente/atendimentos" className="text-xs text-[#2E75B6] hover:underline">Ver todos</Link>
+              <h3 className="font-bold text-[#1A3A2C]">Histórico de atendimentos</h3>
+              <Link href="/paciente/atendimentos" className="text-xs text-[#5BBD9B] hover:underline">Ver todos</Link>
             </div>
             {atendimentos && atendimentos.length > 0 ? (
               <div className="space-y-3">
@@ -251,7 +251,7 @@ export default async function PacienteDashboard() {
                     </div>
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${
                       a.status === 'concluido' ? 'bg-green-100 text-green-700' :
-                      a.status === 'em_andamento' ? 'bg-blue-100 text-blue-700' :
+                      a.status === 'em_andamento' ? 'bg-green-100 text-green-700' :
                       'bg-gray-100 text-gray-600'
                     }`}>
                       {a.status === 'concluido' ? 'Concluído' :

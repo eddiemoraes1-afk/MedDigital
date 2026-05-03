@@ -71,7 +71,7 @@ export default function BotoesAgendamento({ agendamentoId, medicoId, medicoNome 
     <div className="flex items-center gap-2 mt-3">
       <button
         onClick={reagendar}
-        className="flex items-center gap-1.5 text-xs text-[#2E75B6] border border-[#2E75B6] px-3 py-1.5 rounded-lg hover:bg-blue-50 font-medium"
+        className="flex items-center gap-1.5 text-xs text-[#5BBD9B] border border-[#5BBD9B] px-3 py-1.5 rounded-lg hover:bg-green-50 font-medium"
       >
         <RefreshCw className="w-3 h-3" />
         Reagendar

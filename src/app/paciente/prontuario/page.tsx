@@ -78,18 +78,18 @@ export default async function ProntuarioPage() {
   ].sort((a, b) => new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime())
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB]">
+    <div className="min-h-screen bg-[#F3FAF7]">
       {/* Header */}
-      <header className="bg-[#1A3A5C] text-white px-6 py-4">
+      <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Heart className="w-6 h-6 text-[#2E75B6]" fill="currentColor" />
-            <span className="font-bold">MedDigital</span>
+            <Heart className="w-6 h-6 text-[#5BBD9B]" fill="currentColor" />
+            <span className="font-bold">RovarisMed</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-blue-200">{paciente.nome}</span>
+            <span className="text-sm text-green-200">{paciente.nome}</span>
             <form action="/api/auth/signout" method="POST">
-              <button type="submit" className="flex items-center gap-1 text-sm text-blue-200 hover:text-white">
+              <button type="submit" className="flex items-center gap-1 text-sm text-green-200 hover:text-white">
                 <LogOut className="w-4 h-4" />
               </button>
             </form>
@@ -99,14 +99,14 @@ export default async function ProntuarioPage() {
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         {/* Voltar */}
-        <Link href="/paciente/dashboard" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#1A3A5C] mb-6">
+        <Link href="/paciente/dashboard" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#1A3A2C] mb-6">
           <ArrowLeft className="w-4 h-4" />
           Voltar ao painel
         </Link>
 
         {/* Título */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[#1A3A5C] flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[#1A3A2C] flex items-center gap-2">
             <FileText className="w-6 h-6" />
             Prontuário Médico
           </h1>
@@ -115,7 +115,7 @@ export default async function ProntuarioPage() {
 
         {/* Card do Paciente */}
         <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-          <h2 className="font-bold text-[#1A3A5C] mb-4 flex items-center gap-2">
+          <h2 className="font-bold text-[#1A3A2C] mb-4 flex items-center gap-2">
             <User className="w-4 h-4" />
             Dados do Paciente
           </h2>
@@ -155,7 +155,7 @@ export default async function ProntuarioPage() {
         {/* Resumo estatístico */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
-            { label: 'Triagens realizadas', valor: totalTriagens, cor: '#2E75B6', icone: Brain },
+            { label: 'Triagens realizadas', valor: totalTriagens, cor: '#5BBD9B', icone: Brain },
             { label: 'Consultas totais', valor: totalAtendimentos, cor: '#1A7340', icone: Stethoscope },
             { label: 'Consultas concluídas', valor: atendimentosConcluidos, cor: '#7B3FA0', icone: CheckCircle2 },
             { label: 'Última consulta', valor: ultimaConsulta || '—', cor: '#C0392B', icone: Calendar },
@@ -165,7 +165,7 @@ export default async function ProntuarioPage() {
                 style={{ backgroundColor: item.cor + '15' }}>
                 <item.icone className="w-4 h-4" style={{ color: item.cor }} />
               </div>
-              <p className="text-xl font-bold text-[#1A3A5C]">{item.valor}</p>
+              <p className="text-xl font-bold text-[#1A3A2C]">{item.valor}</p>
               <p className="text-xs text-gray-400 mt-0.5">{item.label}</p>
             </div>
           ))}
@@ -173,7 +173,7 @@ export default async function ProntuarioPage() {
 
         {/* Linha do tempo */}
         <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <h2 className="font-bold text-[#1A3A5C] mb-6 flex items-center gap-2">
+          <h2 className="font-bold text-[#1A3A2C] mb-6 flex items-center gap-2">
             <Clock className="w-4 h-4" />
             Histórico completo
           </h2>
@@ -183,7 +183,7 @@ export default async function ProntuarioPage() {
               <FileText className="w-12 h-12 text-gray-200 mx-auto mb-3" />
               <p className="text-gray-400">Nenhum registro encontrado</p>
               <Link href="/paciente/triagem"
-                className="mt-3 inline-block text-sm text-[#2E75B6] font-medium hover:underline">
+                className="mt-3 inline-block text-sm text-[#5BBD9B] font-medium hover:underline">
                 Fazer primeira triagem →
               </Link>
             </div>
@@ -198,11 +198,11 @@ export default async function ProntuarioPage() {
                     {/* Ícone */}
                     <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                       item._tipo === 'triagem'
-                        ? 'bg-blue-100'
+                        ? 'bg-green-100'
                         : item.status === 'concluido' ? 'bg-green-100' : 'bg-purple-100'
                     }`}>
                       {item._tipo === 'triagem'
-                        ? <Brain className="w-5 h-5 text-blue-600" />
+                        ? <Brain className="w-5 h-5 text-green-600" />
                         : <Stethoscope className={`w-5 h-5 ${item.status === 'concluido' ? 'text-green-600' : 'text-purple-600'}`} />
                       }
                     </div>
@@ -212,7 +212,7 @@ export default async function ProntuarioPage() {
                       {/* Header do item */}
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <p className="font-semibold text-[#1A3A5C] text-sm">
+                          <p className="font-semibold text-[#1A3A2C] text-sm">
                             {item._tipo === 'triagem' ? '🧠 Triagem por IA' : '📹 Consulta virtual'}
                           </p>
                           <p className="text-xs text-gray-400 mt-0.5">
@@ -232,7 +232,7 @@ export default async function ProntuarioPage() {
                         {item._tipo === 'atendimento' && (
                           <span className={`text-xs font-medium px-2 py-1 rounded-full ${
                             item.status === 'concluido' ? 'bg-green-100 text-green-700' :
-                            item.status === 'em_andamento' ? 'bg-blue-100 text-blue-700' :
+                            item.status === 'em_andamento' ? 'bg-green-100 text-green-700' :
                             'bg-gray-100 text-gray-600'
                           }`}>
                             {item.status === 'concluido' ? 'Concluído' :

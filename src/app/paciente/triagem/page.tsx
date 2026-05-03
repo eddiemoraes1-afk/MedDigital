@@ -189,20 +189,20 @@ export default function TriagemPage() {
   const config = resultado ? configRisco[resultado.classificacao] : null
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB] flex flex-col">
+    <div className="min-h-screen bg-[#F3FAF7] flex flex-col">
       {/* Header */}
-      <header className="bg-[#1A3A5C] text-white px-6 py-4 shrink-0">
+      <header className="bg-[#1A3A2C] text-white px-6 py-4 shrink-0">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/paciente/dashboard" className="text-blue-200 hover:text-white">
+            <Link href="/paciente/dashboard" className="text-green-200 hover:text-white">
               <ArrowLeft className="w-5 h-5" />
             </Link>
             <div className="flex items-center gap-2">
-              <Heart className="w-5 h-5 text-[#2E75B6]" fill="currentColor" />
+              <Heart className="w-5 h-5 text-[#5BBD9B]" fill="currentColor" />
               <span className="font-bold">Triagem por IA</span>
             </div>
           </div>
-          <span className="text-xs text-blue-200 bg-blue-900/30 px-3 py-1 rounded-full">
+          <span className="text-xs text-green-200 bg-blue-900/30 px-3 py-1 rounded-full">
             IA não substitui diagnóstico médico
           </span>
         </div>
@@ -214,7 +214,7 @@ export default function TriagemPage() {
           {iniciando ? (
             <div className="flex items-center justify-center h-32">
               <div className="text-center">
-                <Loader2 className="w-8 h-8 animate-spin text-[#2E75B6] mx-auto mb-3" />
+                <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B] mx-auto mb-3" />
                 <p className="text-gray-400 text-sm">Iniciando triagem...</p>
               </div>
             </div>
@@ -223,13 +223,13 @@ export default function TriagemPage() {
               {mensagens.map((msg, i) => (
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   {msg.role === 'assistant' && (
-                    <div className="w-8 h-8 bg-[#2E75B6] rounded-full flex items-center justify-center shrink-0 mr-2 mt-1">
+                    <div className="w-8 h-8 bg-[#5BBD9B] rounded-full flex items-center justify-center shrink-0 mr-2 mt-1">
                       <Heart className="w-4 h-4 text-white" fill="currentColor" />
                     </div>
                   )}
                   <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
                     msg.role === 'user'
-                      ? 'bg-[#1A3A5C] text-white rounded-tr-sm'
+                      ? 'bg-[#1A3A2C] text-white rounded-tr-sm'
                       : 'bg-white text-gray-700 shadow-sm rounded-tl-sm'
                   }`}>
                     {msg.content.split('\n').map((linha, li) => (
@@ -241,7 +241,7 @@ export default function TriagemPage() {
 
               {carregando && (
                 <div className="flex justify-start">
-                  <div className="w-8 h-8 bg-[#2E75B6] rounded-full flex items-center justify-center shrink-0 mr-2">
+                  <div className="w-8 h-8 bg-[#5BBD9B] rounded-full flex items-center justify-center shrink-0 mr-2">
                     <Heart className="w-4 h-4 text-white" fill="currentColor" />
                   </div>
                   <div className="bg-white px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm">
@@ -272,7 +272,7 @@ export default function TriagemPage() {
                       <button
                         onClick={solicitarConsulta}
                         disabled={solicitando}
-                        className="flex items-center gap-2 bg-[#1A3A5C] hover:bg-[#2E75B6] disabled:opacity-60 text-white px-5 py-2.5 rounded-xl text-sm font-medium"
+                        className="flex items-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] disabled:opacity-60 text-white px-5 py-2.5 rounded-xl text-sm font-medium"
                       >
                         {solicitando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Video className="w-4 h-4" />}
                         {solicitando ? 'Criando sala...' : 'Iniciar consulta virtual'}
@@ -316,12 +316,12 @@ export default function TriagemPage() {
               onChange={e => setInput(e.target.value)}
               placeholder="Descreva como você está se sentindo..."
               disabled={carregando || iniciando}
-              className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E75B6] disabled:opacity-50"
+              className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] disabled:opacity-50"
             />
             <button
               type="submit"
               disabled={carregando || iniciando || !input.trim()}
-              className="bg-[#1A3A5C] hover:bg-[#2E75B6] text-white w-12 h-12 rounded-xl flex items-center justify-center disabled:opacity-40 shrink-0"
+              className="bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white w-12 h-12 rounded-xl flex items-center justify-center disabled:opacity-40 shrink-0"
             >
               {carregando ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             </button>

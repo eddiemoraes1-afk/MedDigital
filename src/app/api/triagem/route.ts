@@ -3,7 +3,7 @@ import OpenAI from 'openai'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-const SYSTEM_PROMPT = `Você é um assistente de triagem médica digital do MedDigital.
+const SYSTEM_PROMPT = `Você é um assistente de triagem médica digital do RovarisMed.
 Seu papel é coletar informações sobre os sintomas do paciente de forma empática e organizada,
 e ao final classificar o risco e recomendar o tipo de atendimento.
 

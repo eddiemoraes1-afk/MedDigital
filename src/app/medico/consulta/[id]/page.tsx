@@ -70,7 +70,7 @@ export default function ConsultaMedico() {
 
   if (carregando) {
     return (
-      <div className="min-h-screen bg-[#1A3A5C] flex items-center justify-center">
+      <div className="min-h-screen bg-[#1A3A2C] flex items-center justify-center">
         <div className="text-center text-white">
           <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4" />
           <p>Carregando sala de consulta...</p>
@@ -81,10 +81,10 @@ export default function ConsultaMedico() {
 
   if (!atendimento?.sala_video) {
     return (
-      <div className="min-h-screen bg-[#F4F7FB] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F3FAF7] flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500">Sala não encontrada.</p>
-          <button onClick={() => router.push('/medico/agendamentos')} className="mt-4 text-[#2E75B6]">
+          <button onClick={() => router.push('/medico/agendamentos')} className="mt-4 text-[#5BBD9B]">
             Voltar à agenda
           </button>
         </div>
@@ -97,22 +97,22 @@ export default function ConsultaMedico() {
   return (
     <div className="min-h-screen bg-[#0F1F33] flex flex-col">
       {/* Header */}
-      <div className="bg-[#1A3A5C] px-6 py-3 flex items-center justify-between shrink-0">
+      <div className="bg-[#1A3A2C] px-6 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <Heart className="w-5 h-5 text-[#2E75B6]" fill="currentColor" />
-          <span className="text-white font-bold text-sm">MedDigital</span>
-          <span className="text-blue-300 text-xs">— Consulta Virtual</span>
+          <Heart className="w-5 h-5 text-[#5BBD9B]" fill="currentColor" />
+          <span className="text-white font-bold text-sm">RovarisMed</span>
+          <span className="text-green-300 text-xs">— Consulta Virtual</span>
         </div>
 
         <div className="flex items-center gap-4">
           {/* Info do paciente */}
           {paciente && (
             <div className="hidden md:flex items-center gap-3 bg-white/10 rounded-xl px-3 py-1.5">
-              <User className="w-4 h-4 text-blue-200" />
+              <User className="w-4 h-4 text-green-200" />
               <div className="text-xs">
                 <p className="text-white font-medium">{paciente.nome}</p>
                 {dataHora && (
-                  <p className="text-blue-300 flex items-center gap-1">
+                  <p className="text-green-300 flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
                     {dataHora.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', timeZone: 'America/Sao_Paulo' })}
                     <Clock className="w-3 h-3 ml-1" />
@@ -137,26 +137,26 @@ export default function ConsultaMedico() {
       <div className="flex-1 flex overflow-hidden">
         {/* Info do paciente (lateral) */}
         {paciente && (
-          <div className="w-64 bg-[#1A3A5C] p-4 shrink-0 overflow-y-auto hidden md:block">
-            <h3 className="text-blue-200 text-xs font-semibold uppercase tracking-wider mb-3">Paciente</h3>
+          <div className="w-64 bg-[#1A3A2C] p-4 shrink-0 overflow-y-auto hidden md:block">
+            <h3 className="text-green-200 text-xs font-semibold uppercase tracking-wider mb-3">Paciente</h3>
             <div className="bg-white/10 rounded-xl p-3 mb-4">
-              <div className="w-10 h-10 bg-[#2E75B6] rounded-full flex items-center justify-center mb-2">
+              <div className="w-10 h-10 bg-[#5BBD9B] rounded-full flex items-center justify-center mb-2">
                 <User className="w-5 h-5 text-white" />
               </div>
               <p className="text-white font-semibold text-sm">{paciente.nome}</p>
               {paciente.data_nascimento && (
-                <p className="text-blue-300 text-xs mt-1">
+                <p className="text-green-300 text-xs mt-1">
                   Nasc.: {new Date(paciente.data_nascimento).toLocaleDateString('pt-BR')}
                 </p>
               )}
               {paciente.telefone && (
-                <p className="text-blue-300 text-xs mt-0.5">{paciente.telefone}</p>
+                <p className="text-green-300 text-xs mt-0.5">{paciente.telefone}</p>
               )}
             </div>
 
             {agendamento?.observacoes && (
               <div>
-                <h3 className="text-blue-200 text-xs font-semibold uppercase tracking-wider mb-2">Queixa</h3>
+                <h3 className="text-green-200 text-xs font-semibold uppercase tracking-wider mb-2">Queixa</h3>
                 <div className="bg-white/10 rounded-xl p-3">
                   <p className="text-blue-100 text-xs leading-relaxed italic">"{agendamento.observacoes}"</p>
                 </div>
@@ -165,12 +165,12 @@ export default function ConsultaMedico() {
 
             {dataHora && (
               <div className="mt-4">
-                <h3 className="text-blue-200 text-xs font-semibold uppercase tracking-wider mb-2">Horário</h3>
+                <h3 className="text-green-200 text-xs font-semibold uppercase tracking-wider mb-2">Horário</h3>
                 <div className="bg-white/10 rounded-xl p-3">
                   <p className="text-white text-xs font-medium">
                     {dataHora.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', timeZone: 'America/Sao_Paulo' })}
                   </p>
-                  <p className="text-blue-300 text-xs mt-1">
+                  <p className="text-green-300 text-xs mt-1">
                     {dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}
                   </p>
                 </div>

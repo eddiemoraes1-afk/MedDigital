@@ -99,23 +99,23 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
   const exportUrl = `/api/empresa/funcionarios/exportar?empresa_id=${empresaId}${departamento ? `&departamento=${encodeURIComponent(departamento)}` : ''}${status ? `&status=${status}` : ''}`
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB]">
+    <div className="min-h-screen bg-[#F3FAF7]">
       {/* Header */}
-      <header className="bg-[#1A3A5C] text-white px-6 py-4">
+      <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Heart className="w-6 h-6 text-[#2E75B6]" fill="currentColor" />
+            <Heart className="w-6 h-6 text-[#5BBD9B]" fill="currentColor" />
             <div>
-              <span className="font-bold">MedDigital</span>
-              <span className="text-xs text-blue-300 ml-2">Portal RH</span>
+              <span className="font-bold">RovarisMed</span>
+              <span className="text-xs text-green-300 ml-2">Portal RH</span>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-blue-200 flex items-center gap-1.5">
+            <span className="text-sm text-green-200 flex items-center gap-1.5">
               <Building2 className="w-4 h-4" /> {empresa?.nome}
             </span>
             <form action="/api/auth/signout" method="POST">
-              <button type="submit" className="text-sm text-blue-300 hover:text-white flex items-center gap-1.5">
+              <button type="submit" className="text-sm text-green-300 hover:text-white flex items-center gap-1.5">
                 <LogOut className="w-4 h-4" /> Sair
               </button>
             </form>
@@ -125,7 +125,7 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
 
       <main className="max-w-6xl mx-auto px-6 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-[#1A3A5C]">Painel de Saúde Corporativa</h1>
+          <h1 className="text-2xl font-bold text-[#1A3A2C]">Painel de Saúde Corporativa</h1>
           <p className="text-gray-500 text-sm mt-1">{empresa?.nome} · {empresa?.cnpj || 'CNPJ não informado'}</p>
         </div>
 
@@ -133,10 +133,10 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <Users className="w-5 h-5 text-[#2E75B6]" />
+              <Users className="w-5 h-5 text-[#5BBD9B]" />
               <span className="text-xs text-gray-400">funcionários</span>
             </div>
-            <p className="text-3xl font-bold text-[#1A3A5C]">{totalAtivos}</p>
+            <p className="text-3xl font-bold text-[#1A3A2C]">{totalAtivos}</p>
             <p className="text-xs text-gray-500 mt-1">na empresa</p>
           </div>
 
@@ -190,8 +190,8 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
           <div className="md:col-span-2">
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h2 className="font-bold text-[#1A3A5C] flex items-center gap-2">
-                  <Users className="w-4 h-4 text-[#2E75B6]" /> Funcionários
+                <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#5BBD9B]" /> Funcionários
                   <span className="text-xs text-gray-400 font-normal">({funcionarios.length})</span>
                 </h2>
                 <a
@@ -251,7 +251,7 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
                             </td>
                             <td className="px-4 py-3 text-center">
                               {saude ? (
-                                <span className={`text-sm font-semibold ${saude.total > 0 ? 'text-[#1A3A5C]' : 'text-gray-300'}`}>
+                                <span className={`text-sm font-semibold ${saude.total > 0 ? 'text-[#1A3A2C]' : 'text-gray-300'}`}>
                                   {saude.total}
                                 </span>
                               ) : (
@@ -278,13 +278,13 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
           {/* Consultas recentes — 1/3 */}
           <div className="md:col-span-1">
             <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <h2 className="font-bold text-[#1A3A5C] flex items-center gap-2 mb-4">
-                <Activity className="w-4 h-4 text-[#2E75B6]" /> Consultas recentes
+              <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 mb-4">
+                <Activity className="w-4 h-4 text-[#5BBD9B]" /> Consultas recentes
               </h2>
               {agendamentosRecentes.length > 0 ? (
                 <div className="space-y-3">
                   {agendamentosRecentes.map((a: any) => (
-                    <div key={a.id} className="border-l-2 border-[#2E75B6] pl-3">
+                    <div key={a.id} className="border-l-2 border-[#5BBD9B] pl-3">
                       <p className="text-sm font-medium text-gray-800 leading-tight">
                         {mapPaciente[a.paciente_id] || 'Funcionário'}
                       </p>
@@ -294,7 +294,7 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
                       </p>
                       <span className={`text-xs px-2 py-0.5 rounded-full mt-1 inline-block ${
                         a.status === 'concluido' ? 'bg-green-100 text-green-700' :
-                        a.status === 'confirmado' ? 'bg-blue-100 text-blue-700' :
+                        a.status === 'confirmado' ? 'bg-green-100 text-green-700' :
                         'bg-yellow-100 text-yellow-700'
                       }`}>
                         {a.status === 'concluido' ? 'Concluída' :

@@ -121,19 +121,19 @@ export default async function MedicoAgendamentosPage({
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB]">
-      <header className="bg-[#1A3A5C] text-white px-6 py-4">
+    <div className="min-h-screen bg-[#F3FAF7]">
+      <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Heart className="w-6 h-6 text-[#2E75B6]" fill="currentColor" />
-            <span className="font-bold">MedDigital</span>
-            <span className="text-xs text-blue-300 ml-2">Painel do Médico</span>
+            <Heart className="w-6 h-6 text-[#5BBD9B]" fill="currentColor" />
+            <span className="font-bold">RovarisMed</span>
+            <span className="text-xs text-green-300 ml-2">Painel do Médico</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-blue-200">Dr(a). {primeiroNome}</span>
+            <span className="text-sm text-green-200">Dr(a). {primeiroNome}</span>
             <form action="/api/auth/signout" method="POST">
               <button type="submit">
-                <LogOut className="w-4 h-4 text-blue-200 hover:text-white" />
+                <LogOut className="w-4 h-4 text-green-200 hover:text-white" />
               </button>
             </form>
           </div>
@@ -141,14 +141,14 @@ export default async function MedicoAgendamentosPage({
       </header>
 
       <main className="max-w-5xl mx-auto px-6 py-8">
-        <Link href="/medico/dashboard" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#1A3A5C] mb-6">
+        <Link href="/medico/dashboard" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#1A3A2C] mb-6">
           <ArrowLeft className="w-4 h-4" /> Voltar ao painel
         </Link>
 
         {/* Cabeçalho */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-[#1A3A5C] flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-[#1A3A2C] flex items-center gap-2">
               <Calendar className="w-6 h-6" /> Minha Agenda
             </h1>
             <p className="text-gray-500 mt-1 capitalize">
@@ -167,7 +167,7 @@ export default async function MedicoAgendamentosPage({
             >
               <ChevronLeft className="w-4 h-4 text-gray-600" />
             </Link>
-            <span className="text-sm font-medium text-[#1A3A5C] min-w-[80px] text-center">
+            <span className="text-sm font-medium text-[#1A3A2C] min-w-[80px] text-center">
               {offset === 0 ? 'Esta semana' : offset === 1 ? 'Próxima semana' : offset === -1 ? 'Semana passada' : `${offset > 0 ? '+' : ''}${offset} sem.`}
             </span>
             <Link
@@ -191,19 +191,19 @@ export default async function MedicoAgendamentosPage({
             return (
               <div
                 key={dia.toISOString()}
-                className={`bg-white rounded-2xl shadow-sm overflow-hidden ${isPast ? 'opacity-60' : ''} ${isHoje ? 'ring-2 ring-[#2E75B6]' : ''}`}
+                className={`bg-white rounded-2xl shadow-sm overflow-hidden ${isPast ? 'opacity-60' : ''} ${isHoje ? 'ring-2 ring-[#5BBD9B]' : ''}`}
               >
                 {/* Cabeçalho do dia */}
-                <div className={`px-3 py-3 text-center ${isHoje ? 'bg-[#1A3A5C]' : 'bg-gray-50 border-b border-gray-100'}`}>
-                  <p className={`text-xs font-medium ${isHoje ? 'text-blue-200' : 'text-gray-400'}`}>{DIAS[i]}</p>
-                  <p className={`text-xl font-bold mt-0.5 ${isHoje ? 'text-white' : 'text-[#1A3A5C]'}`}>
+                <div className={`px-3 py-3 text-center ${isHoje ? 'bg-[#1A3A2C]' : 'bg-gray-50 border-b border-gray-100'}`}>
+                  <p className={`text-xs font-medium ${isHoje ? 'text-green-200' : 'text-gray-400'}`}>{DIAS[i]}</p>
+                  <p className={`text-xl font-bold mt-0.5 ${isHoje ? 'text-white' : 'text-[#1A3A2C]'}`}>
                     {dia.getDate()}
                   </p>
                   {agsDia.length > 0 && (
                     <div className="flex justify-center gap-1 mt-1">
                       {ativos.length > 0 && (
                         <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
-                          isHoje ? 'bg-white/20 text-white' : 'bg-[#2E75B6]/10 text-[#2E75B6]'
+                          isHoje ? 'bg-white/20 text-white' : 'bg-[#5BBD9B]/10 text-[#5BBD9B]'
                         }`}>
                           {ativos.length}
                         </span>
@@ -230,7 +230,7 @@ export default async function MedicoAgendamentosPage({
                       return (
                         <div
                           key={a.id}
-                          className={`rounded-lg p-2 border text-xs ${corStatus[a.status] || 'bg-blue-50 text-blue-700 border-blue-100'}`}
+                          className={`rounded-lg p-2 border text-xs ${corStatus[a.status] || 'bg-green-50 text-green-700 border-green-100'}`}
                         >
                           <div className={`flex items-center gap-1 font-semibold ${isCancelado ? 'line-through opacity-60' : ''}`}>
                             {isCancelado ? <XCircle className="w-3 h-3 shrink-0" /> : <Clock className="w-3 h-3 shrink-0" />}
@@ -260,7 +260,7 @@ export default async function MedicoAgendamentosPage({
         {(agendamentos || []).length > 0 && (
           <div className="mt-8 bg-white rounded-2xl shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100">
-              <h2 className="font-bold text-[#1A3A5C]">Detalhes da semana</h2>
+              <h2 className="font-bold text-[#1A3A2C]">Detalhes da semana</h2>
             </div>
             <div className="divide-y divide-gray-50">
               {(agendamentos || []).map((a: any) => {
@@ -270,14 +270,14 @@ export default async function MedicoAgendamentosPage({
                 return (
                   <div key={a.id} className={`px-6 py-4 flex items-start justify-between ${isCancelado ? 'opacity-70' : ''}`}>
                     <div className="flex items-start gap-4">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isCancelado ? 'bg-red-50' : 'bg-blue-50'}`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isCancelado ? 'bg-red-50' : 'bg-green-50'}`}>
                         {isCancelado
                           ? <XCircle className="w-5 h-5 text-red-300" />
-                          : <User className="w-5 h-5 text-[#2E75B6]" />
+                          : <User className="w-5 h-5 text-[#5BBD9B]" />
                         }
                       </div>
                       <div>
-                        <Link href={`/medico/agendamento/${a.id}`} className={`font-medium hover:text-[#2E75B6] hover:underline ${isCancelado ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                        <Link href={`/medico/agendamento/${a.id}`} className={`font-medium hover:text-[#5BBD9B] hover:underline ${isCancelado ? 'line-through text-gray-400' : 'text-gray-800'}`}>
                           {paciente?.nome || 'Paciente'}
                         </Link>
                         <div className="flex items-center gap-3 mt-0.5">
@@ -309,7 +309,7 @@ export default async function MedicoAgendamentosPage({
                           const abreDate = new Date(dataConsulta.getTime() - 10 * 60 * 1000)
                           const abreStr = abreDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
                           return (
-                            <p className="text-xs text-[#2E75B6] mt-1 flex items-center gap-1">
+                            <p className="text-xs text-[#5BBD9B] mt-1 flex items-center gap-1">
                               <Clock className="w-3 h-3" />
                               Sala abre às {abreStr}
                             </p>

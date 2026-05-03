@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'MedDigital — Pronto Atendimento Médico Digital',
+  title: 'RovarisMed — Pronto Atendimento Médico Digital',
   description: 'Triagem inteligente por IA e consultas médicas virtuais',
 }
 

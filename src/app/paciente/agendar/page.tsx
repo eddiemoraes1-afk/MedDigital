@@ -156,19 +156,19 @@ function AgendarConteudo() {
 
   if (confirmado) {
     return (
-      <div className="min-h-screen bg-[#F4F7FB] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#F3FAF7] flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl p-10 shadow-sm text-center max-w-md w-full">
           <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-[#1A3A5C] mb-2">Consulta agendada!</h2>
+          <h2 className="text-2xl font-bold text-[#1A3A2C] mb-2">Consulta agendada!</h2>
           <p className="text-gray-500 mb-2">
             Dr(a). {medicoSelecionado?.nome}
           </p>
-          <p className="text-[#2E75B6] font-semibold mb-6">
+          <p className="text-[#5BBD9B] font-semibold mb-6">
             {dataSelecionada?.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })} às {slotSelecionado}
           </p>
           <p className="text-sm text-gray-400 mb-6">Você receberá uma confirmação por email e WhatsApp.</p>
           <Link href="/paciente/agendamentos"
-            className="block w-full bg-[#1A3A5C] text-white py-3 rounded-xl font-semibold text-sm hover:bg-[#2E75B6] text-center">
+            className="block w-full bg-[#1A3A2C] text-white py-3 rounded-xl font-semibold text-sm hover:bg-[#5BBD9B] text-center">
             Ver meus agendamentos
           </Link>
           <Link href="/paciente/dashboard"
@@ -181,14 +181,14 @@ function AgendarConteudo() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB]">
-      <header className="bg-[#1A3A5C] text-white px-6 py-4">
+    <div className="min-h-screen bg-[#F3FAF7]">
+      <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Heart className="w-6 h-6 text-[#2E75B6]" fill="currentColor" />
-            <span className="font-bold">MedDigital</span>
+            <Heart className="w-6 h-6 text-[#5BBD9B]" fill="currentColor" />
+            <span className="font-bold">RovarisMed</span>
           </div>
-          <Link href="/paciente/dashboard" className="text-sm text-blue-200 hover:text-white flex items-center gap-1">
+          <Link href="/paciente/dashboard" className="text-sm text-green-200 hover:text-white flex items-center gap-1">
             <ArrowLeft className="w-4 h-4" /> Voltar
           </Link>
         </div>
@@ -196,7 +196,7 @@ function AgendarConteudo() {
 
       <main className="max-w-3xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[#1A3A5C]">
+          <h1 className="text-2xl font-bold text-[#1A3A2C]">
             {reagendarId ? 'Reagendar consulta' : 'Agendar consulta'}
           </h1>
           <p className="text-gray-500 mt-1">
@@ -212,12 +212,12 @@ function AgendarConteudo() {
             <div key={label} className="flex items-center gap-2">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
                 passo > i + 1 ? 'bg-green-500 text-white' :
-                passo === i + 1 ? 'bg-[#1A3A5C] text-white' :
+                passo === i + 1 ? 'bg-[#1A3A2C] text-white' :
                 'bg-gray-200 text-gray-400'
               }`}>
                 {passo > i + 1 ? '✓' : i + 1}
               </div>
-              <span className={`text-xs font-medium hidden sm:block ${passo === i + 1 ? 'text-[#1A3A5C]' : 'text-gray-400'}`}>{label}</span>
+              <span className={`text-xs font-medium hidden sm:block ${passo === i + 1 ? 'text-[#1A3A2C]' : 'text-gray-400'}`}>{label}</span>
               {i < 3 && <div className="w-8 h-0.5 bg-gray-200" />}
             </div>
           ))}
@@ -226,7 +226,7 @@ function AgendarConteudo() {
         {/* Passo 1: Escolher médico */}
         {passo >= 1 && (
           <div className={`bg-white rounded-2xl p-6 shadow-sm mb-4 ${passo !== 1 && 'opacity-60'}`}>
-            <h2 className="font-bold text-[#1A3A5C] mb-4 flex items-center gap-2">
+            <h2 className="font-bold text-[#1A3A2C] mb-4 flex items-center gap-2">
               <User className="w-4 h-4" /> Escolha o médico
             </h2>
             {passo === 1 ? (
@@ -238,10 +238,10 @@ function AgendarConteudo() {
                     key={m.id}
                     onClick={() => selecionarMedico(m)}
                     disabled={carregando}
-                    className="w-full flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:border-[#2E75B6] hover:bg-blue-50 text-left transition-all"
+                    className="w-full flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:border-[#5BBD9B] hover:bg-green-50 text-left transition-all"
                   >
                     <div>
-                      <p className="font-semibold text-[#1A3A5C]">Dr(a). {m.nome}</p>
+                      <p className="font-semibold text-[#1A3A2C]">Dr(a). {m.nome}</p>
                       <p className="text-sm text-gray-400">{m.especialidade} • CRM {m.crm}/{m.crm_uf}</p>
                     </div>
                     <ChevronRight className="w-5 h-5 text-gray-300" />
@@ -251,11 +251,11 @@ function AgendarConteudo() {
             ) : (
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-semibold text-[#1A3A5C]">Dr(a). {medicoSelecionado?.nome}</p>
+                  <p className="font-semibold text-[#1A3A2C]">Dr(a). {medicoSelecionado?.nome}</p>
                   <p className="text-sm text-gray-400">{medicoSelecionado?.especialidade}</p>
                 </div>
                 <button onClick={() => { setPasso(1); setDataSelecionada(null); setSlotSelecionado(null) }}
-                  className="text-xs text-[#2E75B6] hover:underline">Alterar</button>
+                  className="text-xs text-[#5BBD9B] hover:underline">Alterar</button>
               </div>
             )}
           </div>
@@ -264,7 +264,7 @@ function AgendarConteudo() {
         {/* Passo 2: Escolher data */}
         {passo >= 2 && (
           <div className={`bg-white rounded-2xl p-6 shadow-sm mb-4 ${passo !== 2 && 'opacity-60'}`}>
-            <h2 className="font-bold text-[#1A3A5C] mb-4 flex items-center gap-2">
+            <h2 className="font-bold text-[#1A3A2C] mb-4 flex items-center gap-2">
               <Calendar className="w-4 h-4" /> Escolha a data
             </h2>
             {passo === 2 ? (
@@ -276,10 +276,10 @@ function AgendarConteudo() {
                     <button
                       key={d.toISOString()}
                       onClick={() => selecionarData(d)}
-                      className="p-3 border border-gray-100 rounded-xl hover:border-[#2E75B6] hover:bg-blue-50 text-center transition-all"
+                      className="p-3 border border-gray-100 rounded-xl hover:border-[#5BBD9B] hover:bg-green-50 text-center transition-all"
                     >
                       <p className="text-xs text-gray-400">{DIAS_SEMANA[d.getDay()]}</p>
-                      <p className="text-lg font-bold text-[#1A3A5C]">{d.getDate()}</p>
+                      <p className="text-lg font-bold text-[#1A3A2C]">{d.getDate()}</p>
                       <p className="text-xs text-gray-400">{MESES[d.getMonth()].slice(0, 3)}</p>
                     </button>
                   ))}
@@ -287,11 +287,11 @@ function AgendarConteudo() {
               )
             ) : (
               <div className="flex items-center justify-between">
-                <p className="font-semibold text-[#1A3A5C]">
+                <p className="font-semibold text-[#1A3A2C]">
                   {dataSelecionada?.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}
                 </p>
                 <button onClick={() => { setPasso(2); setSlotSelecionado(null) }}
-                  className="text-xs text-[#2E75B6] hover:underline">Alterar</button>
+                  className="text-xs text-[#5BBD9B] hover:underline">Alterar</button>
               </div>
             )}
           </div>
@@ -300,13 +300,13 @@ function AgendarConteudo() {
         {/* Passo 3: Escolher horário */}
         {passo >= 3 && (
           <div className={`bg-white rounded-2xl p-6 shadow-sm mb-4 ${passo !== 3 && 'opacity-60'}`}>
-            <h2 className="font-bold text-[#1A3A5C] mb-4 flex items-center gap-2">
+            <h2 className="font-bold text-[#1A3A2C] mb-4 flex items-center gap-2">
               <Clock className="w-4 h-4" /> Escolha o horário
             </h2>
             {passo === 3 ? (
               carregandoSlots ? (
                 <div className="flex justify-center py-6">
-                  <Loader2 className="w-6 h-6 animate-spin text-[#2E75B6]" />
+                  <Loader2 className="w-6 h-6 animate-spin text-[#5BBD9B]" />
                 </div>
               ) : slots.length === 0 ? (
                 <p className="text-gray-400 text-sm">Nenhum horário disponível neste dia.</p>
@@ -316,7 +316,7 @@ function AgendarConteudo() {
                     <button
                       key={slot}
                       onClick={() => { setSlotSelecionado(slot); setPasso(4) }}
-                      className="py-2.5 border border-gray-100 rounded-xl hover:border-[#2E75B6] hover:bg-blue-50 text-sm font-medium text-[#1A3A5C] transition-all"
+                      className="py-2.5 border border-gray-100 rounded-xl hover:border-[#5BBD9B] hover:bg-green-50 text-sm font-medium text-[#1A3A2C] transition-all"
                     >
                       {slot}
                     </button>
@@ -325,9 +325,9 @@ function AgendarConteudo() {
               )
             ) : (
               <div className="flex items-center justify-between">
-                <p className="font-semibold text-[#1A3A5C]">{slotSelecionado}</p>
+                <p className="font-semibold text-[#1A3A2C]">{slotSelecionado}</p>
                 <button onClick={() => { setPasso(3); setSlotSelecionado(null) }}
-                  className="text-xs text-[#2E75B6] hover:underline">Alterar</button>
+                  className="text-xs text-[#5BBD9B] hover:underline">Alterar</button>
               </div>
             )}
           </div>
@@ -336,8 +336,8 @@ function AgendarConteudo() {
         {/* Passo 4: Confirmar */}
         {passo >= 4 && (
           <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h2 className="font-bold text-[#1A3A5C] mb-4">Confirmar agendamento</h2>
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-4">
+            <h2 className="font-bold text-[#1A3A2C] mb-4">Confirmar agendamento</h2>
+            <div className="bg-green-50 border border-green-100 rounded-xl p-4 mb-4">
               <p className="text-sm text-gray-600"><span className="font-medium">Médico:</span> Dr(a). {medicoSelecionado?.nome}</p>
               <p className="text-sm text-gray-600 mt-1"><span className="font-medium">Data:</span> {dataSelecionada?.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</p>
               <p className="text-sm text-gray-600 mt-1"><span className="font-medium">Horário:</span> {slotSelecionado}</p>
@@ -348,7 +348,7 @@ function AgendarConteudo() {
                 value={observacoes}
                 onChange={e => setObservacoes(e.target.value)}
                 placeholder="Descreva brevemente o motivo da consulta..."
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#2E75B6]"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
                 rows={3}
               />
             </div>
@@ -360,7 +360,7 @@ function AgendarConteudo() {
             <button
               onClick={confirmarAgendamento}
               disabled={carregando}
-              className="w-full bg-[#1A3A5C] text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#2E75B6] disabled:opacity-50"
+              className="w-full bg-[#1A3A2C] text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#5BBD9B] disabled:opacity-50"
             >
               {carregando ? <><Loader2 className="w-4 h-4 animate-spin" /> Agendando...</> : 'Confirmar agendamento'}
             </button>
@@ -374,8 +374,8 @@ function AgendarConteudo() {
 export default function AgendarPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#F4F7FB] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#2E75B6]" />
+      <div className="min-h-screen bg-[#F3FAF7] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
       </div>
     }>
       <AgendarConteudo />

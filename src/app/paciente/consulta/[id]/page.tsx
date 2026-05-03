@@ -42,7 +42,7 @@ export default function ConsultaPaciente() {
 
   if (carregando) {
     return (
-      <div className="min-h-screen bg-[#1A3A5C] flex items-center justify-center">
+      <div className="min-h-screen bg-[#1A3A2C] flex items-center justify-center">
         <div className="text-center text-white">
           <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4" />
           <p>Carregando sala de consulta...</p>
@@ -53,10 +53,10 @@ export default function ConsultaPaciente() {
 
   if (!atendimento?.sala_video) {
     return (
-      <div className="min-h-screen bg-[#F4F7FB] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F3FAF7] flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500">Sala não encontrada.</p>
-          <button onClick={() => router.push('/paciente/dashboard')} className="mt-4 text-[#2E75B6]">
+          <button onClick={() => router.push('/paciente/dashboard')} className="mt-4 text-[#5BBD9B]">
             Voltar ao painel
           </button>
         </div>
@@ -67,11 +67,11 @@ export default function ConsultaPaciente() {
   return (
     <div className="min-h-screen bg-[#0F1F33] flex flex-col">
       {/* Header */}
-      <div className="bg-[#1A3A5C] px-6 py-3 flex items-center justify-between shrink-0">
+      <div className="bg-[#1A3A2C] px-6 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <Heart className="w-5 h-5 text-[#2E75B6]" fill="currentColor" />
-          <span className="text-white font-bold text-sm">MedDigital</span>
-          <span className="text-blue-300 text-xs">— Consulta Virtual</span>
+          <Heart className="w-5 h-5 text-[#5BBD9B]" fill="currentColor" />
+          <span className="text-white font-bold text-sm">RovarisMed</span>
+          <span className="text-green-300 text-xs">— Consulta Virtual</span>
         </div>
 
         <div className="flex items-center gap-4">
@@ -82,7 +82,7 @@ export default function ConsultaPaciente() {
             </div>
           )}
           {atendimento.status === 'em_andamento' && atendimento.medicos && (
-            <div className="text-blue-200 text-xs">
+            <div className="text-green-200 text-xs">
               Dr(a). {atendimento.medicos.nome} — {atendimento.medicos.especialidade}
             </div>
           )}
@@ -101,11 +101,11 @@ export default function ConsultaPaciente() {
         {atendimento.status === 'aguardando' && (
           <div className="absolute inset-0 bg-[#0F1F33] flex items-center justify-center z-10 pointer-events-none">
             <div className="text-center text-white">
-              <div className="w-20 h-20 bg-[#1A3A5C] rounded-full flex items-center justify-center mx-auto mb-6">
-                <Clock className="w-10 h-10 text-blue-300" />
+              <div className="w-20 h-20 bg-[#1A3A2C] rounded-full flex items-center justify-center mx-auto mb-6">
+                <Clock className="w-10 h-10 text-green-300" />
               </div>
               <h2 className="text-xl font-bold mb-2">Aguardando médico</h2>
-              <p className="text-blue-300 text-sm">Um médico entrará na sala em instantes.</p>
+              <p className="text-green-300 text-sm">Um médico entrará na sala em instantes.</p>
               <p className="text-blue-400 text-xs mt-4">A câmera vai abrir assim que o médico entrar.</p>
             </div>
           </div>

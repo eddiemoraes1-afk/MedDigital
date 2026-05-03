@@ -106,16 +106,16 @@ export async function GET(request: NextRequest) {
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8"/>
-  <title>Relatório de Pacientes — MedDigital</title>
+  <title>Relatório de Pacientes — RovarisMed</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; font-size: 11px; color: #222; padding: 24px; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #1A3A5C; }
-    .logo { font-size: 18px; font-weight: bold; color: #1A3A5C; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #1A3A2C; }
+    .logo { font-size: 18px; font-weight: bold; color: #1A3A2C; }
     .meta { font-size: 10px; color: #666; text-align: right; }
-    h2 { font-size: 14px; color: #1A3A5C; margin-bottom: 12px; }
+    h2 { font-size: 14px; color: #1A3A2C; margin-bottom: 12px; }
     table { width: 100%; border-collapse: collapse; }
-    th { background: #1A3A5C; color: white; padding: 7px 8px; text-align: left; font-size: 10px; }
+    th { background: #1A3A2C; color: white; padding: 7px 8px; text-align: left; font-size: 10px; }
     td { padding: 6px 8px; border-bottom: 1px solid #eee; }
     tr:nth-child(even) td { background: #f8f9fa; }
     .footer { margin-top: 16px; font-size: 9px; color: #999; text-align: center; }
@@ -124,7 +124,7 @@ export async function GET(request: NextRequest) {
 </head>
 <body>
   <div class="header">
-    <div class="logo">❤ MedDigital</div>
+    <div class="logo">❤ RovarisMed</div>
     <div class="meta">
       <div>Relatório de Pacientes</div>
       <div>Gerado em ${dataStr}</div>
@@ -141,7 +141,7 @@ export async function GET(request: NextRequest) {
     </thead>
     <tbody>${linhas}</tbody>
   </table>
-  <div class="footer">MedDigital — Relatório gerado automaticamente</div>
+  <div class="footer">RovarisMed — Relatório gerado automaticamente</div>
   <script>window.onload = () => { window.print() }</script>
 </body>
 </html>`

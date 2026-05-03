@@ -96,15 +96,15 @@ export default async function AgendamentoDetalhePage({
     : null
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB]">
-      <header className="bg-[#1A3A5C] text-white px-6 py-4">
+    <div className="min-h-screen bg-[#F3FAF7]">
+      <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Heart className="w-6 h-6 text-[#2E75B6]" fill="currentColor" />
-            <span className="font-bold">MedDigital</span>
-            <span className="text-xs text-blue-300 ml-1">Painel do Médico</span>
+            <Heart className="w-6 h-6 text-[#5BBD9B]" fill="currentColor" />
+            <span className="font-bold">RovarisMed</span>
+            <span className="text-xs text-green-300 ml-1">Painel do Médico</span>
           </div>
-          <Link href="/medico/agendamentos" className="text-sm text-blue-200 hover:text-white flex items-center gap-1">
+          <Link href="/medico/agendamentos" className="text-sm text-green-200 hover:text-white flex items-center gap-1">
             <ArrowLeft className="w-4 h-4" /> Agenda
           </Link>
         </div>
@@ -116,11 +116,11 @@ export default async function AgendamentoDetalhePage({
         <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
           <div className="flex items-start justify-between">
             <div className="flex gap-4">
-              <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center shrink-0">
-                <User className="w-7 h-7 text-[#2E75B6]" />
+              <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center shrink-0">
+                <User className="w-7 h-7 text-[#5BBD9B]" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#1A3A5C]">{paciente?.nome || 'Paciente'}</h1>
+                <h1 className="text-xl font-bold text-[#1A3A2C]">{paciente?.nome || 'Paciente'}</h1>
                 <div className="flex flex-wrap gap-3 mt-1">
                   {idadeAnos !== null && (
                     <span className="text-sm text-gray-500">{idadeAnos} anos</span>
@@ -137,17 +137,17 @@ export default async function AgendamentoDetalhePage({
                   )}
                 </div>
                 <div className="flex items-center gap-4 mt-3">
-                  <span className="flex items-center gap-1.5 text-sm font-medium text-[#1A3A5C]">
-                    <Calendar className="w-4 h-4 text-[#2E75B6]" />
+                  <span className="flex items-center gap-1.5 text-sm font-medium text-[#1A3A2C]">
+                    <Calendar className="w-4 h-4 text-[#5BBD9B]" />
                     {dataHora.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'America/Sao_Paulo' })}
                   </span>
-                  <span className="flex items-center gap-1.5 text-sm font-medium text-[#1A3A5C]">
-                    <Clock className="w-4 h-4 text-[#2E75B6]" />
+                  <span className="flex items-center gap-1.5 text-sm font-medium text-[#1A3A2C]">
+                    <Clock className="w-4 h-4 text-[#5BBD9B]" />
                     {dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}
                   </span>
                 </div>
                 {agendamento.observacoes && (
-                  <div className="mt-3 bg-blue-50 rounded-xl px-4 py-3">
+                  <div className="mt-3 bg-green-50 rounded-xl px-4 py-3">
                     <p className="text-xs text-gray-500 font-medium mb-1">Queixa do paciente</p>
                     <p className="text-sm text-gray-700 italic">"{agendamento.observacoes}"</p>
                   </div>
@@ -183,8 +183,8 @@ export default async function AgendamentoDetalhePage({
         <div className="grid md:grid-cols-2 gap-6">
           {/* Triagens */}
           <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h2 className="font-bold text-[#1A3A5C] flex items-center gap-2 mb-4">
-              <Brain className="w-4 h-4 text-[#2E75B6]" /> Histórico de triagens
+            <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 mb-4">
+              <Brain className="w-4 h-4 text-[#5BBD9B]" /> Histórico de triagens
             </h2>
             {triagens && triagens.length > 0 ? (
               <div className="space-y-3">
@@ -217,8 +217,8 @@ export default async function AgendamentoDetalhePage({
 
           {/* Atendimentos anteriores */}
           <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h2 className="font-bold text-[#1A3A5C] flex items-center gap-2 mb-4">
-              <Video className="w-4 h-4 text-[#2E75B6]" /> Consultas anteriores
+            <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 mb-4">
+              <Video className="w-4 h-4 text-[#5BBD9B]" /> Consultas anteriores
             </h2>
             {atendimentos && atendimentos.length > 0 ? (
               <div className="space-y-3">
@@ -230,7 +230,7 @@ export default async function AgendamentoDetalhePage({
                       </span>
                       <span className={`text-xs px-2 py-0.5 rounded-full ${
                         a.status === 'concluido' ? 'bg-green-100 text-green-700' :
-                        a.status === 'em_andamento' ? 'bg-blue-100 text-blue-700' :
+                        a.status === 'em_andamento' ? 'bg-green-100 text-green-700' :
                         'bg-gray-100 text-gray-500'
                       }`}>
                         {a.status === 'concluido' ? 'Concluído' :
