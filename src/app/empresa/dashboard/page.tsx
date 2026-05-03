@@ -114,9 +114,11 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
             <span className="text-sm text-blue-200 flex items-center gap-1.5">
               <Building2 className="w-4 h-4" /> {empresa?.nome}
             </span>
-            <Link href="/api/auth/signout" className="text-sm text-blue-300 hover:text-white flex items-center gap-1.5">
-              <LogOut className="w-4 h-4" /> Sair
-            </Link>
+            <form action="/api/auth/signout" method="POST">
+              <button type="submit" className="text-sm text-blue-300 hover:text-white flex items-center gap-1.5">
+                <LogOut className="w-4 h-4" /> Sair
+              </button>
+            </form>
           </div>
         </div>
       </header>
