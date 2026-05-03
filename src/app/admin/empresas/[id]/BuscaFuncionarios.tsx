@@ -23,6 +23,7 @@ interface Props {
 export default function BuscaFuncionarios({ vinculos }: Props) {
   const [busca, setBusca] = useState('')
   const [buscaCpf, setBuscaCpf] = useState('')
+  const [filtroCadastro, setFiltroCadastro] = useState<'todos' | 'cadastrado' | 'nao_cadastrado'>('todos')
 
   const filtrados = vinculos.filter(v => {
     const nome = v.nome_completo?.toLowerCase() ?? ''
@@ -32,6 +33,8 @@ export default function BuscaFuncionarios({ vinculos }: Props) {
 
     if (termoBusca && !nome.includes(termoBusca)) return false
     if (termoCpf && !cpf.replace(/\D/g, '').includes(termoCpf)) return false
+    if (filtroCadastro === 'cadastrado' && !v.paciente_id) return false
+    if (filtroCadastro === 'nao_cadastrado' && v.paciente_id) return false
     return true
   })
 
@@ -59,9 +62,19 @@ export default function BuscaFuncionarios({ vinculos }: Props) {
             className="w-full pl-9 pr-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#2E75B6]"
           />
         </div>
-        {(busca || buscaCpf) && (
+        <select
+          value={filtroCadastro}
+          onChange={e => setFiltroCadastro(e.target.value as typeof filtroCadastro)}
+          className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#2E75B6] bg-white text-gray-700"
+        >
+          <option value="todos">Todos</option>
+          <option value="cadastrado">✓ Na plataforma</option>
+          <option value="nao_cadastrado">✗ Sem cadastro</option>
+        </select>
+
+        {(busca || buscaCpf || filtroCadastro !== 'todos') && (
           <button
-            onClick={() => { setBusca(''); setBuscaCpf('') }}
+            onClick={() => { setBusca(''); setBuscaCpf(''); setFiltroCadastro('todos') }}
             className="text-xs text-gray-400 hover:text-gray-600 px-2"
           >
             Limpar
