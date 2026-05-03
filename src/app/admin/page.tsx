@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import {
   Heart, Building2, Users, Activity, LogOut,
-  TrendingUp, Calendar, Shield, Clock, CheckCircle2, UserCheck
+  TrendingUp, Calendar, Shield, Clock, CheckCircle2, UserCheck, Stethoscope
 } from 'lucide-react'
 import BotoesAprovacao from './components/BotoesAprovacao'
 
@@ -54,9 +54,15 @@ export default async function AdminDashboardPage() {
               <Shield className="w-3 h-3" /> Admin
             </span>
           </div>
-          <nav className="flex items-center gap-6">
+          <nav className="flex items-center gap-5">
             <Link href="/admin/empresas" className="text-sm text-blue-200 hover:text-white flex items-center gap-1.5">
               <Building2 className="w-4 h-4" /> Empresas
+            </Link>
+            <Link href="/admin/pacientes" className="text-sm text-blue-200 hover:text-white flex items-center gap-1.5">
+              <Users className="w-4 h-4" /> Pacientes
+            </Link>
+            <Link href="/admin/agendamentos" className="text-sm text-blue-200 hover:text-white flex items-center gap-1.5">
+              <Calendar className="w-4 h-4" /> Agendamentos
             </Link>
             <Link href="/api/auth/signout" className="text-sm text-blue-300 hover:text-white flex items-center gap-1.5">
               <LogOut className="w-4 h-4" /> Sair
@@ -228,15 +234,15 @@ export default async function AdminDashboardPage() {
                 </div>
               </Link>
               <Link
-                href="/medico/disponibilidade"
+                href="/admin/pacientes"
                 className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-purple-300 hover:bg-purple-50 transition-all"
               >
                 <div className="w-9 h-9 bg-purple-100 rounded-xl flex items-center justify-center">
-                  <Activity className="w-5 h-5 text-purple-600" />
+                  <Users className="w-5 h-5 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-800">Disponibilidade dos médicos</p>
-                  <p className="text-xs text-gray-400">Gerenciar horários e slots</p>
+                  <p className="text-sm font-medium text-gray-800">Pacientes</p>
+                  <p className="text-xs text-gray-400">Visualizar e filtrar pacientes</p>
                 </div>
               </Link>
             </div>
