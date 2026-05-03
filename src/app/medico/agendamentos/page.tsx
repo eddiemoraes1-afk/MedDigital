@@ -33,7 +33,7 @@ export default async function MedicoAgendamentosPage({
       const { data: primMedico } = await adminSupabase
         .from('medicos')
         .select('id, nome, especialidade')
-        .eq('ativo', true)
+        .order('criado_em', { ascending: true })
         .limit(1)
         .single()
       medico = primMedico

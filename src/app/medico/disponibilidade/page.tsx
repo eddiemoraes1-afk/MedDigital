@@ -65,22 +65,12 @@ export default function DisponibilidadePage() {
         .eq('usuario_id', user.id)
         .single()
 
-      // Admin pode gerenciar disponibilidade do primeiro médico ativo
+      // Admin pode gerenciar disponibilidade do primeiro médico cadastrado
       if (!medico) {
-        const { data: perfil } = await supabase
-          .from('perfis_sistema')
-          .select('role')
-          .eq('usuario_id', user.id)
-          .single()
-
-        if (perfil?.role === 'admin') {
-          const { data: primMedico } = await supabase
-            .from('medicos')
-            .select('id')
-            .eq('ativo', true)
-            .limit(1)
-            .single()
-          medico = primMedico
+        const res = await fetch('/api/auth/perfil-sistema')
+        const perfil = await res.json()
+        if (perfil?.role === 'admin' && perfil?.medicoId) {
+          medico = { id: perfil.medicoId }
         }
       }
 
