@@ -7,8 +7,10 @@ import {
   Mail, Phone, CheckCircle2, XCircle, Calendar,
   FileSpreadsheet
 } from 'lucide-react'
+// CheckCircle2 and XCircle are used in the empresa ativo badge below
 import ImportarFuncionarios from './ImportarFuncionarios'
 import ToggleEmpresaAtivo from './ToggleEmpresaAtivo'
+import BuscaFuncionarios from './BuscaFuncionarios'
 
 export default async function EmpresaDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -124,52 +126,7 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
                 </h2>
               </div>
               {vinculos && vinculos.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
-                      <tr>
-                        <th className="px-4 py-3 text-left">Nome</th>
-                        <th className="px-4 py-3 text-left">CPF</th>
-                        <th className="px-4 py-3 text-left">Cargo</th>
-                        <th className="px-4 py-3 text-left">Admissão</th>
-                        <th className="px-4 py-3 text-center">Status</th>
-                        <th className="px-4 py-3 text-center">Vinculado</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {vinculos.map((v: any) => (
-                        <tr key={v.id} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-4 py-3">
-                            <p className="font-medium text-gray-800">{v.nome_completo}</p>
-                            {v.email && <p className="text-xs text-gray-400">{v.email}</p>}
-                          </td>
-                          <td className="px-4 py-3 text-gray-600 font-mono text-xs">{v.cpf || '—'}</td>
-                          <td className="px-4 py-3">
-                            {v.cargo && <p className="text-gray-700">{v.cargo}</p>}
-                            {v.departamento && <p className="text-xs text-gray-400">{v.departamento}</p>}
-                          </td>
-                          <td className="px-4 py-3 text-gray-600">
-                            {v.data_admissao
-                              ? new Date(v.data_admissao).toLocaleDateString('pt-BR')
-                              : '—'}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${v.ativo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                              {v.ativo ? 'Ativo' : 'Inativo'}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            {v.paciente_id ? (
-                              <CheckCircle2 className="w-4 h-4 text-green-500 mx-auto" />
-                            ) : (
-                              <XCircle className="w-4 h-4 text-gray-300 mx-auto" />
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <BuscaFuncionarios vinculos={vinculos} />
               ) : (
                 <div className="text-center py-12">
                   <Users className="w-12 h-12 text-gray-200 mx-auto mb-3" />

@@ -148,7 +148,12 @@ export default async function AdminPacientesPage({ searchParams }: Props) {
                               <User className="w-4 h-4 text-green-600" />
                             </div>
                             <div>
-                              <p className="font-medium text-gray-800">{p.nome}</p>
+                              <Link
+                                href={`/admin/pacientes/${p.id}`}
+                                className="font-medium text-[#2E75B6] hover:underline"
+                              >
+                                {p.nome}
+                              </Link>
                               {p.convenio && <p className="text-xs text-gray-400">{p.convenio}</p>}
                             </div>
                           </div>
