@@ -283,6 +283,19 @@ export default async function MedicoAgendamentosPage({
                         {isCancelado && !a.motivo_cancelamento && (
                           <p className="text-xs text-red-300 mt-1 italic">Cancelado sem motivo informado</p>
                         )}
+                        {!isCancelado && (() => {
+                          const dataConsulta = new Date(a.data_hora.endsWith('Z') ? a.data_hora : a.data_hora + 'Z')
+                          const isFutura = dataConsulta > new Date()
+                          if (!isFutura) return null
+                          const abreDate = new Date(dataConsulta.getTime() - 10 * 60 * 1000)
+                          const abreStr = abreDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
+                          return (
+                            <p className="text-xs text-[#2E75B6] mt-1 flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              Sala abre às {abreStr}
+                            </p>
+                          )
+                        })()}
                         {!isCancelado && (
                           <BotaoEntrarConsultaMedico
                             agendamentoId={a.id}

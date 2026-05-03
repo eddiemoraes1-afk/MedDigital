@@ -33,12 +33,12 @@ export default function BotaoEntrarConsulta({ agendamentoId, dataHora }: Props) 
   const consulta = parsearUTC(dataHora)       // ← interpreta sempre como UTC
   const diffMin = (consulta.getTime() - agora.getTime()) / 60000
 
-  // Janela: 60 min antes até 2h depois
-  const dentroJanela = diffMin <= 60 && diffMin > -120
+  // Janela: 10 min antes até 2h depois
+  const dentroJanela = diffMin <= 10 && diffMin > -120
 
   if (!dentroJanela) {
-    if (diffMin > 60) {
-      const abreUTC = new Date(consulta.getTime() - 60 * 60 * 1000)
+    if (diffMin > 10) {
+      const abreUTC = new Date(consulta.getTime() - 10 * 60 * 1000)
       return (
         <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
           <Video className="w-3 h-3" />

@@ -20,11 +20,11 @@ export default function BotaoEntrarConsultaMedico({ agendamentoId, dataHora }: P
   const [carregando, setCarregando] = useState(false)
   const router = useRouter()
 
-  // Janela: 30 min antes até 3h depois (comparação em UTC puro)
+  // Janela: 10 min antes até 3h depois (comparação em UTC puro)
   const agora = new Date()
   const consulta = parsearUTC(dataHora)
   const diffMin = (consulta.getTime() - agora.getTime()) / 60000
-  const dentroJanela = diffMin <= 30 && diffMin > -180
+  const dentroJanela = diffMin <= 10 && diffMin > -180
 
   if (!dentroJanela) return null
 
