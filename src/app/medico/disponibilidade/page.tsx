@@ -139,9 +139,9 @@ export default function DisponibilidadePage() {
     if (!userId) return
     const horarioAtual = horarios.find(h => h.id === id)
     const novosValores = {
-      hora_inicio: editValues.hora_inicio,
-      hora_fim: editValues.hora_fim,
-      duracao_minutos: editValues.duracao_minutos,
+      hora_inicio: editValues.hora_inicio ?? horarioAtual?.hora_inicio ?? '08:00',
+      hora_fim: editValues.hora_fim ?? horarioAtual?.hora_fim ?? '18:00',
+      duracao_minutos: editValues.duracao_minutos ?? horarioAtual?.duracao_minutos ?? 30,
     }
     const { error } = await supabase.from('horarios_medico').update(novosValores).eq('id', id)
     if (!error) {
