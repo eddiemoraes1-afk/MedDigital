@@ -1,7 +1,8 @@
 import { requireAdmin } from '@/lib/auth-sistema'
 import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Heart, ArrowLeft, Shield, Activity, User, Phone, FileText, Building2, Calendar, CheckCircle2 } from 'lucide-react'
+import { Activity, User, Phone, FileText, Building2, Calendar, CheckCircle2 } from 'lucide-react'
+import AdminHeader from '../components/AdminHeader'
 import FiltrosPacientes from './FiltrosPacientes'
 import { Suspense } from 'react'
 
@@ -68,20 +69,7 @@ export default async function AdminPacientesPage({ searchParams }: Props) {
 
   return (
     <div className="min-h-screen bg-[#F4F7FB]">
-      <header className="bg-[#1A3A5C] text-white px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Heart className="w-6 h-6 text-[#2E75B6]" fill="currentColor" />
-            <span className="font-bold text-lg">MedDigital</span>
-            <span className="text-xs bg-blue-700 text-blue-100 px-2 py-0.5 rounded-full ml-1 flex items-center gap-1">
-              <Shield className="w-3 h-3" /> Admin
-            </span>
-          </div>
-          <Link href="/admin" className="text-sm text-blue-200 hover:text-white flex items-center gap-1.5">
-            <ArrowLeft className="w-4 h-4" /> Dashboard
-          </Link>
-        </div>
-      </header>
+      <AdminHeader ativo="pacientes" />
 
       <main className="max-w-6xl mx-auto px-6 py-8">
         <div className="mb-6">

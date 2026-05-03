@@ -11,6 +11,7 @@ export async function aprovarMedico(medicoId: string) {
     .eq('id', medicoId)
   if (error) throw new Error(error.message)
   revalidatePath('/admin')
+  revalidatePath('/admin/medicos')
 }
 
 export async function reprovarMedico(medicoId: string) {
@@ -21,4 +22,5 @@ export async function reprovarMedico(medicoId: string) {
     .eq('id', medicoId)
   if (error) throw new Error(error.message)
   revalidatePath('/admin')
+  revalidatePath('/admin/medicos')
 }

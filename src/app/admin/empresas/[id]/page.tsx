@@ -3,14 +3,12 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import {
-  Heart, Building2, ArrowLeft, Shield, Users,
-  Mail, Phone, CheckCircle2, XCircle, Calendar,
-  FileSpreadsheet
+  Building2, Users, Mail, Phone, CheckCircle2, XCircle, Calendar, FileSpreadsheet, Shield
 } from 'lucide-react'
-// CheckCircle2 and XCircle are used in the empresa ativo badge below
 import ImportarFuncionarios from './ImportarFuncionarios'
 import ToggleEmpresaAtivo from './ToggleEmpresaAtivo'
 import BuscaFuncionarios from './BuscaFuncionarios'
+import AdminHeader from '../../components/AdminHeader'
 
 export default async function EmpresaDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -50,20 +48,7 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
 
   return (
     <div className="min-h-screen bg-[#F4F7FB]">
-      <header className="bg-[#1A3A5C] text-white px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Heart className="w-6 h-6 text-[#2E75B6]" fill="currentColor" />
-            <span className="font-bold text-lg">MedDigital</span>
-            <span className="text-xs bg-blue-700 text-blue-100 px-2 py-0.5 rounded-full ml-1 flex items-center gap-1">
-              <Shield className="w-3 h-3" /> Admin
-            </span>
-          </div>
-          <Link href="/admin/empresas" className="text-sm text-blue-200 hover:text-white flex items-center gap-1">
-            <ArrowLeft className="w-4 h-4" /> Empresas
-          </Link>
-        </div>
-      </header>
+      <AdminHeader ativo="empresas" />
 
       <main className="max-w-6xl mx-auto px-6 py-8">
         {/* Cabeçalho da empresa */}

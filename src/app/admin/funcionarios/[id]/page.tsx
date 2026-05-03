@@ -3,10 +3,10 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import {
-  Heart, ArrowLeft, Shield, User, Phone, FileText,
-  Building2, Calendar, Briefcase, MapPin, CheckCircle2,
-  XCircle, Mail, AlertCircle
+  User, Phone, FileText, Building2, Calendar, Briefcase,
+  MapPin, CheckCircle2, XCircle, Mail, AlertCircle, ArrowLeft
 } from 'lucide-react'
+import AdminHeader from '../../components/AdminHeader'
 
 export default async function FichaFuncionarioPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -31,23 +31,7 @@ export default async function FichaFuncionarioPage({ params }: { params: Promise
 
   return (
     <div className="min-h-screen bg-[#F4F7FB]">
-      <header className="bg-[#1A3A5C] text-white px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Heart className="w-6 h-6 text-[#2E75B6]" fill="currentColor" />
-            <span className="font-bold text-lg">MedDigital</span>
-            <span className="text-xs bg-blue-700 text-blue-100 px-2 py-0.5 rounded-full ml-1 flex items-center gap-1">
-              <Shield className="w-3 h-3" /> Admin
-            </span>
-          </div>
-          <Link
-            href={`/admin/empresas/${empresa?.id}`}
-            className="text-sm text-blue-200 hover:text-white flex items-center gap-1.5"
-          >
-            <ArrowLeft className="w-4 h-4" /> Voltar para a empresa
-          </Link>
-        </div>
-      </header>
+      <AdminHeader ativo="empresas" />
 
       <main className="max-w-4xl mx-auto px-6 py-8">
 

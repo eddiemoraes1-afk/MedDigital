@@ -2,9 +2,9 @@ import { requireAdmin } from '@/lib/auth-sistema'
 import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import {
-  Heart, Shield, ArrowLeft, Calendar, Clock,
-  ChevronLeft, ChevronRight, User, XCircle, Users, ExternalLink
+  Calendar, Clock, ChevronLeft, ChevronRight, User, XCircle, Users, ExternalLink
 } from 'lucide-react'
+import AdminHeader from '../components/AdminHeader'
 
 export default async function AdminAgendamentosPage({
   searchParams,
@@ -104,20 +104,7 @@ export default async function AdminAgendamentosPage({
 
   return (
     <div className="min-h-screen bg-[#F4F7FB]">
-      <header className="bg-[#1A3A5C] text-white px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Heart className="w-6 h-6 text-[#2E75B6]" fill="currentColor" />
-            <span className="font-bold text-lg">MedDigital</span>
-            <span className="text-xs bg-blue-700 text-blue-100 px-2 py-0.5 rounded-full ml-1 flex items-center gap-1">
-              <Shield className="w-3 h-3" /> Admin
-            </span>
-          </div>
-          <Link href="/admin" className="text-sm text-blue-200 hover:text-white flex items-center gap-1">
-            <ArrowLeft className="w-4 h-4" /> Painel
-          </Link>
-        </div>
-      </header>
+      <AdminHeader ativo="agendamentos" />
 
       <main className="max-w-6xl mx-auto px-6 py-8">
 

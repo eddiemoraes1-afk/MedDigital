@@ -64,6 +64,9 @@ export default async function AdminDashboardPage() {
             <Link href="/admin/agendamentos" className="text-sm text-blue-200 hover:text-white flex items-center gap-1.5">
               <Calendar className="w-4 h-4" /> Agendamentos
             </Link>
+            <Link href="/admin/medicos" className="text-sm text-blue-200 hover:text-white flex items-center gap-1.5">
+              <UserCheck className="w-4 h-4" /> Médicos
+            </Link>
             <form action="/api/auth/signout" method="POST">
               <button type="submit" className="text-sm text-blue-300 hover:text-white flex items-center gap-1.5">
                 <LogOut className="w-4 h-4" /> Sair
