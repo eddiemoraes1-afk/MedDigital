@@ -94,17 +94,15 @@ export default function BuscaFuncionarios({ vinculos }: Props) {
               {filtrados.map(v => (
                 <tr key={v.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
-                    {v.paciente_id ? (
-                      <Link
-                        href={`/admin/pacientes/${v.paciente_id}`}
-                        className="font-medium text-[#2E75B6] hover:underline flex items-center gap-1 group"
-                      >
-                        {v.nome_completo}
-                        <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </Link>
-                    ) : (
-                      <p className="font-medium text-gray-800">{v.nome_completo}</p>
-                    )}
+                    <Link
+                      href={v.paciente_id
+                        ? `/admin/pacientes/${v.paciente_id}`
+                        : `/admin/funcionarios/${v.id}`}
+                      className="font-medium text-[#2E75B6] hover:underline flex items-center gap-1 group"
+                    >
+                      {v.nome_completo}
+                      <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Link>
                     {v.email && <p className="text-xs text-gray-400">{v.email}</p>}
                   </td>
                   <td className="px-4 py-3 text-gray-600 font-mono text-xs">{v.cpf || '—'}</td>

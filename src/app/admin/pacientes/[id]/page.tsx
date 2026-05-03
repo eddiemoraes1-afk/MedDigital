@@ -8,8 +8,14 @@ import {
   Mail, Briefcase, MapPin, XCircle, AlertCircle
 } from 'lucide-react'
 
-export default async function FichaPacientePage({ params }: { params: Promise<{ id: string }> }) {
+interface Props {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ filtro?: string }>
+}
+
+export default async function FichaPacientePage({ params, searchParams }: Props) {
   const { id } = await params
+  const { filtro } = await searchParams
   await requireAdmin()
 
   const adminSupabase = createAdminClient()
@@ -57,6 +63,11 @@ export default async function FichaPacientePage({ params }: { params: Promise<{ 
     a.status !== 'cancelado' && new Date(a.data_hora) > new Date()
   )
 
+  // Aplicar filtro de visualização
+  const consultasExibidas = filtro === 'concluido'
+    ? agendamentos?.filter(a => a.status === 'concluido') ?? []
+    : agendamentos ?? []
+
   function formatDataHora(iso: string) {
     const d = new Date(iso + (iso.endsWith('Z') ? '' : 'Z'))
     return {
@@ -80,6 +91,10 @@ export default async function FichaPacientePage({ params }: { params: Promise<{ 
   }
 
   const empresa = vinculo?.empresas as any
+
+  // Verificar se há dados cadastrais extras para mostrar
+  const temDadosCadastrais = paciente.data_nascimento || paciente.sexo ||
+    paciente.convenio || paciente.numero_convenio || paciente.email
 
   return (
     <div className="min-h-screen bg-[#F4F7FB]">
@@ -140,16 +155,22 @@ export default async function FichaPacientePage({ params }: { params: Promise<{ 
               </p>
             </div>
 
-            {/* KPIs rápidos */}
-            <div className="flex gap-4 shrink-0">
-              <div className="text-center bg-[#F4F7FB] rounded-xl px-4 py-3">
+            {/* KPIs clicáveis */}
+            <div className="flex gap-3 shrink-0">
+              <Link
+                href={`/admin/pacientes/${id}#historico`}
+                className="text-center bg-[#F4F7FB] hover:bg-blue-50 transition-colors rounded-xl px-4 py-3 cursor-pointer"
+              >
                 <p className="text-2xl font-bold text-[#1A3A5C]">{totalConsultas}</p>
                 <p className="text-xs text-gray-400">consultas</p>
-              </div>
-              <div className="text-center bg-green-50 rounded-xl px-4 py-3">
+              </Link>
+              <Link
+                href={`/admin/pacientes/${id}?filtro=concluido#historico`}
+                className="text-center bg-green-50 hover:bg-green-100 transition-colors rounded-xl px-4 py-3 cursor-pointer"
+              >
                 <p className="text-2xl font-bold text-green-600">{consultasRealizadas}</p>
                 <p className="text-xs text-gray-400">realizadas</p>
-              </div>
+              </Link>
             </div>
           </div>
         </div>
@@ -157,16 +178,25 @@ export default async function FichaPacientePage({ params }: { params: Promise<{ 
         <div className="grid md:grid-cols-3 gap-6">
 
           {/* Histórico de consultas — 2/3 */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-2" id="historico">
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h2 className="font-bold text-[#1A3A5C] flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-[#2E75B6]" /> Histórico de Consultas
-                  <span className="text-xs text-gray-400 font-normal">({totalConsultas})</span>
+                  <Activity className="w-4 h-4 text-[#2E75B6]" />
+                  {filtro === 'concluido' ? 'Consultas Realizadas' : 'Histórico de Consultas'}
+                  <span className="text-xs text-gray-400 font-normal">({consultasExibidas.length})</span>
                 </h2>
+                {filtro === 'concluido' && (
+                  <Link
+                    href={`/admin/pacientes/${id}#historico`}
+                    className="text-xs text-[#2E75B6] hover:underline"
+                  >
+                    Ver todas
+                  </Link>
+                )}
               </div>
 
-              {agendamentos && agendamentos.length > 0 ? (
+              {consultasExibidas.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
@@ -178,9 +208,8 @@ export default async function FichaPacientePage({ params }: { params: Promise<{ 
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                      {agendamentos.map(a => {
+                      {consultasExibidas.map(a => {
                         const { data, hora } = formatDataHora(a.data_hora)
-                        const isPast = new Date(a.data_hora) < new Date()
                         return (
                           <tr key={a.id} className="hover:bg-gray-50 transition-colors">
                             <td className="px-5 py-3">
@@ -209,7 +238,11 @@ export default async function FichaPacientePage({ params }: { params: Promise<{ 
               ) : (
                 <div className="py-14 text-center">
                   <Activity className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                  <p className="text-sm text-gray-400">Nenhuma consulta registrada</p>
+                  <p className="text-sm text-gray-400">
+                    {filtro === 'concluido'
+                      ? 'Nenhuma consulta realizada ainda'
+                      : 'Nenhuma consulta registrada'}
+                  </p>
                 </div>
               )}
             </div>
@@ -288,39 +321,49 @@ export default async function FichaPacientePage({ params }: { params: Promise<{ 
               </div>
             )}
 
-            {/* Dados de cadastro */}
+            {/* Dados cadastrais */}
             <div className="bg-white rounded-2xl p-5 shadow-sm">
               <h3 className="font-semibold text-[#1A3A5C] text-sm flex items-center gap-2 mb-3">
                 <User className="w-4 h-4 text-gray-400" /> Dados cadastrais
               </h3>
-              <div className="space-y-2">
-                {paciente.data_nascimento && (
-                  <div>
-                    <p className="text-xs text-gray-400">Data de nascimento</p>
-                    <p className="text-sm text-gray-700">
-                      {new Date(paciente.data_nascimento).toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
-                )}
-                {paciente.sexo && (
-                  <div>
-                    <p className="text-xs text-gray-400">Sexo</p>
-                    <p className="text-sm text-gray-700 capitalize">{paciente.sexo}</p>
-                  </div>
-                )}
-                {paciente.convenio && (
-                  <div>
-                    <p className="text-xs text-gray-400">Convênio</p>
-                    <p className="text-sm text-gray-700">{paciente.convenio}</p>
-                  </div>
-                )}
-                {paciente.numero_convenio && (
-                  <div>
-                    <p className="text-xs text-gray-400">Nº convênio</p>
-                    <p className="text-sm font-mono text-gray-700">{paciente.numero_convenio}</p>
-                  </div>
-                )}
-              </div>
+              {temDadosCadastrais ? (
+                <div className="space-y-2">
+                  {paciente.email && (
+                    <div>
+                      <p className="text-xs text-gray-400">E-mail</p>
+                      <p className="text-sm text-gray-700">{paciente.email}</p>
+                    </div>
+                  )}
+                  {paciente.data_nascimento && (
+                    <div>
+                      <p className="text-xs text-gray-400">Data de nascimento</p>
+                      <p className="text-sm text-gray-700">
+                        {new Date(paciente.data_nascimento).toLocaleDateString('pt-BR')}
+                      </p>
+                    </div>
+                  )}
+                  {paciente.sexo && (
+                    <div>
+                      <p className="text-xs text-gray-400">Sexo</p>
+                      <p className="text-sm text-gray-700 capitalize">{paciente.sexo}</p>
+                    </div>
+                  )}
+                  {paciente.convenio && (
+                    <div>
+                      <p className="text-xs text-gray-400">Convênio</p>
+                      <p className="text-sm text-gray-700">{paciente.convenio}</p>
+                    </div>
+                  )}
+                  {paciente.numero_convenio && (
+                    <div>
+                      <p className="text-xs text-gray-400">Nº convênio</p>
+                      <p className="text-sm font-mono text-gray-700">{paciente.numero_convenio}</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400">Nenhum dado adicional cadastrado</p>
+              )}
             </div>
 
           </div>
