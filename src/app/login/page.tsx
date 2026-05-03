@@ -112,16 +112,18 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-gray-100 text-center text-sm text-gray-500">
-            Não tem conta?{' '}
-            <Link href="/cadastro" className="text-[#2E75B6] font-medium hover:underline">
-              Cadastre-se grátis
+          <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
+            <Link
+              href="/cadastro"
+              className="block w-full text-center bg-[#F4F7FB] hover:bg-blue-50 border border-[#2E75B6] text-[#2E75B6] py-3 rounded-xl font-semibold text-sm transition-colors"
+            >
+              Cadastre-se
             </Link>
-          </div>
-
-          <div className="mt-3 text-center">
-            <Link href="/cadastro?tipo=medico" className="text-xs text-gray-400 hover:text-[#2E75B6]">
-              Sou médico — quero me cadastrar na plataforma
+            <Link
+              href="/cadastro?tipo=medico"
+              className="block w-full text-center bg-[#F4F7FB] hover:bg-green-50 border border-[#1A7340] text-[#1A7340] py-3 rounded-xl font-semibold text-sm transition-colors"
+            >
+              Sou médico — quero me cadastrar
             </Link>
           </div>
         </div>

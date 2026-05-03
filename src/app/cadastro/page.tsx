@@ -106,19 +106,29 @@ function CadastroForm() {
       <h1 className="text-xl font-bold text-[#1A3A5C] mb-6">Criar conta</h1>
 
       {/* Seletor de tipo */}
-      <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-xl">
-        {(['paciente', 'medico'] as const).map(t => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTipo(t)}
-            className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-              tipo === t ? 'bg-white text-[#1A3A5C] shadow-sm' : 'text-gray-500'
-            }`}
-          >
-            {t === 'paciente' ? 'Sou Paciente' : 'Sou Médico'}
-          </button>
-        ))}
+      <div className="flex gap-3 mb-6">
+        <button
+          type="button"
+          onClick={() => setTipo('paciente')}
+          className={`flex-1 py-4 rounded-xl text-base font-semibold transition-all border-2 ${
+            tipo === 'paciente'
+              ? 'bg-[#2E75B6] border-[#2E75B6] text-white shadow-md'
+              : 'bg-white border-gray-200 text-gray-500 hover:border-[#2E75B6] hover:text-[#2E75B6]'
+          }`}
+        >
+          Sou Paciente
+        </button>
+        <button
+          type="button"
+          onClick={() => setTipo('medico')}
+          className={`flex-1 py-4 rounded-xl text-base font-semibold transition-all border-2 ${
+            tipo === 'medico'
+              ? 'bg-[#1A7340] border-[#1A7340] text-white shadow-md'
+              : 'bg-white border-gray-200 text-gray-500 hover:border-[#1A7340] hover:text-[#1A7340]'
+          }`}
+        >
+          Sou Médico
+        </button>
       </div>
 
       {erro && (
@@ -224,7 +234,11 @@ function CadastroForm() {
         </div>
 
         <button type="submit" disabled={carregando}
-          className="w-full bg-[#1A3A5C] hover:bg-[#2E75B6] text-white py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-60">
+          className={`w-full text-white py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-60 transition-colors ${
+            tipo === 'medico'
+              ? 'bg-[#1A7340] hover:bg-[#155C33]'
+              : 'bg-[#2E75B6] hover:bg-[#1A3A5C]'
+          }`}>
           {carregando ? <><Loader2 className="w-4 h-4 animate-spin" /> Criando conta...</> : 'Criar conta'}
         </button>
       </form>
