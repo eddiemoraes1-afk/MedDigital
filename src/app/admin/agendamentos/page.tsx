@@ -202,7 +202,7 @@ export default async function AdminAgendamentosPage({
                     const nomePac = (pac?.nome || 'Paciente').split(' ')[0]
                     const isCancelado = a.status === 'cancelado'
                     return (
-                      <Link href={`/medico/agendamento/${a.id}`} key={a.id} className={`block rounded-lg p-2 border text-xs hover:opacity-80 transition-opacity ${corStatus[a.status] || 'bg-green-50 text-green-700 border-green-100'}`}>
+                      <Link href={pac ? `/admin/pacientes/${a.paciente_id}` : '#'} key={a.id} className={`block rounded-lg p-2 border text-xs hover:opacity-80 transition-opacity ${corStatus[a.status] || 'bg-green-50 text-green-700 border-green-100'}`}>
                         <div className={`flex items-center gap-1 font-semibold ${isCancelado ? 'line-through opacity-60' : ''}`}>
                           {isCancelado ? <XCircle className="w-3 h-3 shrink-0" /> : <Clock className="w-3 h-3 shrink-0" />}
                           {hora}
@@ -239,7 +239,7 @@ export default async function AdminAgendamentosPage({
                         {isCancelado ? <XCircle className="w-5 h-5 text-red-300" /> : <User className="w-5 h-5 text-[#5BBD9B]" />}
                       </div>
                       <div>
-                        <Link href={`/medico/agendamento/${a.id}`} className={`font-medium hover:text-[#5BBD9B] hover:underline ${isCancelado ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                        <Link href={pac ? `/admin/pacientes/${a.paciente_id}` : '#'} className={`font-medium hover:text-[#5BBD9B] hover:underline ${isCancelado ? 'line-through text-gray-400' : 'text-gray-800'}`}>
                           {pac?.nome || 'Paciente'}
                         </Link>
                         <p className="text-xs text-[#5BBD9B] font-medium mt-0.5">Dr(a). {medico.nome}</p>
@@ -270,9 +270,11 @@ export default async function AdminAgendamentosPage({
                             </p>
                           )
                         })()}
-                        <Link href={`/medico/agendamento/${a.id}`} className="inline-flex items-center gap-1 mt-2 text-xs text-[#5BBD9B] hover:underline font-medium">
-                          <ExternalLink className="w-3 h-3" /> Ver detalhes
-                        </Link>
+                        {pac && (
+                          <Link href={`/admin/pacientes/${a.paciente_id}`} className="inline-flex items-center gap-1 mt-2 text-xs text-[#5BBD9B] hover:underline font-medium">
+                            <ExternalLink className="w-3 h-3" /> Ver detalhes do paciente
+                          </Link>
+                        )}
                       </div>
                     </div>
                     <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
