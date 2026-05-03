@@ -46,7 +46,7 @@ export default function CriarEmpresaForm() {
     }
   }
 
-  const inputClass = "w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E75B6] focus:border-transparent"
+  const inputClass = "w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] focus:border-transparent"
   const labelClass = "block text-xs font-medium text-gray-600 mb-1"
 
   return (
@@ -85,7 +85,7 @@ export default function CriarEmpresaForm() {
       <button
         type="submit"
         disabled={salvando}
-        className="w-full bg-[#1A3A5C] hover:bg-[#2E75B6] text-white rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
+        className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
       >
         {salvando && <Loader2 className="w-4 h-4 animate-spin" />}
         {salvando ? 'Criando...' : 'Criar empresa'}

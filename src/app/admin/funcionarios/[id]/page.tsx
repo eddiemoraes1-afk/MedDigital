@@ -30,7 +30,7 @@ export default async function FichaFuncionarioPage({ params }: { params: Promise
   const empresa = vinculo.empresas as any
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB]">
+    <div className="min-h-screen bg-[#F3FAF7]">
       <AdminHeader ativo="empresas" />
 
       <main className="max-w-4xl mx-auto px-6 py-8">
@@ -53,7 +53,7 @@ export default async function FichaFuncionarioPage({ params }: { params: Promise
               <User className="w-8 h-8 text-gray-400" />
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-[#1A3A5C]">{vinculo.nome_completo}</h1>
+              <h1 className="text-2xl font-bold text-[#1A3A2C]">{vinculo.nome_completo}</h1>
               <div className="flex flex-wrap gap-4 mt-2">
                 {vinculo.cpf && (
                   <span className="flex items-center gap-1.5 text-sm text-gray-500">
@@ -84,8 +84,8 @@ export default async function FichaFuncionarioPage({ params }: { params: Promise
 
           {/* Dados na empresa */}
           <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h2 className="font-bold text-[#1A3A5C] flex items-center gap-2 mb-4">
-              <Briefcase className="w-4 h-4 text-[#2E75B6]" /> Dados na Empresa
+            <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 mb-4">
+              <Briefcase className="w-4 h-4 text-[#5BBD9B]" /> Dados na Empresa
             </h2>
             <div className="space-y-3">
               {vinculo.cargo && (
@@ -123,7 +123,7 @@ export default async function FichaFuncionarioPage({ params }: { params: Promise
 
           {/* Empresa */}
           <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h2 className="font-bold text-[#1A3A5C] flex items-center gap-2 mb-4">
+            <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 mb-4">
               <Building2 className="w-4 h-4 text-purple-500" /> Empresa
             </h2>
             {empresa ? (

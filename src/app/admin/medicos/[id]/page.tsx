@@ -57,7 +57,7 @@ export default async function FichaMedicoPage({ params }: { params: Promise<{ id
 
   function statusConsultaBadge(s: string) {
     if (s === 'concluido') return 'bg-green-100 text-green-700'
-    if (s === 'confirmado') return 'bg-blue-100 text-blue-700'
+    if (s === 'confirmado') return 'bg-green-100 text-green-700'
     if (s === 'cancelado') return 'bg-red-100 text-red-600'
     return 'bg-yellow-100 text-yellow-700'
   }
@@ -80,14 +80,14 @@ export default async function FichaMedicoPage({ params }: { params: Promise<{ id
   const sc = statusConfig(medico.status)
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB]">
+    <div className="min-h-screen bg-[#F3FAF7]">
       <AdminHeader ativo="medicos" />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-3 mb-6">
-          <Link href="/admin/medicos" className="text-sm text-gray-400 hover:text-[#2E75B6] flex items-center gap-1">
+          <Link href="/admin/medicos" className="text-sm text-gray-400 hover:text-[#5BBD9B] flex items-center gap-1">
             <ArrowLeft className="w-4 h-4" /> Médicos
           </Link>
           <span className="text-gray-300">/</span>
@@ -97,11 +97,11 @@ export default async function FichaMedicoPage({ params }: { params: Promise<{ id
         {/* Cabeçalho do médico */}
         <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
           <div className="flex items-start gap-5">
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 ${ativo ? 'bg-blue-100' : 'bg-gray-100'}`}>
-              <Stethoscope className={`w-8 h-8 ${ativo ? 'text-[#2E75B6]' : 'text-gray-400'}`} />
+            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 ${ativo ? 'bg-green-100' : 'bg-gray-100'}`}>
+              <Stethoscope className={`w-8 h-8 ${ativo ? 'text-[#5BBD9B]' : 'text-gray-400'}`} />
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-[#1A3A5C]">{medico.nome}</h1>
+              <h1 className="text-2xl font-bold text-[#1A3A2C]">{medico.nome}</h1>
               <div className="flex flex-wrap gap-4 mt-2">
                 {medico.especialidade && (
                   <span className="flex items-center gap-1.5 text-sm text-gray-500">
@@ -161,8 +161,8 @@ export default async function FichaMedicoPage({ params }: { params: Promise<{ id
           <div className="md:col-span-2">
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h2 className="font-bold text-[#1A3A5C] flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-[#2E75B6]" /> Histórico de Consultas
+                <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-[#5BBD9B]" /> Histórico de Consultas
                   <span className="text-xs text-gray-400 font-normal">({totalConsultas})</span>
                 </h2>
               </div>
@@ -193,7 +193,7 @@ export default async function FichaMedicoPage({ params }: { params: Promise<{ id
                               {a.paciente_id && pacienteMap[a.paciente_id] ? (
                                 <Link
                                   href={`/admin/pacientes/${a.paciente_id}`}
-                                  className="text-sm text-[#2E75B6] hover:underline"
+                                  className="text-sm text-[#5BBD9B] hover:underline"
                                 >
                                   {pacienteMap[a.paciente_id]}
                                 </Link>
@@ -231,7 +231,7 @@ export default async function FichaMedicoPage({ params }: { params: Promise<{ id
             <div className="bg-white rounded-2xl p-5 shadow-sm">
               <div className="grid grid-cols-2 gap-4">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-[#1A3A5C]">{totalConsultas}</p>
+                  <p className="text-2xl font-bold text-[#1A3A2C]">{totalConsultas}</p>
                   <p className="text-xs text-gray-400 mt-0.5">consultas</p>
                 </div>
                 <div className="text-center">
@@ -243,14 +243,14 @@ export default async function FichaMedicoPage({ params }: { params: Promise<{ id
 
             {/* Próxima consulta */}
             {proximaConsulta && (
-              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
+              <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
                 <h3 className="font-semibold text-blue-800 text-sm flex items-center gap-2 mb-2">
                   <Calendar className="w-4 h-4" /> Próxima consulta
                 </h3>
                 <p className="text-blue-900 font-medium">
                   {formatDataHora(proximaConsulta.data_hora).data}
                 </p>
-                <p className="text-sm text-blue-600 flex items-center gap-1 mt-1">
+                <p className="text-sm text-green-600 flex items-center gap-1 mt-1">
                   <Clock className="w-3 h-3" />
                   {formatDataHora(proximaConsulta.data_hora).hora}
                 </p>
@@ -264,7 +264,7 @@ export default async function FichaMedicoPage({ params }: { params: Promise<{ id
 
             {/* Ações de aprovação */}
             <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <h3 className="font-semibold text-[#1A3A5C] text-sm flex items-center gap-2 mb-3">
+              <h3 className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2 mb-3">
                 <User className="w-4 h-4 text-gray-400" /> Aprovação
               </h3>
               <div className="flex justify-center">
@@ -281,7 +281,7 @@ export default async function FichaMedicoPage({ params }: { params: Promise<{ id
             {/* Dados cadastrais extras */}
             {(medico.bio || medico.valor_consulta) && (
               <div className="bg-white rounded-2xl p-5 shadow-sm">
-                <h3 className="font-semibold text-[#1A3A5C] text-sm mb-3">Perfil</h3>
+                <h3 className="font-semibold text-[#1A3A2C] text-sm mb-3">Perfil</h3>
                 <div className="space-y-2">
                   {medico.valor_consulta && (
                     <div>

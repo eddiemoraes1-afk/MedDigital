@@ -18,14 +18,14 @@ export default async function EmpresasPage() {
     .order('criado_em', { ascending: false })
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB]">
+    <div className="min-h-screen bg-[#F3FAF7]">
       <AdminHeader ativo="empresas" />
 
       <main className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-[#1A3A5C] flex items-center gap-2">
-              <Building2 className="w-6 h-6 text-[#2E75B6]" /> Empresas
+            <h1 className="text-2xl font-bold text-[#1A3A2C] flex items-center gap-2">
+              <Building2 className="w-6 h-6 text-[#5BBD9B]" /> Empresas
             </h1>
             <p className="text-gray-500 text-sm mt-1">{empresas?.length ?? 0} empresa(s) cadastrada(s)</p>
           </div>
@@ -44,11 +44,11 @@ export default async function EmpresasPage() {
                     className="bg-white rounded-2xl p-5 shadow-sm flex items-center justify-between hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
-                        <Building2 className="w-5 h-5 text-[#2E75B6]" />
+                      <div className="w-11 h-11 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
+                        <Building2 className="w-5 h-5 text-[#5BBD9B]" />
                       </div>
                       <div>
-                        <p className="font-semibold text-[#1A3A5C]">{e.nome}</p>
+                        <p className="font-semibold text-[#1A3A2C]">{e.nome}</p>
                         <p className="text-xs text-gray-400 mt-0.5">{e.cnpj || 'CNPJ não informado'}</p>
                         {e.email_contato && (
                           <p className="text-xs text-gray-400">{e.email_contato}</p>
@@ -85,8 +85,8 @@ export default async function EmpresasPage() {
           {/* Formulário de criação */}
           <div className="md:col-span-1">
             <div className="bg-white rounded-2xl p-6 shadow-sm sticky top-6">
-              <h2 className="font-bold text-[#1A3A5C] flex items-center gap-2 mb-5">
-                <Plus className="w-4 h-4 text-[#2E75B6]" /> Nova empresa
+              <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 mb-5">
+                <Plus className="w-4 h-4 text-[#5BBD9B]" /> Nova empresa
               </h2>
               <CriarEmpresaForm />
             </div>

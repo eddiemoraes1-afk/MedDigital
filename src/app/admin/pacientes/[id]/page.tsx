@@ -78,7 +78,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
 
   function statusBadge(status: string) {
     if (status === 'concluido') return 'bg-green-100 text-green-700'
-    if (status === 'confirmado') return 'bg-blue-100 text-blue-700'
+    if (status === 'confirmado') return 'bg-green-100 text-green-700'
     if (status === 'cancelado') return 'bg-red-100 text-red-600'
     return 'bg-yellow-100 text-yellow-700'
   }
@@ -97,7 +97,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
     paciente.convenio || paciente.numero_convenio || paciente.email
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB]">
+    <div className="min-h-screen bg-[#F3FAF7]">
       <AdminHeader ativo="pacientes" />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
@@ -109,7 +109,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
               <User className="w-8 h-8 text-green-600" />
             </div>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-[#1A3A5C]">{paciente.nome}</h1>
+              <h1 className="text-2xl font-bold text-[#1A3A2C]">{paciente.nome}</h1>
               <div className="flex flex-wrap gap-4 mt-2">
                 {paciente.cpf && (
                   <span className="flex items-center gap-1.5 text-sm text-gray-500">
@@ -146,9 +146,9 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
             <div className="flex gap-3 shrink-0">
               <Link
                 href={`/admin/pacientes/${id}#historico`}
-                className="text-center bg-[#F4F7FB] hover:bg-blue-50 transition-colors rounded-xl px-4 py-3 cursor-pointer"
+                className="text-center bg-[#F3FAF7] hover:bg-green-50 transition-colors rounded-xl px-4 py-3 cursor-pointer"
               >
-                <p className="text-2xl font-bold text-[#1A3A5C]">{totalConsultas}</p>
+                <p className="text-2xl font-bold text-[#1A3A2C]">{totalConsultas}</p>
                 <p className="text-xs text-gray-400">consultas</p>
               </Link>
               <Link
@@ -168,15 +168,15 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
           <div className="md:col-span-2" id="historico">
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h2 className="font-bold text-[#1A3A5C] flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-[#2E75B6]" />
+                <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-[#5BBD9B]" />
                   {filtro === 'concluido' ? 'Consultas Realizadas' : 'Histórico de Consultas'}
                   <span className="text-xs text-gray-400 font-normal">({consultasExibidas.length})</span>
                 </h2>
                 {filtro === 'concluido' && (
                   <Link
                     href={`/admin/pacientes/${id}#historico`}
-                    className="text-xs text-[#2E75B6] hover:underline"
+                    className="text-xs text-[#5BBD9B] hover:underline"
                   >
                     Ver todas
                   </Link>
@@ -240,14 +240,14 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
 
             {/* Próxima consulta */}
             {proximaConsulta && (
-              <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
+              <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
                 <h3 className="font-semibold text-blue-800 text-sm flex items-center gap-2 mb-2">
                   <Calendar className="w-4 h-4" /> Próxima consulta
                 </h3>
                 <p className="text-blue-900 font-medium">
                   {formatDataHora(proximaConsulta.data_hora).data}
                 </p>
-                <p className="text-sm text-blue-600 flex items-center gap-1 mt-1">
+                <p className="text-sm text-green-600 flex items-center gap-1 mt-1">
                   <Clock className="w-3 h-3" />
                   {formatDataHora(proximaConsulta.data_hora).hora}
                 </p>
@@ -262,7 +262,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
             {/* Vínculo empresarial */}
             {vinculo ? (
               <div className="bg-white rounded-2xl p-5 shadow-sm">
-                <h3 className="font-semibold text-[#1A3A5C] text-sm flex items-center gap-2 mb-3">
+                <h3 className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2 mb-3">
                   <Building2 className="w-4 h-4 text-purple-500" /> Empresa
                 </h3>
                 <Link
@@ -301,7 +301,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
               </div>
             ) : (
               <div className="bg-white rounded-2xl p-5 shadow-sm">
-                <h3 className="font-semibold text-[#1A3A5C] text-sm flex items-center gap-2 mb-2">
+                <h3 className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2 mb-2">
                   <Building2 className="w-4 h-4 text-gray-400" /> Empresa
                 </h3>
                 <p className="text-xs text-gray-400">Paciente particular · sem vínculo empresarial</p>
@@ -310,7 +310,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
 
             {/* Dados cadastrais */}
             <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <h3 className="font-semibold text-[#1A3A5C] text-sm flex items-center gap-2 mb-3">
+              <h3 className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2 mb-3">
                 <User className="w-4 h-4 text-gray-400" /> Dados cadastrais
               </h3>
               {temDadosCadastrais ? (

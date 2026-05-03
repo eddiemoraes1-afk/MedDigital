@@ -38,20 +38,20 @@ export default async function AdminMedicosPage({ searchParams }: Props) {
   ]
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB]">
+    <div className="min-h-screen bg-[#F3FAF7]">
       <AdminHeader ativo="medicos" />
 
       <main className="max-w-6xl mx-auto px-6 py-8">
         <div className="flex items-center gap-3 mb-6">
-          <h1 className="text-2xl font-bold text-[#1A3A5C] flex items-center gap-2">
-            <Stethoscope className="w-6 h-6 text-[#2E75B6]" /> Médicos
+          <h1 className="text-2xl font-bold text-[#1A3A2C] flex items-center gap-2">
+            <Stethoscope className="w-6 h-6 text-[#5BBD9B]" /> Médicos
           </h1>
         </div>
 
         {/* KPIs */}
         <div className="grid grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <p className="text-3xl font-bold text-[#1A3A5C]">{total}</p>
+            <p className="text-3xl font-bold text-[#1A3A2C]">{total}</p>
             <p className="text-xs text-gray-500 mt-1">cadastrados</p>
           </div>
           <div className="bg-white rounded-2xl p-5 shadow-sm">
@@ -78,7 +78,7 @@ export default async function AdminMedicosPage({ searchParams }: Props) {
                 href={f.valor === 'todos' ? '/admin/medicos' : `/admin/medicos?status=${f.valor}`}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                   ativo
-                    ? 'bg-[#1A3A5C] text-white'
+                    ? 'bg-[#1A3A2C] text-white'
                     : 'bg-white text-gray-600 hover:bg-gray-50 shadow-sm'
                 }`}
               >

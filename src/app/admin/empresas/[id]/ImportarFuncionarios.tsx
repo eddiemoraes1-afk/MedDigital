@@ -118,7 +118,7 @@ export default function ImportarFuncionarios({ empresaId }: Props) {
 
       <button
         onClick={baixarTemplate}
-        className="flex items-center gap-1.5 text-xs text-[#2E75B6] hover:text-[#1A3A5C] transition-colors"
+        className="flex items-center gap-1.5 text-xs text-[#5BBD9B] hover:text-[#1A3A2C] transition-colors"
       >
         <Download className="w-3.5 h-3.5" />
         Baixar template CSV
@@ -127,7 +127,7 @@ export default function ImportarFuncionarios({ empresaId }: Props) {
       {/* Etapa 1 — Selecionar arquivo */}
       {!arquivo ? (
         <div
-          className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center cursor-pointer hover:border-[#2E75B6] hover:bg-blue-50 transition-all"
+          className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center cursor-pointer hover:border-[#5BBD9B] hover:bg-green-50 transition-all"
           onClick={() => inputRef.current?.click()}
         >
           <div className="flex flex-col items-center gap-2">
@@ -181,7 +181,7 @@ export default function ImportarFuncionarios({ empresaId }: Props) {
                   setAbaIndex(idx)
                   setAbaSelecionada(abas[idx] ?? '')
                 }}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#2E75B6] bg-white"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white"
               >
                 {abas.map((aba, idx) => (
                   <option key={idx} value={idx}>{aba}</option>
@@ -194,7 +194,7 @@ export default function ImportarFuncionarios({ empresaId }: Props) {
           <button
             onClick={handleImportar}
             disabled={carregando || (!!isXlsx && !abaSelecionada)}
-            className="w-full bg-[#1A3A5C] hover:bg-[#2E75B6] text-white rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
+            className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
           >
             {carregando ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Importando...</>

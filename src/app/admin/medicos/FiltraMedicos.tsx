@@ -112,12 +112,12 @@ export default function FiltraMedicos({ medicos }: Props) {
                     <tr key={m.id} className={`hover:bg-gray-50 transition-colors ${!ativo ? 'opacity-60' : ''}`}>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${ativo ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                            <Stethoscope className={`w-4 h-4 ${ativo ? 'text-[#2E75B6]' : 'text-gray-400'}`} />
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${ativo ? 'bg-green-100' : 'bg-gray-100'}`}>
+                            <Stethoscope className={`w-4 h-4 ${ativo ? 'text-[#5BBD9B]' : 'text-gray-400'}`} />
                           </div>
                           <Link
                             href={`/admin/medicos/${m.id}`}
-                            className="font-medium text-[#2E75B6] hover:underline"
+                            className="font-medium text-[#5BBD9B] hover:underline"
                           >
                             {m.nome}
                           </Link>

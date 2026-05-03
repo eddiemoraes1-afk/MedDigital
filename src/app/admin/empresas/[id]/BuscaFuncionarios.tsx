@@ -49,7 +49,7 @@ export default function BuscaFuncionarios({ vinculos }: Props) {
             value={busca}
             onChange={e => setBusca(e.target.value)}
             placeholder="Buscar por nome..."
-            className="w-full pl-9 pr-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#2E75B6]"
+            className="w-full pl-9 pr-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
           />
         </div>
         <div className="relative w-44">
@@ -59,13 +59,13 @@ export default function BuscaFuncionarios({ vinculos }: Props) {
             value={buscaCpf}
             onChange={e => setBuscaCpf(e.target.value)}
             placeholder="Buscar por CPF..."
-            className="w-full pl-9 pr-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#2E75B6]"
+            className="w-full pl-9 pr-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
           />
         </div>
         <select
           value={filtroCadastro}
           onChange={e => setFiltroCadastro(e.target.value as typeof filtroCadastro)}
-          className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#2E75B6] bg-white text-gray-700"
+          className="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white text-gray-700"
         >
           <option value="todos">Todos</option>
           <option value="cadastrado">✓ Na plataforma</option>
@@ -111,7 +111,7 @@ export default function BuscaFuncionarios({ vinculos }: Props) {
                       href={v.paciente_id
                         ? `/admin/pacientes/${v.paciente_id}`
                         : `/admin/funcionarios/${v.id}`}
-                      className="font-medium text-[#2E75B6] hover:underline flex items-center gap-1 group"
+                      className="font-medium text-[#5BBD9B] hover:underline flex items-center gap-1 group"
                     >
                       {v.nome_completo}
                       <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />

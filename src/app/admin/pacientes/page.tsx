@@ -68,12 +68,12 @@ export default async function AdminPacientesPage({ searchParams }: Props) {
   const comAgendamento = (todosPacientes ?? []).filter(p => (p.agendamentos?.[0]?.count ?? 0) > 0).length
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB]">
+    <div className="min-h-screen bg-[#F3FAF7]">
       <AdminHeader ativo="pacientes" />
 
       <main className="max-w-6xl mx-auto px-6 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-[#1A3A5C] flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[#1A3A2C] flex items-center gap-2">
             <Activity className="w-6 h-6 text-green-500" /> Pacientes
           </h1>
           <p className="text-gray-500 text-sm mt-1">{todosPacientes?.length ?? 0} paciente(s) cadastrado(s) na plataforma</p>
@@ -82,7 +82,7 @@ export default async function AdminPacientesPage({ searchParams }: Props) {
         {/* KPIs */}
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <p className="text-3xl font-bold text-[#1A3A5C]">{todosPacientes?.length ?? 0}</p>
+            <p className="text-3xl font-bold text-[#1A3A2C]">{todosPacientes?.length ?? 0}</p>
             <p className="text-xs text-gray-500 mt-1">total cadastrados</p>
           </div>
           <div className="bg-white rounded-2xl p-5 shadow-sm">
@@ -103,7 +103,7 @@ export default async function AdminPacientesPage({ searchParams }: Props) {
         {/* Tabela */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-bold text-[#1A3A5C]">Lista de pacientes</h2>
+            <h2 className="font-bold text-[#1A3A2C]">Lista de pacientes</h2>
           </div>
 
           {pacientes.length === 0 ? (
@@ -138,7 +138,7 @@ export default async function AdminPacientesPage({ searchParams }: Props) {
                             <div>
                               <Link
                                 href={`/admin/pacientes/${p.id}`}
-                                className="font-medium text-[#2E75B6] hover:underline"
+                                className="font-medium text-[#5BBD9B] hover:underline"
                               >
                                 {p.nome}
                               </Link>
