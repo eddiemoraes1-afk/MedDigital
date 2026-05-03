@@ -6,27 +6,37 @@ import { Video, Loader2 } from 'lucide-react'
 
 interface Props {
   agendamentoId: string
-  dataHora: string // ISO string
+  dataHora: string // ISO UTC string do banco
+}
+
+function formatarHoraSP(date: Date): string {
+  return new Intl.DateTimeFormat('pt-BR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'America/Sao_Paulo',
+    hour12: false,
+  }).format(date)
 }
 
 export default function BotaoEntrarConsulta({ agendamentoId, dataHora }: Props) {
   const [carregando, setCarregando] = useState(false)
   const router = useRouter()
 
-  // Mostrar botão apenas se a consulta está dentro da janela de 60 min antes até 2h depois
   const agora = new Date()
   const consulta = new Date(dataHora)
   const diffMin = (consulta.getTime() - agora.getTime()) / 60000
+
+  // Janela: 60 min antes até 2h depois
   const dentroJanela = diffMin <= 60 && diffMin > -120
 
   if (!dentroJanela) {
-    // Fora da janela: mostrar horário em que o botão vai aparecer
     if (diffMin > 60) {
-      const abre = new Date(consulta.getTime() - 60 * 60000)
+      // Mostrar quando a sala abre (60 min antes do horário SP)
+      const abreUTC = new Date(consulta.getTime() - 60 * 60000)
       return (
         <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
           <Video className="w-3 h-3" />
-          Sala abre às {abre.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}
+          Sala abre às {formatarHoraSP(abreUTC)}
         </p>
       )
     }

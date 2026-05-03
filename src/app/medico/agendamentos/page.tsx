@@ -217,10 +217,10 @@ export default async function MedicoAgendamentosPage({
                             {isCancelado ? <XCircle className="w-3 h-3 shrink-0" /> : <Clock className="w-3 h-3 shrink-0" />}
                             {hora}
                           </div>
-                          <div className={`flex items-center gap-1 mt-0.5 truncate ${isCancelado ? 'opacity-60' : 'text-gray-600'}`}>
+                          <Link href={`/medico/agendamento/${a.id}`} className={`flex items-center gap-1 mt-0.5 truncate hover:underline ${isCancelado ? 'opacity-60 text-gray-400' : 'text-gray-600'}`}>
                             <User className="w-3 h-3 shrink-0" />
                             <span className="truncate">{primeiroNomePac}</span>
-                          </div>
+                          </Link>
                           {!isCancelado && (
                             <BotaoEntrarConsultaMedico
                               agendamentoId={a.id}
@@ -258,9 +258,9 @@ export default async function MedicoAgendamentosPage({
                         }
                       </div>
                       <div>
-                        <p className={`font-medium ${isCancelado ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                        <Link href={`/medico/agendamento/${a.id}`} className={`font-medium hover:text-[#2E75B6] hover:underline ${isCancelado ? 'line-through text-gray-400' : 'text-gray-800'}`}>
                           {paciente?.nome || 'Paciente'}
-                        </p>
+                        </Link>
                         <div className="flex items-center gap-3 mt-0.5">
                           <span className="flex items-center gap-1 text-xs text-gray-400">
                             <Calendar className="w-3 h-3" />

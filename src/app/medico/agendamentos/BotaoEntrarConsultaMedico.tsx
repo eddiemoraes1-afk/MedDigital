@@ -6,7 +6,7 @@ import { Video, Loader2 } from 'lucide-react'
 
 interface Props {
   agendamentoId: string
-  dataHora: string // ISO string
+  dataHora: string
 }
 
 export default function BotaoEntrarConsultaMedico({ agendamentoId, dataHora }: Props) {
