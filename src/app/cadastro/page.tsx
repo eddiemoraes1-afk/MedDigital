@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Mail, Lock, User, Phone, FileText, Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react'
+import { Mail, Lock, User, Phone, FileText, Loader2, AlertCircle, CheckCircle2, Eye, EyeOff, Calendar } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Suspense } from 'react'
 
@@ -18,6 +18,8 @@ function CadastroForm() {
   const [senha, setSenha] = useState('')
   const [cpf, setCpf] = useState('')
   const [telefone, setTelefone] = useState('')
+  const [dataNascimento, setDataNascimento] = useState('')
+  const [sexo, setSexo] = useState('')
   const [crm, setCrm] = useState('')
   const [crmUf, setCrmUf] = useState('SP')
   const [especialidade, setEspecialidade] = useState('')
@@ -49,7 +51,7 @@ function CadastroForm() {
     const res = await fetch('/api/auth/cadastro', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, senha, nome, tipo, cpf, telefone, crm, crm_uf: crmUf, especialidade })
+      body: JSON.stringify({ email, senha, nome, tipo, cpf, telefone, data_nascimento: dataNascimento || null, sexo: sexo || null, crm, crm_uf: crmUf, especialidade })
     })
 
     const result = await res.json()
@@ -182,6 +184,32 @@ function CadastroForm() {
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm" />
           </div>
         </div>
+
+        {/* Data de nascimento e sexo — apenas paciente */}
+        {tipo === 'paciente' && (
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Data de nascimento</label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input type="date" value={dataNascimento} onChange={e => setDataNascimento(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]} required
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm bg-white" />
+              </div>
+            </div>
+            <div className="w-40">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sexo</label>
+              <select value={sexo} onChange={e => setSexo(e.target.value)} required
+                className="w-full px-3 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm bg-white text-gray-700">
+                <option value="">Selecione</option>
+                <option value="masculino">Masculino</option>
+                <option value="feminino">Feminino</option>
+                <option value="outro">Outro</option>
+                <option value="nao_informado">Prefiro não informar</option>
+              </select>
+            </div>
+          </div>
+        )}
 
         {/* Campos extras para médico */}
         {tipo === 'medico' && (

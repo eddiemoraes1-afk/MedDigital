@@ -173,6 +173,20 @@ export async function POST(request: NextRequest) {
       pacienteId = paciente?.id ?? null
     }
 
+    // Normalizar data de nascimento (aceita DD/MM/YYYY ou YYYY-MM-DD)
+    function parseDataNasc(raw: string): string | null {
+      if (!raw) return null
+      const s = raw.trim()
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s
+      const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+      if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`
+      return null
+    }
+
+    const dataNasc = parseDataNasc(reg['data_nascimento'] || '')
+    const sexoRaw = (reg['sexo'] || '').toLowerCase().trim()
+    const sexoValido = ['masculino','feminino','outro','nao_informado'].includes(sexoRaw) ? sexoRaw : null
+
     const dadosVinculo = {
       empresa_id: empresaId,
       cpf: cpf || null,
@@ -182,6 +196,8 @@ export async function POST(request: NextRequest) {
       cargo: reg['cargo']?.trim() || null,
       departamento: reg['departamento']?.trim() || null,
       data_admissao: reg['data_admissao']?.trim() || null,
+      data_nascimento: dataNasc,
+      sexo: sexoValido,
       paciente_id: pacienteId,
     }
 
@@ -195,6 +211,14 @@ export async function POST(request: NextRequest) {
       } else {
         importados++
       }
+    }
+
+    // Se o funcionário já tem paciente vinculado, atualiza também o perfil do paciente
+    if (pacienteId && (dataNasc || sexoValido)) {
+      const updatePaciente: Record<string, string | null> = {}
+      if (dataNasc) updatePaciente.data_nascimento = dataNasc
+      if (sexoValido) updatePaciente.sexo = sexoValido
+      await adminSupabase.from('pacientes').update(updatePaciente).eq('id', pacienteId)
     }
   }
 

@@ -56,6 +56,26 @@ export default async function PacienteDashboard() {
   const nome = paciente?.nome || user.user_metadata?.nome || 'Paciente'
   const primeiroNome = nome.split(' ')[0]
 
+  // Calcular idade
+  function calcularIdade(dataNasc: string | null): number | null {
+    if (!dataNasc) return null
+    const nasc = new Date(dataNasc)
+    const hoje = new Date()
+    let idade = hoje.getFullYear() - nasc.getFullYear()
+    const m = hoje.getMonth() - nasc.getMonth()
+    if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--
+    return idade
+  }
+
+  const idade = calcularIdade(paciente?.data_nascimento ?? null)
+
+  const labelSexo: Record<string, string> = {
+    masculino: 'Masculino',
+    feminino: 'Feminino',
+    outro: 'Outro',
+    nao_informado: 'Não informado',
+  }
+
   const horaAtual = new Date().getHours()
   const saudacao = horaAtual < 12 ? 'Bom dia' : horaAtual < 18 ? 'Boa tarde' : 'Boa noite'
 
@@ -98,7 +118,23 @@ export default async function PacienteDashboard() {
         {/* Saudação */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-[#1A3A2C]">{saudacao}, {primeiroNome}! 👋</h1>
-          <p className="text-gray-500 mt-1">Como você está se sentindo hoje?</p>
+          <div className="flex items-center gap-3 mt-1">
+            <p className="text-gray-500">Como você está se sentindo hoje?</p>
+            {(idade !== null || paciente?.sexo) && (
+              <div className="flex items-center gap-2">
+                {idade !== null && (
+                  <span className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
+                    {idade} anos
+                  </span>
+                )}
+                {paciente?.sexo && paciente.sexo !== 'nao_informado' && (
+                  <span className="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium">
+                    {labelSexo[paciente.sexo] ?? paciente.sexo}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Próximas consultas — destaque quando houver agendamentos */}
