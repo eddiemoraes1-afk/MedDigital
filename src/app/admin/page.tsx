@@ -216,7 +216,7 @@ export default async function AdminDashboardPage() {
                 </div>
               </Link>
               <Link
-                href="/medico/agendamentos"
+                href="/admin/agendamentos"
                 className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-green-300 hover:bg-green-50 transition-all"
               >
                 <div className="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center">
@@ -224,7 +224,7 @@ export default async function AdminDashboardPage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-800">Agenda médica</p>
-                  <p className="text-xs text-gray-400">Ver todos os agendamentos</p>
+                  <p className="text-xs text-gray-400">Ver agendamentos por médico</p>
                 </div>
               </Link>
               <Link
