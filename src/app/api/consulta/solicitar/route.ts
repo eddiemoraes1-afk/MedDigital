@@ -10,10 +10,19 @@ export async function POST(req: NextRequest) {
 
   // Usar admin client para buscar paciente (evita bloqueio de RLS)
   const adminSupabase = createAdminClient()
-  const { data: paciente } = await adminSupabase
+  let { data: paciente } = await adminSupabase
     .from('pacientes').select('id').eq('usuario_id', user.id).single()
 
-  if (!paciente) return NextResponse.json({ error: 'Paciente não encontrado' }, { status: 404 })
+  if (!paciente) {
+    const nomeAuth = user.user_metadata?.nome || user.email?.split('@')[0] || 'Paciente'
+    const { data: novo } = await adminSupabase
+      .from('pacientes')
+      .insert({ usuario_id: user.id, nome: nomeAuth })
+      .select('id')
+      .single()
+    if (!novo) return NextResponse.json({ error: 'Paciente não encontrado' }, { status: 404 })
+    paciente = novo
+  }
 
   // Criar sala no Daily.co
   const nomeSala = `consulta-${Date.now()}`

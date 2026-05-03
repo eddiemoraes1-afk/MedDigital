@@ -20,14 +20,25 @@ export async function POST(request: Request) {
 
   const adminSupabase = createAdminClient()
 
-  // Buscar paciente
-  const { data: paciente } = await adminSupabase
+  // Buscar paciente — se não existir, criar automaticamente a partir do Auth
+  let { data: paciente } = await adminSupabase
     .from('pacientes')
     .select('id, nome, telefone')
     .eq('usuario_id', user.id)
     .single()
 
-  if (!paciente) return NextResponse.json({ erro: 'Paciente não encontrado' }, { status: 404 })
+  if (!paciente) {
+    const nomeAuth = user.user_metadata?.nome || user.email?.split('@')[0] || 'Paciente'
+    const { data: novo, error: errCriacao } = await adminSupabase
+      .from('pacientes')
+      .insert({ usuario_id: user.id, nome: nomeAuth })
+      .select('id, nome, telefone')
+      .single()
+    if (errCriacao || !novo) {
+      return NextResponse.json({ erro: 'Paciente não encontrado e não foi possível criar o registro. Contate o suporte.' }, { status: 500 })
+    }
+    paciente = novo
+  }
 
   // Verificar se slot ainda está disponível (comparar com UTC armazenado)
   const { data: conflitos } = await adminSupabase
