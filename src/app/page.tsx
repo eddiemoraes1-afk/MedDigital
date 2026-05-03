@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Heart, Video, Brain, Shield, Clock, Users } from 'lucide-react'
+import { Video, Brain, Shield, Clock, Users } from 'lucide-react'
 
 export default function LandingPage() {
   return (
@@ -8,8 +8,7 @@ export default function LandingPage() {
       <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Heart className="w-7 h-7 text-[#5BBD9B]" fill="currentColor" />
-            <span className="text-xl font-bold">RovarisMed</span>
+            <img src="/logo-branca.svg" alt="RovarisMed" className="h-8" />
           </div>
           <div className="flex items-center gap-4">
             <Link href="/login" className="text-sm text-green-200 hover:text-white">
@@ -131,8 +130,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-400 py-8 px-6 text-center text-sm">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <Heart className="w-4 h-4 text-[#5BBD9B]" fill="currentColor" />
-          <span className="font-semibold text-white">RovarisMed</span>
+          <img src="/logo-branca.svg" alt="RovarisMed" className="h-8" />
         </div>
         <p>© 2026 RovarisMed. Todos os direitos reservados.</p>
         <p className="mt-1 text-xs">Plataforma regulamentada conforme Resolução CFM 2.314/2022 e LGPD.</p>

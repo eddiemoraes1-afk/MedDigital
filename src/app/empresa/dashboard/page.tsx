@@ -2,7 +2,7 @@ import { requireEmpresa } from '@/lib/auth-sistema'
 import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import {
-  Heart, Building2, LogOut, Users, Calendar,
+  Building2, LogOut, Users, Calendar,
   TrendingUp, Activity, CheckCircle2, Clock,
   AlertCircle, UserX, Download
 } from 'lucide-react'
@@ -104,11 +104,8 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
       <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Heart className="w-6 h-6 text-[#5BBD9B]" fill="currentColor" />
-            <div>
-              <span className="font-bold">RovarisMed</span>
-              <span className="text-xs text-green-300 ml-2">Portal RH</span>
-            </div>
+            <img src="/logo-branca.svg" alt="RovarisMed" className="h-8" />
+            <span className="text-xs text-green-300 ml-1">Portal RH</span>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-green-200 flex items-center gap-1.5">

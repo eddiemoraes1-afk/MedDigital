@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Heart, ArrowLeft, Calendar, Clock, User, ChevronRight, Loader2, CheckCircle2 } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, User, ChevronRight, Loader2, CheckCircle2 } from 'lucide-react'
 
 interface Medico {
   id: string
@@ -185,8 +185,7 @@ function AgendarConteudo() {
       <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Heart className="w-6 h-6 text-[#5BBD9B]" fill="currentColor" />
-            <span className="font-bold">RovarisMed</span>
+            <img src="/logo-branca.svg" alt="RovarisMed" className="h-8" />
           </div>
           <Link href="/paciente/dashboard" className="text-sm text-green-200 hover:text-white flex items-center gap-1">
             <ArrowLeft className="w-4 h-4" /> Voltar

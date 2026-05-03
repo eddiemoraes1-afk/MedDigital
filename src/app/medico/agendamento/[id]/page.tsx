@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import {
-  Heart, ArrowLeft, User, Calendar, Clock, Phone,
+  ArrowLeft, User, Calendar, Clock, Phone,
   Brain, FileText, Video, CheckCircle2, AlertTriangle,
   AlertCircle, Info, XCircle
 } from 'lucide-react'
@@ -100,8 +100,7 @@ export default async function AgendamentoDetalhePage({
       <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Heart className="w-6 h-6 text-[#5BBD9B]" fill="currentColor" />
-            <span className="font-bold">RovarisMed</span>
+            <img src="/logo-branca.svg" alt="RovarisMed" className="h-8" />
             <span className="text-xs text-green-300 ml-1">Painel do Médico</span>
           </div>
           <Link href="/medico/agendamentos" className="text-sm text-green-200 hover:text-white flex items-center gap-1">

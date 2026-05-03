@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Heart, Loader2, Clock, Phone } from 'lucide-react'
+import { Loader2, Clock, Phone } from 'lucide-react'
 
 export default function ConsultaPaciente() {
   const { id } = useParams()
@@ -69,8 +69,7 @@ export default function ConsultaPaciente() {
       {/* Header */}
       <div className="bg-[#1A3A2C] px-6 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <Heart className="w-5 h-5 text-[#5BBD9B]" fill="currentColor" />
-          <span className="text-white font-bold text-sm">RovarisMed</span>
+          <img src="/logo-branca.svg" alt="RovarisMed" className="h-8" />
           <span className="text-green-300 text-xs">— Consulta Virtual</span>
         </div>
 

@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Heart, LogOut, ArrowLeft, User, Phone, FileText, Calendar, Stethoscope, Brain, Clock, AlertCircle, CheckCircle2, Info, AlertTriangle } from 'lucide-react'
+import { LogOut, ArrowLeft, User, Phone, FileText, Calendar, Stethoscope, Brain, Clock, AlertCircle, CheckCircle2, Info, AlertTriangle } from 'lucide-react'
 
 export default async function ProntuarioPage() {
   const supabase = await createClient()
@@ -83,8 +83,7 @@ export default async function ProntuarioPage() {
       <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Heart className="w-6 h-6 text-[#5BBD9B]" fill="currentColor" />
-            <span className="font-bold">RovarisMed</span>
+            <img src="/logo-branca.svg" alt="RovarisMed" className="h-8" />
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-green-200">{paciente.nome}</span>

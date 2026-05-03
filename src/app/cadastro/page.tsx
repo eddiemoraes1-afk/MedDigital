@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Heart, Mail, Lock, User, Phone, FileText, Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react'
+import { Mail, Lock, User, Phone, FileText, Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Suspense } from 'react'
 
@@ -257,8 +257,7 @@ export default function CadastroPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Heart className="w-8 h-8 text-[#5BBD9B]" fill="currentColor" />
-            <span className="text-2xl font-bold text-[#1A3A2C]">RovarisMed</span>
+            <img src="/logo.svg" alt="RovarisMed" className="h-12" />
           </Link>
           <p className="text-gray-500 mt-2 text-sm">Crie sua conta gratuitamente</p>
         </div>

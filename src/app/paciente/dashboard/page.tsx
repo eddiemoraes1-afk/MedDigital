@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Heart, Brain, Clock, FileText, Calendar, Video, LogOut, ChevronRight, User } from 'lucide-react'
+import { Brain, Clock, FileText, Calendar, Video, LogOut, ChevronRight, User } from 'lucide-react'
 
 export default async function PacienteDashboard() {
   const supabase = await createClient()
@@ -81,8 +81,7 @@ export default async function PacienteDashboard() {
       <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Heart className="w-6 h-6 text-[#5BBD9B]" fill="currentColor" />
-            <span className="font-bold">RovarisMed</span>
+            <img src="/logo-branca.svg" alt="RovarisMed" className="h-8" />
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-green-200">Olá, {primeiroNome}</span>

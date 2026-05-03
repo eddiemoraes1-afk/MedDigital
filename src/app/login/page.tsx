@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Heart, Mail, Lock, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { Mail, Lock, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
@@ -36,8 +36,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <Heart className="w-8 h-8 text-[#5BBD9B]" fill="currentColor" />
-            <span className="text-2xl font-bold text-[#1A3A2C]">RovarisMed</span>
+            <img src="/logo.svg" alt="RovarisMed" className="h-12" />
           </Link>
           <p className="text-gray-500 mt-2 text-sm">Entre na sua conta</p>
         </div>
