@@ -6,10 +6,18 @@ import { Video, Loader2 } from 'lucide-react'
 
 interface Props {
   agendamentoId: string
-  dataHora: string // ISO UTC string do banco
+  dataHora: string // string do banco — pode não ter suffix de timezone
 }
 
-// São Paulo é sempre UTC-3 (Brasil aboliu horário de verão em 2019)
+// Força interpretação UTC: Supabase retorna "2026-05-03T13:00:00" sem Z,
+// mas o valor está em UTC. O browser sem Z trata como hora local (SP = UTC-3),
+// adicionando 3h a mais. Adicionamos Z para forçar UTC em qualquer ambiente.
+function parsearUTC(str: string): Date {
+  if (str.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(str)) return new Date(str)
+  return new Date(str + 'Z')
+}
+
+// São Paulo é sempre UTC-3 (horário de verão abolido em 2019)
 function horarySP(utcDate: Date): string {
   const sp = new Date(utcDate.getTime() - 3 * 60 * 60 * 1000)
   const h = String(sp.getUTCHours()).padStart(2, '0')
@@ -22,7 +30,7 @@ export default function BotaoEntrarConsulta({ agendamentoId, dataHora }: Props) 
   const router = useRouter()
 
   const agora = new Date()
-  const consulta = new Date(dataHora)
+  const consulta = parsearUTC(dataHora)       // ← interpreta sempre como UTC
   const diffMin = (consulta.getTime() - agora.getTime()) / 60000
 
   // Janela: 60 min antes até 2h depois
@@ -30,7 +38,6 @@ export default function BotaoEntrarConsulta({ agendamentoId, dataHora }: Props) 
 
   if (!dentroJanela) {
     if (diffMin > 60) {
-      // Mostrar quando a sala abre (60 min antes), calculado em UTC-3 puro
       const abreUTC = new Date(consulta.getTime() - 60 * 60 * 1000)
       return (
         <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">

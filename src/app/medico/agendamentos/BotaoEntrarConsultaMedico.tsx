@@ -9,13 +9,20 @@ interface Props {
   dataHora: string
 }
 
+// Força interpretação UTC: sem Z, o browser trata como hora local (SP = UTC-3),
+// adicionando 3h indevidas ao timestamp.
+function parsearUTC(str: string): Date {
+  if (str.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(str)) return new Date(str)
+  return new Date(str + 'Z')
+}
+
 export default function BotaoEntrarConsultaMedico({ agendamentoId, dataHora }: Props) {
   const [carregando, setCarregando] = useState(false)
   const router = useRouter()
 
-  // Janela: 30 min antes até 3h depois
+  // Janela: 30 min antes até 3h depois (comparação em UTC puro)
   const agora = new Date()
-  const consulta = new Date(dataHora)
+  const consulta = parsearUTC(dataHora)
   const diffMin = (consulta.getTime() - agora.getTime()) / 60000
   const dentroJanela = diffMin <= 30 && diffMin > -180
 
