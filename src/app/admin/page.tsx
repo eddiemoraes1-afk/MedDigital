@@ -73,50 +73,50 @@ export default async function AdminDashboardPage() {
 
         {/* KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <Link href="/admin/empresas" className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:border hover:border-[#2E75B6] transition-all">
             <div className="flex items-center justify-between mb-3">
               <Building2 className="w-5 h-5 text-[#2E75B6]" />
               <span className="text-xs text-gray-400">empresas</span>
             </div>
             <p className="text-3xl font-bold text-[#1A3A5C]">{totalEmpresas ?? 0}</p>
             <p className="text-xs text-gray-500 mt-1">cadastradas</p>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <Link href="/admin/empresas" className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:border hover:border-purple-300 transition-all">
             <div className="flex items-center justify-between mb-3">
               <Users className="w-5 h-5 text-purple-500" />
               <span className="text-xs text-gray-400">funcionários</span>
             </div>
             <p className="text-3xl font-bold text-[#1A3A5C]">{totalFuncionarios ?? 0}</p>
             <p className="text-xs text-gray-500 mt-1">vínculos ativos</p>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <Link href="/admin/pacientes" className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:border hover:border-green-300 transition-all">
             <div className="flex items-center justify-between mb-3">
               <Activity className="w-5 h-5 text-green-500" />
               <span className="text-xs text-gray-400">pacientes</span>
             </div>
             <p className="text-3xl font-bold text-[#1A3A5C]">{totalPacientes ?? 0}</p>
             <p className="text-xs text-gray-500 mt-1">na plataforma</p>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
+          <Link href="/admin/agendamentos" className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:border hover:border-orange-300 transition-all">
             <div className="flex items-center justify-between mb-3">
               <Calendar className="w-5 h-5 text-orange-500" />
               <span className="text-xs text-gray-400">agendamentos</span>
             </div>
             <p className="text-3xl font-bold text-[#1A3A5C]">{totalAgendamentos ?? 0}</p>
             <p className="text-xs text-gray-500 mt-1">total histórico</p>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-blue-100">
+          <Link href="/admin/agendamentos" className="bg-white rounded-2xl p-5 shadow-sm border border-blue-100 hover:shadow-md hover:border-[#2E75B6] transition-all">
             <div className="flex items-center justify-between mb-3">
               <TrendingUp className="w-5 h-5 text-[#2E75B6]" />
               <span className="text-xs text-gray-400">hoje</span>
             </div>
             <p className="text-3xl font-bold text-[#2E75B6]">{agendamentosHoje ?? 0}</p>
             <p className="text-xs text-gray-500 mt-1">consultas hoje</p>
-          </div>
+          </Link>
         </div>
 
         {/* Médicos aguardando aprovação */}
