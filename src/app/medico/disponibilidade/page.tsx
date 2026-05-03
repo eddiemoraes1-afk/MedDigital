@@ -59,11 +59,30 @@ export default function DisponibilidadePage() {
       if (!user) { router.push('/login'); return }
       setUserId(user.id)
 
-      const { data: medico } = await supabase
+      let { data: medico } = await supabase
         .from('medicos')
         .select('id')
         .eq('usuario_id', user.id)
         .single()
+
+      // Admin pode gerenciar disponibilidade do primeiro médico ativo
+      if (!medico) {
+        const { data: perfil } = await supabase
+          .from('perfis_sistema')
+          .select('role')
+          .eq('usuario_id', user.id)
+          .single()
+
+        if (perfil?.role === 'admin') {
+          const { data: primMedico } = await supabase
+            .from('medicos')
+            .select('id')
+            .eq('ativo', true)
+            .limit(1)
+            .single()
+          medico = primMedico
+        }
+      }
 
       if (!medico) { router.push('/medico/dashboard'); return }
       setMedicoId(medico.id)

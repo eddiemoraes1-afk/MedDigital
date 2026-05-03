@@ -15,11 +15,30 @@ export default async function MedicoAgendamentosPage({
 
   const adminSupabase = createAdminClient()
 
-  const { data: medico } = await adminSupabase
+  let { data: medico } = await adminSupabase
     .from('medicos')
     .select('id, nome, especialidade')
     .eq('usuario_id', user.id)
     .single()
+
+  // Admin pode visualizar a agenda do primeiro médico cadastrado
+  if (!medico) {
+    const { data: perfilAdmin } = await adminSupabase
+      .from('perfis_sistema')
+      .select('role')
+      .eq('usuario_id', user.id)
+      .single()
+
+    if (perfilAdmin?.role === 'admin') {
+      const { data: primMedico } = await adminSupabase
+        .from('medicos')
+        .select('id, nome, especialidade')
+        .eq('ativo', true)
+        .limit(1)
+        .single()
+      medico = primMedico
+    }
+  }
 
   if (!medico) redirect('/login')
 
