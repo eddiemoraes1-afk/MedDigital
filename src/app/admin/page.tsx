@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import {
   Heart, Building2, Users, Activity, LogOut,
-  TrendingUp, Calendar, Shield, Clock, CheckCircle2, UserCheck, Stethoscope
+  TrendingUp, Calendar, Shield, Clock, CheckCircle2, UserCheck
 } from 'lucide-react'
 import BotoesAprovacao from './components/BotoesAprovacao'
 
