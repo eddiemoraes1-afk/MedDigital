@@ -158,6 +158,20 @@ function EtapaValidacao({
           atendendo a pessoa certa e que podemos entrar em contato caso necessário.
         </p>
 
+        {/* Nome completo */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo</label>
+          <div className="relative">
+            <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              value={nomeInicial}
+              readOnly
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-sm text-gray-700 cursor-default"
+            />
+          </div>
+        </div>
+
         {/* CPF */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">CPF</label>
