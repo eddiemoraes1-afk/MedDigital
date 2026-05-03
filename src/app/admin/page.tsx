@@ -250,6 +250,18 @@ export default async function AdminDashboardPage() {
                   <p className="text-xs text-gray-400">Visualizar e filtrar pacientes</p>
                 </div>
               </Link>
+              <Link
+                href="/admin/medicos"
+                className="flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-blue-300 hover:bg-blue-50 transition-all"
+              >
+                <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <UserCheck className="w-5 h-5 text-[#2E75B6]" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-800">Médicos</p>
+                  <p className="text-xs text-gray-400">Aprovar, inativar e filtrar médicos</p>
+                </div>
+              </Link>
             </div>
           </div>
         </div>

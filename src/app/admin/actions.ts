@@ -24,3 +24,14 @@ export async function reprovarMedico(medicoId: string) {
   revalidatePath('/admin')
   revalidatePath('/admin/medicos')
 }
+
+export async function toggleMedicoAtivo(medicoId: string, ativo: boolean) {
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('medicos')
+    .update({ ativo })
+    .eq('id', medicoId)
+  if (error) throw new Error(error.message)
+  revalidatePath('/admin/medicos')
+  revalidatePath(`/admin/medicos/${medicoId}`)
+}
