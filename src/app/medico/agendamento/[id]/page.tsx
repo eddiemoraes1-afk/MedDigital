@@ -6,7 +6,7 @@ import {
   Brain, FileText, Video, CheckCircle2, AlertTriangle,
   AlertCircle, Info, XCircle
 } from 'lucide-react'
-import BotaoEntrarConsultaMedico from '../BotaoEntrarConsultaMedico'
+import BotaoEntrarConsultaMedico from '../../agendamentos/BotaoEntrarConsultaMedico'
 
 export default async function AgendamentoDetalhePage({
   params,
