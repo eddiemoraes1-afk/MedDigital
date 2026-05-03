@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Heart, Send, Loader2, ArrowLeft, CheckCircle2, AlertTriangle, AlertCircle, Info, Video } from 'lucide-react'
+import { Heart, Send, Loader2, ArrowLeft, CheckCircle2, AlertTriangle, AlertCircle, Info, Video, Calendar } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface Mensagem {
@@ -277,16 +277,23 @@ export default function TriagemPage() {
                         {solicitando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Video className="w-4 h-4" />}
                         {solicitando ? 'Criando sala...' : 'Iniciar consulta virtual'}
                       </button>
-                    ) : resultado.direcionamento === 'orientacao' ? (
-                      <Link href="/paciente/dashboard"
-                        className="bg-[#1A3A5C] hover:bg-[#2E75B6] text-white px-5 py-2.5 rounded-xl text-sm font-medium">
-                        Voltar ao painel
-                      </Link>
-                    ) : (
+                    ) : resultado.direcionamento === 'presencial' ? (
                       <a href="tel:192" className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium">
                         Ligar para o SAMU (192)
                       </a>
+                    ) : null}
+
+                    {/* Agendar consulta — disponível para todos os níveis de risco exceto urgência */}
+                    {resultado.direcionamento !== 'presencial' && (
+                      <Link
+                        href="/paciente/agendar"
+                        className="flex items-center gap-2 bg-[#7B3FA0] hover:bg-[#6a2f8f] text-white px-5 py-2.5 rounded-xl text-sm font-medium"
+                      >
+                        <Calendar className="w-4 h-4" />
+                        Agendar consulta
+                      </Link>
                     )}
+
                     <Link href="/paciente/dashboard"
                       className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-xl text-sm font-medium">
                       Voltar ao painel

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Heart, Brain, Clock, FileText, Calendar, Video, LogOut, ChevronRight } from 'lucide-react'
+import { Heart, Brain, Clock, FileText, Calendar, Video, LogOut, ChevronRight, User } from 'lucide-react'
 
 export default async function PacienteDashboard() {
   const supabase = await createClient()
@@ -9,15 +9,17 @@ export default async function PacienteDashboard() {
 
   if (!user) redirect('/login')
 
+  const adminSupabase = createAdminClient()
+
   // Buscar dados do paciente
-  const { data: paciente } = await supabase
+  const { data: paciente } = await adminSupabase
     .from('pacientes')
     .select('*')
     .eq('usuario_id', user.id)
     .single()
 
   // Buscar últimas triagens
-  const { data: triagens } = await supabase
+  const { data: triagens } = await adminSupabase
     .from('triagens')
     .select('*')
     .eq('paciente_id', paciente?.id)
@@ -25,15 +27,37 @@ export default async function PacienteDashboard() {
     .limit(3)
 
   // Buscar últimos atendimentos
-  const { data: atendimentos } = await supabase
+  const { data: atendimentos } = await adminSupabase
     .from('atendimentos')
     .select('*')
     .eq('paciente_id', paciente?.id)
     .order('criado_em', { ascending: false })
     .limit(3)
 
+  // Buscar próximas consultas agendadas
+  const agora = new Date().toISOString()
+  const { data: proximasConsultas } = await adminSupabase
+    .from('agendamentos')
+    .select('id, data_hora, medico_id, status')
+    .eq('paciente_id', paciente?.id)
+    .gte('data_hora', agora)
+    .not('status', 'in', '("cancelado","reagendado")')
+    .order('data_hora', { ascending: true })
+    .limit(3)
+
+  // Buscar nomes dos médicos das próximas consultas
+  const medicoIds = [...new Set((proximasConsultas || []).map((a: any) => a.medico_id))]
+  const { data: medicos } = medicoIds.length > 0
+    ? await adminSupabase.from('medicos').select('id, nome, especialidade').in('id', medicoIds)
+    : { data: [] }
+  const medicoMap: Record<string, any> = {}
+  ;(medicos || []).forEach((m: any) => { medicoMap[m.id] = m })
+
   const nome = paciente?.nome || user.user_metadata?.nome || 'Paciente'
   const primeiroNome = nome.split(' ')[0]
+
+  const horaAtual = new Date().getHours()
+  const saudacao = horaAtual < 12 ? 'Bom dia' : horaAtual < 18 ? 'Boa tarde' : 'Boa noite'
 
   const corRisco: Record<string, string> = {
     verde: 'bg-green-100 text-green-700',
@@ -48,6 +72,8 @@ export default async function PacienteDashboard() {
     laranja: 'Risco Alto',
     vermelho: 'Urgência',
   }
+
+  const totalConsultas = proximasConsultas?.length || 0
 
   return (
     <div className="min-h-screen bg-[#F4F7FB]">
@@ -72,9 +98,54 @@ export default async function PacienteDashboard() {
       <main className="max-w-5xl mx-auto px-6 py-8">
         {/* Saudação */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[#1A3A5C]">Bom dia, {primeiroNome}! 👋</h1>
+          <h1 className="text-2xl font-bold text-[#1A3A5C]">{saudacao}, {primeiroNome}! 👋</h1>
           <p className="text-gray-500 mt-1">Como você está se sentindo hoje?</p>
         </div>
+
+        {/* Próximas consultas — destaque quando houver agendamentos */}
+        {totalConsultas > 0 && (
+          <div className="bg-white border border-blue-100 rounded-2xl p-5 mb-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-[#1A3A5C] flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-[#2E75B6]" />
+                Próximas consultas
+                <span className="text-xs font-medium bg-[#2E75B6] text-white px-2 py-0.5 rounded-full">
+                  {totalConsultas}
+                </span>
+              </h2>
+              <Link href="/paciente/agendamentos" className="text-xs text-[#2E75B6] hover:underline font-medium">
+                Ver todas →
+              </Link>
+            </div>
+            <div className="space-y-3">
+              {(proximasConsultas || []).map((a: any) => {
+                const medico = medicoMap[a.medico_id]
+                const dataHora = new Date(a.data_hora)
+                return (
+                  <div key={a.id} className="flex items-center gap-3 bg-blue-50 rounded-xl px-4 py-3">
+                    <div className="w-9 h-9 bg-[#2E75B6]/10 rounded-xl flex items-center justify-center shrink-0">
+                      <User className="w-4 h-4 text-[#2E75B6]" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-[#1A3A5C] truncate">
+                        Dr(a). {medico?.nome || 'Médico'}
+                      </p>
+                      <p className="text-xs text-gray-400">{medico?.especialidade}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs font-semibold text-[#2E75B6]">
+                        {dataHora.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', timeZone: 'America/Sao_Paulo' })}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}
+                      </p>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Ação Principal — Iniciar Triagem */}
         <div className="bg-gradient-to-br from-[#1A3A5C] to-[#2E75B6] rounded-2xl p-8 text-white mb-8">
@@ -101,11 +172,22 @@ export default async function PacienteDashboard() {
           {[
             { icon: Brain, label: 'Nova triagem', href: '/paciente/triagem', cor: '#2E75B6' },
             { icon: Video, label: 'Consulta virtual', href: '/paciente/consulta', cor: '#1A7340' },
-            { icon: Calendar, label: 'Agendar consulta', href: '/paciente/agendar', cor: '#7B3FA0' },
+            {
+              icon: Calendar,
+              label: 'Meus agendamentos',
+              href: '/paciente/agendamentos',
+              cor: '#7B3FA0',
+              badge: totalConsultas > 0 ? totalConsultas : undefined,
+            },
             { icon: FileText, label: 'Prontuário', href: '/paciente/prontuario', cor: '#C0392B' },
           ].map((item) => (
             <Link key={item.label} href={item.href}
-              className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md text-center group">
+              className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md text-center group relative">
+              {(item as any).badge && (
+                <span className="absolute top-3 right-3 w-5 h-5 bg-[#7B3FA0] text-white text-xs font-bold rounded-full flex items-center justify-center">
+                  {(item as any).badge}
+                </span>
+              )}
               <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"
                 style={{ backgroundColor: item.cor + '15' }}>
                 <item.icon className="w-5 h-5" style={{ color: item.cor }} />
