@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Heart, Mail, Lock, User, Phone, FileText, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Heart, Mail, Lock, User, Phone, FileText, Loader2, AlertCircle, CheckCircle2, Eye, EyeOff } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Suspense } from 'react'
 
@@ -24,6 +24,7 @@ function CadastroForm() {
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
   const [sucesso, setSucesso] = useState(false)
+  const [senhaVisivel, setSenhaVisivel] = useState(false)
 
   function formatarCPF(valor: string) {
     return valor.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4').slice(0, 14)
@@ -207,9 +208,18 @@ function CadastroForm() {
           <label className="block text-sm font-medium text-gray-700 mb-1">Senha</label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="password" value={senha} onChange={e => setSenha(e.target.value)}
+            <input type={senhaVisivel ? 'text' : 'password'} value={senha} onChange={e => setSenha(e.target.value)}
               placeholder="Mínimo 6 caracteres" required minLength={6}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E75B6] text-sm" />
+              className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2E75B6] text-sm" />
+            <button
+              type="button"
+              onClick={() => setSenhaVisivel(v => !v)}
+              tabIndex={-1}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label={senhaVisivel ? 'Ocultar senha' : 'Mostrar senha'}
+            >
+              {senhaVisivel ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
           </div>
         </div>
 

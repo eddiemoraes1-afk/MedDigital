@@ -157,3 +157,66 @@ CREATE POLICY "medico_ve_atendimentos" ON public.atendimentos
 -- ============================================================
 -- UPDATE public.perfis SET tipo = 'admin'
 -- WHERE id = (SELECT id FROM auth.users WHERE email = 'seu@email.com');
+-- ============================================================
+-- MIGRAÇÃO B2B — Empresas, Vínculos, Portal RH
+-- Execute este bloco no Supabase SQL Editor
+-- ============================================================
+
+-- Tabela de empresas clientes
+CREATE TABLE IF NOT EXISTS public.empresas (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nome          TEXT NOT NULL,
+  cnpj          TEXT,
+  email_contato TEXT,
+  telefone_contato TEXT,
+  ativo         BOOLEAN NOT NULL DEFAULT true,
+  criado_em     TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Adicionar colunas que podem ter ficado faltando
+ALTER TABLE public.empresas ADD COLUMN IF NOT EXISTS telefone_contato TEXT;
+ALTER TABLE public.empresas ADD COLUMN IF NOT EXISTS ativo BOOLEAN NOT NULL DEFAULT true;
+
+-- Perfis de sistema (admin, empresa, medico)
+CREATE TABLE IF NOT EXISTS public.perfis_sistema (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  usuario_id  UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  role        TEXT NOT NULL CHECK (role IN ('admin', 'empresa', 'medico')),
+  empresa_id  UUID REFERENCES public.empresas(id) ON DELETE CASCADE,
+  criado_em   TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(usuario_id)
+);
+
+-- Vínculos funcionário ↔ empresa
+CREATE TABLE IF NOT EXISTS public.vinculos_empresa (
+  id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  empresa_id         UUID NOT NULL REFERENCES public.empresas(id) ON DELETE CASCADE,
+  paciente_id        UUID REFERENCES public.pacientes(id) ON DELETE SET NULL,
+  cpf                TEXT,
+  nome_completo      TEXT NOT NULL,
+  email              TEXT,
+  registro_funcional TEXT,
+  cargo              TEXT,
+  departamento       TEXT,
+  data_admissao      TEXT,
+  ativo              BOOLEAN NOT NULL DEFAULT true,
+  criado_em          TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Adicionar colunas que podem ter ficado faltando em vinculos_empresa
+ALTER TABLE public.vinculos_empresa ADD COLUMN IF NOT EXISTS paciente_id UUID REFERENCES public.pacientes(id) ON DELETE SET NULL;
+ALTER TABLE public.vinculos_empresa ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE public.vinculos_empresa ADD COLUMN IF NOT EXISTS registro_funcional TEXT;
+ALTER TABLE public.vinculos_empresa ADD COLUMN IF NOT EXISTS cargo TEXT;
+ALTER TABLE public.vinculos_empresa ADD COLUMN IF NOT EXISTS departamento TEXT;
+ALTER TABLE public.vinculos_empresa ADD COLUMN IF NOT EXISTS data_admissao TEXT;
+ALTER TABLE public.vinculos_empresa ADD COLUMN IF NOT EXISTS ativo BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE public.vinculos_empresa ADD COLUMN IF NOT EXISTS criado_em TIMESTAMPTZ DEFAULT NOW();
+
+-- RLS (bypassed pelo service role key — admin client)
+ALTER TABLE public.empresas ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.perfis_sistema ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.vinculos_empresa ENABLE ROW LEVEL SECURITY;
+
+-- Confirmar
+SELECT 'Migração B2B concluída com sucesso!' AS status;

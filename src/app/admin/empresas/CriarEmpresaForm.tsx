@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
+import InputSenha from '@/components/InputSenha'
 
 export default function CriarEmpresaForm() {
   const router = useRouter()
@@ -76,7 +77,7 @@ export default function CriarEmpresaForm() {
       </div>
       <div>
         <label className={labelClass}>Senha inicial *</label>
-        <input type="password" className={inputClass} placeholder="Mínimo 6 caracteres" value={form.senha_portal} onChange={e => set('senha_portal', e.target.value)} />
+        <InputSenha placeholder="Mínimo 6 caracteres" value={form.senha_portal} onChange={v => set('senha_portal', v)} />
       </div>
 
       {erro && <p className="text-xs text-red-500 bg-red-50 rounded-lg px-3 py-2">{erro}</p>}
