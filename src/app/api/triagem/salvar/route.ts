@@ -3,8 +3,14 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 
 /**
  * API route para salvar dados de triagem usando adminClient (bypassa RLS).
- * Se as colunas extras ainda não existem no banco (SQL migrations pendentes),
- * faz fallback para inserir apenas as colunas básicas garantidas.
+ *
+ * SCHEMA triagens (campos obrigatórios):
+ *  - paciente_id UUID NOT NULL
+ *  - classificacao_risco TEXT NOT NULL CHECK ('verde','amarelo','laranja','vermelho')
+ *  - direcionamento TEXT NOT NULL CHECK ('virtual','presencial','orientacao')
+ *  - status TEXT NOT NULL CHECK ('em_andamento','concluida','pulou_triagem')
+ *
+ * Para triagem "em_andamento" usamos valores-padrão até a IA classificar.
  */
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -32,26 +38,33 @@ export async function POST(req: NextRequest) {
 
   // ── Criar triagem inicial ──────────────────────────────────────────────────
   if (action === 'criar') {
-    // Tentativa 1: com todas as colunas
+    // classificacao_risco e direcionamento são NOT NULL no schema original.
+    // Usamos 'amarelo' e 'virtual' como placeholder até a IA classificar.
+    const base = {
+      paciente_id: paciente.id,
+      status: 'em_andamento',
+      classificacao_risco: 'amarelo',   // placeholder — atualizado pela IA
+      direcionamento: 'virtual',         // padrão telemedicina
+    }
+
     const { data, error } = await adminSupabase
       .from('triagens')
-      .insert({ paciente_id: paciente.id, status: 'em_andamento', ...dados })
+      .insert({ ...base, ...dados })
       .select('id')
       .single()
 
     if (!error) return NextResponse.json({ id: data.id })
 
-    // Coluna extra não existe ainda (SQL migration pendente) → fallback mínimo
-    console.warn('Triagem insert com colunas extras falhou, tentando fallback mínimo:', error.message)
-
+    // Falhou com colunas extras → tenta só as colunas básicas garantidas
+    console.warn('Insert com extras falhou:', error.message)
     const { data: fallback, error: err2 } = await adminSupabase
       .from('triagens')
-      .insert({ paciente_id: paciente.id, status: 'em_andamento' })
+      .insert(base)
       .select('id')
       .single()
 
     if (err2) {
-      console.error('Erro ao criar triagem (fallback):', err2)
+      console.error('Erro ao criar triagem (fallback):', err2.message)
       return NextResponse.json({ error: err2.message }, { status: 500 })
     }
 
@@ -60,13 +73,22 @@ export async function POST(req: NextRequest) {
 
   // ── Pular triagem ──────────────────────────────────────────────────────────
   if (action === 'pular') {
+    // 'pulou_triagem' não existe no CHECK original → usamos 'concluida'
+    // (o schema precisa ser atualizado para incluir 'pulou_triagem')
+    const base = {
+      paciente_id: paciente.id,
+      status: 'concluida',
+      classificacao_risco: 'amarelo',
+      direcionamento: 'virtual',
+    }
+
     const { error } = await adminSupabase
       .from('triagens')
-      .insert({ paciente_id: paciente.id, status: 'pulou_triagem', ...dados })
+      .insert({ ...base, ...dados })
 
     if (error) {
-      console.warn('Pular triagem com extras falhou, tentando fallback:', error.message)
-      await adminSupabase.from('triagens').insert({ paciente_id: paciente.id, status: 'pulou_triagem' })
+      console.warn('Pular triagem com extras falhou:', error.message)
+      await adminSupabase.from('triagens').insert(base)
     }
 
     return NextResponse.json({ ok: true })
@@ -80,12 +102,12 @@ export async function POST(req: NextRequest) {
       .eq('id', triagemId)
 
     if (error) {
-      // Tentar atualizar apenas as colunas básicas que existem com certeza
-      console.warn('Update com colunas extras falhou, tentando colunas básicas:', error.message)
+      console.warn('Update completo falhou, tentando colunas básicas:', error.message)
 
-      const colunasSegurasNomes = ['classificacao_risco', 'resumo_ia', 'status']
+      // Tenta atualizar apenas colunas que definitivamente existem
+      const seguros = ['classificacao_risco', 'direcionamento', 'resumo_ia', 'status']
       const dadosBasicos: Record<string, unknown> = {}
-      for (const col of colunasSegurasNomes) {
+      for (const col of seguros) {
         if (col in dados) dadosBasicos[col] = dados[col]
       }
 
@@ -96,7 +118,7 @@ export async function POST(req: NextRequest) {
           .eq('id', triagemId)
 
         if (err2) {
-          console.error('Erro ao atualizar triagem (fallback):', err2)
+          console.error('Erro ao atualizar triagem (fallback):', err2.message)
           return NextResponse.json({ error: err2.message }, { status: 500 })
         }
       }

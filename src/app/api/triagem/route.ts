@@ -143,8 +143,12 @@ export async function POST(req: NextRequest) {
     try {
       const adminSupabase = createAdminClient()
 
+      // direcionamento: campo obrigatório no schema original
+      const direcionamento = 'virtual'
+
       const dadosConcluidos: Record<string, unknown> = {
         classificacao_risco: resultado.classificacao,
+        direcionamento,
         resumo_ia: resultado.resumo,
         status: 'concluida',
         dados_sintomas: sintomas,
@@ -159,6 +163,7 @@ export async function POST(req: NextRequest) {
 
       const dadosBasicos: Record<string, unknown> = {
         classificacao_risco: resultado.classificacao,
+        direcionamento,
         resumo_ia: resultado.resumo,
         status: 'concluida',
       }
