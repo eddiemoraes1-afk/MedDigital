@@ -50,12 +50,17 @@ export default async function MedicoPacientePage({ params }: Props) {
   // Buscar triagens recentes — duas estratégias:
   // 1) direto por paciente_id
   // 2) via atendimentos.triagem_id (para triagens salvas antes da correção de RLS)
+  // Colunas seguras (existem em qualquer versão do banco)
+  const COLS_TRIAGEM = 'id, criado_em, classificacao_risco, resumo_ia, status'
+
+  // Path 1: triagens com paciente_id correto
   const { data: triagensDirectas } = await adminSupabase
     .from('triagens')
-    .select('id, criado_em, classificacao_risco, resumo_ia, status, dados_sintomas, dados_urgencia')
+    .select(COLS_TRIAGEM)
     .eq('paciente_id', id)
     .order('criado_em', { ascending: false })
 
+  // Path 2: triagens linkadas via atendimentos (salvas antes da correção de RLS)
   const { data: atendPaciente } = await adminSupabase
     .from('atendimentos')
     .select('triagem_id')
@@ -71,14 +76,29 @@ export default async function MedicoPacientePage({ params }: Props) {
   if (idsViaAtend.length > 0) {
     const { data } = await adminSupabase
       .from('triagens')
-      .select('id, criado_em, classificacao_risco, resumo_ia, status, dados_sintomas, dados_urgencia')
+      .select(COLS_TRIAGEM)
       .in('id', idsViaAtend)
     triagemViaAtend = data ?? []
+  }
+
+  // Também buscar dados_sintomas e dados_urgencia separadamente (colunas opcionais)
+  const todosIds = [
+    ...(triagensDirectas ?? []).map((t: any) => t.id),
+    ...triagemViaAtend.map((t: any) => t.id),
+  ]
+  const dadosExtras: Record<string, any> = {}
+  if (todosIds.length > 0) {
+    const { data: extras } = await adminSupabase
+      .from('triagens')
+      .select('id, dados_sintomas, dados_urgencia')
+      .in('id', todosIds)
+    extras?.forEach((e: any) => { dadosExtras[e.id] = e })
   }
 
   const triagens = [...(triagensDirectas ?? []), ...triagemViaAtend]
     .sort((a, b) => new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime())
     .slice(0, 10)
+    .map((t: any) => ({ ...t, ...(dadosExtras[t.id] ?? {}) }))
 
   // Buscar agendamentos
   const { data: agendamentos } = await adminSupabase
