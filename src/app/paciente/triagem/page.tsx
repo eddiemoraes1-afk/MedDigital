@@ -825,19 +825,35 @@ export default function TriagemPage() {
     else router.push('/paciente/dashboard')
   }
 
-  async function criarTriagemInicial(dados: DadosValidacao): Promise<string | null> {
+  // ── Helper: chama /api/triagem/salvar (usa adminClient no server) ─────────
+  async function salvarAPI(payload: {
+    action: 'criar' | 'atualizar' | 'pular'
+    triagemId?: string
+    dados: Record<string, unknown>
+  }): Promise<{ id?: string; ok?: boolean; error?: string } | null> {
     try {
-      const supabase = createClient()
-      const { data } = await supabase.from('triagens').insert({
-        paciente_id: pacienteId,
-        status: 'em_andamento',
+      const res = await fetch('/api/triagem/salvar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      return await res.json()
+    } catch {
+      return null
+    }
+  }
+
+  async function criarTriagemInicial(dados: DadosValidacao): Promise<string | null> {
+    const result = await salvarAPI({
+      action: 'criar',
+      dados: {
         consentimento_lgpd: true,
         consentimento_em: dados.consentimentoEm,
         cpf_confirmado: dados.cpf,
         telefone_contato: dados.telefone,
-      }).select('id').single()
-      return data?.id ?? null
-    } catch { return null }
+      },
+    })
+    return result?.id ?? null
   }
 
   async function handleFazerTriagem(dados: DadosValidacao) {
@@ -848,38 +864,30 @@ export default function TriagemPage() {
   }
 
   async function handlePularTriagem(dados: DadosValidacao) {
-    try {
-      const supabase = createClient()
-      await supabase.from('triagens').insert({
-        paciente_id: pacienteId,
-        status: 'pulou_triagem',
+    await salvarAPI({
+      action: 'pular',
+      dados: {
         consentimento_lgpd: true,
         consentimento_em: dados.consentimentoEm,
         cpf_confirmado: dados.cpf,
         telefone_contato: dados.telefone,
-      })
-    } catch { /* salva mesmo assim */ }
+      },
+    })
     router.push('/paciente/dashboard')
   }
 
   async function handleSintomas(dados: DadosSintomas) {
     setSintomas(dados)
     if (triagemId) {
-      try {
-        const supabase = createClient()
-        await supabase.from('triagens').update({ dados_sintomas: dados }).eq('id', triagemId)
-      } catch { /* continua */ }
+      await salvarAPI({ action: 'atualizar', triagemId, dados: { dados_sintomas: dados } })
     }
     setEtapa('urgencia')
   }
 
   async function handleUrgencia(dados: DadosUrgencia) {
-    // Salvar etapa 3 no DB
+    // Salvar urgência parcial
     if (triagemId) {
-      try {
-        const supabase = createClient()
-        await supabase.from('triagens').update({ dados_urgencia: dados }).eq('id', triagemId)
-      } catch { /* continua */ }
+      await salvarAPI({ action: 'atualizar', triagemId, dados: { dados_urgencia: dados } })
     }
 
     setEtapa('triagem')
@@ -905,7 +913,7 @@ export default function TriagemPage() {
       setResultado(res_resultado)
       setAnalisando(false)
 
-      // Salvar resultado no prontuário
+      // Salvar resultado final no prontuário via adminClient
       await salvarResultado(res_resultado, dados)
     } catch {
       setErroAnalise('Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.')
@@ -915,30 +923,31 @@ export default function TriagemPage() {
 
   async function salvarResultado(res: ResultadoTriagem, urgencia: DadosUrgencia) {
     setSalvando(true)
-    try {
-      const supabase = createClient()
-      if (triagemId) {
-        await supabase.from('triagens').update({
-          classificacao_risco: res.classificacao,
-          resumo_ia: res.resumo,
-          status: 'concluida',
-          dados_urgencia: urgencia,
-        }).eq('id', triagemId)
-      } else {
-        await supabase.from('triagens').insert({
-          paciente_id: pacienteId,
-          classificacao_risco: res.classificacao,
-          resumo_ia: res.resumo,
-          status: 'concluida',
+
+    const dadosFinal: Record<string, unknown> = {
+      classificacao_risco: res.classificacao,
+      resumo_ia: res.resumo,
+      status: 'concluida',
+      dados_urgencia: urgencia,
+      dados_sintomas: sintomas ?? null,
+    }
+
+    if (triagemId) {
+      await salvarAPI({ action: 'atualizar', triagemId, dados: dadosFinal })
+    } else {
+      // Fallback: criar registro completo caso o inicial tenha falhado
+      await salvarAPI({
+        action: 'criar',
+        dados: {
+          ...dadosFinal,
           consentimento_lgpd: true,
           consentimento_em: validacao?.consentimentoEm ?? new Date().toISOString(),
           cpf_confirmado: validacao?.cpf ?? null,
           telefone_contato: validacao?.telefone ?? null,
-          dados_sintomas: sintomas ?? null,
-          dados_urgencia: urgencia,
-        })
-      }
-    } catch (err) { console.error('Erro ao salvar triagem:', err) }
+        },
+      })
+    }
+
     setSalvando(false)
   }
 
