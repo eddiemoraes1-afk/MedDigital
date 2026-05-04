@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Users, Clock, Video, CheckCircle2, LogOut, AlertTriangle, Calendar, FileText } from 'lucide-react'
+import { Users, Clock, Video, CheckCircle2, LogOut, AlertTriangle, Calendar, FileText, Stethoscope } from 'lucide-react'
 
 export default async function MedicoDashboard() {
   const supabase = await createClient()
@@ -124,15 +124,25 @@ export default async function MedicoDashboard() {
         </div>
 
         {/* Atalhos */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+          <Link href="/medico/pacientes"
+            className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 group">
+            <div className="w-10 h-10 bg-[#1A3A2C]/10 rounded-xl flex items-center justify-center">
+              <Stethoscope className="w-5 h-5 text-[#1A3A2C]" />
+            </div>
+            <div>
+              <p className="font-semibold text-[#1A3A2C] text-sm">Prontuários</p>
+              <p className="text-xs text-gray-400">Ver todos os pacientes</p>
+            </div>
+          </Link>
           <Link href="/medico/disponibilidade"
             className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 group">
             <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
               <Clock className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <p className="font-semibold text-[#1A3A2C] text-sm">Minha disponibilidade</p>
-              <p className="text-xs text-gray-400">Gerenciar horários de atendimento</p>
+              <p className="font-semibold text-[#1A3A2C] text-sm">Disponibilidade</p>
+              <p className="text-xs text-gray-400">Gerenciar horários</p>
             </div>
           </Link>
           <Link href="/medico/agendamentos"
