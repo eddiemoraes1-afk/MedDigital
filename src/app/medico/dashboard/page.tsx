@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Users, Clock, Video, CheckCircle2, LogOut, AlertTriangle, Calendar } from 'lucide-react'
+import { Users, Clock, Video, CheckCircle2, LogOut, AlertTriangle, Calendar, FileText } from 'lucide-react'
 
 export default async function MedicoDashboard() {
   const supabase = await createClient()
@@ -32,13 +32,14 @@ export default async function MedicoDashboard() {
     )
   }
 
-  // Buscar fila de atendimentos aguardando
-  const { data: fila } = await supabase
+  // Buscar fila de atendimentos aguardando (adminClient para garantir leitura cross-user)
+  const adminSupabase = createAdminClient()
+  const { data: fila } = await adminSupabase
     .from('atendimentos')
     .select(`
-      *,
-      pacientes (nome, cpf),
-      triagens (classificacao_risco, resumo_ia)
+      id, criado_em, paciente_id,
+      pacientes (id, nome, cpf),
+      triagens (id, classificacao_risco, resumo_ia)
     `)
     .eq('status', 'aguardando')
     .eq('tipo', 'virtual')
@@ -61,6 +62,21 @@ export default async function MedicoDashboard() {
     laranja: 'bg-orange-100 text-orange-700',
     vermelho: 'bg-red-100 text-red-700',
     default: 'bg-gray-100 text-gray-600',
+  }
+
+  const labelRisco: Record<string, string> = {
+    verde: 'Baixo',
+    amarelo: 'Moderado',
+    laranja: 'Alto',
+    vermelho: 'Urgência',
+  }
+
+  function formatarHora(iso: string) {
+    return new Date(iso).toLocaleTimeString('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   }
 
   return (
@@ -154,31 +170,57 @@ export default async function MedicoDashboard() {
           ) : (
             <div className="divide-y divide-gray-50">
               {fila.map((atendimento: any, index: number) => {
-                const risco = atendimento.triagens?.classificacao_risco || 'verde'
+                const risco = atendimento.triagens?.classificacao_risco || null
+                const pacienteId = atendimento.pacientes?.id || atendimento.paciente_id
+                const resumo = atendimento.triagens?.resumo_ia
                 return (
-                  <div key={atendimento.id} className="px-6 py-5 flex items-center justify-between hover:bg-gray-50">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-[#1A3A2C]/10 rounded-full flex items-center justify-center font-bold text-[#1A3A2C] text-sm">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-gray-800">{atendimento.pacientes?.nome || 'Paciente'}</p>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${corRisco[risco] || corRisco.default}`}>
-                            {risco === 'verde' ? 'Baixo' : risco === 'amarelo' ? 'Moderado' : risco === 'laranja' ? 'Alto' : 'Urgência'}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-400 mt-0.5">
-                          {atendimento.triagens?.resumo_ia || 'Sem resumo de triagem'}
-                        </p>
-                        <p className="text-xs text-gray-300 mt-0.5">
-                          Aguardando desde {new Date(atendimento.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                      </div>
+                  <div key={atendimento.id} className="px-6 py-5 flex items-center gap-4 hover:bg-gray-50">
+                    {/* Número na fila */}
+                    <div className="w-10 h-10 bg-[#1A3A2C]/10 rounded-full flex items-center justify-center font-bold text-[#1A3A2C] text-sm shrink-0">
+                      {index + 1}
                     </div>
+
+                    {/* Informações do paciente */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {/* Nome clicável → ficha do paciente */}
+                        <Link
+                          href={`/medico/pacientes/${pacienteId}`}
+                          className="font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
+                        >
+                          {atendimento.pacientes?.nome || 'Paciente'}
+                        </Link>
+                        {risco && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${corRisco[risco] || corRisco.default}`}>
+                            {labelRisco[risco] || risco}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Resumo da triagem — clicável → ficha do paciente */}
+                      {resumo ? (
+                        <Link
+                          href={`/medico/pacientes/${pacienteId}`}
+                          className="flex items-start gap-1.5 mt-1 group"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-[#5BBD9B] shrink-0 mt-0.5" />
+                          <p className="text-sm text-gray-500 group-hover:text-[#1A3A2C] transition-colors line-clamp-2">
+                            {resumo}
+                          </p>
+                        </Link>
+                      ) : (
+                        <p className="text-sm text-gray-300 mt-0.5 italic">Sem resumo de triagem</p>
+                      )}
+
+                      <p className="text-xs text-gray-300 mt-1">
+                        Aguardando desde {formatarHora(atendimento.criado_em)}
+                      </p>
+                    </div>
+
+                    {/* Botão Atender */}
                     <Link
                       href={`/medico/atendimento/${atendimento.id}`}
-                      className="bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 shrink-0"
+                      className="bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 shrink-0 transition-colors"
                     >
                       <Video className="w-4 h-4" />
                       Atender
