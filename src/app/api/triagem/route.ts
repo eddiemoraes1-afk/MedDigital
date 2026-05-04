@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
@@ -7,9 +8,9 @@ const SYSTEM_PROMPT = `Você é um assistente de triagem médica do RovarisMed.
 Com base nos dados estruturados coletados nas etapas anteriores, classifique o risco do paciente e gere um resumo claro.
 
 CLASSIFICAÇÕES (use exatamente uma dessas strings):
-- "verde"   → RISCO BAIXO: Sintomas leves, sem sinais de urgência, pode aguardar atendimento
-- "amarelo" → RISCO MODERADO: Sintomas que precisam de avaliação médica, mas sem urgência imediata
-- "vermelho"→ RISCO ALTO: Pelo menos um sinal de urgência marcado como SIM, ou sintomas muito graves
+- "verde"    → RISCO BAIXO: Sintomas leves, sem sinais de urgência, pode aguardar atendimento
+- "amarelo"  → RISCO MODERADO: Sintomas que precisam de avaliação médica, mas sem urgência imediata
+- "vermelho" → RISCO ALTO: Pelo menos um sinal de urgência marcado como SIM, ou sintomas muito graves
 
 REGRAS OBRIGATÓRIAS:
 1. Se QUALQUER sinal de urgência estiver marcado como SIM → classifique como "vermelho"
@@ -53,57 +54,44 @@ interface DadosUrgencia {
 function buildContexto(sintomas: DadosSintomas, urgencia: DadosUrgencia): string {
   const linhas: string[] = ['=== ETAPA 2 — SINTOMAS ===']
 
-  if (sintomas.motivosPrincipais.length > 0) {
+  if (sintomas.motivosPrincipais.length > 0)
     linhas.push(`Motivos principais: ${sintomas.motivosPrincipais.join(', ')}`)
-  }
-  if (sintomas.outroMotivo) {
-    linhas.push(`Outro motivo descrito: ${sintomas.outroMotivo}`)
-  }
-  if (sintomas.locaisDor.length > 0) {
+  if (sintomas.outroMotivo)
+    linhas.push(`Outro motivo: ${sintomas.outroMotivo}`)
+  if (sintomas.locaisDor.length > 0)
     linhas.push(`Localização da dor: ${sintomas.locaisDor.join(', ')}`)
-  }
-  if (sintomas.outraLocalizacaoDor) {
-    linhas.push(`Outra localização descrita: ${sintomas.outraLocalizacaoDor}`)
-  }
-  if (sintomas.intensidadeDor !== null) {
+  if (sintomas.outraLocalizacaoDor)
+    linhas.push(`Outra localização: ${sintomas.outraLocalizacaoDor}`)
+  if (sintomas.intensidadeDor !== null)
     linhas.push(`Intensidade da dor: ${sintomas.intensidadeDor}/10`)
-  }
-  if (sintomas.tomouRemedio !== null) {
-    linhas.push(`Tomou remédio ou fez algo para melhorar: ${sintomas.tomouRemedio ? 'SIM' : 'NÃO'}`)
-  }
-  if (sintomas.oQueTomou) {
-    linhas.push(`O que tomou / fez: ${sintomas.oQueTomou}`)
-  }
-  if (sintomas.remedioMelhorou) {
-    const label = sintomas.remedioMelhorou === 'sim' ? 'Sim' : sintomas.remedioMelhorou === 'nao' ? 'Não' : 'Parcialmente'
-    linhas.push(`Melhorou após o remédio: ${label}`)
-  }
-  if (sintomas.remedioContinuo !== null) {
-    linhas.push(`Usa remédio de uso contínuo: ${sintomas.remedioContinuo ? 'SIM' : 'NÃO'}`)
-  }
-  if (sintomas.remedioContinuoQuais) {
+  if (sintomas.tomouRemedio !== null)
+    linhas.push(`Tomou remédio: ${sintomas.tomouRemedio ? 'SIM' : 'NÃO'}`)
+  if (sintomas.oQueTomou)
+    linhas.push(`O que tomou: ${sintomas.oQueTomou}`)
+  if (sintomas.remedioMelhorou)
+    linhas.push(`Melhorou: ${sintomas.remedioMelhorou}`)
+  if (sintomas.remedioContinuo !== null)
+    linhas.push(`Remédio contínuo: ${sintomas.remedioContinuo ? 'SIM' : 'NÃO'}`)
+  if (sintomas.remedioContinuoQuais)
     linhas.push(`Remédios contínuos: ${sintomas.remedioContinuoQuais}`)
-  }
 
   linhas.push('\n=== ETAPA 3 — SINAIS DE URGÊNCIA ===')
 
   const sinais: Record<string, string> = {
-    dorNoPeito:    'Dor, aperto, pressão ou queimação no peito',
-    faltaDeAr:     'Falta de ar intensa ou dificuldade para falar frases completas',
-    sintomaNeuro:  'Sintoma neurológico (fraqueza, boca torta, fala enrolada, confusão, perda de visão)',
-    desmaio:       'Desmaio ou perda de consciência',
-    convulsao:     'Convulsão ou crise semelhante',
-    sangramento:   'Sangramento intenso ou que não para',
-    trauma:        'Queda, acidente, pancada forte ou suspeita de fratura',
-    dorExtrema:    'Dor muito forte, diferente do habitual ou que piorou rapidamente',
-    gravidez:      'Gravidez com complicação (dor abdominal, sangramento, pressão alta, etc.)',
+    dorNoPeito:    'Dor no peito',
+    faltaDeAr:     'Falta de ar intensa',
+    sintomaNeuro:  'Sintoma neurológico',
+    desmaio:       'Desmaio',
+    convulsao:     'Convulsão',
+    sangramento:   'Sangramento intenso',
+    trauma:        'Trauma / acidente',
+    dorExtrema:    'Dor extrema',
+    gravidez:      'Gravidez com complicação',
   }
 
   for (const [chave, descricao] of Object.entries(sinais)) {
     const valor = urgencia[chave as keyof DadosUrgencia]
-    if (valor !== null) {
-      linhas.push(`${descricao}: ${valor ? '⚠️ SIM' : 'não'}`)
-    }
+    if (valor !== null) linhas.push(`${descricao}: ${valor ? '⚠️ SIM' : 'não'}`)
   }
 
   return linhas.join('\n')
@@ -111,19 +99,25 @@ function buildContexto(sintomas: DadosSintomas, urgencia: DadosUrgencia): string
 
 export async function POST(req: NextRequest) {
   try {
-    const { sintomas, urgencia } = await req.json()
+    const body = await req.json()
+    const { sintomas, urgencia, triagemId: triagemIdEntrada, dadosValidacao } = body as {
+      sintomas: DadosSintomas
+      urgencia: DadosUrgencia
+      triagemId?: string | null
+      dadosValidacao?: { cpf?: string; telefone?: string; consentimentoEm?: string } | null
+    }
 
     if (!sintomas || !urgencia) {
       return NextResponse.json({ error: 'Dados insuficientes para análise' }, { status: 400 })
     }
 
+    // ── Chamar IA ──────────────────────────────────────────────────────────────
     const contexto = buildContexto(sintomas, urgencia)
-
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: `Analise os dados de triagem abaixo e retorne o JSON de classificação:\n\n${contexto}` },
+        { role: 'user', content: `Analise os dados de triagem abaixo:\n\n${contexto}` },
       ],
       temperature: 0.2,
       max_tokens: 400,
@@ -141,17 +135,84 @@ export async function POST(req: NextRequest) {
 
     // Garantir classificação válida
     if (!['verde', 'amarelo', 'vermelho'].includes(resultado.classificacao)) {
-      // Fallback: se algum sinal de urgência for true → vermelho, senão amarelo
       const temUrgencia = Object.values(urgencia).some(v => v === true)
       resultado.classificacao = temUrgencia ? 'vermelho' : 'amarelo'
+    }
+
+    // ── Salvar no banco via adminClient (ignora RLS) ───────────────────────────
+    try {
+      const adminSupabase = createAdminClient()
+
+      const dadosConcluidos: Record<string, unknown> = {
+        classificacao_risco: resultado.classificacao,
+        resumo_ia: resultado.resumo,
+        status: 'concluida',
+        dados_sintomas: sintomas,
+        dados_urgencia: urgencia,
+        ...(dadosValidacao && {
+          consentimento_lgpd: true,
+          consentimento_em: dadosValidacao.consentimentoEm ?? new Date().toISOString(),
+          cpf_confirmado: dadosValidacao.cpf ?? null,
+          telefone_contato: dadosValidacao.telefone ?? null,
+        }),
+      }
+
+      const dadosBasicos: Record<string, unknown> = {
+        classificacao_risco: resultado.classificacao,
+        resumo_ia: resultado.resumo,
+        status: 'concluida',
+      }
+
+      if (triagemIdEntrada) {
+        // ── Caminho 1: já temos o ID — apenas atualizar ──────────────────────
+        const { error: errUpdate } = await adminSupabase
+          .from('triagens')
+          .update(dadosConcluidos)
+          .eq('id', triagemIdEntrada)
+
+        if (errUpdate) {
+          // Fallback: colunas extras não existem ainda — atualizar só as básicas
+          console.warn('Update completo falhou, tentando básico:', errUpdate.message)
+          await adminSupabase
+            .from('triagens')
+            .update(dadosBasicos)
+            .eq('id', triagemIdEntrada)
+        }
+      } else {
+        // ── Caminho 2: sem ID — inserir novo registro ─────────────────────────
+        // Precisamos do paciente_id via autenticação
+        const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (user) {
+          const { data: paciente } = await adminSupabase
+            .from('pacientes')
+            .select('id')
+            .eq('usuario_id', user.id)
+            .single()
+
+          if (paciente) {
+            const { error: errInsert } = await adminSupabase
+              .from('triagens')
+              .insert({ paciente_id: paciente.id, ...dadosConcluidos })
+
+            if (errInsert) {
+              console.warn('Insert completo falhou, tentando básico:', errInsert.message)
+              await adminSupabase
+                .from('triagens')
+                .insert({ paciente_id: paciente.id, ...dadosBasicos })
+            }
+          }
+        }
+      }
+    } catch (dbErr) {
+      // Erro no banco não deve bloquear a resposta ao paciente
+      console.error('Erro ao salvar triagem no banco:', dbErr)
     }
 
     return NextResponse.json(resultado)
   } catch (error: any) {
     console.error('Erro na triagem:', error)
-    return NextResponse.json(
-      { error: 'Erro ao processar triagem. Tente novamente.' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erro ao processar triagem.' }, { status: 500 })
   }
 }

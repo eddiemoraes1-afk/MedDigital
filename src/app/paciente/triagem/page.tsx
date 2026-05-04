@@ -894,12 +894,17 @@ export default function TriagemPage() {
     setAnalisando(true)
     setErroAnalise('')
 
-    // Chamar IA para análise direta
+    // Chamar IA para análise direta (o route também salva no banco server-side)
     try {
       const res = await fetch('/api/triagem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sintomas, urgencia: dados }),
+        body: JSON.stringify({
+          sintomas,
+          urgencia: dados,
+          triagemId,
+          dadosValidacao: validacao,
+        }),
       })
       const data = await res.json()
 
@@ -912,9 +917,6 @@ export default function TriagemPage() {
       const res_resultado: ResultadoTriagem = data
       setResultado(res_resultado)
       setAnalisando(false)
-
-      // Salvar resultado final no prontuário via adminClient
-      await salvarResultado(res_resultado, dados)
     } catch {
       setErroAnalise('Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.')
       setAnalisando(false)
