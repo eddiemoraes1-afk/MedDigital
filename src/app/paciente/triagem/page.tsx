@@ -1,27 +1,21 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  Send, Loader2, ArrowLeft, CheckCircle2, AlertTriangle, AlertCircle,
-  Info, Video, Calendar, Shield, Phone, FileText, XCircle, Brain, ChevronRight,
-  SkipForward, Stethoscope,
+  Loader2, ArrowLeft, CheckCircle2, AlertTriangle, AlertCircle,
+  Video, Calendar, Shield, Phone, FileText, XCircle, ChevronRight,
+  SkipForward, Stethoscope, Clock,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface Mensagem {
-  role: 'user' | 'assistant'
-  content: string
-  timestamp: string
-}
-
 interface ResultadoTriagem {
-  classificacao: 'verde' | 'amarelo' | 'laranja' | 'vermelho'
-  direcionamento: 'orientacao' | 'virtual' | 'presencial'
+  classificacao: 'verde' | 'amarelo' | 'vermelho'
   resumo: string
+  recomendacao: string
 }
 
 interface DadosValidacao {
@@ -58,10 +52,39 @@ interface DadosUrgencia {
 // ─── Config de risco ──────────────────────────────────────────────────────────
 
 const configRisco = {
-  verde:   { cor: 'bg-green-50 border-green-200',   badge: 'bg-green-100 text-green-700',   label: '🟢 Risco Baixo',  mensagem: 'Seus sintomas indicam baixa urgência. Você receberá orientações básicas.',                                                  icon: CheckCircle2 },
-  amarelo: { cor: 'bg-yellow-50 border-yellow-200', badge: 'bg-yellow-100 text-yellow-700', label: '🟡 Risco Moderado', mensagem: 'Recomendamos uma consulta virtual com um médico.',                                                                         icon: Info },
-  laranja: { cor: 'bg-orange-50 border-orange-200', badge: 'bg-orange-100 text-orange-700', label: '🟠 Risco Alto',   mensagem: 'Você precisa de atendimento médico em breve. Conectando com médico disponível.',                                             icon: AlertTriangle },
-  vermelho: { cor: 'bg-red-50 border-red-200',      badge: 'bg-red-100 text-red-700',       label: '🔴 Urgência',     mensagem: 'Seus sintomas indicam urgência. Procure atendimento presencial imediatamente ou ligue 192 (SAMU).',                          icon: AlertCircle },
+  verde: {
+    cor: 'bg-green-50 border-green-200',
+    badge: 'bg-green-100 text-green-700',
+    badgeBorder: 'border-green-300',
+    label: 'Risco Baixo',
+    emoji: '🟢',
+    icon: CheckCircle2,
+    iconColor: 'text-green-600',
+    titulo: 'Tudo sob controle',
+    mensagem: 'Seus sintomas indicam baixa urgência. Você pode agendar uma consulta ou falar com um médico agora mesmo.',
+  },
+  amarelo: {
+    cor: 'bg-yellow-50 border-yellow-200',
+    badge: 'bg-yellow-100 text-yellow-700',
+    badgeBorder: 'border-yellow-300',
+    label: 'Risco Moderado',
+    emoji: '🟡',
+    icon: AlertTriangle,
+    iconColor: 'text-yellow-600',
+    titulo: 'Atenção necessária',
+    mensagem: 'Recomendamos uma avaliação médica. Você pode consultar um médico agora ou agendar uma consulta.',
+  },
+  vermelho: {
+    cor: 'bg-red-50 border-red-200',
+    badge: 'bg-red-100 text-red-700',
+    badgeBorder: 'border-red-300',
+    label: 'Risco Alto',
+    emoji: '🔴',
+    icon: AlertCircle,
+    iconColor: 'text-red-600',
+    titulo: 'Atendimento imediato necessário',
+    mensagem: 'Seus sintomas indicam urgência. Um médico disponível será acionado agora para te atender imediatamente.',
+  },
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -80,7 +103,7 @@ function ProgressoTriagem({ atual }: { atual: 1 | 2 | 3 | 4 }) {
     { num: 1, label: 'Identificação' },
     { num: 2, label: 'Sintomas' },
     { num: 3, label: 'Urgência' },
-    { num: 4, label: 'Triagem IA' },
+    { num: 4, label: 'Resultado' },
   ]
   return (
     <div className="flex items-center gap-1 mb-6">
@@ -610,6 +633,151 @@ function EtapaUrgencia({
   )
 }
 
+// ─── Etapa 4: Resultado ───────────────────────────────────────────────────────
+
+function EtapaResultado({
+  resultado,
+  analisando,
+  erroAnalise,
+  solicitando,
+  salvando,
+  onSolicitarImediato,
+  onConsultarAgora,
+}: {
+  resultado: ResultadoTriagem | null
+  analisando: boolean
+  erroAnalise: string
+  solicitando: boolean
+  salvando: boolean
+  onSolicitarImediato: () => void
+  onConsultarAgora: () => void
+}) {
+  if (analisando) {
+    return (
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
+        <div className="max-w-lg mx-auto w-full">
+          <ProgressoTriagem atual={4} />
+          <div className="bg-white rounded-2xl shadow-sm p-10 text-center">
+            <div className="w-16 h-16 bg-[#EAF7F2] rounded-2xl flex items-center justify-center mx-auto mb-5">
+              <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
+            </div>
+            <p className="text-lg font-bold text-[#1A3A2C] mb-2">Analisando seus dados...</p>
+            <p className="text-sm text-gray-400">Nossa IA está avaliando suas informações para determinar o melhor atendimento.</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (erroAnalise) {
+    return (
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
+        <div className="max-w-lg mx-auto w-full">
+          <ProgressoTriagem atual={4} />
+          <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
+            <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+            <p className="font-bold text-gray-800 mb-2">Erro na análise</p>
+            <p className="text-sm text-gray-500 mb-6">{erroAnalise}</p>
+            <Link href="/paciente/dashboard"
+              className="inline-block bg-[#1A3A2C] text-white px-6 py-2.5 rounded-xl text-sm font-medium">
+              Voltar ao painel
+            </Link>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!resultado) return null
+
+  const config = configRisco[resultado.classificacao]
+  const Icon = config.icon
+  const isAlto = resultado.classificacao === 'vermelho'
+
+  return (
+    <div className="flex-1 overflow-y-auto px-4 py-8">
+      <div className="max-w-lg mx-auto">
+        <ProgressoTriagem atual={4} />
+
+        {/* Card de resultado */}
+        <div className={`border-2 rounded-2xl p-6 mb-4 ${config.cor}`}>
+
+          {/* Badge de risco */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${config.badge}`}>
+              <Icon className={`w-6 h-6 ${config.iconColor}`} />
+            </div>
+            <div>
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${config.badge} ${config.badgeBorder}`}>
+                {config.emoji} {config.label}
+              </span>
+              <p className="text-base font-bold text-[#1A3A2C] mt-1">{config.titulo}</p>
+            </div>
+          </div>
+
+          {/* Resumo da IA */}
+          <div className="bg-white/70 rounded-xl p-4 mb-4">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Resumo da triagem</p>
+            <p className="text-sm text-gray-700 leading-relaxed">{resultado.resumo}</p>
+          </div>
+
+          {/* Recomendação */}
+          <p className="text-sm text-gray-600 leading-relaxed mb-5">{resultado.recomendacao}</p>
+
+          {/* CTAs baseadas no risco */}
+          {isAlto ? (
+            /* Risco Alto: apenas atendimento imediato */
+            <div className="space-y-3">
+              <button onClick={onSolicitarImediato} disabled={solicitando}
+                className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white py-4 rounded-xl text-sm font-bold transition-colors">
+                {solicitando
+                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Conectando com médico...</>
+                  : <><Clock className="w-4 h-4" /> Atendimento imediato</>
+                }
+              </button>
+              <p className="text-xs text-center text-gray-500">
+                Você entrará na fila de atendimento e será atendido pelo próximo médico disponível.
+              </p>
+              <div className="pt-2 border-t border-gray-200">
+                <a href="tel:192"
+                  className="w-full flex items-center justify-center gap-2 border border-red-300 text-red-600 hover:bg-red-50 py-2.5 rounded-xl text-sm font-semibold transition-colors">
+                  📞 Ligar para o SAMU (192)
+                </a>
+              </div>
+            </div>
+          ) : (
+            /* Risco Baixo / Moderado: agendar ou consultar agora */
+            <div className="space-y-3">
+              <button onClick={onConsultarAgora} disabled={solicitando}
+                className="w-full flex items-center justify-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] disabled:opacity-60 text-white py-3.5 rounded-xl text-sm font-semibold transition-colors">
+                {solicitando
+                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Criando sala...</>
+                  : <><Video className="w-4 h-4" /> Consultar na hora</>
+                }
+              </button>
+              <Link href="/paciente/agendar"
+                className="w-full flex items-center justify-center gap-2 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-[#EAF7F2] py-3.5 rounded-xl text-sm font-semibold transition-colors">
+                <Calendar className="w-4 h-4" /> Agendar uma consulta
+              </Link>
+            </div>
+          )}
+
+          {salvando && (
+            <p className="text-xs text-gray-400 text-center mt-3 flex items-center justify-center gap-1">
+              <Loader2 className="w-3 h-3 animate-spin" /> Salvando no prontuário...
+            </p>
+          )}
+        </div>
+
+        <Link href="/paciente/dashboard"
+          className="block text-center text-sm text-gray-400 hover:text-gray-600 py-2">
+          Voltar ao painel
+        </Link>
+      </div>
+    </div>
+  )
+}
+
 // ─── Página principal ─────────────────────────────────────────────────────────
 
 export default function TriagemPage() {
@@ -623,20 +791,14 @@ export default function TriagemPage() {
   const [telefoneInicial, setTelefoneInicial] = useState('')
   const [validacao, setValidacao] = useState<DadosValidacao | null>(null)
   const [sintomas, setSintomas] = useState<DadosSintomas | null>(null)
-  const [urgencia, setUrgencia] = useState<DadosUrgencia | null>(null)
   const [triagemId, setTriagemId] = useState<string | null>(null)
 
-  // Chat
-  const [mensagens, setMensagens] = useState<Mensagem[]>([])
-  const [input, setInput] = useState('')
-  const [carregando, setCarregando] = useState(false)
-  const [iniciando, setIniciando] = useState(false)
+  // Resultado
+  const [analisando, setAnalisando] = useState(false)
+  const [erroAnalise, setErroAnalise] = useState('')
   const [resultado, setResultado] = useState<ResultadoTriagem | null>(null)
   const [salvando, setSalvando] = useState(false)
   const [solicitando, setSolicitando] = useState(false)
-  const chatRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const trocasRef = useRef(0)
 
   useEffect(() => {
     async function carregarPaciente() {
@@ -656,18 +818,13 @@ export default function TriagemPage() {
     carregarPaciente()
   }, [])
 
-  useEffect(() => {
-    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight
-  }, [mensagens, carregando])
-
   function voltar() {
     if (etapa === 'sintomas') setEtapa('validacao')
     else if (etapa === 'urgencia') setEtapa('sintomas')
-    else if (etapa === 'triagem') { setEtapa('urgencia'); setMensagens([]); setResultado(null); trocasRef.current = 0 }
+    else if (etapa === 'triagem') { setEtapa('urgencia'); setResultado(null); setErroAnalise('') }
     else router.push('/paciente/dashboard')
   }
 
-  // Cria registro inicial quando paciente decide fazer triagem
   async function criarTriagemInicial(dados: DadosValidacao): Promise<string | null> {
     try {
       const supabase = createClient()
@@ -711,90 +868,74 @@ export default function TriagemPage() {
       try {
         const supabase = createClient()
         await supabase.from('triagens').update({ dados_sintomas: dados }).eq('id', triagemId)
-      } catch { /* continua mesmo sem salvar */ }
+      } catch { /* continua */ }
     }
     setEtapa('urgencia')
   }
 
   async function handleUrgencia(dados: DadosUrgencia) {
-    setUrgencia(dados)
+    // Salvar etapa 3 no DB
     if (triagemId) {
       try {
         const supabase = createClient()
         await supabase.from('triagens').update({ dados_urgencia: dados }).eq('id', triagemId)
-      } catch { /* continua mesmo sem salvar */ }
+      } catch { /* continua */ }
     }
+
     setEtapa('triagem')
-    iniciarChat()
-  }
+    setAnalisando(true)
+    setErroAnalise('')
 
-  async function iniciarChat() {
-    setIniciando(true)
-    const res = await fetch('/api/triagem', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mensagens: [{ role: 'user', content: 'Olá, preciso de ajuda com meus sintomas.' }] })
-    })
-    const data = await res.json()
-    if (data.resposta) {
-      setMensagens([{ role: 'assistant', content: data.resposta, timestamp: new Date().toISOString() }])
-    }
-    setIniciando(false)
-    setTimeout(() => inputRef.current?.focus(), 100)
-  }
+    // Chamar IA para análise direta
+    try {
+      const res = await fetch('/api/triagem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sintomas, urgencia: dados }),
+      })
+      const data = await res.json()
 
-  async function enviarMensagem(e: React.FormEvent) {
-    e.preventDefault()
-    if (!input.trim() || carregando) return
-    const nova: Mensagem = { role: 'user', content: input.trim(), timestamp: new Date().toISOString() }
-    const historico = [...mensagens, nova]
-    setMensagens(historico)
-    setInput('')
-    setCarregando(true)
-    trocasRef.current += 1
-    const res = await fetch('/api/triagem', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mensagens: historico.map(m => ({ role: m.role, content: m.content })), finalizar: trocasRef.current >= 4 })
-    })
-    const data = await res.json()
-    setCarregando(false)
-    if (data.resposta) {
-      setMensagens(prev => [...prev, { role: 'assistant', content: data.resposta, timestamp: new Date().toISOString() }])
-    }
-    if (data.resultado) {
-      setResultado(data.resultado)
-      await salvarResultado([...historico, { role: 'assistant' as const, content: data.resposta, timestamp: new Date().toISOString() }], data.resultado)
+      if (!res.ok || data.error) {
+        setErroAnalise(data.error || 'Erro na análise. Tente novamente.')
+        setAnalisando(false)
+        return
+      }
+
+      const res_resultado: ResultadoTriagem = data
+      setResultado(res_resultado)
+      setAnalisando(false)
+
+      // Salvar resultado no prontuário
+      await salvarResultado(res_resultado, dados)
+    } catch {
+      setErroAnalise('Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.')
+      setAnalisando(false)
     }
   }
 
-  async function salvarResultado(historico: Mensagem[], res: ResultadoTriagem) {
+  async function salvarResultado(res: ResultadoTriagem, urgencia: DadosUrgencia) {
     setSalvando(true)
     try {
       const supabase = createClient()
       if (triagemId) {
         await supabase.from('triagens').update({
           classificacao_risco: res.classificacao,
-          direcionamento: res.direcionamento,
           resumo_ia: res.resumo,
-          historico_chat: historico,
           status: 'concluida',
+          dados_urgencia: urgencia,
         }).eq('id', triagemId)
       } else {
-        // Fallback se por algum motivo não tiver ID
         await supabase.from('triagens').insert({
           paciente_id: pacienteId,
           classificacao_risco: res.classificacao,
-          direcionamento: res.direcionamento,
           resumo_ia: res.resumo,
-          historico_chat: historico,
           status: 'concluida',
           consentimento_lgpd: true,
           consentimento_em: validacao?.consentimentoEm ?? new Date().toISOString(),
           cpf_confirmado: validacao?.cpf ?? null,
           telefone_contato: validacao?.telefone ?? null,
           dados_sintomas: sintomas ?? null,
-          dados_urgencia: urgencia ?? null,
+          dados_urgencia: urgencia,
         })
       }
     } catch (err) { console.error('Erro ao salvar triagem:', err) }
@@ -803,21 +944,24 @@ export default function TriagemPage() {
 
   async function solicitarConsulta() {
     setSolicitando(true)
-    const res = await fetch('/api/consulta/solicitar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ triagem_id: triagemId })
-    })
-    const data = await res.json()
-    if (data.atendimentoId) {
-      router.push(`/paciente/consulta/${data.atendimentoId}`)
-    } else {
-      alert('Erro ao criar sala: ' + (data.error || 'tente novamente'))
+    try {
+      const res = await fetch('/api/consulta/solicitar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ triagem_id: triagemId }),
+      })
+      const data = await res.json()
+      if (data.atendimentoId) {
+        router.push(`/paciente/consulta/${data.atendimentoId}`)
+      } else {
+        alert('Erro ao criar sala: ' + (data.error || 'tente novamente'))
+        setSolicitando(false)
+      }
+    } catch {
+      alert('Erro de conexão. Tente novamente.')
       setSolicitando(false)
     }
   }
-
-  const config = resultado ? configRisco[resultado.classificacao] : null
 
   return (
     <div className="min-h-screen bg-[#F3FAF7] flex flex-col">
@@ -830,7 +974,7 @@ export default function TriagemPage() {
             </button>
             <div className="flex items-center gap-2">
               <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
-              <span className="text-xs text-green-300 ml-1">Triagem por IA</span>
+              <span className="text-xs text-green-300 ml-1">Triagem</span>
             </div>
           </div>
           <span className="text-xs text-green-200 bg-blue-900/30 px-3 py-1 rounded-full hidden sm:block">
@@ -860,99 +1004,15 @@ export default function TriagemPage() {
       {etapa === 'urgencia' && <EtapaUrgencia sintomas={sintomas} onEnviar={handleUrgencia} />}
 
       {etapa === 'triagem' && (
-        <div className="flex-1 max-w-3xl mx-auto w-full px-4 py-6 flex flex-col gap-4 overflow-hidden">
-          <ProgressoTriagem atual={4} />
-
-          <div ref={chatRef} className="flex-1 overflow-y-auto space-y-4 pr-1">
-            {iniciando ? (
-              <div className="flex items-center justify-center h-32">
-                <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B] mx-auto" />
-              </div>
-            ) : (
-              <>
-                {mensagens.map((msg, i) => (
-                  <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    {msg.role === 'assistant' && (
-                      <div className="w-8 h-8 bg-[#5BBD9B] rounded-full flex items-center justify-center shrink-0 mr-2 mt-1">
-                        <Brain className="w-4 h-4 text-white" />
-                      </div>
-                    )}
-                    <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
-                      msg.role === 'user' ? 'bg-[#1A3A2C] text-white rounded-tr-sm' : 'bg-white text-gray-700 shadow-sm rounded-tl-sm'
-                    }`}>
-                      {msg.content.split('\n').map((l, li) => (
-                        <span key={li}>{l}{li < msg.content.split('\n').length - 1 && <br />}</span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-
-                {carregando && (
-                  <div className="flex justify-start">
-                    <div className="w-8 h-8 bg-[#5BBD9B] rounded-full flex items-center justify-center shrink-0 mr-2">
-                      <Brain className="w-4 h-4 text-white" />
-                    </div>
-                    <div className="bg-white px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm">
-                      <div className="flex gap-1 items-center h-4">
-                        {[0, 150, 300].map(d => (
-                          <span key={d} className="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: `${d}ms` }} />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {resultado && config && (
-                  <div className={`border-2 rounded-2xl p-6 mt-4 ${config.cor}`}>
-                    <div className="flex items-center gap-3 mb-4">
-                      <config.icon className="w-6 h-6" />
-                      <span className={`text-sm font-bold px-3 py-1 rounded-full ${config.badge}`}>{config.label}</span>
-                    </div>
-                    <p className="text-sm text-gray-700 mb-2"><strong>Resumo:</strong> {resultado.resumo}</p>
-                    <p className="text-sm text-gray-600 mb-5">{config.mensagem}</p>
-                    <div className="flex flex-wrap gap-3">
-                      {resultado.direcionamento === 'virtual' && (
-                        <button onClick={solicitarConsulta} disabled={solicitando}
-                          className="flex items-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] disabled:opacity-60 text-white px-5 py-2.5 rounded-xl text-sm font-medium">
-                          {solicitando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Video className="w-4 h-4" />}
-                          {solicitando ? 'Criando sala...' : 'Iniciar consulta virtual'}
-                        </button>
-                      )}
-                      {resultado.direcionamento === 'presencial' && (
-                        <a href="tel:192" className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium">
-                          Ligar para o SAMU (192)
-                        </a>
-                      )}
-                      {resultado.direcionamento !== 'presencial' && (
-                        <Link href="/paciente/agendar"
-                          className="flex items-center gap-2 bg-[#7B3FA0] hover:bg-[#6a2f8f] text-white px-5 py-2.5 rounded-xl text-sm font-medium">
-                          <Calendar className="w-4 h-4" /> Agendar consulta
-                        </Link>
-                      )}
-                      <Link href="/paciente/dashboard"
-                        className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-5 py-2.5 rounded-xl text-sm font-medium">
-                        Voltar ao painel
-                      </Link>
-                    </div>
-                    {salvando && <p className="text-xs text-gray-400 mt-3">Salvando no prontuário...</p>}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-
-          {!resultado && (
-            <form onSubmit={enviarMensagem} className="flex gap-3 shrink-0">
-              <input ref={inputRef} type="text" value={input} onChange={e => setInput(e.target.value)}
-                placeholder="Descreva como você está se sentindo..." disabled={carregando || iniciando}
-                className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] disabled:opacity-50" />
-              <button type="submit" disabled={carregando || iniciando || !input.trim()}
-                className="bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white w-12 h-12 rounded-xl flex items-center justify-center disabled:opacity-40 shrink-0">
-                {carregando ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-              </button>
-            </form>
-          )}
-        </div>
+        <EtapaResultado
+          resultado={resultado}
+          analisando={analisando}
+          erroAnalise={erroAnalise}
+          solicitando={solicitando}
+          salvando={salvando}
+          onSolicitarImediato={solicitarConsulta}
+          onConsultarAgora={solicitarConsulta}
+        />
       )}
     </div>
   )
