@@ -47,13 +47,38 @@ export default async function MedicoPacientePage({ params }: Props) {
         .maybeSingle()
     : { data: null }
 
-  // Buscar triagens recentes
-  const { data: triagens } = await adminSupabase
+  // Buscar triagens recentes — duas estratégias:
+  // 1) direto por paciente_id
+  // 2) via atendimentos.triagem_id (para triagens salvas antes da correção de RLS)
+  const { data: triagensDirectas } = await adminSupabase
     .from('triagens')
     .select('id, criado_em, classificacao_risco, resumo_ia, status, dados_sintomas, dados_urgencia')
     .eq('paciente_id', id)
     .order('criado_em', { ascending: false })
-    .limit(5)
+
+  const { data: atendPaciente } = await adminSupabase
+    .from('atendimentos')
+    .select('triagem_id')
+    .eq('paciente_id', id)
+    .not('triagem_id', 'is', null)
+
+  const idsJaBuscados = new Set((triagensDirectas ?? []).map((t: any) => t.id))
+  const idsViaAtend = (atendPaciente ?? [])
+    .map((a: any) => a.triagem_id)
+    .filter((tid: string) => tid && !idsJaBuscados.has(tid))
+
+  let triagemViaAtend: any[] = []
+  if (idsViaAtend.length > 0) {
+    const { data } = await adminSupabase
+      .from('triagens')
+      .select('id, criado_em, classificacao_risco, resumo_ia, status, dados_sintomas, dados_urgencia')
+      .in('id', idsViaAtend)
+    triagemViaAtend = data ?? []
+  }
+
+  const triagens = [...(triagensDirectas ?? []), ...triagemViaAtend]
+    .sort((a, b) => new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime())
+    .slice(0, 10)
 
   // Buscar agendamentos
   const { data: agendamentos } = await adminSupabase
