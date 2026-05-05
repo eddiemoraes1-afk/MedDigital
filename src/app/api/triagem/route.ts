@@ -150,6 +150,7 @@ export async function POST(req: NextRequest) {
         classificacao_risco: resultado.classificacao,
         direcionamento,
         resumo_ia: resultado.resumo,
+        recomendacao_ia: resultado.recomendacao,
         status: 'concluida',
         dados_sintomas: sintomas,
         dados_urgencia: urgencia,

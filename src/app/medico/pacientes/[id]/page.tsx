@@ -5,6 +5,8 @@ import {
   User, Phone, FileText, Building2, Calendar, Activity,
   Clock, CheckCircle2, Mail, Briefcase, MapPin, XCircle,
   ArrowLeft, Brain, AlertTriangle, AlertCircle, Info,
+  Pill, Stethoscope, ThumbsUp, ThumbsDown, Minus,
+  ChevronDown,
 } from 'lucide-react'
 
 interface Props {
@@ -14,7 +16,6 @@ interface Props {
 export default async function MedicoPacientePage({ params }: Props) {
   const { id } = await params
 
-  // Verificar autenticação do médico
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -38,7 +39,7 @@ export default async function MedicoPacientePage({ params }: Props) {
 
   if (!paciente) redirect('/medico/dashboard')
 
-  // Buscar vínculo com empresa
+  // Vínculo empresa
   const { data: vinculo } = paciente.cpf
     ? await adminSupabase
         .from('vinculos_empresa')
@@ -47,20 +48,16 @@ export default async function MedicoPacientePage({ params }: Props) {
         .maybeSingle()
     : { data: null }
 
-  // Buscar triagens recentes — duas estratégias:
-  // 1) direto por paciente_id
-  // 2) via atendimentos.triagem_id (para triagens salvas antes da correção de RLS)
-  // Colunas seguras (existem em qualquer versão do banco)
-  const COLS_TRIAGEM = 'id, criado_em, classificacao_risco, resumo_ia, status'
+  // Buscar TODAS as triagens com dados completos (duas estratégias)
+  const COLS = 'id, criado_em, classificacao_risco, direcionamento, resumo_ia, recomendacao_ia, status, dados_sintomas, dados_urgencia, consentimento_lgpd, consentimento_em, cpf_confirmado, telefone_contato'
 
-  // Path 1: triagens com paciente_id correto
   const { data: triagensDirectas } = await adminSupabase
     .from('triagens')
-    .select(COLS_TRIAGEM)
+    .select(COLS)
     .eq('paciente_id', id)
     .order('criado_em', { ascending: false })
 
-  // Path 2: triagens linkadas via atendimentos (salvas antes da correção de RLS)
+  // Path 2: via atendimentos
   const { data: atendPaciente } = await adminSupabase
     .from('atendimentos')
     .select('triagem_id')
@@ -76,31 +73,15 @@ export default async function MedicoPacientePage({ params }: Props) {
   if (idsViaAtend.length > 0) {
     const { data } = await adminSupabase
       .from('triagens')
-      .select(COLS_TRIAGEM)
+      .select(COLS)
       .in('id', idsViaAtend)
     triagemViaAtend = data ?? []
   }
 
-  // Também buscar dados_sintomas e dados_urgencia separadamente (colunas opcionais)
-  const todosIds = [
-    ...(triagensDirectas ?? []).map((t: any) => t.id),
-    ...triagemViaAtend.map((t: any) => t.id),
-  ]
-  const dadosExtras: Record<string, any> = {}
-  if (todosIds.length > 0) {
-    const { data: extras } = await adminSupabase
-      .from('triagens')
-      .select('id, dados_sintomas, dados_urgencia')
-      .in('id', todosIds)
-    extras?.forEach((e: any) => { dadosExtras[e.id] = e })
-  }
-
   const triagens = [...(triagensDirectas ?? []), ...triagemViaAtend]
     .sort((a, b) => new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime())
-    .slice(0, 10)
-    .map((t: any) => ({ ...t, ...(dadosExtras[t.id] ?? {}) }))
 
-  // Buscar agendamentos
+  // Agendamentos
   const { data: agendamentos } = await adminSupabase
     .from('agendamentos')
     .select('id, data_hora, status, tipo_consulta, medico_id')
@@ -127,27 +108,21 @@ export default async function MedicoPacientePage({ params }: Props) {
   }
 
   function formatDataHora(iso: string) {
-    const d = new Date(iso + (iso.endsWith('Z') ? '' : 'Z'))
+    const d = new Date(iso.endsWith('Z') ? iso : iso + 'Z')
     return {
       data: d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: 'short', year: 'numeric' }),
       hora: d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }),
     }
   }
 
-  function statusBadge(status: string) {
-    if (status === 'concluido' || status === 'confirmado') return 'bg-green-100 text-green-700'
-    if (status === 'cancelado') return 'bg-red-100 text-red-600'
-    return 'bg-yellow-100 text-yellow-700'
-  }
-
-  function statusLabel(status: string) {
-    if (status === 'concluido') return 'Concluída'
-    if (status === 'confirmado') return 'Confirmada'
-    if (status === 'cancelado') return 'Cancelada'
-    return 'Pendente'
-  }
-
   const corRisco: Record<string, string> = {
+    verde:    'border-green-300 bg-green-50',
+    amarelo:  'border-yellow-300 bg-yellow-50',
+    laranja:  'border-orange-300 bg-orange-50',
+    vermelho: 'border-red-300 bg-red-50',
+  }
+
+  const badgeRisco: Record<string, string> = {
     verde:    'bg-green-100 text-green-700',
     amarelo:  'bg-yellow-100 text-yellow-700',
     laranja:  'bg-orange-100 text-orange-700',
@@ -155,40 +130,40 @@ export default async function MedicoPacientePage({ params }: Props) {
   }
 
   const labelRisco: Record<string, string> = {
-    verde:    'Baixo',
-    amarelo:  'Moderado',
-    laranja:  'Alto',
-    vermelho: 'Urgência',
+    verde:    '🟢 Risco Baixo',
+    amarelo:  '🟡 Risco Moderado',
+    laranja:  '🟠 Risco Alto',
+    vermelho: '🔴 Urgência',
   }
 
-  const iconRisco: Record<string, any> = {
-    verde:    CheckCircle2,
-    amarelo:  Info,
-    laranja:  AlertTriangle,
-    vermelho: AlertCircle,
+  const labelSexo: Record<string, string> = {
+    masculino: 'Masculino', feminino: 'Feminino', outro: 'Outro', nao_informado: 'Não informado',
+  }
+
+  const sinaisUrgenciaLabels: Record<string, string> = {
+    dorNoPeito:    'Dor no peito',
+    faltaDeAr:     'Falta de ar intensa',
+    sintomaNeuro:  'Sintoma neurológico',
+    desmaio:       'Desmaio / perda de consciência',
+    convulsao:     'Convulsão',
+    sangramento:   'Sangramento intenso',
+    trauma:        'Trauma / acidente',
+    dorExtrema:    'Dor extrema',
+    gravidez:      'Gravidez com complicação',
   }
 
   const idade = calcularIdade(paciente.data_nascimento ?? null)
-  const empresa = vinculo?.empresas as any
-
-  const labelSexo: Record<string, string> = {
-    masculino: 'Masculino',
-    feminino: 'Feminino',
-    outro: 'Outro',
-    nao_informado: 'Não informado',
-  }
+  const empresa = (vinculo as any)?.empresas
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-
-      {/* Header */}
       <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center gap-4">
-          <Link href="/medico/dashboard" className="text-green-200 hover:text-white">
+          <Link href="/medico/pacientes" className="text-green-200 hover:text-white">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
-          <span className="text-xs text-green-300 ml-1">Ficha do Paciente</span>
+          <span className="text-xs text-green-300 ml-1">Prontuário do Paciente</span>
         </div>
       </header>
 
@@ -204,9 +179,7 @@ export default async function MedicoPacientePage({ params }: Props) {
               <h1 className="text-2xl font-bold text-[#1A3A2C]">{paciente.nome}</h1>
               <div className="flex flex-wrap gap-3 mt-2">
                 {idade !== null && (
-                  <span className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
-                    {idade} anos
-                  </span>
+                  <span className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">{idade} anos</span>
                 )}
                 {paciente.sexo && paciente.sexo !== 'nao_informado' && (
                   <span className="text-xs bg-blue-50 text-blue-700 px-2.5 py-1 rounded-full font-medium">
@@ -215,50 +188,38 @@ export default async function MedicoPacientePage({ params }: Props) {
                 )}
                 {paciente.cpf && (
                   <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                    <FileText className="w-3.5 h-3.5 text-gray-400" />
-                    {paciente.cpf}
+                    <FileText className="w-3.5 h-3.5 text-gray-400" /> {paciente.cpf}
                   </span>
                 )}
                 {paciente.telefone && (
                   <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                    <Phone className="w-3.5 h-3.5 text-gray-400" />
-                    {paciente.telefone}
+                    <Phone className="w-3.5 h-3.5 text-gray-400" /> {paciente.telefone}
                   </span>
                 )}
                 {paciente.email && (
                   <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                    <Mail className="w-3.5 h-3.5 text-gray-400" />
-                    {paciente.email}
-                  </span>
-                )}
-                {paciente.convenio && (
-                  <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
-                    {paciente.convenio}
+                    <Mail className="w-3.5 h-3.5 text-gray-400" /> {paciente.email}
                   </span>
                 )}
               </div>
               {vinculo ? (
                 <p className="text-xs text-purple-600 mt-2 flex items-center gap-1">
                   <Building2 className="w-3 h-3" />
-                  {empresa?.nome} {vinculo.cargo ? `— ${vinculo.cargo}` : ''}
+                  {empresa?.nome}{vinculo.cargo ? ` — ${vinculo.cargo}` : ''}
                 </p>
               ) : (
                 <p className="text-xs text-gray-400 mt-2">Paciente particular</p>
               )}
             </div>
 
-            {/* KPIs */}
             <div className="flex gap-3 shrink-0">
               <div className="text-center bg-[#F3FAF7] rounded-xl px-4 py-3">
-                <p className="text-2xl font-bold text-[#1A3A2C]">{agendamentos?.length ?? 0}</p>
-                <p className="text-xs text-gray-400">consultas</p>
+                <p className="text-2xl font-bold text-[#1A3A2C]">{triagens.length}</p>
+                <p className="text-xs text-gray-400">triagens</p>
               </div>
               <div className="text-center bg-green-50 rounded-xl px-4 py-3">
-                <p className="text-2xl font-bold text-green-600">
-                  {agendamentos?.filter(a => a.status === 'concluido').length ?? 0}
-                </p>
-                <p className="text-xs text-gray-400">realizadas</p>
+                <p className="text-2xl font-bold text-green-600">{agendamentos?.length ?? 0}</p>
+                <p className="text-xs text-gray-400">consultas</p>
               </div>
             </div>
           </div>
@@ -266,114 +227,217 @@ export default async function MedicoPacientePage({ params }: Props) {
 
         <div className="grid md:grid-cols-3 gap-6">
 
-          {/* Coluna principal */}
-          <div className="md:col-span-2 space-y-6">
+          {/* Coluna principal — Prontuário completo */}
+          <div className="md:col-span-2 space-y-4">
 
-            {/* Triagens recentes */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-                <Brain className="w-4 h-4 text-[#5BBD9B]" />
-                <h2 className="font-bold text-[#1A3A2C]">Triagens recentes</h2>
-                <span className="text-xs text-gray-400 font-normal">({triagens?.length ?? 0})</span>
+            <div className="flex items-center gap-2 mb-1">
+              <Brain className="w-5 h-5 text-[#5BBD9B]" />
+              <h2 className="font-bold text-[#1A3A2C] text-lg">Histórico de Triagens</h2>
+              <span className="text-sm text-gray-400">({triagens.length})</span>
+            </div>
+
+            {triagens.length === 0 ? (
+              <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
+                <Brain className="w-12 h-12 text-gray-200 mx-auto mb-3" />
+                <p className="text-gray-400 font-medium">Nenhuma triagem registrada</p>
+                <p className="text-sm text-gray-300 mt-1">O paciente ainda não realizou nenhuma triagem</p>
               </div>
+            ) : (
+              triagens.map((t: any) => {
+                const { data, hora } = formatDataHora(t.criado_em)
+                const sintomas = t.dados_sintomas as any
+                const urgencia = t.dados_urgencia as Record<string, boolean | null> | null
+                const temUrgenciaPositiva = urgencia && Object.values(urgencia).some(v => v === true)
 
-              {triagens && triagens.length > 0 ? (
-                <div className="divide-y divide-gray-50">
-                  {triagens.map((t: any) => {
-                    const IconR = iconRisco[t.classificacao_risco] || Info
-                    return (
-                      <div key={t.id} className="px-6 py-4">
-                        <div className="flex items-start gap-3">
-                          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${corRisco[t.classificacao_risco] || 'bg-gray-100'}`}>
-                            <IconR className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${corRisco[t.classificacao_risco] || 'bg-gray-100 text-gray-600'}`}>
-                                {labelRisco[t.classificacao_risco] || t.classificacao_risco || 'Sem classificação'}
+                return (
+                  <div key={t.id} className={`rounded-2xl border-2 shadow-sm overflow-hidden ${corRisco[t.classificacao_risco] || 'border-gray-200 bg-white'}`}>
+
+                    {/* Cabeçalho do card */}
+                    <div className="px-6 py-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${badgeRisco[t.classificacao_risco] || 'bg-gray-100 text-gray-600'}`}>
+                          {labelRisco[t.classificacao_risco] || t.classificacao_risco || 'Sem classificação'}
+                        </span>
+                        {temUrgenciaPositiva && (
+                          <span className="text-xs font-bold px-2 py-1 rounded-full bg-red-600 text-white flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" /> URGÊNCIA
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-gray-700">{data}</p>
+                        <p className="text-xs text-gray-400">{hora}</p>
+                      </div>
+                    </div>
+
+                    <div className="px-6 pb-6 space-y-4">
+
+                      {/* Análise da IA */}
+                      {(t.resumo_ia || t.recomendacao_ia) && (
+                        <div className="bg-white/80 rounded-xl p-4 border border-white">
+                          <p className="text-xs font-bold text-[#1A3A2C] uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                            <Brain className="w-3.5 h-3.5 text-[#5BBD9B]" /> Análise da IA
+                          </p>
+                          {t.resumo_ia && (
+                            <p className="text-sm text-gray-700 leading-relaxed mb-2">{t.resumo_ia}</p>
+                          )}
+                          {t.recomendacao_ia && (
+                            <div className="mt-2 pt-2 border-t border-gray-100">
+                              <p className="text-xs font-semibold text-gray-500 mb-1">Recomendação:</p>
+                              <p className="text-sm text-gray-700 italic">{t.recomendacao_ia}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Sintomas detalhados */}
+                      {sintomas && (
+                        <div className="bg-white/80 rounded-xl p-4 border border-white">
+                          <p className="text-xs font-bold text-[#1A3A2C] uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                            <Stethoscope className="w-3.5 h-3.5 text-[#5BBD9B]" /> Sintomas Relatados
+                          </p>
+
+                          {/* Motivos principais */}
+                          {sintomas.motivosPrincipais?.length > 0 && (
+                            <div className="mb-3">
+                              <p className="text-xs text-gray-500 font-medium mb-1.5">Motivo(s) do atendimento:</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {sintomas.motivosPrincipais.map((m: string) => (
+                                  <span key={m} className="text-xs bg-[#EAF7F2] text-[#1A3A2C] border border-green-200 px-2.5 py-1 rounded-full font-medium">{m}</span>
+                                ))}
+                                {sintomas.outroMotivo && (
+                                  <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">{sintomas.outroMotivo}</span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Localização da dor */}
+                          {sintomas.locaisDor?.length > 0 && (
+                            <div className="mb-3">
+                              <p className="text-xs text-gray-500 font-medium mb-1.5">Localização da dor:</p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {sintomas.locaisDor.map((l: string) => (
+                                  <span key={l} className="text-xs bg-orange-50 text-orange-700 border border-orange-200 px-2.5 py-1 rounded-full">{l}</span>
+                                ))}
+                                {sintomas.outraLocalizacaoDor && (
+                                  <span className="text-xs bg-orange-50 text-orange-700 border border-orange-200 px-2.5 py-1 rounded-full">{sintomas.outraLocalizacaoDor}</span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Intensidade da dor */}
+                          {sintomas.intensidadeDor !== null && sintomas.intensidadeDor !== undefined && (
+                            <div className="mb-3 flex items-center gap-3">
+                              <p className="text-xs text-gray-500 font-medium">Intensidade da dor:</p>
+                              <span className={`text-sm font-bold px-3 py-1 rounded-full ${
+                                sintomas.intensidadeDor <= 3 ? 'bg-green-100 text-green-700' :
+                                sintomas.intensidadeDor <= 6 ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {sintomas.intensidadeDor}/10
                               </span>
                               <span className="text-xs text-gray-400">
-                                {new Date(t.criado_em).toLocaleDateString('pt-BR', {
-                                  timeZone: 'America/Sao_Paulo',
-                                  day: '2-digit', month: 'short', year: 'numeric'
-                                })}
-                                {' às '}
-                                {new Date(t.criado_em).toLocaleTimeString('pt-BR', {
-                                  timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit'
-                                })}
+                                {sintomas.intensidadeDor <= 3 ? 'Leve' : sintomas.intensidadeDor <= 6 ? 'Moderada' : 'Intensa'}
                               </span>
                             </div>
-                            {t.resumo_ia ? (
-                              <p className="text-sm text-gray-700 leading-relaxed">{t.resumo_ia}</p>
-                            ) : (
-                              <p className="text-sm text-gray-400 italic">Sem resumo registrado</p>
-                            )}
+                          )}
 
-                            {/* Sintomas principais se disponíveis */}
-                            {t.dados_sintomas?.motivosPrincipais?.length > 0 && (
-                              <div className="flex flex-wrap gap-1.5 mt-2">
-                                {t.dados_sintomas.motivosPrincipais.map((m: string) => (
-                                  <span key={m} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{m}</span>
-                                ))}
+                          {/* Remédios */}
+                          <div className="grid grid-cols-2 gap-3 text-xs">
+                            {sintomas.tomouRemedio !== null && (
+                              <div className="bg-gray-50 rounded-lg p-2.5">
+                                <p className="text-gray-400 font-medium mb-1">Tomou remédio:</p>
+                                <p className={`font-semibold ${sintomas.tomouRemedio ? 'text-[#1A3A2C]' : 'text-gray-500'}`}>
+                                  {sintomas.tomouRemedio ? 'Sim' : 'Não'}
+                                </p>
+                                {sintomas.oQueTomou && (
+                                  <p className="text-gray-600 mt-0.5 italic">{sintomas.oQueTomou}</p>
+                                )}
+                                {sintomas.remedioMelhorou && (
+                                  <p className="text-gray-500 mt-0.5">
+                                    Efeito: <span className="font-medium">{
+                                      sintomas.remedioMelhorou === 'sim' ? 'Melhorou' :
+                                      sintomas.remedioMelhorou === 'nao' ? 'Não melhorou' : 'Melhorou parcialmente'
+                                    }</span>
+                                  </p>
+                                )}
                               </div>
                             )}
-
-                            {/* Sinais de urgência positivos */}
-                            {t.dados_urgencia && (
-                              <div className="mt-2 flex flex-wrap gap-1.5">
-                                {Object.entries(t.dados_urgencia as Record<string, boolean | null>)
-                                  .filter(([, v]) => v === true)
-                                  .map(([k]) => {
-                                    const labels: Record<string, string> = {
-                                      dorNoPeito: 'Dor no peito',
-                                      faltaDeAr: 'Falta de ar',
-                                      sintomaNeuro: 'Sintoma neurológico',
-                                      desmaio: 'Desmaio',
-                                      convulsao: 'Convulsão',
-                                      sangramento: 'Sangramento',
-                                      trauma: 'Trauma',
-                                      dorExtrema: 'Dor extrema',
-                                      gravidez: 'Gravidez com risco',
-                                    }
-                                    return (
-                                      <span key={k} className="text-xs bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded-full font-medium">
-                                        ⚠ {labels[k] || k}
-                                      </span>
-                                    )
-                                  })
-                                }
+                            {sintomas.remedioContinuo !== null && (
+                              <div className="bg-gray-50 rounded-lg p-2.5">
+                                <p className="text-gray-400 font-medium mb-1">Uso contínuo:</p>
+                                <p className={`font-semibold ${sintomas.remedioContinuo ? 'text-[#1A3A2C]' : 'text-gray-500'}`}>
+                                  {sintomas.remedioContinuo ? 'Sim' : 'Não'}
+                                </p>
+                                {sintomas.remedioContinuoQuais && (
+                                  <p className="text-gray-600 mt-0.5 italic">{sintomas.remedioContinuoQuais}</p>
+                                )}
                               </div>
                             )}
                           </div>
                         </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              ) : (
-                <div className="py-10 text-center">
-                  <Brain className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                  <p className="text-sm text-gray-400">Nenhuma triagem registrada</p>
-                </div>
-              )}
-            </div>
+                      )}
+
+                      {/* Sinais de urgência — TODOS */}
+                      {urgencia && (
+                        <div className="bg-white/80 rounded-xl p-4 border border-white">
+                          <p className="text-xs font-bold text-[#1A3A2C] uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                            <AlertTriangle className="w-3.5 h-3.5 text-[#5BBD9B]" /> Sinais de Urgência
+                          </p>
+                          <div className="grid grid-cols-1 gap-1.5">
+                            {Object.entries(sinaisUrgenciaLabels).map(([key, label]) => {
+                              const valor = urgencia[key]
+                              if (valor === null || valor === undefined) return null
+                              return (
+                                <div key={key} className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs ${
+                                  valor ? 'bg-red-50 border border-red-200' : 'bg-gray-50'
+                                }`}>
+                                  <span className={`font-medium ${valor ? 'text-red-700' : 'text-gray-500'}`}>{label}</span>
+                                  <span className={`font-bold px-2 py-0.5 rounded-full text-xs ${
+                                    valor ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-400'
+                                  }`}>
+                                    {valor ? '⚠ SIM' : 'NÃO'}
+                                  </span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Consentimento LGPD */}
+                      {t.consentimento_lgpd && (
+                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                          Consentimento LGPD registrado
+                          {t.consentimento_em && (
+                            <span>em {new Date(t.consentimento_em).toLocaleDateString('pt-BR')}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })
+            )}
 
             {/* Histórico de consultas */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-                <Activity className="w-4 h-4 text-[#5BBD9B]" />
-                <h2 className="font-bold text-[#1A3A2C]">Histórico de consultas</h2>
-                <span className="text-xs text-gray-400 font-normal">({agendamentos?.length ?? 0})</span>
+            <div className="mt-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Activity className="w-5 h-5 text-[#5BBD9B]" />
+                <h2 className="font-bold text-[#1A3A2C] text-lg">Histórico de Consultas</h2>
+                <span className="text-sm text-gray-400">({agendamentos?.length ?? 0})</span>
               </div>
 
               {agendamentos && agendamentos.length > 0 ? (
-                <div className="overflow-x-auto">
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
                       <tr>
                         <th className="px-5 py-3 text-left">Data</th>
                         <th className="px-5 py-3 text-left">Médico</th>
-                        <th className="px-5 py-3 text-left">Tipo</th>
                         <th className="px-5 py-3 text-center">Status</th>
                       </tr>
                     </thead>
@@ -388,15 +452,18 @@ export default async function MedicoPacientePage({ params }: Props) {
                                 <Clock className="w-3 h-3" /> {hora}
                               </p>
                             </td>
-                            <td className="px-5 py-3 text-gray-600 text-sm">
-                              {medicoMap[a.medico_id] || <span className="text-gray-300">—</span>}
-                            </td>
-                            <td className="px-5 py-3 text-gray-500 text-xs">
-                              {a.tipo_consulta || '—'}
+                            <td className="px-5 py-3 text-gray-600">
+                              {medicoMap[a.medico_id] ? `Dr(a). ${medicoMap[a.medico_id]}` : <span className="text-gray-300">—</span>}
                             </td>
                             <td className="px-5 py-3 text-center">
-                              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusBadge(a.status)}`}>
-                                {statusLabel(a.status)}
+                              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                                a.status === 'concluido' ? 'bg-green-100 text-green-700' :
+                                a.status === 'cancelado' ? 'bg-red-100 text-red-600' :
+                                'bg-yellow-100 text-yellow-700'
+                              }`}>
+                                {a.status === 'concluido' ? 'Concluída' :
+                                 a.status === 'cancelado' ? 'Cancelada' :
+                                 a.status === 'confirmado' ? 'Confirmada' : 'Pendente'}
                               </span>
                             </td>
                           </tr>
@@ -406,7 +473,7 @@ export default async function MedicoPacientePage({ params }: Props) {
                   </table>
                 </div>
               ) : (
-                <div className="py-10 text-center">
+                <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
                   <Activity className="w-10 h-10 text-gray-200 mx-auto mb-3" />
                   <p className="text-sm text-gray-400">Nenhuma consulta registrada</p>
                 </div>
@@ -417,7 +484,7 @@ export default async function MedicoPacientePage({ params }: Props) {
           {/* Painel lateral */}
           <div className="space-y-4">
 
-            {/* Vínculo empresarial */}
+            {/* Empresa */}
             {vinculo ? (
               <div className="bg-white rounded-2xl p-5 shadow-sm">
                 <h3 className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2 mb-3">
@@ -443,10 +510,7 @@ export default async function MedicoPacientePage({ params }: Props) {
                     </p>
                   )}
                   <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full mt-1 ${vinculo.ativo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                    {vinculo.ativo
-                      ? <><CheckCircle2 className="w-3 h-3" /> Ativo</>
-                      : <><XCircle className="w-3 h-3" /> Inativo</>
-                    }
+                    {vinculo.ativo ? <><CheckCircle2 className="w-3 h-3" /> Ativo</> : <><XCircle className="w-3 h-3" /> Inativo</>}
                   </span>
                 </div>
               </div>
@@ -455,7 +519,7 @@ export default async function MedicoPacientePage({ params }: Props) {
                 <h3 className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2 mb-2">
                   <Building2 className="w-4 h-4 text-gray-400" /> Empresa
                 </h3>
-                <p className="text-xs text-gray-400">Paciente particular · sem vínculo empresarial</p>
+                <p className="text-xs text-gray-400">Paciente particular · sem vínculo</p>
               </div>
             )}
 
@@ -477,7 +541,7 @@ export default async function MedicoPacientePage({ params }: Props) {
                 {paciente.sexo && (
                   <div>
                     <p className="text-xs text-gray-400">Sexo</p>
-                    <p className="text-sm text-gray-700 capitalize">{labelSexo[paciente.sexo] ?? paciente.sexo}</p>
+                    <p className="text-sm text-gray-700">{labelSexo[paciente.sexo] ?? paciente.sexo}</p>
                   </div>
                 )}
                 {paciente.convenio && (
@@ -486,24 +550,17 @@ export default async function MedicoPacientePage({ params }: Props) {
                     <p className="text-sm text-gray-700">{paciente.convenio}</p>
                   </div>
                 )}
-                {paciente.numero_convenio && (
-                  <div>
-                    <p className="text-xs text-gray-400">Nº convênio</p>
-                    <p className="text-sm font-mono text-gray-700">{paciente.numero_convenio}</p>
-                  </div>
-                )}
                 {!paciente.data_nascimento && !paciente.sexo && !paciente.convenio && (
-                  <p className="text-xs text-gray-400">Nenhum dado adicional cadastrado</p>
+                  <p className="text-xs text-gray-400">Nenhum dado adicional</p>
                 )}
               </div>
             </div>
 
-            {/* Ações */}
             <Link
-              href="/medico/dashboard"
+              href="/medico/pacientes"
               className="w-full flex items-center justify-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3 rounded-xl text-sm font-medium transition-colors"
             >
-              <ArrowLeft className="w-4 h-4" /> Voltar à fila
+              <ArrowLeft className="w-4 h-4" /> Voltar à lista
             </Link>
           </div>
         </div>
