@@ -108,12 +108,13 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             {empresa?.logo_url ? (
-              <img
-                src={empresa.logo_url}
-                alt={empresa?.nome || 'Logo'}
-                className="h-10 w-auto object-contain"
-                style={{ filter: 'brightness(0) invert(1)' }}
-              />
+              <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center p-1 shrink-0 shadow-sm">
+                <img
+                  src={empresa.logo_url}
+                  alt={empresa?.nome || 'Logo'}
+                  className="h-full w-full object-contain rounded-lg"
+                />
+              </div>
             ) : (
               <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
             )}

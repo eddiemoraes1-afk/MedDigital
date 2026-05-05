@@ -134,17 +134,18 @@ export default async function PacienteDashboard() {
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             {empresaLogo ? (
-              <img
-                src={empresaLogo}
-                alt={empresaNome || 'Logo'}
-                className="h-10 w-auto object-contain"
-                style={{ filter: 'brightness(0) invert(1)' }}
-              />
+              <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center p-1 shrink-0 shadow-sm">
+                <img
+                  src={empresaLogo}
+                  alt={empresaNome || 'Logo'}
+                  className="h-full w-full object-contain rounded-lg"
+                />
+              </div>
             ) : (
               <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
             )}
             {empresaNome && (
-              <span className="text-xs hidden sm:block" style={{ color: tema.corTextoSuave }}>
+              <span className="text-xs hidden sm:block font-medium" style={{ color: tema.corTexto }}>
                 {empresaNome}
               </span>
             )}
