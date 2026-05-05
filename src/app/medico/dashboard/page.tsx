@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Users, Clock, Video, CheckCircle2, LogOut, AlertTriangle, Calendar, FileText, Stethoscope } from 'lucide-react'
+import PingMedico from '../PingMedico'
 
 export default async function MedicoDashboard() {
   const supabase = await createClient()
@@ -81,6 +82,7 @@ export default async function MedicoDashboard() {
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
+      <PingMedico />
       <header className="bg-[#1A3A2C] text-white px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
