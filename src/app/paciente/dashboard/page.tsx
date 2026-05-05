@@ -1,8 +1,10 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Brain, Clock, FileText, Calendar, Video, LogOut, ChevronRight, User } from 'lucide-react'
+import { Brain, Clock, FileText, Calendar, Video, ChevronRight, User } from 'lucide-react'
 import { gerarTema } from '@/lib/tema'
+import { getEmpresaPaciente } from '@/lib/getEmpresaPaciente'
+import PacienteHeader from '../PacienteHeader'
 
 export default async function PacienteDashboard() {
   const supabase = await createClient()
@@ -12,44 +14,18 @@ export default async function PacienteDashboard() {
 
   const adminSupabase = createAdminClient()
 
-  // Buscar dados do paciente
   const { data: paciente } = await adminSupabase
     .from('pacientes')
     .select('*')
     .eq('usuario_id', user.id)
     .single()
 
-  // Buscar empresa do paciente via vinculos_empresa (por paciente_id)
-  let empresaLogo: string | null = null
-  let empresaCorPrimaria: string | null = null
-  let empresaNome: string | null = null
+  // Dados da empresa (deduplica com o layout via cache React)
+  const empresaData = paciente?.id
+    ? await getEmpresaPaciente(paciente.id)
+    : { logoUrl: null, corPrimaria: null, empresaNome: null, empresaId: null }
 
-  if (paciente?.id) {
-    const { data: vinculo } = await adminSupabase
-      .from('vinculos_empresa')
-      .select('empresa_id')
-      .eq('paciente_id', paciente.id)
-      .eq('ativo', true)
-      .limit(1)
-      .single()
-
-    if (vinculo?.empresa_id) {
-      const { data: empresa } = await adminSupabase
-        .from('empresas')
-        .select('nome, logo_url, cor_primaria')
-        .eq('id', vinculo.empresa_id)
-        .single()
-
-      if (empresa) {
-        empresaLogo = empresa.logo_url ?? null
-        empresaCorPrimaria = empresa.cor_primaria ?? null
-        empresaNome = empresa.nome ?? null
-      }
-    }
-  }
-
-  // Gerar tema com base na empresa do paciente (ou padrão)
-  const tema = gerarTema(empresaCorPrimaria)
+  const tema = gerarTema(empresaData.corPrimaria)
 
   // Buscar últimas triagens
   const { data: triagens } = await adminSupabase
@@ -67,7 +43,7 @@ export default async function PacienteDashboard() {
     .order('criado_em', { ascending: false })
     .limit(3)
 
-  // Buscar próximas consultas agendadas
+  // Próximas consultas
   const agora = new Date().toISOString()
   const { data: proximasConsultas } = await adminSupabase
     .from('agendamentos')
@@ -78,7 +54,6 @@ export default async function PacienteDashboard() {
     .order('data_hora', { ascending: true })
     .limit(3)
 
-  // Buscar nomes dos médicos
   const medicoIds = [...new Set((proximasConsultas || []).map((a: any) => a.medico_id))]
   const { data: medicos } = medicoIds.length > 0
     ? await adminSupabase.from('medicos').select('id, nome, especialidade').in('id', medicoIds)
@@ -100,12 +75,8 @@ export default async function PacienteDashboard() {
   }
 
   const idade = calcularIdade(paciente?.data_nascimento ?? null)
-
   const labelSexo: Record<string, string> = {
-    masculino: 'Masculino',
-    feminino: 'Feminino',
-    outro: 'Outro',
-    nao_informado: 'Não informado',
+    masculino: 'Masculino', feminino: 'Feminino', outro: 'Outro', nao_informado: 'Não informado',
   }
 
   const horaAtual = new Date().getHours()
@@ -117,49 +88,15 @@ export default async function PacienteDashboard() {
     laranja: 'bg-orange-100 text-orange-700',
     vermelho: 'bg-red-100 text-red-700',
   }
-
   const labelRisco: Record<string, string> = {
-    verde: 'Risco Baixo',
-    amarelo: 'Risco Moderado',
-    laranja: 'Risco Alto',
-    vermelho: 'Urgência',
+    verde: 'Risco Baixo', amarelo: 'Risco Moderado', laranja: 'Risco Alto', vermelho: 'Urgência',
   }
 
   const totalConsultas = proximasConsultas?.length || 0
 
   return (
-    <div className="min-h-screen" style={{ ...tema.vars, backgroundColor: tema.corBgPagina }}>
-      {/* Header com cor da empresa */}
-      <header style={{ backgroundColor: tema.corPrimaria }} className="px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {empresaLogo ? (
-              <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center p-1 shrink-0 shadow-sm">
-                <img
-                  src={empresaLogo}
-                  alt={empresaNome || 'Logo'}
-                  className="h-full w-full object-contain rounded-lg"
-                />
-              </div>
-            ) : (
-              <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
-            )}
-            {empresaNome && (
-              <span className="text-xs hidden sm:block font-medium" style={{ color: tema.corTexto }}>
-                {empresaNome}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm" style={{ color: tema.corTextoSuave }}>Olá, {primeiroNome}</span>
-            <form action="/api/auth/signout" method="POST">
-              <button type="submit" className="flex items-center gap-1 text-sm hover:opacity-80 transition-opacity" style={{ color: tema.corTextoSuave }}>
-                <LogOut className="w-4 h-4" />
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen" style={{ backgroundColor: tema.corBgPagina }}>
+      <PacienteHeader />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
         {/* Saudação */}
@@ -170,10 +107,8 @@ export default async function PacienteDashboard() {
             {(idade !== null || paciente?.sexo) && (
               <div className="flex items-center gap-2">
                 {idade !== null && (
-                  <span
-                    className="text-xs px-2.5 py-1 rounded-full font-medium"
-                    style={{ backgroundColor: tema.corBgCard, color: tema.corPrimaria }}
-                  >
+                  <span className="text-xs px-2.5 py-1 rounded-full font-medium"
+                    style={{ backgroundColor: tema.corBgCard, color: tema.corPrimaria }}>
                     {idade} anos
                   </span>
                 )}
@@ -189,19 +124,19 @@ export default async function PacienteDashboard() {
 
         {/* Próximas consultas */}
         {totalConsultas > 0 && (
-          <div className="bg-white border rounded-2xl p-5 mb-6 shadow-sm" style={{ borderColor: `rgba(${tema.corRgb},0.15)` }}>
+          <div className="bg-white border rounded-2xl p-5 mb-6 shadow-sm"
+            style={{ borderColor: `rgba(${tema.corRgb},0.15)` }}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
                 <Calendar className="w-4 h-4" style={{ color: tema.corPrimaria }} />
                 Próximas consultas
-                <span
-                  className="text-xs font-medium text-white px-2 py-0.5 rounded-full"
-                  style={{ backgroundColor: tema.corPrimaria }}
-                >
+                <span className="text-xs font-medium text-white px-2 py-0.5 rounded-full"
+                  style={{ backgroundColor: tema.corPrimaria }}>
                   {totalConsultas}
                 </span>
               </h2>
-              <Link href="/paciente/agendamentos" className="text-xs font-medium hover:underline" style={{ color: tema.corPrimaria }}>
+              <Link href="/paciente/agendamentos" className="text-xs font-medium hover:underline"
+                style={{ color: tema.corPrimaria }}>
                 Ver todas →
               </Link>
             </div>
@@ -210,8 +145,10 @@ export default async function PacienteDashboard() {
                 const medico = medicoMap[a.medico_id]
                 const dataHora = new Date(a.data_hora)
                 return (
-                  <div key={a.id} className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ backgroundColor: tema.corBgCard }}>
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `rgba(${tema.corRgb},0.15)` }}>
+                  <div key={a.id} className="flex items-center gap-3 rounded-xl px-4 py-3"
+                    style={{ backgroundColor: tema.corBgCard }}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: `rgba(${tema.corRgb},0.15)` }}>
                       <User className="w-4 h-4" style={{ color: tema.corPrimaria }} />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -233,27 +170,21 @@ export default async function PacienteDashboard() {
           </div>
         )}
 
-        {/* CTA principal de triagem com cor da empresa */}
-        <div
-          className="rounded-2xl p-8 text-white mb-8"
-          style={{
-            background: `linear-gradient(135deg, ${tema.corPrimaria}, ${tema.corPrimaria}CC)`,
-          }}
-        >
+        {/* CTA principal */}
+        <div className="rounded-2xl p-8 text-white mb-8"
+          style={{ background: `linear-gradient(135deg, ${tema.corPrimaria}, ${tema.corPrimaria}CC)` }}>
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-              <Brain className="w-6 h-6" style={{ color: tema.corTexto === '#ffffff' ? '#ffffff' : '#1A1A1A' }} />
+              <Brain className="w-6 h-6" style={{ color: tema.corTexto }} />
             </div>
             <div>
               <h2 className="text-xl font-bold" style={{ color: tema.corTexto }}>Precisa de atendimento?</h2>
               <p className="text-sm" style={{ color: tema.corTextoSuave }}>Nossa IA faz a triagem em poucos minutos</p>
             </div>
           </div>
-          <Link
-            href="/paciente/triagem"
+          <Link href="/paciente/triagem"
             className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 px-6 py-3 rounded-xl font-semibold text-sm transition-colors"
-            style={{ color: tema.corPrimaria }}
-          >
+            style={{ color: tema.corPrimaria }}>
             Iniciar triagem agora
             <ChevronRight className="w-4 h-4" />
           </Link>
@@ -264,28 +195,19 @@ export default async function PacienteDashboard() {
           {[
             { icon: Brain, label: 'Nova triagem', href: '/paciente/triagem' },
             { icon: Video, label: 'Consulta virtual', href: '/paciente/consulta' },
-            {
-              icon: Calendar,
-              label: 'Meus agendamentos',
-              href: '/paciente/agendamentos',
-              badge: totalConsultas > 0 ? totalConsultas : undefined,
-            },
+            { icon: Calendar, label: 'Meus agendamentos', href: '/paciente/agendamentos', badge: totalConsultas > 0 ? totalConsultas : undefined },
             { icon: FileText, label: 'Prontuário', href: '/paciente/prontuario' },
           ].map((item) => (
             <Link key={item.label} href={item.href}
               className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md text-center group relative transition-shadow">
               {(item as any).badge && (
-                <span
-                  className="absolute top-3 right-3 w-5 h-5 text-white text-xs font-bold rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: tema.corPrimaria }}
-                >
+                <span className="absolute top-3 right-3 w-5 h-5 text-white text-xs font-bold rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: tema.corPrimaria }}>
                   {(item as any).badge}
                 </span>
               )}
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"
-                style={{ backgroundColor: tema.corBgCard }}
-              >
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"
+                style={{ backgroundColor: tema.corBgCard }}>
                 <item.icon className="w-5 h-5" style={{ color: tema.corPrimaria }} />
               </div>
               <span className="text-sm font-medium text-[#1A3A2C]">{item.label}</span>
@@ -298,7 +220,8 @@ export default async function PacienteDashboard() {
           <div className="bg-white rounded-2xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-[#1A3A2C]">Últimas triagens</h3>
-              <Link href="/paciente/triagens" className="text-xs hover:underline font-medium" style={{ color: tema.corPrimaria }}>Ver todas</Link>
+              <Link href="/paciente/triagens" className="text-xs hover:underline font-medium"
+                style={{ color: tema.corPrimaria }}>Ver todas</Link>
             </div>
             {triagens && triagens.length > 0 ? (
               <div className="space-y-3">
@@ -306,9 +229,7 @@ export default async function PacienteDashboard() {
                   <div key={t.id} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
                     <div>
                       <p className="text-sm font-medium text-gray-700 line-clamp-1">{t.resumo_ia || 'Triagem realizada'}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {new Date(t.criado_em).toLocaleDateString('pt-BR')}
-                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">{new Date(t.criado_em).toLocaleDateString('pt-BR')}</p>
                     </div>
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${corRisco[t.classificacao_risco] || 'bg-gray-100 text-gray-600'}`}>
                       {labelRisco[t.classificacao_risco] || t.classificacao_risco}
@@ -320,7 +241,8 @@ export default async function PacienteDashboard() {
               <div className="text-center py-8">
                 <Clock className="w-10 h-10 text-gray-200 mx-auto mb-3" />
                 <p className="text-sm text-gray-400">Nenhuma triagem realizada ainda</p>
-                <Link href="/paciente/triagem" className="text-sm font-medium mt-2 inline-block hover:underline" style={{ color: tema.corPrimaria }}>
+                <Link href="/paciente/triagem" className="text-sm font-medium mt-2 inline-block hover:underline"
+                  style={{ color: tema.corPrimaria }}>
                   Fazer primeira triagem →
                 </Link>
               </div>
@@ -331,7 +253,8 @@ export default async function PacienteDashboard() {
           <div className="bg-white rounded-2xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-[#1A3A2C]">Histórico de atendimentos</h3>
-              <Link href="/paciente/atendimentos" className="text-xs hover:underline" style={{ color: tema.corPrimaria }}>Ver todos</Link>
+              <Link href="/paciente/atendimentos" className="text-xs hover:underline"
+                style={{ color: tema.corPrimaria }}>Ver todos</Link>
             </div>
             {atendimentos && atendimentos.length > 0 ? (
               <div className="space-y-3">
@@ -341,9 +264,7 @@ export default async function PacienteDashboard() {
                       <p className="text-sm font-medium text-gray-700">
                         {a.tipo === 'virtual' ? '📹 Consulta virtual' : '🏥 Presencial'}
                       </p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {new Date(a.criado_em).toLocaleDateString('pt-BR')}
-                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">{new Date(a.criado_em).toLocaleDateString('pt-BR')}</p>
                     </div>
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${
                       a.status === 'concluido' ? 'bg-green-100 text-green-700' :

@@ -2,7 +2,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { LogOut, ArrowLeft, User, Phone, FileText, Calendar, Stethoscope, Brain, Clock, AlertCircle, CheckCircle2, Info, AlertTriangle } from 'lucide-react'
+import { User, Phone, FileText, Calendar, Stethoscope, Brain, Clock, CheckCircle2 } from 'lucide-react'
+import PacienteHeader from '../PacienteHeader'
 
 export default async function ProntuarioPage() {
   const supabase = await createClient()
@@ -78,31 +79,10 @@ export default async function ProntuarioPage() {
   ].sort((a, b) => new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime())
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
-      {/* Header */}
-      <header className="bg-[#1A3A2C] text-white px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-green-200">{paciente.nome}</span>
-            <form action="/api/auth/signout" method="POST">
-              <button type="submit" className="flex items-center gap-1 text-sm text-green-200 hover:text-white">
-                <LogOut className="w-4 h-4" />
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--cor-empresa-bg)' }}>
+      <PacienteHeader titulo="Prontuário Médico" backHref="/paciente/dashboard" />
 
       <main className="max-w-4xl mx-auto px-6 py-8">
-        {/* Voltar */}
-        <Link href="/paciente/dashboard" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#1A3A2C] mb-6">
-          <ArrowLeft className="w-4 h-4" />
-          Voltar ao painel
-        </Link>
-
         {/* Título */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-[#1A3A2C] flex items-center gap-2">

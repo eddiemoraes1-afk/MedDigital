@@ -9,6 +9,7 @@ import {
   SkipForward, Stethoscope, Clock,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import PacienteHeader from '../PacienteHeader'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -975,24 +976,9 @@ export default function TriagemPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7] flex flex-col">
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--cor-empresa-bg)' }}>
 
-      <header className="bg-[#1A3A2C] text-white px-6 py-4 shrink-0">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={voltar} className="text-green-200 hover:text-white" aria-label="Voltar">
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div className="flex items-center gap-2">
-              <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
-              <span className="text-xs text-green-300 ml-1">Triagem</span>
-            </div>
-          </div>
-          <span className="text-xs text-green-200 bg-blue-900/30 px-3 py-1 rounded-full hidden sm:block">
-            IA não substitui diagnóstico médico
-          </span>
-        </div>
-      </header>
+      <PacienteHeader titulo="Triagem" />
 
       {etapa === 'carregando' && (
         <div className="flex-1 flex items-center justify-center">

@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { LogOut, ArrowLeft, Calendar, Clock, User, Plus } from 'lucide-react'
+import { Calendar, Clock, User, Plus } from 'lucide-react'
 import BotoesAgendamento from './BotoesAgendamento'
 import BotaoEntrarConsulta from './BotaoEntrarConsulta'
+import PacienteHeader from '../PacienteHeader'
 
 export default async function AgendamentosPage() {
   const supabase = await createClient()
@@ -61,14 +62,13 @@ export default async function AgendamentosPage() {
       <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-50">
         <div className="flex items-start justify-between">
           <div className="flex gap-3 flex-1">
-            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
-              <User className="w-5 h-5 text-[#5BBD9B]" />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+              style={{ backgroundColor: 'var(--cor-empresa-bg-card)', color: 'var(--cor-empresa)' }}>
+              <User className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <p className="font-semibold text-[#1A3A2C] text-sm">
-                  Dr(a). {medico?.nome || 'Médico'}
-                </p>
+                <p className="font-semibold text-[#1A3A2C] text-sm">Dr(a). {medico?.nome || 'Médico'}</p>
                 {a.reagendado_de && (
                   <span className="text-xs bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full">
                     Reagendado
@@ -91,15 +91,8 @@ export default async function AgendamentosPage() {
               )}
               {futuro && a.status !== 'cancelado' && (
                 <>
-                  <BotaoEntrarConsulta
-                    agendamentoId={a.id}
-                    dataHora={a.data_hora}
-                  />
-                  <BotoesAgendamento
-                    agendamentoId={a.id}
-                    medicoId={a.medico_id}
-                    medicoNome={medico?.nome || 'Médico'}
-                  />
+                  <BotaoEntrarConsulta agendamentoId={a.id} dataHora={a.data_hora} />
+                  <BotoesAgendamento agendamentoId={a.id} medicoId={a.medico_id} medicoNome={medico?.nome || 'Médico'} />
                 </>
               )}
             </div>
@@ -113,38 +106,21 @@ export default async function AgendamentosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
-      <header className="bg-[#1A3A2C] text-white px-6 py-4">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-green-200">{paciente.nome}</span>
-            <form action="/api/auth/signout" method="POST">
-              <button type="submit">
-                <LogOut className="w-4 h-4 text-green-200 hover:text-white" />
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--cor-empresa-bg)' }}>
+      <PacienteHeader titulo="Meus Agendamentos" backHref="/paciente/dashboard" />
 
       <main className="max-w-3xl mx-auto px-6 py-8">
-        <Link href="/paciente/dashboard" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#1A3A2C] mb-6">
-          <ArrowLeft className="w-4 h-4" /> Voltar ao painel
-        </Link>
-
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-[#1A3A2C] flex items-center gap-2">
-              <Calendar className="w-6 h-6" /> Meus Agendamentos
+              <Calendar className="w-6 h-6" style={{ color: 'var(--cor-empresa)' }} /> Meus Agendamentos
             </h1>
             <p className="text-gray-500 mt-1">Consultas agendadas</p>
           </div>
           <Link
             href="/paciente/agendar"
-            className="flex items-center gap-2 bg-[#1A3A2C] text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#5BBD9B]"
+            className="flex items-center gap-2 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
+            style={{ backgroundColor: 'var(--cor-empresa)' }}
           >
             <Plus className="w-4 h-4" /> Novo agendamento
           </Link>
@@ -158,7 +134,8 @@ export default async function AgendamentosPage() {
               <Calendar className="w-12 h-12 text-gray-200 mx-auto mb-3" />
               <p className="text-gray-400">Nenhuma consulta agendada</p>
               <Link href="/paciente/agendar"
-                className="mt-3 inline-block text-sm text-[#5BBD9B] font-medium hover:underline">
+                className="mt-3 inline-block text-sm font-medium hover:underline"
+                style={{ color: 'var(--cor-empresa)' }}>
                 Agendar agora →
               </Link>
             </div>
@@ -169,7 +146,7 @@ export default async function AgendamentosPage() {
           )}
         </div>
 
-        {/* Consultas passadas */}
+        {/* Histórico */}
         {passados.length > 0 && (
           <div>
             <h2 className="font-semibold text-[#1A3A2C] mb-3">Histórico</h2>

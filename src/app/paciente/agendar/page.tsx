@@ -4,7 +4,8 @@ import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Calendar, Clock, User, ChevronRight, Loader2, CheckCircle2 } from 'lucide-react'
+import { Calendar, Clock, User, ChevronRight, Loader2, CheckCircle2 } from 'lucide-react'
+import PacienteHeader from '../PacienteHeader'
 
 interface Medico {
   id: string
@@ -181,17 +182,8 @@ function AgendarConteudo() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
-      <header className="bg-[#1A3A2C] text-white px-6 py-4">
-        <div className="max-w-3xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
-          </div>
-          <Link href="/paciente/dashboard" className="text-sm text-green-200 hover:text-white flex items-center gap-1">
-            <ArrowLeft className="w-4 h-4" /> Voltar
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--cor-empresa-bg)' }}>
+      <PacienteHeader titulo="Agendar Consulta" backHref="/paciente/dashboard" />
 
       <main className="max-w-3xl mx-auto px-6 py-8">
         <div className="mb-8">
