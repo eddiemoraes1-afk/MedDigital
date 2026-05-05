@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import FiltrosFuncionarios from './FiltrosFuncionarios'
 import { Suspense } from 'react'
+import { gerarTema } from '@/lib/tema'
 
 interface Props {
   searchParams: Promise<{ departamento?: string; status?: string }>
@@ -19,12 +20,15 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
   const empresaId = perfil.empresaId!
   const { departamento, status } = await searchParams
 
-  // Dados da empresa
+  // Dados da empresa (incluindo logo e cor)
   const { data: empresa } = await adminSupabase
     .from('empresas')
-    .select('id, nome, cnpj')
+    .select('id, nome, cnpj, logo_url, cor_primaria')
     .eq('id', empresaId)
     .single()
+
+  // Gerar tema com base na cor da empresa
+  const tema = gerarTema(empresa?.cor_primaria ?? null)
 
   // Funcionários com vínculo
   const { data: vinculos } = await adminSupabase
@@ -41,7 +45,6 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
   let totalConsultasMes = 0
 
   if (pacienteIds.length > 0) {
-    // Todas as consultas dos funcionários (para contar e pegar última)
     const { data: todasConsultas } = await adminSupabase
       .from('agendamentos')
       .select('id, paciente_id, data_hora, status')
@@ -75,16 +78,16 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
   const mapPaciente: Record<string, string> = {}
   vinculos?.forEach(v => { if (v.paciente_id) mapPaciente[v.paciente_id] = v.nome_completo })
 
-  // KPIs globais
+  // KPIs
   const totalAtivos = vinculos?.filter(v => v.ativo).length ?? 0
   const totalVinculados = vinculos?.filter(v => v.paciente_id).length ?? 0
   const naoAtivaram = totalAtivos - totalVinculados
 
-  // Departamentos únicos para o filtro
+  // Departamentos únicos
   const departamentos = [...new Set(vinculos?.map(v => v.departamento).filter(Boolean) ?? [])] as string[]
 
   // Aplicar filtros
-  let funcionarios = (vinculos ?? []).filter(v => {
+  const funcionarios = (vinculos ?? []).filter(v => {
     if (departamento && v.departamento !== departamento) return false
     if (status === 'ativo' && !v.paciente_id) return false
     if (status === 'inativo' && v.paciente_id) return false
@@ -99,20 +102,33 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
   const exportUrl = `/api/empresa/funcionarios/exportar?empresa_id=${empresaId}${departamento ? `&departamento=${encodeURIComponent(departamento)}` : ''}${status ? `&status=${status}` : ''}`
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
-      {/* Header */}
-      <header className="bg-[#1A3A2C] text-white px-6 py-4">
+    <div className="min-h-screen" style={{ ...tema.vars, backgroundColor: tema.corBgPagina }}>
+      {/* Header com cor da empresa */}
+      <header style={{ backgroundColor: tema.corPrimaria }} className="px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
-            <span className="text-xs text-green-300 ml-1">Portal RH</span>
+            {empresa?.logo_url ? (
+              <img
+                src={empresa.logo_url}
+                alt={empresa?.nome || 'Logo'}
+                className="h-10 w-auto object-contain"
+                style={{ filter: 'brightness(0) invert(1)' }}
+              />
+            ) : (
+              <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
+            )}
+            <span className="text-xs ml-1" style={{ color: tema.corTextoSuave }}>Portal RH</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-green-200 flex items-center gap-1.5">
+            <span className="text-sm flex items-center gap-1.5" style={{ color: tema.corTextoSuave }}>
               <Building2 className="w-4 h-4" /> {empresa?.nome}
             </span>
             <form action="/api/auth/signout" method="POST">
-              <button type="submit" className="text-sm text-green-300 hover:text-white flex items-center gap-1.5">
+              <button
+                type="submit"
+                className="text-sm flex items-center gap-1.5 transition-opacity hover:opacity-80"
+                style={{ color: tema.corTextoSuave }}
+              >
                 <LogOut className="w-4 h-4" /> Sair
               </button>
             </form>
@@ -121,16 +137,26 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-[#1A3A2C]">Painel de Saúde Corporativa</h1>
-          <p className="text-gray-500 text-sm mt-1">{empresa?.nome} · {empresa?.cnpj || 'CNPJ não informado'}</p>
+        {/* Cabeçalho com logo da empresa */}
+        <div className="mb-6 flex items-center gap-4">
+          {empresa?.logo_url && (
+            <img
+              src={empresa.logo_url}
+              alt={empresa.nome}
+              className="h-12 w-auto object-contain rounded-xl bg-white p-1.5 shadow-sm"
+            />
+          )}
+          <div>
+            <h1 className="text-2xl font-bold text-[#1A3A2C]">Painel de Saúde Corporativa</h1>
+            <p className="text-gray-500 text-sm mt-1">{empresa?.nome} · {empresa?.cnpj || 'CNPJ não informado'}</p>
+          </div>
         </div>
 
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <div className="flex items-center justify-between mb-3">
-              <Users className="w-5 h-5 text-[#5BBD9B]" />
+              <Users className="w-5 h-5" style={{ color: tema.corPrimaria }} />
               <span className="text-xs text-gray-400">funcionários</span>
             </div>
             <p className="text-3xl font-bold text-[#1A3A2C]">{totalAtivos}</p>
@@ -183,24 +209,24 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
         )}
 
         <div className="grid md:grid-cols-3 gap-6">
-          {/* Tabela de funcionários — ocupa 2/3 */}
+          {/* Tabela de funcionários */}
           <div className="md:col-span-2">
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
-                  <Users className="w-4 h-4 text-[#5BBD9B]" /> Funcionários
+                  <Users className="w-4 h-4" style={{ color: tema.corPrimaria }} /> Funcionários
                   <span className="text-xs text-gray-400 font-normal">({funcionarios.length})</span>
                 </h2>
                 <a
                   href={`${exportUrl}&formato=xlsx`}
                   target="_blank"
-                  className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition-colors font-medium"
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors font-medium"
+                  style={{ color: tema.corPrimaria, backgroundColor: tema.corBgCard }}
                 >
                   <Download className="w-3.5 h-3.5" /> Exportar Excel
                 </a>
               </div>
 
-              {/* Filtros */}
               <Suspense fallback={null}>
                 <FiltrosFuncionarios departamentos={departamentos} />
               </Suspense>
@@ -272,16 +298,16 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
             </div>
           </div>
 
-          {/* Consultas recentes — 1/3 */}
+          {/* Consultas recentes */}
           <div className="md:col-span-1">
             <div className="bg-white rounded-2xl p-6 shadow-sm">
               <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 mb-4">
-                <Activity className="w-4 h-4 text-[#5BBD9B]" /> Consultas recentes
+                <Activity className="w-4 h-4" style={{ color: tema.corPrimaria }} /> Consultas recentes
               </h2>
               {agendamentosRecentes.length > 0 ? (
                 <div className="space-y-3">
                   {agendamentosRecentes.map((a: any) => (
-                    <div key={a.id} className="border-l-2 border-[#5BBD9B] pl-3">
+                    <div key={a.id} className="border-l-2 pl-3" style={{ borderColor: tema.corPrimaria }}>
                       <p className="text-sm font-medium text-gray-800 leading-tight">
                         {mapPaciente[a.paciente_id] || 'Funcionário'}
                       </p>

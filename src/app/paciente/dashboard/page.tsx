@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Brain, Clock, FileText, Calendar, Video, LogOut, ChevronRight, User } from 'lucide-react'
+import { gerarTema } from '@/lib/tema'
 
 export default async function PacienteDashboard() {
   const supabase = await createClient()
@@ -17,6 +18,38 @@ export default async function PacienteDashboard() {
     .select('*')
     .eq('usuario_id', user.id)
     .single()
+
+  // Buscar empresa do paciente via vinculos_empresa (por paciente_id)
+  let empresaLogo: string | null = null
+  let empresaCorPrimaria: string | null = null
+  let empresaNome: string | null = null
+
+  if (paciente?.id) {
+    const { data: vinculo } = await adminSupabase
+      .from('vinculos_empresa')
+      .select('empresa_id')
+      .eq('paciente_id', paciente.id)
+      .eq('ativo', true)
+      .limit(1)
+      .single()
+
+    if (vinculo?.empresa_id) {
+      const { data: empresa } = await adminSupabase
+        .from('empresas')
+        .select('nome, logo_url, cor_primaria')
+        .eq('id', vinculo.empresa_id)
+        .single()
+
+      if (empresa) {
+        empresaLogo = empresa.logo_url ?? null
+        empresaCorPrimaria = empresa.cor_primaria ?? null
+        empresaNome = empresa.nome ?? null
+      }
+    }
+  }
+
+  // Gerar tema com base na empresa do paciente (ou padrão)
+  const tema = gerarTema(empresaCorPrimaria)
 
   // Buscar últimas triagens
   const { data: triagens } = await adminSupabase
@@ -45,7 +78,7 @@ export default async function PacienteDashboard() {
     .order('data_hora', { ascending: true })
     .limit(3)
 
-  // Buscar nomes dos médicos das próximas consultas
+  // Buscar nomes dos médicos
   const medicoIds = [...new Set((proximasConsultas || []).map((a: any) => a.medico_id))]
   const { data: medicos } = medicoIds.length > 0
     ? await adminSupabase.from('medicos').select('id, nome, especialidade').in('id', medicoIds)
@@ -56,7 +89,6 @@ export default async function PacienteDashboard() {
   const nome = paciente?.nome || user.user_metadata?.nome || 'Paciente'
   const primeiroNome = nome.split(' ')[0]
 
-  // Calcular idade
   function calcularIdade(dataNasc: string | null): number | null {
     if (!dataNasc) return null
     const nasc = new Date(dataNasc)
@@ -96,17 +128,31 @@ export default async function PacienteDashboard() {
   const totalConsultas = proximasConsultas?.length || 0
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
-      {/* Header */}
-      <header className="bg-[#1A3A2C] text-white px-6 py-4">
+    <div className="min-h-screen" style={{ ...tema.vars, backgroundColor: tema.corBgPagina }}>
+      {/* Header com cor da empresa */}
+      <header style={{ backgroundColor: tema.corPrimaria }} className="px-6 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
+          <div className="flex items-center gap-3">
+            {empresaLogo ? (
+              <img
+                src={empresaLogo}
+                alt={empresaNome || 'Logo'}
+                className="h-10 w-auto object-contain"
+                style={{ filter: 'brightness(0) invert(1)' }}
+              />
+            ) : (
+              <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
+            )}
+            {empresaNome && (
+              <span className="text-xs hidden sm:block" style={{ color: tema.corTextoSuave }}>
+                {empresaNome}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-green-200">Olá, {primeiroNome}</span>
+            <span className="text-sm" style={{ color: tema.corTextoSuave }}>Olá, {primeiroNome}</span>
             <form action="/api/auth/signout" method="POST">
-              <button type="submit" className="flex items-center gap-1 text-sm text-green-200 hover:text-white">
+              <button type="submit" className="flex items-center gap-1 text-sm hover:opacity-80 transition-opacity" style={{ color: tema.corTextoSuave }}>
                 <LogOut className="w-4 h-4" />
               </button>
             </form>
@@ -118,12 +164,15 @@ export default async function PacienteDashboard() {
         {/* Saudação */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-[#1A3A2C]">{saudacao}, {primeiroNome}! 👋</h1>
-          <div className="flex items-center gap-3 mt-1">
+          <div className="flex items-center gap-3 mt-1 flex-wrap">
             <p className="text-gray-500">Como você está se sentindo hoje?</p>
             {(idade !== null || paciente?.sexo) && (
               <div className="flex items-center gap-2">
                 {idade !== null && (
-                  <span className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
+                  <span
+                    className="text-xs px-2.5 py-1 rounded-full font-medium"
+                    style={{ backgroundColor: tema.corBgCard, color: tema.corPrimaria }}
+                  >
                     {idade} anos
                   </span>
                 )}
@@ -137,18 +186,21 @@ export default async function PacienteDashboard() {
           </div>
         </div>
 
-        {/* Próximas consultas — destaque quando houver agendamentos */}
+        {/* Próximas consultas */}
         {totalConsultas > 0 && (
-          <div className="bg-white border border-green-100 rounded-2xl p-5 mb-6 shadow-sm">
+          <div className="bg-white border rounded-2xl p-5 mb-6 shadow-sm" style={{ borderColor: `rgba(${tema.corRgb},0.15)` }}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[#5BBD9B]" />
+                <Calendar className="w-4 h-4" style={{ color: tema.corPrimaria }} />
                 Próximas consultas
-                <span className="text-xs font-medium bg-[#5BBD9B] text-white px-2 py-0.5 rounded-full">
+                <span
+                  className="text-xs font-medium text-white px-2 py-0.5 rounded-full"
+                  style={{ backgroundColor: tema.corPrimaria }}
+                >
                   {totalConsultas}
                 </span>
               </h2>
-              <Link href="/paciente/agendamentos" className="text-xs text-[#5BBD9B] hover:underline font-medium">
+              <Link href="/paciente/agendamentos" className="text-xs font-medium hover:underline" style={{ color: tema.corPrimaria }}>
                 Ver todas →
               </Link>
             </div>
@@ -157,18 +209,16 @@ export default async function PacienteDashboard() {
                 const medico = medicoMap[a.medico_id]
                 const dataHora = new Date(a.data_hora)
                 return (
-                  <div key={a.id} className="flex items-center gap-3 bg-green-50 rounded-xl px-4 py-3">
-                    <div className="w-9 h-9 bg-[#5BBD9B]/10 rounded-xl flex items-center justify-center shrink-0">
-                      <User className="w-4 h-4 text-[#5BBD9B]" />
+                  <div key={a.id} className="flex items-center gap-3 rounded-xl px-4 py-3" style={{ backgroundColor: tema.corBgCard }}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `rgba(${tema.corRgb},0.15)` }}>
+                      <User className="w-4 h-4" style={{ color: tema.corPrimaria }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#1A3A2C] truncate">
-                        Dr(a). {medico?.nome || 'Médico'}
-                      </p>
+                      <p className="text-sm font-semibold text-[#1A3A2C] truncate">Dr(a). {medico?.nome || 'Médico'}</p>
                       <p className="text-xs text-gray-400">{medico?.especialidade}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-xs font-semibold text-[#5BBD9B]">
+                      <p className="text-xs font-semibold" style={{ color: tema.corPrimaria }}>
                         {dataHora.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', timeZone: 'America/Sao_Paulo' })}
                       </p>
                       <p className="text-xs text-gray-500">
@@ -182,20 +232,26 @@ export default async function PacienteDashboard() {
           </div>
         )}
 
-        {/* Ação Principal — Iniciar Triagem */}
-        <div className="bg-gradient-to-br from-[#1A3A2C] to-[#5BBD9B] rounded-2xl p-8 text-white mb-8">
+        {/* CTA principal de triagem com cor da empresa */}
+        <div
+          className="rounded-2xl p-8 text-white mb-8"
+          style={{
+            background: `linear-gradient(135deg, ${tema.corPrimaria}, ${tema.corPrimaria}CC)`,
+          }}
+        >
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-              <Brain className="w-6 h-6" />
+              <Brain className="w-6 h-6" style={{ color: tema.corTexto === '#ffffff' ? '#ffffff' : '#1A1A1A' }} />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Precisa de atendimento?</h2>
-              <p className="text-green-200 text-sm">Nossa IA faz a triagem em poucos minutos</p>
+              <h2 className="text-xl font-bold" style={{ color: tema.corTexto }}>Precisa de atendimento?</h2>
+              <p className="text-sm" style={{ color: tema.corTextoSuave }}>Nossa IA faz a triagem em poucos minutos</p>
             </div>
           </div>
           <Link
             href="/paciente/triagem"
-            className="inline-flex items-center gap-2 bg-white text-[#1A3A2C] hover:bg-green-50 px-6 py-3 rounded-xl font-semibold text-sm"
+            className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 px-6 py-3 rounded-xl font-semibold text-sm transition-colors"
+            style={{ color: tema.corPrimaria }}
           >
             Iniciar triagem agora
             <ChevronRight className="w-4 h-4" />
@@ -205,27 +261,31 @@ export default async function PacienteDashboard() {
         {/* Cards de acesso rápido */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { icon: Brain, label: 'Nova triagem', href: '/paciente/triagem', cor: '#5BBD9B' },
-            { icon: Video, label: 'Consulta virtual', href: '/paciente/consulta', cor: '#1A7340' },
+            { icon: Brain, label: 'Nova triagem', href: '/paciente/triagem' },
+            { icon: Video, label: 'Consulta virtual', href: '/paciente/consulta' },
             {
               icon: Calendar,
               label: 'Meus agendamentos',
               href: '/paciente/agendamentos',
-              cor: '#7B3FA0',
               badge: totalConsultas > 0 ? totalConsultas : undefined,
             },
-            { icon: FileText, label: 'Prontuário', href: '/paciente/prontuario', cor: '#C0392B' },
+            { icon: FileText, label: 'Prontuário', href: '/paciente/prontuario' },
           ].map((item) => (
             <Link key={item.label} href={item.href}
-              className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md text-center group relative">
+              className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md text-center group relative transition-shadow">
               {(item as any).badge && (
-                <span className="absolute top-3 right-3 w-5 h-5 bg-[#7B3FA0] text-white text-xs font-bold rounded-full flex items-center justify-center">
+                <span
+                  className="absolute top-3 right-3 w-5 h-5 text-white text-xs font-bold rounded-full flex items-center justify-center"
+                  style={{ backgroundColor: tema.corPrimaria }}
+                >
                   {(item as any).badge}
                 </span>
               )}
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"
-                style={{ backgroundColor: item.cor + '15' }}>
-                <item.icon className="w-5 h-5" style={{ color: item.cor }} />
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3"
+                style={{ backgroundColor: tema.corBgCard }}
+              >
+                <item.icon className="w-5 h-5" style={{ color: tema.corPrimaria }} />
               </div>
               <span className="text-sm font-medium text-[#1A3A2C]">{item.label}</span>
             </Link>
@@ -237,7 +297,7 @@ export default async function PacienteDashboard() {
           <div className="bg-white rounded-2xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-[#1A3A2C]">Últimas triagens</h3>
-              <Link href="/paciente/triagens" className="text-xs text-[#5BBD9B] hover:underline">Ver todas</Link>
+              <Link href="/paciente/triagens" className="text-xs hover:underline font-medium" style={{ color: tema.corPrimaria }}>Ver todas</Link>
             </div>
             {triagens && triagens.length > 0 ? (
               <div className="space-y-3">
@@ -259,18 +319,18 @@ export default async function PacienteDashboard() {
               <div className="text-center py-8">
                 <Clock className="w-10 h-10 text-gray-200 mx-auto mb-3" />
                 <p className="text-sm text-gray-400">Nenhuma triagem realizada ainda</p>
-                <Link href="/paciente/triagem" className="text-sm text-[#5BBD9B] font-medium mt-2 inline-block">
+                <Link href="/paciente/triagem" className="text-sm font-medium mt-2 inline-block hover:underline" style={{ color: tema.corPrimaria }}>
                   Fazer primeira triagem →
                 </Link>
               </div>
             )}
           </div>
 
-          {/* Últimos atendimentos */}
+          {/* Histórico de atendimentos */}
           <div className="bg-white rounded-2xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-[#1A3A2C]">Histórico de atendimentos</h3>
-              <Link href="/paciente/atendimentos" className="text-xs text-[#5BBD9B] hover:underline">Ver todos</Link>
+              <Link href="/paciente/atendimentos" className="text-xs hover:underline" style={{ color: tema.corPrimaria }}>Ver todos</Link>
             </div>
             {atendimentos && atendimentos.length > 0 ? (
               <div className="space-y-3">
