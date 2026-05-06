@@ -151,13 +151,14 @@ function SimNao({ valor, onChange }: { valor: boolean | null; onChange: (v: bool
 
 function EtapaValidacao({
   nomeInicial, cpfInicial, telefoneInicial,
-  onFazerTriagem, onPularTriagem,
+  onFazerTriagem, onPularTriagem, onVoltar,
 }: {
   nomeInicial: string
   cpfInicial: string
   telefoneInicial: string
   onFazerTriagem: (dados: DadosValidacao) => void
   onPularTriagem: (dados: DadosValidacao) => void
+  onVoltar: () => void
 }) {
   const [cpf, setCpf] = useState(cpfInicial ? formatarCPF(cpfInicial) : '')
   const [telefone, setTelefone] = useState(telefoneInicial ? formatarTelefone(telefoneInicial) : '')
@@ -199,6 +200,11 @@ function EtapaValidacao({
   return (
     <div className="flex-1 flex items-center justify-center px-4 py-8">
       <div className="bg-white rounded-2xl shadow-sm p-8 max-w-md w-full">
+        <button onClick={onVoltar}
+          className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#1A3A2C] mb-4 transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Voltar ao painel
+        </button>
+
         <ProgressoTriagem atual={1} />
 
         <div className="flex items-center gap-3 mb-5">
@@ -343,17 +349,23 @@ const LOCAIS_DOR = [
 
 // ─── Etapa 2: Sintomas ────────────────────────────────────────────────────────
 
-function EtapaSintomas({ onEnviar }: { onEnviar: (dados: DadosSintomas) => void }) {
-  const [motivosPrincipais, setMotivosPrincipais] = useState<string[]>([])
-  const [outroMotivo, setOutroMotivo] = useState('')
-  const [locaisDor, setLocaisDor] = useState<string[]>([])
-  const [outraLocalizacaoDor, setOutraLocalizacaoDor] = useState('')
-  const [intensidadeDor, setIntensidadeDor] = useState<number | null>(null)
-  const [tomouRemedio, setTomouRemedio] = useState<boolean | null>(null)
-  const [oQueTomou, setOQueTomou] = useState('')
-  const [remedioMelhorou, setRemedioMelhorou] = useState<'sim' | 'nao' | 'parcial' | null>(null)
-  const [remedioContinuo, setRemedioContinuo] = useState<boolean | null>(null)
-  const [remedioContinuoQuais, setRemedioContinuoQuais] = useState('')
+function EtapaSintomas({
+  onEnviar, onVoltar, initialData,
+}: {
+  onEnviar: (dados: DadosSintomas) => void
+  onVoltar: () => void
+  initialData?: DadosSintomas | null
+}) {
+  const [motivosPrincipais, setMotivosPrincipais] = useState<string[]>(initialData?.motivosPrincipais ?? [])
+  const [outroMotivo, setOutroMotivo] = useState(initialData?.outroMotivo ?? '')
+  const [locaisDor, setLocaisDor] = useState<string[]>(initialData?.locaisDor ?? [])
+  const [outraLocalizacaoDor, setOutraLocalizacaoDor] = useState(initialData?.outraLocalizacaoDor ?? '')
+  const [intensidadeDor, setIntensidadeDor] = useState<number | null>(initialData?.intensidadeDor ?? null)
+  const [tomouRemedio, setTomouRemedio] = useState<boolean | null>(initialData?.tomouRemedio ?? null)
+  const [oQueTomou, setOQueTomou] = useState(initialData?.oQueTomou ?? '')
+  const [remedioMelhorou, setRemedioMelhorou] = useState<'sim' | 'nao' | 'parcial' | null>(initialData?.remedioMelhorou ?? null)
+  const [remedioContinuo, setRemedioContinuo] = useState<boolean | null>(initialData?.remedioContinuo ?? null)
+  const [remedioContinuoQuais, setRemedioContinuoQuais] = useState(initialData?.remedioContinuoQuais ?? '')
   const [erro, setErro] = useState('')
 
   const temDor = motivosPrincipais.includes('Dor (em qualquer parte do corpo)')
@@ -392,6 +404,11 @@ function EtapaSintomas({ onEnviar }: { onEnviar: (dados: DadosSintomas) => void 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-8">
       <div className="max-w-lg mx-auto">
+        <button onClick={onVoltar}
+          className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#1A3A2C] mb-4 transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Voltar
+        </button>
+
         <ProgressoTriagem atual={2} />
 
         {/* Banner destacado */}
@@ -538,10 +555,16 @@ function EtapaSintomas({ onEnviar }: { onEnviar: (dados: DadosSintomas) => void 
           </div>
         )}
 
-        <button onClick={handleEnviar}
-          className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-          Enviar <ChevronRight className="w-4 h-4" />
-        </button>
+        <div className="flex gap-3">
+          <button onClick={onVoltar}
+            className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-500 py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+            <ArrowLeft className="w-4 h-4" /> Voltar
+          </button>
+          <button onClick={handleEnviar}
+            className="flex-[2] bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+            Continuar <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -552,19 +575,23 @@ function EtapaSintomas({ onEnviar }: { onEnviar: (dados: DadosSintomas) => void 
 function EtapaUrgencia({
   sintomas,
   onEnviar,
+  onVoltar,
+  initialData,
 }: {
   sintomas: DadosSintomas | null
   onEnviar: (dados: DadosUrgencia) => void
+  onVoltar: () => void
+  initialData?: DadosUrgencia | null
 }) {
-  const [dorNoPeito, setDorNoPeito] = useState<boolean | null>(null)
-  const [faltaDeAr, setFaltaDeAr] = useState<boolean | null>(null)
-  const [sintomaNeuro, setSintomaNeuro] = useState<boolean | null>(null)
-  const [desmaio, setDesmaio] = useState<boolean | null>(null)
-  const [convulsao, setConvulsao] = useState<boolean | null>(null)
-  const [sangramento, setSangramento] = useState<boolean | null>(null)
-  const [trauma, setTrauma] = useState<boolean | null>(null)
-  const [dorExtrema, setDorExtrema] = useState<boolean | null>(null)
-  const [gravidez, setGravidez] = useState<boolean | null>(null)
+  const [dorNoPeito, setDorNoPeito] = useState<boolean | null>(initialData?.dorNoPeito ?? null)
+  const [faltaDeAr, setFaltaDeAr] = useState<boolean | null>(initialData?.faltaDeAr ?? null)
+  const [sintomaNeuro, setSintomaNeuro] = useState<boolean | null>(initialData?.sintomaNeuro ?? null)
+  const [desmaio, setDesmaio] = useState<boolean | null>(initialData?.desmaio ?? null)
+  const [convulsao, setConvulsao] = useState<boolean | null>(initialData?.convulsao ?? null)
+  const [sangramento, setSangramento] = useState<boolean | null>(initialData?.sangramento ?? null)
+  const [trauma, setTrauma] = useState<boolean | null>(initialData?.trauma ?? null)
+  const [dorExtrema, setDorExtrema] = useState<boolean | null>(initialData?.dorExtrema ?? null)
+  const [gravidez, setGravidez] = useState<boolean | null>(initialData?.gravidez ?? null)
   const [erro, setErro] = useState('')
 
   const temDorNoPeito = sintomas?.locaisDor.includes('Dor no Peito') ?? false
@@ -597,6 +624,11 @@ function EtapaUrgencia({
   return (
     <div className="flex-1 overflow-y-auto px-4 py-8">
       <div className="max-w-lg mx-auto">
+        <button onClick={onVoltar}
+          className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#1A3A2C] mb-4 transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Voltar
+        </button>
+
         <ProgressoTriagem atual={3} />
 
         {/* Banner destacado */}
@@ -624,10 +656,16 @@ function EtapaUrgencia({
           </div>
         )}
 
-        <button onClick={handleEnviar}
-          className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-          Enviar <ChevronRight className="w-4 h-4" />
-        </button>
+        <div className="flex gap-3">
+          <button onClick={onVoltar}
+            className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-500 py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+            <ArrowLeft className="w-4 h-4" /> Voltar
+          </button>
+          <button onClick={handleEnviar}
+            className="flex-[2] bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+            Enviar <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -643,6 +681,7 @@ function EtapaResultado({
   salvando,
   onSolicitarImediato,
   onConsultarAgora,
+  onVoltar,
 }: {
   resultado: ResultadoTriagem | null
   analisando: boolean
@@ -651,6 +690,7 @@ function EtapaResultado({
   salvando: boolean
   onSolicitarImediato: () => void
   onConsultarAgora: () => void
+  onVoltar: () => void
 }) {
   if (analisando) {
     return (
@@ -769,10 +809,16 @@ function EtapaResultado({
           )}
         </div>
 
-        <Link href="/paciente/dashboard"
-          className="block text-center text-sm text-gray-400 hover:text-gray-600 py-2">
-          Voltar ao painel
-        </Link>
+        <div className="flex gap-3 mt-2">
+          <button onClick={onVoltar}
+            className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-500 py-2.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-1.5">
+            <ArrowLeft className="w-4 h-4" /> Refazer triagem
+          </button>
+          <Link href="/paciente/dashboard"
+            className="flex-1 text-center text-sm text-gray-400 hover:text-gray-600 py-2.5 border border-gray-100 rounded-xl">
+            Ir ao painel
+          </Link>
+        </div>
       </div>
     </div>
   )
@@ -791,6 +837,7 @@ export default function TriagemPage() {
   const [telefoneInicial, setTelefoneInicial] = useState('')
   const [validacao, setValidacao] = useState<DadosValidacao | null>(null)
   const [sintomas, setSintomas] = useState<DadosSintomas | null>(null)
+  const [urgencia, setUrgencia] = useState<DadosUrgencia | null>(null)
   const [triagemId, setTriagemId] = useState<string | null>(null)
 
   // Resultado
@@ -889,6 +936,7 @@ export default function TriagemPage() {
   }
 
   async function handleUrgencia(dados: DadosUrgencia) {
+    setUrgencia(dados)
     // Salvar urgência parcial
     if (triagemId) {
       await salvarAPI({ action: 'atualizar', triagemId, dados: { dados_urgencia: dados } })
@@ -996,12 +1044,26 @@ export default function TriagemPage() {
         <EtapaValidacao
           nomeInicial={nomeInicial} cpfInicial={cpfInicial} telefoneInicial={telefoneInicial}
           onFazerTriagem={handleFazerTriagem} onPularTriagem={handlePularTriagem}
+          onVoltar={voltar}
         />
       )}
 
-      {etapa === 'sintomas' && <EtapaSintomas onEnviar={handleSintomas} />}
+      {etapa === 'sintomas' && (
+        <EtapaSintomas
+          onEnviar={handleSintomas}
+          onVoltar={voltar}
+          initialData={sintomas}
+        />
+      )}
 
-      {etapa === 'urgencia' && <EtapaUrgencia sintomas={sintomas} onEnviar={handleUrgencia} />}
+      {etapa === 'urgencia' && (
+        <EtapaUrgencia
+          sintomas={sintomas}
+          onEnviar={handleUrgencia}
+          onVoltar={voltar}
+          initialData={urgencia}
+        />
+      )}
 
       {etapa === 'triagem' && (
         <EtapaResultado
@@ -1012,6 +1074,7 @@ export default function TriagemPage() {
           salvando={salvando}
           onSolicitarImediato={solicitarConsulta}
           onConsultarAgora={solicitarConsulta}
+          onVoltar={voltar}
         />
       )}
     </div>

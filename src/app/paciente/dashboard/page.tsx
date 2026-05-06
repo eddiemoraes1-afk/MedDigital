@@ -194,7 +194,7 @@ export default async function PacienteDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
             { icon: Brain, label: 'Nova triagem', href: '/paciente/triagem' },
-            { icon: Video, label: 'Consulta virtual', href: '/paciente/consulta' },
+            { icon: Video, label: 'Consulta virtual', href: '/paciente/triagem' },
             { icon: Calendar, label: 'Meus agendamentos', href: '/paciente/agendamentos', badge: totalConsultas > 0 ? totalConsultas : undefined },
             { icon: FileText, label: 'Prontuário', href: '/paciente/prontuario' },
           ].map((item) => (
