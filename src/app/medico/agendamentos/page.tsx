@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { LogOut, ArrowLeft, Calendar, Clock, User, ChevronLeft, ChevronRight, XCircle } from 'lucide-react'
+import { Calendar, Clock, User, ChevronLeft, ChevronRight, XCircle } from 'lucide-react'
 import BotaoEntrarConsultaMedico from './BotaoEntrarConsultaMedico'
+import MedicoHeader from '../MedicoHeader'
 
 export default async function MedicoAgendamentosPage({
   searchParams,
@@ -122,27 +123,9 @@ export default async function MedicoAgendamentosPage({
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <header className="bg-[#1A3A2C] text-white px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
-            <span className="text-xs text-green-300 ml-2">Painel do Médico</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-green-200">Dr(a). {primeiroNome}</span>
-            <form action="/api/auth/signout" method="POST">
-              <button type="submit">
-                <LogOut className="w-4 h-4 text-green-200 hover:text-white" />
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
+      <MedicoHeader titulo="Minha Agenda" backHref="/medico/dashboard" medicoNome={medico.nome} />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
-        <Link href="/medico/dashboard" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-[#1A3A2C] mb-6">
-          <ArrowLeft className="w-4 h-4" /> Voltar ao painel
-        </Link>
 
         {/* Cabeçalho */}
         <div className="flex items-center justify-between mb-8">

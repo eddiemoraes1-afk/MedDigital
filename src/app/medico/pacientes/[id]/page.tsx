@@ -8,6 +8,7 @@ import {
   Pill, Stethoscope, ThumbsUp, ThumbsDown, Minus,
   ChevronDown,
 } from 'lucide-react'
+import MedicoHeader from '../../MedicoHeader'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -161,15 +162,7 @@ export default async function MedicoPacientePage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <header className="bg-[#1A3A2C] text-white px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center gap-4">
-          <Link href="/medico/pacientes" className="text-green-200 hover:text-white">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
-          <span className="text-xs text-green-300 ml-1">Prontuário do Paciente</span>
-        </div>
-      </header>
+      <MedicoHeader titulo="Prontuário do Paciente" backHref="/medico/pacientes" />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
 

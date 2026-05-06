@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Users, Clock, Video, CheckCircle2, LogOut, AlertTriangle, Calendar, FileText, Stethoscope } from 'lucide-react'
+import { Users, Clock, Video, CheckCircle2, AlertTriangle, Calendar, FileText, Stethoscope } from 'lucide-react'
 import PingMedico from '../PingMedico'
+import MedicoHeader from '../MedicoHeader'
 
 export default async function MedicoDashboard() {
   const supabase = await createClient()
@@ -83,22 +84,7 @@ export default async function MedicoDashboard() {
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
       <PingMedico />
-      <header className="bg-[#1A3A2C] text-white px-6 py-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
-            <span className="text-xs text-green-300 ml-2">Painel do Médico</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-green-200">Dr(a). {primeiroNome}</span>
-            <form action="/api/auth/signout" method="POST">
-              <button type="submit" className="text-green-200 hover:text-white">
-                <LogOut className="w-4 h-4" />
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
+      <MedicoHeader titulo="Painel do Médico" medicoNome={medico.nome} />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
         <div className="mb-8">

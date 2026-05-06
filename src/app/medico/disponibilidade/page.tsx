@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft, Clock, Save, Loader2, CheckCircle2, Trash2, Pencil, X } from 'lucide-react'
+import { Clock, Save, Loader2, CheckCircle2, Trash2, Pencil, X } from 'lucide-react'
+import MedicoHeader from '../MedicoHeader'
 
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 const HORAS = Array.from({ length: 48 }, (_, i) => {
@@ -174,16 +174,7 @@ export default function DisponibilidadePage() {
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <header className="bg-[#1A3A2C] text-white px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
-          </div>
-          <Link href="/medico/dashboard" className="text-sm text-green-200 hover:text-white flex items-center gap-1">
-            <ArrowLeft className="w-4 h-4" /> Voltar
-          </Link>
-        </div>
-      </header>
+      <MedicoHeader titulo="Disponibilidade" backHref="/medico/dashboard" />
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         <div className="mb-8">

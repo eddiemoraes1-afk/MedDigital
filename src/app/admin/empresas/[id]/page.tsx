@@ -52,7 +52,7 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <AdminHeader ativo="empresas" />
+      <AdminHeader titulo="Empresa" backHref="/admin/empresas" />
 
       <main className="max-w-6xl mx-auto px-6 py-8">
         {/* Cabeçalho da empresa */}

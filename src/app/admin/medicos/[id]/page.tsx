@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import {
   Stethoscope, CheckCircle2, XCircle, Clock, Calendar,
-  CreditCard, MapPin, Activity, User, Mail, Phone, ArrowLeft
+  CreditCard, MapPin, Activity, User, Mail, Phone
 } from 'lucide-react'
 import AdminHeader from '../../components/AdminHeader'
 import BotoesAprovacao from '../../components/BotoesAprovacao'
@@ -81,18 +81,9 @@ export default async function FichaMedicoPage({ params }: { params: Promise<{ id
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <AdminHeader ativo="medicos" />
+      <AdminHeader titulo="Ficha do Médico" backHref="/admin/medicos" />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
-
-        {/* Breadcrumb */}
-        <div className="flex items-center gap-3 mb-6">
-          <Link href="/admin/medicos" className="text-sm text-gray-400 hover:text-[#5BBD9B] flex items-center gap-1">
-            <ArrowLeft className="w-4 h-4" /> Médicos
-          </Link>
-          <span className="text-gray-300">/</span>
-          <span className="text-sm text-gray-600 font-medium">{medico.nome}</span>
-        </div>
 
         {/* Cabeçalho do médico */}
         <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">

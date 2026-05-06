@@ -98,7 +98,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <AdminHeader ativo="pacientes" />
+      <AdminHeader titulo="Ficha do Paciente" backHref="/admin/pacientes" />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
 
