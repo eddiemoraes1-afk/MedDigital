@@ -59,7 +59,8 @@ export async function GET(req: NextRequest) {
     const percentualCopart = empresa.percentual_coparticipacao ?? 0
 
     consultas = (atendimentos ?? []).map(a => {
-      const valorCobrado = a.valor_cobrado ?? precoConsulta
+      // Sempre usa o preço atual cadastrado na empresa, ignorando o valor histórico do atendimento
+      const valorCobrado = precoConsulta
       return {
         id: a.id,
         data: a.finalizado_em ?? a.criado_em,
