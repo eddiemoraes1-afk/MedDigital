@@ -68,7 +68,7 @@ const COLORS = ['#5BBD9B', '#3B82F6', '#F59E0B', '#8B5CF6', '#EF4444', '#14B8A6'
 
 interface DonutSlice { label: string; value: number; color: string }
 
-function DonutChart({ slices, formatValue }: { slices: DonutSlice[]; formatValue?: (v: number) => string }) {
+function DonutChart({ slices, formatValue, formatCenter }: { slices: DonutSlice[]; formatValue?: (v: number) => string; formatCenter?: (total: number) => string }) {
   const total = slices.reduce((s, d) => s + d.value, 0)
   if (total === 0) {
     return (
@@ -102,6 +102,10 @@ function DonutChart({ slices, formatValue }: { slices: DonutSlice[]; formatValue
     return { ...s, path: sectorPath(start, cumDeg) }
   })
 
+  const centerLabel = formatCenter ? formatCenter(total) : String(total)
+  // If center label is long (e.g. R$ 1.234,56), use smaller font
+  const centerFontSize = centerLabel.length > 8 ? 8.5 : 13
+
   return (
     <div className="flex flex-col items-center gap-3">
       <svg viewBox="-95 -95 190 190" className="w-44 h-44">
@@ -110,7 +114,7 @@ function DonutChart({ slices, formatValue }: { slices: DonutSlice[]; formatValue
             <title>{s.label}: {formatValue ? formatValue(s.value) : s.value}</title>
           </path>
         ))}
-        <text x="0" y="-6" textAnchor="middle" fontSize="13" fontWeight="bold" fill="#1A3A2C">{total}</text>
+        <text x="0" y="-6" textAnchor="middle" fontSize={centerFontSize} fontWeight="bold" fill="#1A3A2C">{centerLabel}</text>
         <text x="0" y="10" textAnchor="middle" fontSize="8" fill="#9CA3AF">total</text>
       </svg>
       <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 max-w-xs">
@@ -621,6 +625,7 @@ export default function EmpresaDashboardClient() {
               color: d.sexo === 'Masculino' ? '#3B82F6' : d.sexo === 'Feminino' ? '#EC4899' : '#9CA3AF',
             }))}
             formatValue={formatBRL}
+            formatCenter={formatBRL}
           />
         </ChartCard>
       </div>

@@ -107,6 +107,8 @@ export async function GET(req: Request) {
   const medicoMap = new Map((medicos ?? []).map((m: any) => [m.id, m]))
   const ats = (atendimentos ?? []) as any[]
 
+  const precoConsulta = empresa?.preco_consulta ?? 0
+
   // ===== GASTOS POR MÊS =====
   const mesMap = new Map<string, { consultas: number; valor: number }>()
   for (const a of ats) {
@@ -114,7 +116,7 @@ export async function GET(req: Request) {
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
     const cur = mesMap.get(key) ?? { consultas: 0, valor: 0 }
     cur.consultas++
-    cur.valor += a.valor_cobrado ?? 0
+    cur.valor += precoConsulta
     mesMap.set(key, cur)
   }
   const gastosPorMes = [...mesMap.entries()]
@@ -130,7 +132,7 @@ export async function GET(req: Request) {
     if (!m) continue
     const cur = medMap.get(a.medico_id) ?? { nome: m.nome, especialidade: m.especialidade || '', consultas: 0, valor: 0 }
     cur.consultas++
-    cur.valor += a.valor_cobrado ?? 0
+    cur.valor += precoConsulta
     medMap.set(a.medico_id, cur)
   }
   const gastosPorMedico = [...medMap.values()].sort((a, b) => b.valor - a.valor)
@@ -142,7 +144,7 @@ export async function GET(req: Request) {
     const faixa = calcFaixaEtaria(p?.data_nascimento ?? null)
     const cur = faixaMap.get(faixa) ?? { consultas: 0, valor: 0 }
     cur.consultas++
-    cur.valor += a.valor_cobrado ?? 0
+    cur.valor += precoConsulta
     faixaMap.set(faixa, cur)
   }
   const ordemFaixas = ['< 18', '18–29', '30–39', '40–49', '50–59', '60–69', '70+', 'Não informado']
@@ -158,7 +160,7 @@ export async function GET(req: Request) {
     const s = raw === 'masculino' ? 'Masculino' : raw === 'feminino' ? 'Feminino' : 'Não informado'
     const cur = sexoMap.get(s) ?? { consultas: 0, valor: 0 }
     cur.consultas++
-    cur.valor += a.valor_cobrado ?? 0
+    cur.valor += precoConsulta
     sexoMap.set(s, cur)
   }
   const gastosPorSexo = [...sexoMap.entries()].map(([sexo, v]) => ({ sexo, ...v }))
@@ -217,7 +219,7 @@ export async function GET(req: Request) {
       valor: 0,
     }
     cur.consultas++
-    cur.valor += a.valor_cobrado ?? 0
+    cur.valor += precoConsulta
     funcGasto.set(a.paciente_id, cur)
   }
   const topFuncionarios = [...funcGasto.values()]
@@ -226,7 +228,7 @@ export async function GET(req: Request) {
 
   // ===== KPIs =====
   const totalConsultas = ats.length
-  const totalGastosConsultas = ats.reduce((s: number, a: any) => s + (a.valor_cobrado ?? 0), 0)
+  const totalGastosConsultas = ats.length * precoConsulta
   const totalMensalidade = (empresa?.preco_mensalidade ?? 0) * funcionariosAtivos
   const totalGeral = totalGastosConsultas + totalMensalidade
   const ticketMedio = totalConsultas > 0 ? totalGastosConsultas / totalConsultas : 0
