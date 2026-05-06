@@ -119,7 +119,7 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
             ) : (
               <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
             )}
-            <span className="text-xs ml-1" style={{ color: tema.corTextoSuave }}>Portal RH</span>
+            <span className="text-xs ml-1" style={{ color: tema.corTextoSuave }}>Portal {empresa?.nome}</span>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm flex items-center gap-1.5" style={{ color: tema.corTextoSuave }}>
@@ -149,7 +149,7 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
             />
           )}
           <div>
-            <h1 className="text-2xl font-bold text-[#1A3A2C]">Painel de Saúde Corporativa</h1>
+            <h1 className="text-2xl font-bold text-[#1A3A2C]">Gestão Digital Assistencial e Regulação Clínica</h1>
             <p className="text-gray-500 text-sm mt-1">{empresa?.nome} · {empresa?.cnpj || 'CNPJ não informado'}</p>
           </div>
         </div>
