@@ -210,6 +210,9 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
           </div>
         )}
 
+        {/* Tabs: Relatório de Cobrança / Dashboard de Gastos */}
+        <EmpresaTabs />
+
         <div className="grid md:grid-cols-3 gap-6">
           {/* Tabela de funcionários */}
           <div className="md:col-span-2">
@@ -338,8 +341,6 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
           </div>
         </div>
 
-        {/* Tabs: Relatório de Cobrança / Dashboard de Gastos */}
-        <EmpresaTabs />
       </main>
     </div>
   )
