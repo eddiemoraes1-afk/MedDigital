@@ -10,6 +10,8 @@ import FiltrosFuncionarios from './FiltrosFuncionarios'
 import { Suspense } from 'react'
 import { gerarTema } from '@/lib/tema'
 import RelatorioEmpresa from '@/components/RelatorioEmpresa'
+import EmpresaDashboardClient from './EmpresaDashboardClient'
+import { BarChart2 } from 'lucide-react'
 
 interface Props {
   searchParams: Promise<{ departamento?: string; status?: string }>
@@ -344,6 +346,20 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
             apiUrl="/api/empresa/relatorio"
             titulo="Relatório de Utilização e Cobrança"
           />
+        </div>
+
+        {/* Dashboard de gastos */}
+        <div className="mt-8">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="p-2.5 bg-[#1A3A2C] rounded-xl">
+              <BarChart2 className="w-5 h-5 text-[#5BBD9B]" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-[#1A3A2C]">Dashboard de Gastos</h2>
+              <p className="text-sm text-gray-400">Análise detalhada dos gastos com saúde corporativa</p>
+            </div>
+          </div>
+          <EmpresaDashboardClient />
         </div>
       </main>
     </div>
