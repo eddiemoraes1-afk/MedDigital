@@ -8,7 +8,6 @@ import {
   Video, Calendar, Shield, Phone, FileText, XCircle, ChevronRight,
   SkipForward, Stethoscope, Clock,
 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import PacienteHeader from '../PacienteHeader'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -803,16 +802,20 @@ export default function TriagemPage() {
 
   useEffect(() => {
     async function carregarPaciente() {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/login'); return }
-      const { data: paciente } = await supabase
-        .from('pacientes').select('id, nome, cpf, telefone').eq('usuario_id', user.id).single()
-      if (paciente) {
-        setPacienteId(paciente.id)
-        setNomeInicial(paciente.nome || '')
-        setCpfInicial(paciente.cpf || '')
-        setTelefoneInicial(paciente.telefone || '')
+      // Usa API server-side com adminClient para garantir acesso aos dados
+      // independente de RLS — funciona tanto para pacientes de empresa quanto particulares
+      try {
+        const res = await fetch('/api/paciente/me')
+        if (res.status === 401) { router.push('/login'); return }
+        if (res.ok) {
+          const paciente = await res.json()
+          if (paciente.id) setPacienteId(paciente.id)
+          setNomeInicial(paciente.nome || '')
+          setCpfInicial(paciente.cpf || '')
+          setTelefoneInicial(paciente.telefone || '')
+        }
+      } catch {
+        // Fallback silencioso: campos ficam em branco para preenchimento manual
       }
       setEtapa('validacao')
     }
