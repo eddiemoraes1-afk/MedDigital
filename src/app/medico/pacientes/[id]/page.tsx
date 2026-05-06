@@ -107,8 +107,12 @@ export default async function MedicoPacientePage({ params }: Props) {
     return idade
   }
 
-  function formatDataHora(iso: string) {
-    const d = new Date(iso.endsWith('Z') ? iso : iso + 'Z')
+  function formatDataHora(iso: string | null | undefined) {
+    if (!iso) return { data: '—', hora: '—' }
+    // Garantir que o timestamp tenha timezone explícito
+    const isoNorm = iso.endsWith('Z') || iso.includes('+') ? iso : iso + 'Z'
+    const d = new Date(isoNorm)
+    if (isNaN(d.getTime())) return { data: '—', hora: '—' }
     return {
       data: d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: 'short', year: 'numeric' }),
       hora: d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }),
@@ -266,7 +270,9 @@ export default async function MedicoPacientePage({ params }: Props) {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-semibold text-gray-700">{data}</p>
-                        <p className="text-xs text-gray-400">{hora}</p>
+                        <p className="text-xs text-gray-400 flex items-center justify-end gap-1 mt-0.5">
+                          <Clock className="w-3 h-3" /> {hora}
+                        </p>
                       </div>
                     </div>
 
