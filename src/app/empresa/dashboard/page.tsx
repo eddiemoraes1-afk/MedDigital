@@ -46,12 +46,13 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
   let totalConsultasMes = 0
 
   if (pacienteIds.length > 0) {
+    // Busca atendimentos concluídos (não agendamentos, que podem estar vazios para consultas virtuais)
     const { data: todasConsultas } = await adminSupabase
-      .from('agendamentos')
-      .select('id, paciente_id, data_hora, status')
+      .from('atendimentos')
+      .select('id, paciente_id, criado_em, finalizado_em, medico_id')
       .in('paciente_id', pacienteIds)
-      .neq('status', 'cancelado')
-      .order('data_hora', { ascending: false })
+      .eq('status', 'concluido')
+      .order('criado_em', { ascending: false })
 
     todasConsultas?.forEach(c => {
       if (!consultasPorPaciente[c.paciente_id]) {
@@ -59,7 +60,7 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
       }
       consultasPorPaciente[c.paciente_id].total++
       if (!consultasPorPaciente[c.paciente_id].ultima) {
-        consultasPorPaciente[c.paciente_id].ultima = c.data_hora
+        consultasPorPaciente[c.paciente_id].ultima = c.finalizado_em ?? c.criado_em
       }
     })
 
@@ -68,11 +69,11 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
     const inicioMes = new Date()
     inicioMes.setDate(1); inicioMes.setHours(0, 0, 0, 0)
     const { count } = await adminSupabase
-      .from('agendamentos')
+      .from('atendimentos')
       .select('*', { count: 'exact', head: true })
       .in('paciente_id', pacienteIds)
-      .gte('data_hora', inicioMes.toISOString())
-      .neq('status', 'cancelado')
+      .eq('status', 'concluido')
+      .gte('criado_em', inicioMes.toISOString())
     totalConsultasMes = count ?? 0
   }
 
@@ -318,15 +319,10 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
                       </p>
                       <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
                         <Clock className="w-3 h-3" />
-                        {formatDataHora(a.data_hora)}
+                        {formatDataHora(a.finalizado_em ?? a.criado_em)}
                       </p>
-                      <span className={`text-xs px-2 py-0.5 rounded-full mt-1 inline-block ${
-                        a.status === 'concluido' ? 'bg-green-100 text-green-700' :
-                        a.status === 'confirmado' ? 'bg-green-100 text-green-700' :
-                        'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        {a.status === 'concluido' ? 'Concluída' :
-                         a.status === 'confirmado' ? 'Confirmada' : 'Pendente'}
+                      <span className="text-xs px-2 py-0.5 rounded-full mt-1 inline-block bg-green-100 text-green-700">
+                        Concluída
                       </span>
                     </div>
                   ))}

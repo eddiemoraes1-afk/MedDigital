@@ -70,6 +70,8 @@ export async function GET(req: Request) {
       consultasPorStatus: [],
       consultasPorTipo: [],
       topFuncionarios: [],
+      gastosPorDepartamento: [],
+      gastosPorCargo: [],
     })
   }
 
@@ -174,6 +176,34 @@ export async function GET(req: Request) {
     { tipo: 'Fila / Hora', count: ats.filter((a: any) => !a.agendamento_id).length },
   ]
 
+  // ===== GASTOS POR DEPARTAMENTO =====
+  const deptMap = new Map<string, { consultas: number; valor: number }>()
+  for (const a of ats) {
+    const vinculo = vinculoMap.get(a.paciente_id)
+    const dept = vinculo?.departamento || 'Não informado'
+    const cur = deptMap.get(dept) ?? { consultas: 0, valor: 0 }
+    cur.consultas++
+    cur.valor += empresa?.preco_consulta ?? 0
+    deptMap.set(dept, cur)
+  }
+  const gastosPorDepartamento = [...deptMap.entries()]
+    .map(([departamento, v]) => ({ departamento, ...v }))
+    .sort((a, b) => b.valor - a.valor)
+
+  // ===== GASTOS POR CARGO =====
+  const cargoMap = new Map<string, { consultas: number; valor: number }>()
+  for (const a of ats) {
+    const vinculo = vinculoMap.get(a.paciente_id)
+    const cargo = vinculo?.cargo || 'Não informado'
+    const cur = cargoMap.get(cargo) ?? { consultas: 0, valor: 0 }
+    cur.consultas++
+    cur.valor += empresa?.preco_consulta ?? 0
+    cargoMap.set(cargo, cur)
+  }
+  const gastosPorCargo = [...cargoMap.entries()]
+    .map(([cargo, v]) => ({ cargo, ...v }))
+    .sort((a, b) => b.valor - a.valor)
+
   // ===== TOP FUNCIONÁRIOS POR GASTO =====
   const funcGasto = new Map<string, { nome: string; cargo: string; departamento: string; consultas: number; valor: number }>()
   for (const a of ats) {
@@ -220,5 +250,7 @@ export async function GET(req: Request) {
     consultasPorStatus,
     consultasPorTipo,
     topFuncionarios,
+    gastosPorDepartamento,
+    gastosPorCargo,
   })
 }

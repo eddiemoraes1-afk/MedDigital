@@ -29,6 +29,8 @@ interface EmpresaDashData {
   consultasPorStatus: Array<{ status: string; count: number }>
   consultasPorTipo: Array<{ tipo: string; count: number }>
   topFuncionarios: Array<{ nome: string; cargo: string; departamento: string; consultas: number; valor: number }>
+  gastosPorDepartamento: Array<{ departamento: string; consultas: number; valor: number }>
+  gastosPorCargo: Array<{ cargo: string; consultas: number; valor: number }>
 }
 
 // ============================================================
@@ -371,6 +373,16 @@ async function exportarExcel(data: EmpresaDashData, setLoading: (v: boolean) => 
       ...data.topFuncionarios.map(r => [r.nome, r.cargo, r.departamento, r.consultas, r.valor]),
     ]), 'Top Funcionários')
 
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+      ['Departamento', 'Consultas', 'Gastos (R$)'],
+      ...data.gastosPorDepartamento.map(r => [r.departamento, r.consultas, r.valor]),
+    ]), 'Por Departamento')
+
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+      ['Cargo', 'Consultas', 'Gastos (R$)'],
+      ...data.gastosPorCargo.map(r => [r.cargo, r.consultas, r.valor]),
+    ]), 'Por Cargo')
+
     XLSX.writeFile(wb, `gastos-empresa-${new Date().toISOString().slice(0, 10)}.xlsx`)
   } finally {
     setLoading(false)
@@ -420,6 +432,8 @@ function exportarPDF(data: EmpresaDashData) {
 <section><h2>Por Faixa Etária</h2>${tbl(['Faixa', 'Consultas', 'Gastos'], data.gastosPorFaixaEtaria.map(r => [r.faixa, String(r.consultas), formatBRL(r.valor)]))}</section>
 <section><h2>Por Sexo</h2>${tbl(['Sexo', 'Consultas', 'Gastos'], data.gastosPorSexo.map(r => [r.sexo, String(r.consultas), formatBRL(r.valor)]))}</section>
 <section><h2>Status dos Agendamentos</h2>${tbl(['Status', 'Quantidade'], data.consultasPorStatus.map(r => [labelStatus(r.status), String(r.count)]))}</section>
+<section><h2>Gastos por Departamento</h2>${tbl(['Departamento', 'Consultas', 'Gastos'], data.gastosPorDepartamento.map(r => [r.departamento, String(r.consultas), formatBRL(r.valor)]))}</section>
+<section><h2>Gastos por Cargo</h2>${tbl(['Cargo', 'Consultas', 'Gastos'], data.gastosPorCargo.map(r => [r.cargo, String(r.consultas), formatBRL(r.valor)]))}</section>
 <section><h2>Top 10 Funcionários por Gasto</h2>${tbl(['Funcionário', 'Cargo', 'Departamento', 'Consultas', 'Total Gasto'], data.topFuncionarios.map(r => [r.nome, r.cargo, r.departamento, String(r.consultas), formatBRL(r.valor)]))}</section>
 <script>window.onload=()=>setTimeout(()=>window.print(),400)</script>
 </body></html>`
@@ -611,7 +625,31 @@ export default function EmpresaDashboardClient() {
         </ChartCard>
       </div>
 
-      {/* ---- Row 4: Consultas por médico ---- */}
+      {/* ---- Row 4: Por departamento e por cargo ---- */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <ChartCard title="Gastos por Departamento" subtitle="Custo de consultas por área da empresa">
+          <HBarChart data={data.gastosPorDepartamento} labelKey="departamento" valueKey="valor"
+            formatValue={formatBRL} color="#5BBD9B" />
+        </ChartCard>
+        <ChartCard title="Gastos por Cargo" subtitle="Custo de consultas por função">
+          <HBarChart data={data.gastosPorCargo} labelKey="cargo" valueKey="valor"
+            formatValue={formatBRL} color="#F59E0B" />
+        </ChartCard>
+      </div>
+
+      {/* ---- Row 4b: Consultas por departamento e cargo ---- */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        <ChartCard title="Consultas por Departamento" subtitle="Volume de atendimentos por área">
+          <HBarChart data={data.gastosPorDepartamento} labelKey="departamento" valueKey="consultas"
+            formatValue={v => `${v} consulta${v !== 1 ? 's' : ''}`} color="#14B8A6" />
+        </ChartCard>
+        <ChartCard title="Consultas por Cargo" subtitle="Volume de atendimentos por função">
+          <HBarChart data={data.gastosPorCargo} labelKey="cargo" valueKey="consultas"
+            formatValue={v => `${v} consulta${v !== 1 ? 's' : ''}`} color="#8B5CF6" />
+        </ChartCard>
+      </div>
+
+      {/* ---- Row 5: Consultas por médico ---- */}
       <ChartCard title="Consultas por Médico" subtitle="Quantidade de atendimentos por profissional">
         <HBarChart
           data={data.gastosPorMedico.map(d => ({ nome: d.nome, consultas: d.consultas }))}
