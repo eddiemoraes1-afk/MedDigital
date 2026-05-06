@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   const { data: empresa } = await adminSupabase
     .from('empresas')
-    .select('id, nome, preco_mensalidade, preco_consulta')
+    .select('id, nome, preco_mensalidade, preco_consulta, percentual_coparticipacao')
     .eq('id', empresaId)
     .single()
 
@@ -56,17 +56,24 @@ export async function GET(req: NextRequest) {
     medicos.forEach(m => { medicoMap[m.id] = m.nome })
 
     const precoConsulta = empresa.preco_consulta ?? 0
+    const percentualCopart = empresa.percentual_coparticipacao ?? 0
 
-    consultas = (atendimentos ?? []).map(a => ({
-      id: a.id,
-      data: a.finalizado_em ?? a.criado_em,
-      tipo: a.agendamento_id ? 'agendada' : 'virtual',
-      paciente_id: a.paciente_id,
-      paciente_nome: nomePaciente[a.paciente_id] ?? 'Funcionário',
-      medico_id: a.medico_id,
-      medico_nome: medicoMap[a.medico_id] ?? 'Médico',
-      valor_cobrado: a.valor_cobrado ?? precoConsulta,
-    }))
+    consultas = (atendimentos ?? []).map(a => {
+      const valorCobrado = a.valor_cobrado ?? precoConsulta
+      return {
+        id: a.id,
+        data: a.finalizado_em ?? a.criado_em,
+        tipo: a.agendamento_id ? 'agendada' : 'virtual',
+        paciente_id: a.paciente_id,
+        paciente_nome: nomePaciente[a.paciente_id] ?? 'Funcionário',
+        medico_id: a.medico_id,
+        medico_nome: medicoMap[a.medico_id] ?? 'Médico',
+        valor_cobrado: valorCobrado,
+        valor_coparticipacao: percentualCopart > 0
+          ? Math.round(valorCobrado * (percentualCopart / 100) * 100) / 100
+          : 0,
+      }
+    })
   }
 
   return NextResponse.json({
@@ -75,6 +82,7 @@ export async function GET(req: NextRequest) {
       nome: empresa.nome,
       preco_mensalidade: empresa.preco_mensalidade ?? 0,
       preco_consulta: empresa.preco_consulta ?? 0,
+      percentual_coparticipacao: empresa.percentual_coparticipacao ?? 0,
     },
     consultas,
     funcionariosAtivos: totalFuncionariosAtivos,

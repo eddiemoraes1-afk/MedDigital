@@ -12,15 +12,20 @@ export async function PATCH(
 
   const preco_mensalidade = parseFloat(body.preco_mensalidade ?? 0)
   const preco_consulta = parseFloat(body.preco_consulta ?? 0)
+  const percentual_coparticipacao = parseFloat(body.percentual_coparticipacao ?? 0)
 
-  if (isNaN(preco_mensalidade) || isNaN(preco_consulta)) {
+  if (isNaN(preco_mensalidade) || isNaN(preco_consulta) || isNaN(percentual_coparticipacao)) {
     return NextResponse.json({ error: 'Valores inválidos' }, { status: 400 })
+  }
+
+  if (percentual_coparticipacao < 0 || percentual_coparticipacao > 100) {
+    return NextResponse.json({ error: 'Percentual de co-participação deve ser entre 0 e 100' }, { status: 400 })
   }
 
   const adminSupabase = createAdminClient()
   const { error } = await adminSupabase
     .from('empresas')
-    .update({ preco_mensalidade, preco_consulta })
+    .update({ preco_mensalidade, preco_consulta, percentual_coparticipacao })
     .eq('id', id)
 
   if (error) {
