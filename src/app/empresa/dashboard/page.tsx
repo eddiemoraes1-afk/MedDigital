@@ -97,7 +97,8 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
   })
 
   function formatDataHora(iso: string) {
-    const d = new Date(iso + (iso.endsWith('Z') ? '' : 'Z'))
+    const d = new Date(iso)
+    if (isNaN(d.getTime())) return '—'
     return d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: 'short', year: 'numeric' })
   }
 
