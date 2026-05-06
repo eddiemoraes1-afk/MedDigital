@@ -59,15 +59,11 @@ export default function AtendimentoMedico() {
 
   async function finalizarConsulta() {
     setSalvando(true)
-    const supabase = createClient()
-    await supabase
-      .from('atendimentos')
-      .update({
-        status: 'concluido',
-        notas_medico: notas,
-        finalizado_em: new Date().toISOString(),
-      })
-      .eq('id', id)
+    await fetch('/api/medico/finalizar-atendimento', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ atendimento_id: id, notas_medico: notas }),
+    })
     setSalvando(false)
     router.push('/medico/dashboard')
   }

@@ -51,20 +51,12 @@ export default function ConsultaMedico() {
   }
 
   async function concluirConsulta() {
-    const supabase = createClient()
-    await supabase
-      .from('atendimentos')
-      .update({ status: 'concluido', finalizado_em: new Date().toISOString() })
-      .eq('id', id)
-
-    // Marcar agendamento como concluído
-    if (atendimento?.agendamento_id) {
-      await supabase
-        .from('agendamentos')
-        .update({ status: 'concluido' })
-        .eq('id', atendimento.agendamento_id)
-    }
-
+    // finalizar-atendimento cuida de: status, finalizado_em, valor_cobrado e agendamento
+    await fetch('/api/medico/finalizar-atendimento', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ atendimento_id: id }),
+    })
     router.push('/medico/agendamentos')
   }
 

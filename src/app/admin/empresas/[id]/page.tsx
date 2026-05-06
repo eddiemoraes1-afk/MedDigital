@@ -10,6 +10,8 @@ import ToggleEmpresaAtivo from './ToggleEmpresaAtivo'
 import BuscaFuncionarios from './BuscaFuncionarios'
 import AdminHeader from '../../components/AdminHeader'
 import LogoEmpresa from './LogoEmpresa'
+import PrecosEmpresa from './PrecosEmpresa'
+import RelatorioEmpresa from '@/components/RelatorioEmpresa'
 
 export default async function EmpresaDetalhePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -152,6 +154,15 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
               <ImportarFuncionarios empresaId={empresa.id} />
             </div>
 
+            {/* Precificação */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm">
+              <PrecosEmpresa
+                empresaId={empresa.id}
+                precoMensalidadeAtual={empresa.preco_mensalidade ?? 0}
+                precoConsultaAtual={empresa.preco_consulta ?? 0}
+              />
+            </div>
+
             {/* Info do portal */}
             <div className="bg-white rounded-2xl p-6 shadow-sm">
               <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 mb-3">
@@ -175,6 +186,14 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Relatório financeiro */}
+        <div className="mt-8 bg-white rounded-2xl p-6 shadow-sm">
+          <RelatorioEmpresa
+            apiUrl={`/api/admin/empresas/${empresa.id}/relatorio`}
+            titulo="Relatório de Cobrança"
+          />
         </div>
       </main>
     </div>

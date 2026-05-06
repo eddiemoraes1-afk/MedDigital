@@ -9,6 +9,7 @@ import {
 import FiltrosFuncionarios from './FiltrosFuncionarios'
 import { Suspense } from 'react'
 import { gerarTema } from '@/lib/tema'
+import RelatorioEmpresa from '@/components/RelatorioEmpresa'
 
 interface Props {
   searchParams: Promise<{ departamento?: string; status?: string }>
@@ -335,6 +336,14 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Relatório de cobrança */}
+        <div className="mt-8 bg-white rounded-2xl p-6 shadow-sm">
+          <RelatorioEmpresa
+            apiUrl="/api/empresa/relatorio"
+            titulo="Relatório de Utilização e Cobrança"
+          />
         </div>
       </main>
     </div>

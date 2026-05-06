@@ -90,6 +90,17 @@ export default async function MedicoPacientePage({ params }: Props) {
     .order('data_hora', { ascending: false })
     .limit(10)
 
+  // Atendimentos concluídos para calcular gasto total
+  const { data: atendimentosConcluidos } = await adminSupabase
+    .from('atendimentos')
+    .select('id, valor_cobrado, criado_em')
+    .eq('paciente_id', id)
+    .eq('status', 'concluido')
+    .order('criado_em', { ascending: false })
+
+  const totalGastoPaciente = (atendimentosConcluidos ?? []).reduce((s, a) => s + (a.valor_cobrado ?? 0), 0)
+  const totalConsultasPaciente = atendimentosConcluidos?.length ?? 0
+
   const medicoIds = [...new Set(agendamentos?.map(a => a.medico_id).filter(Boolean) ?? [])]
   const { data: medicos } = medicoIds.length > 0
     ? await adminSupabase.from('medicos').select('id, nome').in('id', medicoIds)
@@ -209,15 +220,23 @@ export default async function MedicoPacientePage({ params }: Props) {
               )}
             </div>
 
-            <div className="flex gap-3 shrink-0">
+            <div className="flex gap-3 shrink-0 flex-wrap">
               <div className="text-center bg-[#F3FAF7] rounded-xl px-4 py-3">
                 <p className="text-2xl font-bold text-[#1A3A2C]">{triagens.length}</p>
                 <p className="text-xs text-gray-400">triagens</p>
               </div>
               <div className="text-center bg-green-50 rounded-xl px-4 py-3">
-                <p className="text-2xl font-bold text-green-600">{agendamentos?.length ?? 0}</p>
+                <p className="text-2xl font-bold text-green-600">{totalConsultasPaciente}</p>
                 <p className="text-xs text-gray-400">consultas</p>
               </div>
+              {totalGastoPaciente > 0 && (
+                <div className="text-center bg-amber-50 rounded-xl px-4 py-3">
+                  <p className="text-lg font-bold text-amber-700">
+                    {totalGastoPaciente.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </p>
+                  <p className="text-xs text-gray-400">gasto total</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
