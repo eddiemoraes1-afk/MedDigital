@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import { Shield, Building2, Users, Calendar, UserCheck, LogOut, ArrowLeft } from 'lucide-react'
+import { Shield, Building2, Users, Calendar, UserCheck, LogOut, ArrowLeft, BarChart2 } from 'lucide-react'
 
 interface Props {
-  ativo?: 'empresas' | 'pacientes' | 'agendamentos' | 'medicos'
+  ativo?: 'dashboard' | 'empresas' | 'pacientes' | 'agendamentos' | 'medicos'
   /** Título da tela exibido como badge destacado (ex: "Empresa"). Omitir na navegação principal. */
   titulo?: string
   /** Href do botão Voltar. Quando fornecido, exibe o botão em vez da nav completa. */
@@ -52,6 +52,9 @@ export default function AdminHeader({ ativo, titulo, backHref }: Props) {
           </form>
         ) : (
           <nav className="flex items-center gap-5">
+            <Link href="/admin/dashboard" className={`${linkBase} ${ativo === 'dashboard' ? linkAtivo : linkInativo}`}>
+              <BarChart2 className="w-4 h-4" /> <span className="hidden md:inline">Dashboard</span>
+            </Link>
             <Link href="/admin/empresas" className={`${linkBase} ${ativo === 'empresas' ? linkAtivo : linkInativo}`}>
               <Building2 className="w-4 h-4" /> <span className="hidden md:inline">Empresas</span>
             </Link>
