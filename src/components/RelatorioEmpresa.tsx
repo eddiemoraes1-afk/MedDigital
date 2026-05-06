@@ -272,7 +272,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
       <div style="font-size:10px;color:#555;margin-top:2px">${dados.funcionariosAtivos} func. × ${formatBRL(dados.empresa?.preco_mensalidade || 0)} × ${meses} ${meses === 1 ? 'mês' : 'meses'}</div>
     </div>
     <div class="card total">
-      <div class="lbl">Total a cobrar</div>
+      <div class="lbl">Total a Pagar</div>
       <div class="val">${formatBRL(totalGeral)}</div>
     </div>
   </div>
@@ -314,7 +314,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
 
   <div class="total-geral">
     <div>
-      <div class="tg-lbl">Total a cobrar no período</div>
+      <div class="tg-lbl">Total a Pagar no período</div>
       <div class="tg-sub">${formatBRL(totalConsultas)} consultas + ${formatBRL(totalMensalidade)} mensalidade</div>
     </div>
     <div class="tg-val">${formatBRL(totalGeral)}</div>
@@ -434,7 +434,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
               </p>
             </div>
             <div className="bg-[#1A3A2C] rounded-2xl p-4">
-              <p className="text-xs text-green-300 font-medium mb-1">Total a cobrar</p>
+              <p className="text-xs text-green-300 font-medium mb-1">Total a Pagar</p>
               <p className="text-xl font-bold text-white leading-tight">{formatBRL(totalGeral)}</p>
             </div>
           </div>
@@ -570,7 +570,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
           <div className="bg-[#1A3A2C] rounded-2xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-300 text-sm font-semibold">Total a cobrar no período</p>
+                <p className="text-green-300 text-sm font-semibold">Total a Pagar no período</p>
                 <p className="text-xs text-green-400 mt-1">
                   {formatBRL(totalConsultas)} em consultas + {formatBRL(totalMensalidade)} em mensalidade
                 </p>
