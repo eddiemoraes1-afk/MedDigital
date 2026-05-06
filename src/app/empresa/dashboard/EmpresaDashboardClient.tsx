@@ -309,18 +309,31 @@ function ChartCard({ title, subtitle, children, className = '' }: {
 function KpiCard({ label, value, sub, icon: Icon, color, highlight }: {
   label: string; value: string; sub?: string; icon: React.ElementType; color: string; highlight?: boolean
 }) {
-  return (
-    <div className={`rounded-2xl p-5 shadow-sm border ${highlight ? 'bg-[#1A3A2C] border-[#1A3A2C]' : 'bg-white border-gray-50'}`}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className={`text-xs font-medium ${highlight ? 'text-green-300' : 'text-gray-400'}`}>{label}</p>
-          <p className={`text-xl font-bold mt-1 leading-tight ${highlight ? 'text-white' : 'text-[#1A3A2C]'}`}>{value}</p>
-          {sub && <p className={`text-xs mt-0.5 ${highlight ? 'text-green-300' : 'text-gray-400'}`}>{sub}</p>}
+  if (highlight) {
+    return (
+      <div className="rounded-2xl p-5 shadow-sm border border-[#1A3A2C] col-span-1"
+        style={{ background: 'linear-gradient(135deg, #1A3A2C 60%, #2d5c42)' }}>
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(91,189,155,0.25)' }}>
+            <Icon className="w-4 h-4" style={{ color: '#5BBD9B' }} />
+          </div>
+          <p className="text-xs font-semibold text-green-300 uppercase tracking-wide">{label}</p>
         </div>
-        <div className="p-2.5 rounded-xl shrink-0" style={{ backgroundColor: highlight ? 'rgba(255,255,255,0.15)' : `${color}20` }}>
-          <Icon className="w-5 h-5" style={{ color: highlight ? '#5BBD9B' : color }} />
-        </div>
+        <p className="text-2xl font-bold text-white leading-none">{value}</p>
+        {sub && <p className="text-xs text-green-300 mt-1.5">{sub}</p>}
       </div>
+    )
+  }
+  return (
+    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 col-span-1">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}18` }}>
+          <Icon className="w-4 h-4" style={{ color }} />
+        </div>
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide truncate">{label}</p>
+      </div>
+      <p className="text-2xl font-bold text-[#1A3A2C] leading-none">{value}</p>
+      {sub && <p className="text-xs text-gray-400 mt-1.5">{sub}</p>}
     </div>
   )
 }
@@ -565,12 +578,12 @@ export default function EmpresaDashboardClient() {
       </div>
 
       {/* ---- KPIs ---- */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <KpiCard label="Total de Gastos" value={formatBRL(kpis.totalGeral)} sub="consultas + mensalidade" icon={DollarSign} color="#5BBD9B" highlight />
         <KpiCard label="Gastos Consultas" value={formatBRL(kpis.totalGastosConsultas)} sub={`${kpis.totalConsultas} realizadas`} icon={Activity} color="#3B82F6" />
         <KpiCard label="Mensalidade" value={formatBRL(kpis.totalMensalidade)} sub={`${kpis.funcionariosAtivos} funcionários ativos`} icon={Building2} color="#8B5CF6" />
         <KpiCard label="Custo Médio" value={formatBRL(kpis.ticketMedio)} sub="por consulta" icon={TrendingDown} color="#F59E0B" />
-        <KpiCard label="Funcionários" value={String(kpis.funcionariosAtivos)} sub={`${kpis.funcionariosComUso} com uso`} icon={Users} color="#14B8A6" />
+        <KpiCard label="Funcionários Ativos" value={String(kpis.funcionariosAtivos)} sub={`${kpis.funcionariosComUso} com uso`} icon={Users} color="#14B8A6" />
         <KpiCard label="Taxa de Uso" value={`${kpis.taxaUso}%`} sub="da equipe utilizou" icon={UserCheck} color="#EC4899" />
       </div>
 
