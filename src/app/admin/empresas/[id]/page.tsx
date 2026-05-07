@@ -31,7 +31,8 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
   const { data: vinculos } = await adminSupabase
     .from('vinculos_empresa')
     .select(`
-      id, cpf, nome_completo, email, cargo, departamento,
+      id, cpf, nome_completo, email, cargo, tipo_cargo, departamento,
+      relacao, nome_mae, nome_social,
       registro_funcional, data_admissao, ativo, criado_em,
       paciente_id
     `)
@@ -134,7 +135,7 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
                 </h2>
               </div>
               {vinculos && vinculos.length > 0 ? (
-                <BuscaFuncionarios vinculos={vinculos} />
+                <BuscaFuncionarios vinculos={vinculos} empresaNome={empresa.nome} />
               ) : (
                 <div className="text-center py-12">
                   <Users className="w-12 h-12 text-gray-200 mx-auto mb-3" />
@@ -151,7 +152,7 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
               <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 mb-4">
                 <FileSpreadsheet className="w-4 h-4 text-[#5BBD9B]" /> Importar funcionários
               </h2>
-              <ImportarFuncionarios empresaId={empresa.id} />
+              <ImportarFuncionarios empresaId={empresa.id} empresaNome={empresa.nome} />
             </div>
 
             {/* Precificação */}

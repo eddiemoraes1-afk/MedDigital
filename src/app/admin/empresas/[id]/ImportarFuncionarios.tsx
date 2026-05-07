@@ -6,6 +6,7 @@ import { Upload, Loader2, Download, CheckCircle2, AlertCircle, FileSpreadsheet, 
 
 interface Props {
   empresaId: string
+  empresaNome?: string
 }
 
 interface ResultadoImport {
@@ -14,7 +15,7 @@ interface ResultadoImport {
   erros: string[]
 }
 
-export default function ImportarFuncionarios({ empresaId }: Props) {
+export default function ImportarFuncionarios({ empresaId, empresaNome = '' }: Props) {
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -26,7 +27,8 @@ export default function ImportarFuncionarios({ empresaId }: Props) {
   const [resultado, setResultado] = useState<ResultadoImport | null>(null)
   const [erroGeral, setErroGeral] = useState('')
 
-  // Quando o usuário seleciona o arquivo
+  const isFunservir = empresaNome.toLowerCase().includes('funservir')
+
   async function handleArquivoSelecionado(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
@@ -39,7 +41,6 @@ export default function ImportarFuncionarios({ empresaId }: Props) {
 
     const nome = file.name.toLowerCase()
 
-    // Para .xlsx, listar as abas antes de importar
     if (nome.endsWith('.xlsx') || nome.endsWith('.xls')) {
       try {
         // @ts-ignore
@@ -48,7 +49,6 @@ export default function ImportarFuncionarios({ empresaId }: Props) {
         const wb = xlsx.read(buffer, { type: 'array' })
         const nomes: string[] = wb.SheetNames
         setAbas(nomes)
-        // Pré-selecionar aba mais provável
         const prioridade = nomes.find(n =>
           n.toLowerCase().includes('funcion') || n.toLowerCase().includes('emplo') || n.toLowerCase().includes('staff')
         ) || nomes[nomes.length - 1]
@@ -56,10 +56,9 @@ export default function ImportarFuncionarios({ empresaId }: Props) {
         setAbaSelecionada(prioridade)
         setAbaIndex(idx >= 0 ? idx : nomes.length - 1)
       } catch {
-        setErroGeral('Não foi possível ler as abas do arquivo. Verifique se o xlsx está instalado.')
+        setErroGeral('Não foi possível ler as abas do arquivo.')
       }
     }
-    // CSV não tem abas, vai direto
   }
 
   async function handleImportar() {
@@ -94,17 +93,70 @@ export default function ImportarFuncionarios({ empresaId }: Props) {
     }
   }
 
-  function baixarTemplate() {
-    const header = 'nome_completo,cpf,email,registro_funcional,cargo,departamento,data_admissao'
-    const exemplo = 'João Silva,123.456.789-00,joao@empresa.com,REG001,Analista,TI,2023-01-15'
-    const csv = `${header}\n${exemplo}`
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'template_funcionarios.csv'
-    a.click()
-    URL.revokeObjectURL(url)
+  async function baixarTemplate() {
+    if (isFunservir) {
+      // Template XLSX específico para Funservir
+      // @ts-ignore
+      const xlsx = await import('xlsx')
+      const wb = xlsx.utils.book_new()
+
+      const instrucoes = [
+        ['Funservir · Importação de Servidores'],
+        ['Preencha todos os campos obrigatórios (*). CPF sem pontuação ou com pontos e traço. Data: DD/MM/AAAA ou AAAA-MM-DD. Sexo: masculino | feminino | outro | nao_informado. Relação: estatutario | celetista | comissionado | estagiario | temporario'],
+        [
+          'nome_completo *',
+          'cpf *',
+          'email',
+          'registro_funcional',
+          'cargo *',
+          'tipo_cargo',
+          'secretaria *',
+          'relacao *',
+          'nome_mae *',
+          'nome_social',
+          'data_admissao',
+          'data_nascimento *',
+          'sexo *',
+        ],
+        [
+          'João José da Silva',
+          '521.784.986-01',
+          'jose@funservir.com.br',
+          'ROD-0001',
+          'Motorista',
+          'Operacional',
+          'Secretaria de Operações',
+          'estatutario',
+          'Maria de Fátima Silva',
+          '',
+          '2021-03-15',
+          '1983-09-15',
+          'masculino',
+        ],
+      ]
+
+      const ws = xlsx.utils.aoa_to_sheet(instrucoes)
+      ws['!cols'] = [
+        { wch: 30 }, { wch: 18 }, { wch: 28 }, { wch: 18 },
+        { wch: 20 }, { wch: 20 }, { wch: 28 }, { wch: 16 },
+        { wch: 30 }, { wch: 24 }, { wch: 14 }, { wch: 16 }, { wch: 12 },
+      ]
+
+      xlsx.utils.book_append_sheet(wb, ws, 'Servidores')
+      xlsx.writeFile(wb, 'template_servidores_funservir.xlsx')
+    } else {
+      // Template CSV padrão
+      const header = 'nome_completo,cpf,email,registro_funcional,cargo,departamento,data_admissao,data_nascimento,sexo'
+      const exemplo = 'João Silva,123.456.789-00,joao@empresa.com,REG001,Analista,TI,2023-01-15,1990-05-20,masculino'
+      const csv = `${header}\n${exemplo}`
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'template_funcionarios.csv'
+      a.click()
+      URL.revokeObjectURL(url)
+    }
   }
 
   const isXlsx = arquivo?.name.toLowerCase().match(/\.xlsx?$/)
@@ -112,8 +164,12 @@ export default function ImportarFuncionarios({ empresaId }: Props) {
   return (
     <div className="space-y-4">
       <p className="text-xs text-gray-500 leading-relaxed">
-        Importe um arquivo <strong>.csv</strong> ou <strong>.xlsx</strong> com a lista de funcionários.
-        Colunas obrigatórias: <span className="font-mono">nome_completo</span>, <span className="font-mono">cpf</span>.
+        Importe um arquivo <strong>.csv</strong> ou <strong>.xlsx</strong> com a lista de{' '}
+        {isFunservir ? 'servidores' : 'funcionários'}.{' '}
+        {isFunservir
+          ? <>Campos obrigatórios: <span className="font-mono">nome_completo</span>, <span className="font-mono">cpf</span>, <span className="font-mono">cargo</span>, <span className="font-mono">secretaria</span>, <span className="font-mono">relacao</span>, <span className="font-mono">nome_mae</span>.</>
+          : <>Colunas obrigatórias: <span className="font-mono">nome_completo</span>, <span className="font-mono">cpf</span>.</>
+        }
       </p>
 
       <button
@@ -121,7 +177,7 @@ export default function ImportarFuncionarios({ empresaId }: Props) {
         className="flex items-center gap-1.5 text-xs text-[#5BBD9B] hover:text-[#1A3A2C] transition-colors"
       >
         <Download className="w-3.5 h-3.5" />
-        Baixar template CSV
+        {isFunservir ? 'Baixar template XLSX (Funservir)' : 'Baixar template CSV'}
       </button>
 
       {/* Etapa 1 — Selecionar arquivo */}
@@ -144,9 +200,7 @@ export default function ImportarFuncionarios({ empresaId }: Props) {
           />
         </div>
       ) : (
-        /* Etapa 2 — Arquivo selecionado */
         <div className="border border-gray-200 rounded-xl p-4 space-y-4 bg-gray-50">
-          {/* Info do arquivo */}
           <div className="flex items-center gap-3">
             <FileSpreadsheet className="w-8 h-8 text-green-600 shrink-0" />
             <div className="flex-1 min-w-0">
@@ -168,11 +222,10 @@ export default function ImportarFuncionarios({ empresaId }: Props) {
             />
           </div>
 
-          {/* Seletor de aba (só para xlsx) */}
           {isXlsx && abas.length > 0 && (
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">
-                Qual aba contém os funcionários?
+                Qual aba contém os {isFunservir ? 'servidores' : 'funcionários'}?
               </label>
               <select
                 value={abaIndex}
@@ -190,7 +243,6 @@ export default function ImportarFuncionarios({ empresaId }: Props) {
             </div>
           )}
 
-          {/* Botão importar */}
           <button
             onClick={handleImportar}
             disabled={carregando || (!!isXlsx && !abaSelecionada)}
@@ -199,13 +251,12 @@ export default function ImportarFuncionarios({ empresaId }: Props) {
             {carregando ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Importando...</>
             ) : (
-              <><ChevronRight className="w-4 h-4" /> Importar funcionários</>
+              <><ChevronRight className="w-4 h-4" /> Importar {isFunservir ? 'servidores' : 'funcionários'}</>
             )}
           </button>
         </div>
       )}
 
-      {/* Resultado */}
       {resultado && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 space-y-1">
           <p className="text-sm font-semibold text-green-700 flex items-center gap-1.5">
@@ -240,9 +291,23 @@ export default function ImportarFuncionarios({ empresaId }: Props) {
           <p><span className="font-mono text-gray-600">cpf</span> — obrigatório, para vincular ao cadastro</p>
           <p><span className="font-mono text-gray-600">email</span></p>
           <p><span className="font-mono text-gray-600">registro_funcional</span></p>
-          <p><span className="font-mono text-gray-600">cargo</span></p>
-          <p><span className="font-mono text-gray-600">departamento</span></p>
-          <p><span className="font-mono text-gray-600">data_admissao</span> — formato YYYY-MM-DD</p>
+          <p><span className="font-mono text-gray-600">cargo</span>{isFunservir ? ' — obrigatório' : ''}</p>
+          <p><span className="font-mono text-gray-600">tipo_cargo</span></p>
+          {isFunservir ? (
+            <p><span className="font-mono text-gray-600">secretaria</span> — obrigatório (equivale a departamento)</p>
+          ) : (
+            <p><span className="font-mono text-gray-600">departamento</span></p>
+          )}
+          {isFunservir && (
+            <>
+              <p><span className="font-mono text-gray-600">relacao</span> — obrigatório (estatutario | celetista | comissionado | estagiario | temporario)</p>
+              <p><span className="font-mono text-gray-600">nome_mae</span> — obrigatório</p>
+              <p><span className="font-mono text-gray-600">nome_social</span> — opcional</p>
+            </>
+          )}
+          <p><span className="font-mono text-gray-600">data_admissao</span> — formato YYYY-MM-DD ou DD/MM/AAAA</p>
+          <p><span className="font-mono text-gray-600">data_nascimento</span>{isFunservir ? ' — obrigatório' : ''}</p>
+          <p><span className="font-mono text-gray-600">sexo</span>{isFunservir ? ' — obrigatório' : ''} (masculino | feminino | outro | nao_informado)</p>
         </div>
       </details>
     </div>

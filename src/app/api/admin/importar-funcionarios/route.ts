@@ -188,6 +188,9 @@ export async function POST(request: NextRequest) {
     const sexoRaw = (reg['sexo'] || '').toLowerCase().trim()
     const sexoValido = ['masculino','feminino','outro','nao_informado'].includes(sexoRaw) ? sexoRaw : null
 
+    // 'secretaria' é alias de 'departamento' para empresas como Funservir
+    const departamentoRaw = reg['secretaria']?.trim() || reg['departamento']?.trim() || null
+
     const dadosVinculo = {
       empresa_id: empresaId,
       cpf: cpf || null,
@@ -195,7 +198,11 @@ export async function POST(request: NextRequest) {
       email: reg['email']?.trim() || null,
       registro_funcional: reg['registro_funcional']?.trim() || null,
       cargo: reg['cargo']?.trim() || null,
-      departamento: reg['departamento']?.trim() || null,
+      tipo_cargo: reg['tipo_cargo']?.trim() || null,
+      departamento: departamentoRaw,
+      relacao: reg['relacao']?.trim() || null,
+      nome_mae: reg['nome_mae']?.trim() || null,
+      nome_social: reg['nome_social']?.trim() || null,
       data_admissao: dataAdmissao,
       data_nascimento: dataNasc,
       sexo: sexoValido,
