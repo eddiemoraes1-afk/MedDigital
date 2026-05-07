@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { Loader2, Phone, User, Calendar, Clock, FileText, ChevronDown, ChevronUp } from 'lucide-react'
 import AtestadoForm from '@/components/AtestadoForm'
 
@@ -17,40 +16,20 @@ export default function ConsultaMedico() {
   const [showAtestado, setShowAtestado] = useState(false)
 
   useEffect(() => {
-    carregarDados()
+    if (!id) return
+    fetch(`/api/medico/consulta/${id}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.atendimento) {
+          setAtendimento(data.atendimento)
+          setPaciente(data.paciente ?? null)
+          setMedico(data.medico ?? null)
+          setAgendamento(data.agendamento ?? null)
+        }
+      })
+      .catch(console.error)
+      .finally(() => setCarregando(false))
   }, [id])
-
-  async function carregarDados() {
-    const supabase = createClient()
-    const { data } = await supabase
-      .from('atendimentos')
-      .select('*, medicos(id, nome, especialidade, crm, crm_uf)')
-      .eq('id', id)
-      .single()
-
-    if (data) {
-      setAtendimento(data)
-      setMedico(data.medicos)
-
-      const { data: pac } = await supabase
-        .from('pacientes')
-        .select('id, nome, cpf, telefone, data_nascimento, sexo')
-        .eq('id', data.paciente_id)
-        .single()
-      setPaciente(pac)
-
-      if (data.agendamento_id) {
-        const { data: ag } = await supabase
-          .from('agendamentos')
-          .select('data_hora, observacoes')
-          .eq('id', data.agendamento_id)
-          .single()
-        setAgendamento(ag)
-      }
-
-      setCarregando(false)
-    }
-  }
 
   async function concluirConsulta() {
     await fetch('/api/medico/finalizar-atendimento', {
@@ -126,10 +105,12 @@ export default function ConsultaMedico() {
 
       {/* Corpo */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        {paciente && (
-          <div className="w-72 bg-[#1A3A2C] shrink-0 overflow-y-auto hidden md:flex flex-col">
-            {/* Info do paciente */}
+
+        {/* Sidebar — sempre visível se tiver dados do paciente */}
+        <div className="w-72 bg-[#1A3A2C] shrink-0 overflow-y-auto flex flex-col">
+
+          {/* Info do paciente */}
+          {paciente ? (
             <div className="p-4 border-b border-white/10">
               <h3 className="text-green-200 text-xs font-semibold uppercase tracking-wider mb-3">Paciente</h3>
               <div className="bg-white/10 rounded-xl p-3 mb-3">
@@ -140,7 +121,7 @@ export default function ConsultaMedico() {
                 {paciente.cpf && <p className="text-green-300 text-xs mt-0.5">CPF: {paciente.cpf}</p>}
                 {paciente.data_nascimento && (
                   <p className="text-green-300 text-xs mt-0.5">
-                    Nasc.: {new Date(paciente.data_nascimento).toLocaleDateString('pt-BR')}
+                    Nasc.: {new Date(paciente.data_nascimento + 'T12:00:00').toLocaleDateString('pt-BR')}
                   </p>
                 )}
                 {paciente.telefone && (
@@ -171,46 +152,56 @@ export default function ConsultaMedico() {
                 </div>
               )}
             </div>
-
-            {/* Seção Atestado */}
-            <div className="p-4">
-              <button
-                onClick={() => setShowAtestado(v => !v)}
-                className="w-full flex items-center justify-between bg-white/10 hover:bg-white/20 rounded-xl px-3 py-2.5 transition-colors mb-3"
-              >
-                <span className="flex items-center gap-2 text-white text-xs font-semibold">
-                  <FileText className="w-4 h-4 text-[#5BBD9B]" />
-                  Emitir Atestado
-                </span>
-                {showAtestado
-                  ? <ChevronUp className="w-4 h-4 text-green-300" />
-                  : <ChevronDown className="w-4 h-4 text-green-300" />}
-              </button>
-
-              {showAtestado && (
-                <div className="bg-white rounded-2xl p-4">
-                  <AtestadoForm
-                    atendimentoId={String(id)}
-                    pacienteId={paciente.id}
-                    paciente={{
-                      nome: paciente.nome,
-                      cpf: paciente.cpf,
-                      data_nascimento: paciente.data_nascimento,
-                      sexo: paciente.sexo,
-                    }}
-                    medico={{
-                      nome: medico?.nome ?? '',
-                      crm: medico?.crm,
-                      crm_uf: medico?.crm_uf,
-                      especialidade: medico?.especialidade,
-                    }}
-                    onFechar={() => setShowAtestado(false)}
-                  />
-                </div>
-              )}
+          ) : (
+            <div className="p-4 border-b border-white/10">
+              <p className="text-green-300 text-xs">Carregando dados do paciente...</p>
             </div>
+          )}
+
+          {/* Seção Atestado — sempre renderizada, independente do paciente */}
+          <div className="p-4">
+            <button
+              onClick={() => setShowAtestado(v => !v)}
+              className="w-full flex items-center justify-between bg-white/10 hover:bg-white/20 rounded-xl px-3 py-2.5 transition-colors mb-3"
+            >
+              <span className="flex items-center gap-2 text-white text-xs font-semibold">
+                <FileText className="w-4 h-4 text-[#5BBD9B]" />
+                Emitir Atestado
+              </span>
+              {showAtestado
+                ? <ChevronUp className="w-4 h-4 text-green-300" />
+                : <ChevronDown className="w-4 h-4 text-green-300" />}
+            </button>
+
+            {showAtestado && paciente && medico && (
+              <div className="bg-white rounded-2xl p-4">
+                <AtestadoForm
+                  atendimentoId={String(id)}
+                  pacienteId={paciente.id}
+                  paciente={{
+                    nome: paciente.nome,
+                    cpf: paciente.cpf,
+                    data_nascimento: paciente.data_nascimento,
+                    sexo: paciente.sexo,
+                  }}
+                  medico={{
+                    nome: medico.nome ?? '',
+                    crm: medico.crm,
+                    crm_uf: medico.crm_uf,
+                    especialidade: medico.especialidade,
+                  }}
+                  onFechar={() => setShowAtestado(false)}
+                />
+              </div>
+            )}
+
+            {showAtestado && !paciente && (
+              <div className="bg-white/10 rounded-xl px-3 py-3 text-xs text-green-300">
+                Aguardando dados do paciente...
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Vídeo */}
         <div className="flex-1 relative">
