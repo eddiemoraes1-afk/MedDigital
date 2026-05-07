@@ -9,6 +9,7 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import MedicoHeader from '../../MedicoHeader'
+import AtestadosMedicoClient from './AtestadosMedicoClient'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -98,10 +99,10 @@ export default async function MedicoPacientePage({ params }: Props) {
     .eq('status', 'concluido')
     .order('criado_em', { ascending: false })
 
-  // Atestados do paciente
+  // Atestados do paciente (com dados completos do médico para PDF)
   const { data: atestados } = await adminSupabase
     .from('atestados')
-    .select('id, data_emissao, data_inicio, data_fim, dias, cid, texto_complementar, medico_id, medicos(nome)')
+    .select('id, data_emissao, data_inicio, data_fim, dias, cid, texto_complementar, medico_id, medicos(nome, crm, crm_uf, especialidade)')
     .eq('paciente_id', id)
     .order('data_emissao', { ascending: false })
 
@@ -463,43 +464,16 @@ export default async function MedicoPacientePage({ params }: Props) {
               </div>
 
               {atestados && atestados.length > 0 ? (
-                <div className="space-y-3">
-                  {atestados.map((at: any) => (
-                    <div key={at.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">
-                              {at.dias} dia{at.dias !== 1 ? 's' : ''} de afastamento
-                            </span>
-                            {at.cid && (
-                              <span className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full font-mono">
-                                CID: {at.cid}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-500 mt-2 flex items-center gap-2 flex-wrap">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              {new Date(at.data_inicio + 'T12:00:00').toLocaleDateString('pt-BR')} até {new Date(at.data_fim + 'T12:00:00').toLocaleDateString('pt-BR')}
-                            </span>
-                            {at.medicos && (
-                              <span className="text-gray-400">· Dr(a). {(at.medicos as any).nome}</span>
-                            )}
-                          </p>
-                          {at.texto_complementar && (
-                            <p className="text-xs text-gray-600 mt-2 italic bg-gray-50 rounded-lg px-3 py-2">
-                              "{at.texto_complementar}"
-                            </p>
-                          )}
-                        </div>
-                        <p className="text-xs text-gray-400 shrink-0">
-                          {new Date(at.data_emissao + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <AtestadosMedicoClient
+                  atestados={atestados as any}
+                  paciente={{
+                    nome: paciente.nome,
+                    cpf: paciente.cpf ?? null,
+                    data_nascimento: paciente.data_nascimento ?? null,
+                    sexo: paciente.sexo ?? null,
+                  }}
+                  medicoId={medico.id}
+                />
               ) : (
                 <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
                   <FileText className="w-10 h-10 text-gray-200 mx-auto mb-3" />

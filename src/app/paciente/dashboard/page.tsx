@@ -43,6 +43,15 @@ export default async function PacienteDashboard() {
     .order('criado_em', { ascending: false })
     .limit(3)
 
+  // Atestados do paciente
+  const hoje = new Date().toISOString().slice(0, 10)
+  const { data: atestadosPaciente } = await adminSupabase
+    .from('atestados')
+    .select('id, data_fim')
+    .eq('paciente_id', paciente?.id)
+  const totalAtestados = atestadosPaciente?.length ?? 0
+  const atestadosValidos = (atestadosPaciente ?? []).filter((a: any) => a.data_fim >= hoje).length
+
   // Próximas consultas
   const agora = new Date().toISOString()
   const { data: proximasConsultas } = await adminSupabase
@@ -196,13 +205,13 @@ export default async function PacienteDashboard() {
             { icon: Brain, label: 'Nova triagem', href: '/paciente/triagem' },
             { icon: Video, label: 'Consulta virtual', href: '/paciente/triagem' },
             { icon: Calendar, label: 'Meus agendamentos', href: '/paciente/agendamentos', badge: totalConsultas > 0 ? totalConsultas : undefined },
-            { icon: FileText, label: 'Prontuário', href: '/paciente/prontuario' },
+            { icon: FileText, label: 'Atestados', href: '/paciente/atestados', badge: atestadosValidos > 0 ? atestadosValidos : (totalAtestados > 0 ? totalAtestados : undefined), badgeValido: atestadosValidos > 0 },
           ].map((item) => (
             <Link key={item.label} href={item.href}
               className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md text-center group relative transition-shadow">
               {(item as any).badge && (
-                <span className="absolute top-3 right-3 w-5 h-5 text-white text-xs font-bold rounded-full flex items-center justify-center"
-                  style={{ backgroundColor: tema.corPrimaria }}>
+                <span className={`absolute top-3 right-3 w-5 h-5 text-white text-xs font-bold rounded-full flex items-center justify-center ${(item as any).badgeValido ? 'bg-green-500' : ''}`}
+                  style={(item as any).badgeValido ? {} : { backgroundColor: tema.corPrimaria }}>
                   {(item as any).badge}
                 </span>
               )}
