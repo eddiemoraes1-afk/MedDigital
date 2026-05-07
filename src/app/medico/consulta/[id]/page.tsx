@@ -3,15 +3,18 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2, Phone, User, Calendar, Clock } from 'lucide-react'
+import { Loader2, Phone, User, Calendar, Clock, FileText, ChevronDown, ChevronUp } from 'lucide-react'
+import AtestadoForm from '@/components/AtestadoForm'
 
 export default function ConsultaMedico() {
   const { id } = useParams()
   const router = useRouter()
   const [atendimento, setAtendimento] = useState<any>(null)
   const [paciente, setPaciente] = useState<any>(null)
+  const [medico, setMedico] = useState<any>(null)
   const [agendamento, setAgendamento] = useState<any>(null)
   const [carregando, setCarregando] = useState(true)
+  const [showAtestado, setShowAtestado] = useState(false)
 
   useEffect(() => {
     carregarDados()
@@ -21,22 +24,21 @@ export default function ConsultaMedico() {
     const supabase = createClient()
     const { data } = await supabase
       .from('atendimentos')
-      .select('*, medicos(nome, especialidade)')
+      .select('*, medicos(id, nome, especialidade, crm, crm_uf)')
       .eq('id', id)
       .single()
 
     if (data) {
       setAtendimento(data)
+      setMedico(data.medicos)
 
-      // Buscar dados do paciente
       const { data: pac } = await supabase
         .from('pacientes')
-        .select('nome, telefone, data_nascimento')
+        .select('id, nome, cpf, telefone, data_nascimento, sexo')
         .eq('id', data.paciente_id)
         .single()
       setPaciente(pac)
 
-      // Buscar agendamento se houver
       if (data.agendamento_id) {
         const { data: ag } = await supabase
           .from('agendamentos')
@@ -51,7 +53,6 @@ export default function ConsultaMedico() {
   }
 
   async function concluirConsulta() {
-    // finalizar-atendimento cuida de: status, finalizado_em, valor_cobrado e agendamento
     await fetch('/api/medico/finalizar-atendimento', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -95,8 +96,7 @@ export default function ConsultaMedico() {
           <span className="text-green-300 text-xs">— Consulta Virtual</span>
         </div>
 
-        <div className="flex items-center gap-4">
-          {/* Info do paciente */}
+        <div className="flex items-center gap-3">
           {paciente && (
             <div className="hidden md:flex items-center gap-3 bg-white/10 rounded-xl px-3 py-1.5">
               <User className="w-4 h-4 text-green-200" />
@@ -124,49 +124,91 @@ export default function ConsultaMedico() {
         </div>
       </div>
 
-      {/* Painel lateral com info + vídeo */}
+      {/* Corpo */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Info do paciente (lateral) */}
+        {/* Sidebar */}
         {paciente && (
-          <div className="w-64 bg-[#1A3A2C] p-4 shrink-0 overflow-y-auto hidden md:block">
-            <h3 className="text-green-200 text-xs font-semibold uppercase tracking-wider mb-3">Paciente</h3>
-            <div className="bg-white/10 rounded-xl p-3 mb-4">
-              <div className="w-10 h-10 bg-[#5BBD9B] rounded-full flex items-center justify-center mb-2">
-                <User className="w-5 h-5 text-white" />
+          <div className="w-72 bg-[#1A3A2C] shrink-0 overflow-y-auto hidden md:flex flex-col">
+            {/* Info do paciente */}
+            <div className="p-4 border-b border-white/10">
+              <h3 className="text-green-200 text-xs font-semibold uppercase tracking-wider mb-3">Paciente</h3>
+              <div className="bg-white/10 rounded-xl p-3 mb-3">
+                <div className="w-10 h-10 bg-[#5BBD9B] rounded-full flex items-center justify-center mb-2">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-white font-semibold text-sm">{paciente.nome}</p>
+                {paciente.cpf && <p className="text-green-300 text-xs mt-0.5">CPF: {paciente.cpf}</p>}
+                {paciente.data_nascimento && (
+                  <p className="text-green-300 text-xs mt-0.5">
+                    Nasc.: {new Date(paciente.data_nascimento).toLocaleDateString('pt-BR')}
+                  </p>
+                )}
+                {paciente.telefone && (
+                  <p className="text-green-300 text-xs mt-0.5">{paciente.telefone}</p>
+                )}
               </div>
-              <p className="text-white font-semibold text-sm">{paciente.nome}</p>
-              {paciente.data_nascimento && (
-                <p className="text-green-300 text-xs mt-1">
-                  Nasc.: {new Date(paciente.data_nascimento).toLocaleDateString('pt-BR')}
-                </p>
+
+              {agendamento?.observacoes && (
+                <div>
+                  <h3 className="text-green-200 text-xs font-semibold uppercase tracking-wider mb-2">Queixa</h3>
+                  <div className="bg-white/10 rounded-xl p-3">
+                    <p className="text-blue-100 text-xs leading-relaxed italic">"{agendamento.observacoes}"</p>
+                  </div>
+                </div>
               )}
-              {paciente.telefone && (
-                <p className="text-green-300 text-xs mt-0.5">{paciente.telefone}</p>
+
+              {dataHora && (
+                <div className="mt-3">
+                  <h3 className="text-green-200 text-xs font-semibold uppercase tracking-wider mb-2">Horário</h3>
+                  <div className="bg-white/10 rounded-xl p-3">
+                    <p className="text-white text-xs font-medium">
+                      {dataHora.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', timeZone: 'America/Sao_Paulo' })}
+                    </p>
+                    <p className="text-green-300 text-xs mt-1">
+                      {dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}
+                    </p>
+                  </div>
+                </div>
               )}
             </div>
 
-            {agendamento?.observacoes && (
-              <div>
-                <h3 className="text-green-200 text-xs font-semibold uppercase tracking-wider mb-2">Queixa</h3>
-                <div className="bg-white/10 rounded-xl p-3">
-                  <p className="text-blue-100 text-xs leading-relaxed italic">"{agendamento.observacoes}"</p>
-                </div>
-              </div>
-            )}
+            {/* Seção Atestado */}
+            <div className="p-4">
+              <button
+                onClick={() => setShowAtestado(v => !v)}
+                className="w-full flex items-center justify-between bg-white/10 hover:bg-white/20 rounded-xl px-3 py-2.5 transition-colors mb-3"
+              >
+                <span className="flex items-center gap-2 text-white text-xs font-semibold">
+                  <FileText className="w-4 h-4 text-[#5BBD9B]" />
+                  Emitir Atestado
+                </span>
+                {showAtestado
+                  ? <ChevronUp className="w-4 h-4 text-green-300" />
+                  : <ChevronDown className="w-4 h-4 text-green-300" />}
+              </button>
 
-            {dataHora && (
-              <div className="mt-4">
-                <h3 className="text-green-200 text-xs font-semibold uppercase tracking-wider mb-2">Horário</h3>
-                <div className="bg-white/10 rounded-xl p-3">
-                  <p className="text-white text-xs font-medium">
-                    {dataHora.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', timeZone: 'America/Sao_Paulo' })}
-                  </p>
-                  <p className="text-green-300 text-xs mt-1">
-                    {dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}
-                  </p>
+              {showAtestado && (
+                <div className="bg-white rounded-2xl p-4">
+                  <AtestadoForm
+                    atendimentoId={String(id)}
+                    pacienteId={paciente.id}
+                    paciente={{
+                      nome: paciente.nome,
+                      cpf: paciente.cpf,
+                      data_nascimento: paciente.data_nascimento,
+                      sexo: paciente.sexo,
+                    }}
+                    medico={{
+                      nome: medico?.nome ?? '',
+                      crm: medico?.crm,
+                      crm_uf: medico?.crm_uf,
+                      especialidade: medico?.especialidade,
+                    }}
+                    onFechar={() => setShowAtestado(false)}
+                  />
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
 

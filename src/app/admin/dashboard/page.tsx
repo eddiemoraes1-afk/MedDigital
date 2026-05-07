@@ -1,6 +1,6 @@
 import { requireAdmin } from '@/lib/auth-sistema'
 import AdminHeader from '../components/AdminHeader'
-import DashboardClient from './DashboardClient'
+import AdminDashboardTabs from './AdminDashboardTabs'
 import { BarChart2 } from 'lucide-react'
 
 export default async function AdminDashboardPage() {
@@ -17,11 +17,11 @@ export default async function AdminDashboardPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-[#1A3A2C]">Dashboard de Analytics</h1>
-            <p className="text-sm text-gray-400">Faturamento, consultas, médicos e empresas</p>
+            <p className="text-sm text-gray-400">Faturamento, consultas, médicos, empresas e atestados</p>
           </div>
         </div>
 
-        <DashboardClient />
+        <AdminDashboardTabs />
       </main>
     </div>
   )
