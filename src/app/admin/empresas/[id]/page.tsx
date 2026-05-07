@@ -125,6 +125,14 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
           </div>
         </div>
 
+        {/* Relatório financeiro */}
+        <div className="mb-6 bg-white rounded-2xl p-6 shadow-sm">
+          <RelatorioEmpresa
+            apiUrl={`/api/admin/empresas/${empresa.id}/relatorio`}
+            titulo="Relatório de Cobrança"
+          />
+        </div>
+
         <div className="grid md:grid-cols-3 gap-6">
           {/* Tabela de funcionários */}
           <div className="md:col-span-2">
@@ -190,13 +198,6 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
           </div>
         </div>
 
-        {/* Relatório financeiro */}
-        <div className="mt-8 bg-white rounded-2xl p-6 shadow-sm">
-          <RelatorioEmpresa
-            apiUrl={`/api/admin/empresas/${empresa.id}/relatorio`}
-            titulo="Relatório de Cobrança"
-          />
-        </div>
       </main>
     </div>
   )
