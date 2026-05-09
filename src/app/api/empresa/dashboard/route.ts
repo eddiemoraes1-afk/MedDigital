@@ -54,20 +54,39 @@ export async function GET(req: Request) {
   const vinculoById = new Map<string, any>()
   for (const v of todosVinculos) vinculoById.set(v.id, v)
 
+  // Map registro_funcional → vínculo FUNCIONÁRIO (fallback quando titular_id é nulo)
+  const regFuncTitularMap = new Map<string, any>()
+
   function classRelacao(rel: string | null | undefined): 'Funcionário' | 'Dependente' {
     if (!rel) return 'Funcionário'
     return rel.trim().toLowerCase() === 'funcionário' || rel.trim().toLowerCase() === 'funcionario'
       ? 'Funcionário' : 'Dependente'
   }
 
+  for (const v of todosVinculos) {
+    if (v.registro_funcional && classRelacao(v.relacao) === 'Funcionário') {
+      regFuncTitularMap.set(v.registro_funcional, v)
+    }
+  }
+
+  // Helper: dado um vínculo, retorna o vínculo do titular
+  function resolverTitularVinculo(v: any): any {
+    if (!v) return null
+    const eDep = classRelacao(v.relacao) === 'Dependente'
+    if (!eDep) return v
+    if (v.titular_id && vinculoById.has(v.titular_id)) return vinculoById.get(v.titular_id)
+    if (v.registro_funcional && regFuncTitularMap.has(v.registro_funcional)) {
+      return regFuncTitularMap.get(v.registro_funcional)
+    }
+    return null
+  }
+
   // Helper: dado um paciente_id, retorna o vínculo do titular (próprio ou do funcionário responsável)
   function resolverTitular(pacienteId: string): any {
     const v = vinculoMap.get(pacienteId)
     if (!v) return v
-    if (classRelacao(v.relacao) === 'Dependente' && v.titular_id) {
-      return vinculoById.get(v.titular_id) ?? v
-    }
-    return v
+    const t = resolverTitularVinculo(v)
+    return t ?? v
   }
 
   if (pacienteIds.length === 0) {
@@ -230,9 +249,9 @@ export async function GET(req: Request) {
   const funcGasto = new Map<string, { nome: string; cargo: string; departamento: string; consultas: number; valor: number }>()
   for (const a of ats) {
     const vinculo = vinculoMap.get(a.paciente_id)
-    const isDep = classRelacao(vinculo?.relacao) === 'Dependente' && vinculo?.titular_id
-    const titularVinculo = isDep ? (vinculoById.get(vinculo.titular_id) ?? vinculo) : vinculo
-    const key = isDep ? vinculo.titular_id : (vinculo?.id ?? a.paciente_id)
+    const isDep = classRelacao(vinculo?.relacao) === 'Dependente'
+    const titularVinculo = isDep ? (resolverTitularVinculo(vinculo) ?? vinculo) : vinculo
+    const key = titularVinculo?.id ?? vinculo?.id ?? a.paciente_id
     if (!key) continue
     const nome = titularVinculo?.nome_completo ?? (pacienteMap.get(a.paciente_id) as any)?.nome ?? '—'
     const cur = funcGasto.get(key) ?? {
@@ -347,19 +366,18 @@ export async function GET(req: Request) {
     const vinculo = vinculoMap.get(a.paciente_id)
     if (!vinculo) continue
 
-    const isDependente = classRelacao(vinculo.relacao) === 'Dependente' && vinculo.titular_id
-    const titularVinculo = isDependente ? vinculoById.get(vinculo.titular_id) : vinculo
-    const titularKey = isDependente ? vinculo.titular_id : (vinculo.id ?? a.paciente_id)
+    // isDependente: apenas pela relação, independente de titular_id estar preenchido
+    const isDependente = classRelacao(vinculo.relacao) === 'Dependente'
+    const titularVinculo = isDependente ? resolverTitularVinculo(vinculo) : vinculo
+    // Chave do titular: id do vinculo titular se dependente, próprio id se funcionário
+    const titularKey = isDependente
+      ? (titularVinculo?.id ?? vinculo.id ?? a.paciente_id)
+      : (vinculo.id ?? a.paciente_id)
 
-    if (!titularVinculo && !isDependente) {
-      // Funcionário sem vinculo.id — usa paciente_id como chave
-    }
-
-    const resolvedTitularKey = titularKey
-    if (!resolvedTitularKey) continue
+    if (!titularKey) continue
 
     const titularNome = titularVinculo?.nome_completo ?? vinculo.nome_completo ?? '—'
-    const cur = titularMap.get(resolvedTitularKey) ?? {
+    const cur = titularMap.get(titularKey) ?? {
       nome: titularNome,
       cargo: titularVinculo?.cargo ?? vinculo?.cargo ?? '—',
       departamento: titularVinculo?.departamento ?? vinculo?.departamento ?? '—',
@@ -389,7 +407,7 @@ export async function GET(req: Request) {
       cur.valorProprio += precoConsulta
     }
 
-    titularMap.set(resolvedTitularKey, cur)
+    titularMap.set(titularKey, cur)
   }
 
   const gastosPorTitular = [...titularMap.values()]

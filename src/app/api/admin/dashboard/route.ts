@@ -321,6 +321,24 @@ export async function GET(req: Request) {
   const vinculoByIdGlobal = new Map<string, any>()
   for (const v of allVinculos) vinculoByIdGlobal.set(v.id, v)
 
+  // Map registro_funcional → vínculo titular (somente funcionários, global)
+  const regFuncTitularGlobal = new Map<string, any>()
+  for (const v of allVinculos) {
+    if (v.registro_funcional && classRelacao(v.relacao) === 'Funcionário') {
+      regFuncTitularGlobal.set(v.registro_funcional, v)
+    }
+  }
+
+  function resolverTitularVinculoGlobal(v: any): any {
+    if (!v) return null
+    if (classRelacao(v.relacao) !== 'Dependente') return v
+    if (v.titular_id && vinculoByIdGlobal.has(v.titular_id)) return vinculoByIdGlobal.get(v.titular_id)
+    if (v.registro_funcional && regFuncTitularGlobal.has(v.registro_funcional)) {
+      return regFuncTitularGlobal.get(v.registro_funcional)
+    }
+    return null
+  }
+
   type TitularRowAdmin = {
     nome: string
     cargo: string
@@ -340,9 +358,9 @@ export async function GET(req: Request) {
     const vinculo = vinculoMapGlobal.get(a.paciente_id)
     if (!vinculo) continue
 
-    const isDependente = classRelacao(vinculo.relacao) === 'Dependente' && vinculo.titular_id
-    const titularVinculo = isDependente ? vinculoByIdGlobal.get(vinculo.titular_id) : vinculo
-    const titularKey = isDependente ? vinculo.titular_id : (vinculo.id ?? a.paciente_id)
+    const isDependente = classRelacao(vinculo.relacao) === 'Dependente'
+    const titularVinculo = isDependente ? (resolverTitularVinculoGlobal(vinculo) ?? vinculo) : vinculo
+    const titularKey = titularVinculo?.id ?? vinculo.id ?? a.paciente_id
     if (!titularKey) continue
 
     const empId = pacienteEmpresa.get(a.paciente_id) ?? (vinculo.empresa_id as string | undefined)

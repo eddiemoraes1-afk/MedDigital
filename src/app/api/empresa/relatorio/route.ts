@@ -30,15 +30,38 @@ export async function GET(req: NextRequest) {
   // Maps para lookup rápido
   const vinculoByPacienteId: Record<string, any> = {}
   const vinculoById: Record<string, any> = {}
+  // Map registro_funcional → vinculo do FUNCIONÁRIO TITULAR (para fallback quando titular_id é nulo)
+  const registroFuncTitularMap: Record<string, any> = {}
   vinculos?.forEach(v => {
     if (v.paciente_id) vinculoByPacienteId[v.paciente_id] = v
-    vinculoById[v.id] = v
+    if (v.id) vinculoById[v.id] = v
   })
 
   function classRelacaoLocal(rel: string | null | undefined): 'Funcionário' | 'Dependente' {
     if (!rel) return 'Funcionário'
     const v = rel.trim().toLowerCase()
     return v === 'funcionário' || v === 'funcionario' ? 'Funcionário' : 'Dependente'
+  }
+
+  // Monta mapa registro_funcional → vinculo titular (somente funcionários)
+  vinculos?.forEach(v => {
+    if (v.registro_funcional && classRelacaoLocal(v.relacao) === 'Funcionário') {
+      registroFuncTitularMap[v.registro_funcional] = v
+    }
+  })
+
+  // Resolve o vínculo do titular de um vinculo qualquer
+  function resolverTitularVinculo(v: any): any {
+    if (!v) return null
+    const eDep = classRelacaoLocal(v.relacao) === 'Dependente'
+    if (!eDep) return v // próprio é o titular
+    // 1ª opção: titular_id explícito
+    if (v.titular_id && vinculoById[v.titular_id]) return vinculoById[v.titular_id]
+    // 2ª opção: mesmo registro_funcional de um funcionário
+    if (v.registro_funcional && registroFuncTitularMap[v.registro_funcional]) {
+      return registroFuncTitularMap[v.registro_funcional]
+    }
+    return null // titular desconhecido
   }
 
   let consultas: any[] = []
@@ -71,9 +94,11 @@ export async function GET(req: NextRequest) {
 
     consultas = (atendimentos ?? []).map(a => {
       const vinculo = vinculoByPacienteId[a.paciente_id]
-      const eDependente = classRelacaoLocal(vinculo?.relacao) === 'Dependente' && !!vinculo?.titular_id
-      const titularVinculo = eDependente ? vinculoById[vinculo.titular_id] : vinculo
-      const titularNome = titularVinculo?.nome_completo ?? vinculo?.nome_completo ?? 'Funcionário'
+      // e_dependente: baseado apenas na relação, não exige titular_id preenchido
+      const eDependente = classRelacaoLocal(vinculo?.relacao) === 'Dependente'
+      const titularVinculo = eDependente ? resolverTitularVinculo(vinculo) : vinculo
+      // Se dependente mas titular não encontrado, o próprio nome é exibido como fallback
+      const titularNome = titularVinculo?.nome_completo ?? vinculo?.nome_completo ?? '—'
       const titularRegistro = titularVinculo?.registro_funcional ?? null
       const titularId = titularVinculo?.id ?? vinculo?.id ?? null
 
@@ -83,7 +108,7 @@ export async function GET(req: NextRequest) {
         data: a.finalizado_em ?? a.criado_em,
         tipo: a.agendamento_id ? 'agendada' : 'virtual',
         paciente_id: a.paciente_id,
-        paciente_nome: vinculo?.nome_completo ?? 'Funcionário',
+        paciente_nome: vinculo?.nome_completo ?? '—',
         relacao: vinculo?.relacao ?? 'Funcionário',
         e_dependente: eDependente,
         titular_id: titularId,
