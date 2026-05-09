@@ -50,6 +50,26 @@ export async function GET(req: Request) {
     if (v.paciente_id) vinculoMap.set(v.paciente_id, v)
   }
 
+  // Map vínculo.id → vínculo (para resolver titular_id)
+  const vinculoById = new Map<string, any>()
+  for (const v of todosVinculos) vinculoById.set(v.id, v)
+
+  function classRelacao(rel: string | null | undefined): 'Funcionário' | 'Dependente' {
+    if (!rel) return 'Funcionário'
+    return rel.trim().toLowerCase() === 'funcionário' || rel.trim().toLowerCase() === 'funcionario'
+      ? 'Funcionário' : 'Dependente'
+  }
+
+  // Helper: dado um paciente_id, retorna o vínculo do titular (próprio ou do funcionário responsável)
+  function resolverTitular(pacienteId: string): any {
+    const v = vinculoMap.get(pacienteId)
+    if (!v) return v
+    if (classRelacao(v.relacao) === 'Dependente' && v.titular_id) {
+      return vinculoById.get(v.titular_id) ?? v
+    }
+    return v
+  }
+
   if (pacienteIds.length === 0) {
     // Nenhum funcionário ativou ainda
     return NextResponse.json({
@@ -178,60 +198,59 @@ export async function GET(req: Request) {
     { tipo: 'Fila / Hora', count: ats.filter((a: any) => !a.agendamento_id).length },
   ]
 
-  // ===== GASTOS POR DEPARTAMENTO =====
+  // ===== GASTOS POR DEPARTAMENTO (usa dept do titular quando dependente) =====
   const deptMap = new Map<string, { consultas: number; valor: number }>()
   for (const a of ats) {
-    const vinculo = vinculoMap.get(a.paciente_id)
-    const dept = vinculo?.departamento || 'Não informado'
+    const titular = resolverTitular(a.paciente_id)
+    const dept = titular?.departamento || 'Não informado'
     const cur = deptMap.get(dept) ?? { consultas: 0, valor: 0 }
     cur.consultas++
-    cur.valor += empresa?.preco_consulta ?? 0
+    cur.valor += precoConsulta
     deptMap.set(dept, cur)
   }
   const gastosPorDepartamento = [...deptMap.entries()]
     .map(([departamento, v]) => ({ departamento, ...v }))
     .sort((a, b) => b.valor - a.valor)
 
-  // ===== GASTOS POR CARGO =====
+  // ===== GASTOS POR CARGO (usa cargo do titular quando dependente) =====
   const cargoMap = new Map<string, { consultas: number; valor: number }>()
   for (const a of ats) {
-    const vinculo = vinculoMap.get(a.paciente_id)
-    const cargo = vinculo?.cargo || 'Não informado'
+    const titular = resolverTitular(a.paciente_id)
+    const cargo = titular?.cargo || 'Não informado'
     const cur = cargoMap.get(cargo) ?? { consultas: 0, valor: 0 }
     cur.consultas++
-    cur.valor += empresa?.preco_consulta ?? 0
+    cur.valor += precoConsulta
     cargoMap.set(cargo, cur)
   }
   const gastosPorCargo = [...cargoMap.entries()]
     .map(([cargo, v]) => ({ cargo, ...v }))
     .sort((a, b) => b.valor - a.valor)
 
-  // ===== TOP FUNCIONÁRIOS POR GASTO =====
+  // ===== TOP FUNCIONÁRIOS POR GASTO (dependentes somados ao titular) =====
   const funcGasto = new Map<string, { nome: string; cargo: string; departamento: string; consultas: number; valor: number }>()
   for (const a of ats) {
     const vinculo = vinculoMap.get(a.paciente_id)
-    const nome = vinculo?.nome_completo ?? (pacienteMap.get(a.paciente_id) as any)?.nome ?? '—'
-    const cur = funcGasto.get(a.paciente_id) ?? {
+    const isDep = classRelacao(vinculo?.relacao) === 'Dependente' && vinculo?.titular_id
+    const titularVinculo = isDep ? (vinculoById.get(vinculo.titular_id) ?? vinculo) : vinculo
+    const key = isDep ? vinculo.titular_id : (vinculo?.id ?? a.paciente_id)
+    if (!key) continue
+    const nome = titularVinculo?.nome_completo ?? (pacienteMap.get(a.paciente_id) as any)?.nome ?? '—'
+    const cur = funcGasto.get(key) ?? {
       nome,
-      cargo: vinculo?.cargo ?? '—',
-      departamento: vinculo?.departamento ?? '—',
+      cargo: titularVinculo?.cargo ?? '—',
+      departamento: titularVinculo?.departamento ?? '—',
       consultas: 0,
       valor: 0,
     }
     cur.consultas++
     cur.valor += precoConsulta
-    funcGasto.set(a.paciente_id, cur)
+    funcGasto.set(key, cur)
   }
   const topFuncionarios = [...funcGasto.values()]
     .sort((a, b) => b.valor - a.valor)
     .slice(0, 10)
 
   // ===== RELAÇÃO: FUNCIONÁRIO vs DEPENDENTE =====
-  function classRelacao(rel: string | null | undefined): 'Funcionário' | 'Dependente' {
-    if (!rel) return 'Funcionário'
-    return rel.trim().toLowerCase() === 'funcionário' || rel.trim().toLowerCase() === 'funcionario'
-      ? 'Funcionário' : 'Dependente'
-  }
 
   // Composição da base (cadastros)
   const composicaoMap = new Map<string, { cadastros: number; pacientesAtivos: number }>()
@@ -307,10 +326,6 @@ export async function GET(req: Request) {
   }))
 
   // ===== GASTOS POR TITULAR (funcionário + seus dependentes) =====
-  // Maps para resolução rápida
-  const vinculoById = new Map<string, any>()
-  for (const v of todosVinculos) vinculoById.set(v.id, v)
-
   // Para cada atendimento, descobre quem é o titular cobrado
   // Se o paciente é dependente → o titular é o funcionário com titular_id apontado
   // Se o paciente é funcionário (ou sem titular_id) → ele mesmo é o titular

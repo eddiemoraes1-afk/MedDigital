@@ -21,14 +21,25 @@ export async function GET(req: NextRequest) {
 
   const { data: vinculos } = await adminSupabase
     .from('vinculos_empresa')
-    .select('paciente_id, nome_completo, ativo')
+    .select('id, paciente_id, nome_completo, ativo, titular_id, relacao, cargo, departamento, registro_funcional')
     .eq('empresa_id', empresaId)
 
   const totalFuncionariosAtivos = vinculos?.filter(v => v.ativo).length ?? 0
   const pacienteIds = vinculos?.filter(v => v.paciente_id).map(v => v.paciente_id) ?? []
 
-  const nomePaciente: Record<string, string> = {}
-  vinculos?.forEach(v => { if (v.paciente_id) nomePaciente[v.paciente_id] = v.nome_completo })
+  // Maps para lookup rápido
+  const vinculoByPacienteId: Record<string, any> = {}
+  const vinculoById: Record<string, any> = {}
+  vinculos?.forEach(v => {
+    if (v.paciente_id) vinculoByPacienteId[v.paciente_id] = v
+    vinculoById[v.id] = v
+  })
+
+  function classRelacaoLocal(rel: string | null | undefined): 'Funcionário' | 'Dependente' {
+    if (!rel) return 'Funcionário'
+    const v = rel.trim().toLowerCase()
+    return v === 'funcionário' || v === 'funcionario' ? 'Funcionário' : 'Dependente'
+  }
 
   let consultas: any[] = []
   let medicos: any[] = []
@@ -59,14 +70,25 @@ export async function GET(req: NextRequest) {
     const percentualCopart = empresa.percentual_coparticipacao ?? 0
 
     consultas = (atendimentos ?? []).map(a => {
-      // Sempre usa o preço atual cadastrado na empresa, ignorando o valor histórico do atendimento
+      const vinculo = vinculoByPacienteId[a.paciente_id]
+      const eDependente = classRelacaoLocal(vinculo?.relacao) === 'Dependente' && !!vinculo?.titular_id
+      const titularVinculo = eDependente ? vinculoById[vinculo.titular_id] : vinculo
+      const titularNome = titularVinculo?.nome_completo ?? vinculo?.nome_completo ?? 'Funcionário'
+      const titularRegistro = titularVinculo?.registro_funcional ?? null
+      const titularId = titularVinculo?.id ?? vinculo?.id ?? null
+
       const valorCobrado = precoConsulta
       return {
         id: a.id,
         data: a.finalizado_em ?? a.criado_em,
         tipo: a.agendamento_id ? 'agendada' : 'virtual',
         paciente_id: a.paciente_id,
-        paciente_nome: nomePaciente[a.paciente_id] ?? 'Funcionário',
+        paciente_nome: vinculo?.nome_completo ?? 'Funcionário',
+        relacao: vinculo?.relacao ?? 'Funcionário',
+        e_dependente: eDependente,
+        titular_id: titularId,
+        titular_nome: titularNome,
+        titular_registro: titularRegistro,
         medico_id: a.medico_id,
         medico_nome: medicoMap[a.medico_id] ?? 'Médico',
         valor_cobrado: valorCobrado,

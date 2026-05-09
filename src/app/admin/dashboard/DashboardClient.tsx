@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   BarChart2, TrendingUp, Building2, DollarSign, Download,
   Printer, Loader2, Activity, UserCheck, Users, RefreshCw,
@@ -453,9 +453,8 @@ function TitularTableAdmin({ titulares }: { titulares: TitularItemAdmin[] }) {
         </thead>
         <tbody>
           {titulares.map((t, i) => (
-            <>
+            <React.Fragment key={i}>
               <tr
-                key={i}
                 className={`border-b border-gray-50 cursor-pointer transition-colors ${i === 0 ? 'bg-amber-50' : 'hover:bg-gray-50'} ${expandido === i ? 'bg-green-50' : ''}`}
                 onClick={() => setExpandido(expandido === i ? null : i)}
               >
@@ -505,7 +504,7 @@ function TitularTableAdmin({ titulares }: { titulares: TitularItemAdmin[] }) {
                   <td className="py-2 text-sm text-right text-blue-600 font-semibold">{fmtBRL(dep.valor)}</td>
                 </tr>
               ))}
-            </>
+            </React.Fragment>
           ))}
         </tbody>
       </table>

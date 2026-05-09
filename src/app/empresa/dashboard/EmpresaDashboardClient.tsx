@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   BarChart2, TrendingDown, Building2, DollarSign,
   Download, Printer, Loader2, Activity, Users, RefreshCw, UserCheck,
@@ -365,9 +365,8 @@ function TitularTable({ titulares, formatBRL }: {
         </thead>
         <tbody>
           {titulares.map((t, i) => (
-            <>
+            <React.Fragment key={i}>
               <tr
-                key={i}
                 className={`border-b border-gray-50 cursor-pointer transition-colors ${i === 0 ? 'bg-amber-50' : 'hover:bg-gray-50'} ${expandido === i ? 'bg-green-50' : ''}`}
                 onClick={() => setExpandido(expandido === i ? null : i)}
               >
@@ -421,7 +420,7 @@ function TitularTable({ titulares, formatBRL }: {
                   <td className="py-2 text-sm text-right text-blue-600 font-semibold">{formatBRL(dep.valor)}</td>
                 </tr>
               ))}
-            </>
+            </React.Fragment>
           ))}
         </tbody>
       </table>
