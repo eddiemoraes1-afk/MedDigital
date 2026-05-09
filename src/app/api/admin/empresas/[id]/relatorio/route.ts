@@ -14,76 +14,111 @@ export async function GET(
 
   const adminSupabase = createAdminClient()
 
-  // Dados da empresa
   const { data: empresa } = await adminSupabase
     .from('empresas')
-    .select('id, nome, preco_mensalidade, preco_consulta')
+    .select('id, nome, preco_mensalidade, preco_consulta, percentual_coparticipacao')
     .eq('id', id)
     .single()
 
   if (!empresa) return NextResponse.json({ error: 'Empresa não encontrada' }, { status: 404 })
 
-  // Funcionários vinculados (ativos)
   const { data: vinculos } = await adminSupabase
     .from('vinculos_empresa')
-    .select('paciente_id, nome_completo, cpf, ativo')
+    .select('id, paciente_id, nome_completo, ativo, titular_id, relacao, cargo, departamento, registro_funcional')
     .eq('empresa_id', id)
 
   const totalFuncionariosAtivos = vinculos?.filter(v => v.ativo).length ?? 0
   const pacienteIds = vinculos?.filter(v => v.paciente_id).map(v => v.paciente_id) ?? []
 
-  // Mapa paciente_id → nome_completo
-  const nomePaciente: Record<string, string> = {}
-  vinculos?.forEach(v => { if (v.paciente_id) nomePaciente[v.paciente_id] = v.nome_completo })
+  // Maps para lookup rápido
+  const vinculoByPacienteId: Record<string, any> = {}
+  const vinculoById: Record<string, any> = {}
+  const registroFuncTitularMap: Record<string, any> = {}
 
-  // Atendimentos concluídos no período para esses pacientes
+  function classRelacaoLocal(rel: string | null | undefined): 'Funcionário' | 'Dependente' {
+    if (!rel) return 'Funcionário'
+    const v = rel.trim().toLowerCase()
+    return v === 'funcionário' || v === 'funcionario' ? 'Funcionário' : 'Dependente'
+  }
+
+  vinculos?.forEach(v => {
+    if (v.paciente_id) vinculoByPacienteId[v.paciente_id] = v
+    if (v.id) vinculoById[v.id] = v
+  })
+
+  // Mapa registro_funcional → vínculo titular (somente funcionários)
+  vinculos?.forEach(v => {
+    if (v.registro_funcional && classRelacaoLocal(v.relacao) === 'Funcionário') {
+      registroFuncTitularMap[v.registro_funcional] = v
+    }
+  })
+
+  function resolverTitularVinculo(v: any): any {
+    if (!v) return null
+    const eDep = classRelacaoLocal(v.relacao) === 'Dependente'
+    if (!eDep) return v
+    if (v.titular_id && vinculoById[v.titular_id]) return vinculoById[v.titular_id]
+    if (v.registro_funcional && registroFuncTitularMap[v.registro_funcional]) {
+      return registroFuncTitularMap[v.registro_funcional]
+    }
+    return null
+  }
+
   let consultas: any[] = []
+  let medicos: any[] = []
+
   if (pacienteIds.length > 0) {
     const deISO = `${de}T00:00:00.000Z`
     const ateISO = `${ate}T23:59:59.999Z`
 
     const { data: atendimentos } = await adminSupabase
       .from('atendimentos')
-      .select('id, criado_em, finalizado_em, paciente_id, medico_id, agendamento_id, valor_cobrado, tipo')
+      .select('id, criado_em, finalizado_em, paciente_id, medico_id, agendamento_id, valor_cobrado')
       .in('paciente_id', pacienteIds)
       .eq('status', 'concluido')
       .gte('criado_em', deISO)
       .lte('criado_em', ateISO)
       .order('criado_em', { ascending: false })
 
-    // Médicos únicos
     const medicoIdsSet = [...new Set((atendimentos ?? []).map(a => a.medico_id).filter(Boolean))]
-    const { data: medicos } = medicoIdsSet.length > 0
+    const { data: medicosData } = medicoIdsSet.length > 0
       ? await adminSupabase.from('medicos').select('id, nome').in('id', medicoIdsSet)
       : { data: [] }
+    medicos = medicosData ?? []
 
     const medicoMap: Record<string, string> = {}
-    medicos?.forEach(m => { medicoMap[m.id] = m.nome })
+    medicos.forEach(m => { medicoMap[m.id] = m.nome })
 
     const precoConsulta = empresa.preco_consulta ?? 0
+    const percentualCopart = empresa.percentual_coparticipacao ?? 0
 
-    consultas = (atendimentos ?? []).map(a => ({
-      id: a.id,
-      data: a.finalizado_em ?? a.criado_em,
-      tipo: a.agendamento_id ? 'agendada' : 'virtual',
-      paciente_id: a.paciente_id,
-      paciente_nome: nomePaciente[a.paciente_id] ?? 'Funcionário',
-      medico_id: a.medico_id,
-      medico_nome: medicoMap[a.medico_id] ?? 'Médico',
-      valor_cobrado: a.valor_cobrado ?? precoConsulta,
-    }))
+    consultas = (atendimentos ?? []).map(a => {
+      const vinculo = vinculoByPacienteId[a.paciente_id]
+      const eDependente = classRelacaoLocal(vinculo?.relacao) === 'Dependente'
+      const titularVinculo = eDependente ? resolverTitularVinculo(vinculo) : vinculo
+      const titularNome = titularVinculo?.nome_completo ?? vinculo?.nome_completo ?? '—'
+      const titularRegistro = titularVinculo?.registro_funcional ?? null
+      const titularId = titularVinculo?.id ?? vinculo?.id ?? null
 
-    return NextResponse.json({
-      empresa: {
-        id: empresa.id,
-        nome: empresa.nome,
-        preco_mensalidade: empresa.preco_mensalidade ?? 0,
-        preco_consulta: empresa.preco_consulta ?? 0,
-      },
-      consultas,
-      funcionariosAtivos: totalFuncionariosAtivos,
-      pacientesAtivos: pacienteIds.length,
-      medicos: medicos ?? [],
+      const valorCobrado = precoConsulta
+      return {
+        id: a.id,
+        data: a.finalizado_em ?? a.criado_em,
+        tipo: a.agendamento_id ? 'agendada' : 'virtual',
+        paciente_id: a.paciente_id,
+        paciente_nome: vinculo?.nome_completo ?? '—',
+        relacao: vinculo?.relacao ?? 'Funcionário',
+        e_dependente: eDependente,
+        titular_id: titularId,
+        titular_nome: titularNome,
+        titular_registro: titularRegistro,
+        medico_id: a.medico_id,
+        medico_nome: medicoMap[a.medico_id] ?? 'Médico',
+        valor_cobrado: valorCobrado,
+        valor_coparticipacao: percentualCopart > 0
+          ? Math.round(valorCobrado * (percentualCopart / 100) * 100) / 100
+          : 0,
+      }
     })
   }
 
@@ -93,10 +128,11 @@ export async function GET(
       nome: empresa.nome,
       preco_mensalidade: empresa.preco_mensalidade ?? 0,
       preco_consulta: empresa.preco_consulta ?? 0,
+      percentual_coparticipacao: empresa.percentual_coparticipacao ?? 0,
     },
-    consultas: [],
+    consultas,
     funcionariosAtivos: totalFuncionariosAtivos,
-    pacientesAtivos: 0,
-    medicos: [],
+    pacientesAtivos: pacienteIds.length,
+    medicos,
   })
 }
