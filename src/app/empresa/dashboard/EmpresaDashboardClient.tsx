@@ -37,6 +37,27 @@ interface DetalheRelacaoItem {
   taxaUso: number
 }
 
+interface TitularDep {
+  nome: string
+  relacao: string
+  consultas: number
+  valor: number
+}
+
+interface TitularItem {
+  nome: string
+  cargo: string
+  departamento: string
+  registroFuncional: string
+  consultasProprias: number
+  consultasDependentes: number
+  totalConsultas: number
+  valorProprio: number
+  valorDependentes: number
+  totalValor: number
+  dependentes: TitularDep[]
+}
+
 interface EmpresaDashData {
   kpis: KPIs
   gastosPorMes: Array<{ mes: string; consultas: number; valor: number }>
@@ -51,6 +72,7 @@ interface EmpresaDashData {
   distribuicaoRelacao: RelacaoItem[]
   detalheRelacao: DetalheRelacaoItem[]
   consultasRelacaoPorMes: Array<{ mes: string; funcionarios: number; dependentes: number }>
+  gastosPorTitular: TitularItem[]
 }
 
 // ============================================================
@@ -309,6 +331,102 @@ function LineChartSVG({
       ))}
       <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} stroke="#E5E7EB" strokeWidth="1" />
     </svg>
+  )
+}
+
+function TitularTable({ titulares, formatBRL }: {
+  titulares: TitularItem[]
+  formatBRL: (v: number) => string
+}) {
+  const [expandido, setExpandido] = useState<number | null>(null)
+
+  if (!titulares.length) {
+    return (
+      <div className="flex items-center justify-center py-10 text-gray-300 text-sm">
+        Nenhuma consulta no período selecionado
+      </div>
+    )
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-gray-100">
+            <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-2 w-6">#</th>
+            <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Titular / Funcionário</th>
+            <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Registro</th>
+            <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Cargo / Depto</th>
+            <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Próprias</th>
+            <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Depend.</th>
+            <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Total</th>
+            <th className="text-right text-xs text-gray-400 font-medium pb-2">Custo Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {titulares.map((t, i) => (
+            <>
+              <tr
+                key={i}
+                className={`border-b border-gray-50 cursor-pointer transition-colors ${i === 0 ? 'bg-amber-50' : 'hover:bg-gray-50'} ${expandido === i ? 'bg-green-50' : ''}`}
+                onClick={() => setExpandido(expandido === i ? null : i)}
+              >
+                <td className="py-2.5 pr-2 text-xs text-gray-400 font-medium">{i + 1}</td>
+                <td className="py-2.5 pr-3">
+                  <div className="font-medium text-[#1A3A2C] text-sm">{t.nome}</div>
+                  {t.dependentes.length > 0 && (
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <span className="text-xs text-blue-600 font-medium">{t.dependentes.length} dependente{t.dependentes.length !== 1 ? 's' : ''}</span>
+                      <span className="text-xs text-gray-300">{expandido === i ? '▲' : '▼'}</span>
+                    </div>
+                  )}
+                </td>
+                <td className="py-2.5 pr-3 text-xs text-gray-500 font-mono">{t.registroFuncional !== '—' ? t.registroFuncional : '—'}</td>
+                <td className="py-2.5 pr-3 text-xs text-gray-500">
+                  {t.cargo !== '—' && <div>{t.cargo}</div>}
+                  {t.departamento !== '—' && <div className="text-gray-400">{t.departamento}</div>}
+                </td>
+                <td className="py-2.5 pr-3 text-sm text-right text-gray-600">{t.consultasProprias}</td>
+                <td className="py-2.5 pr-3 text-sm text-right">
+                  {t.consultasDependentes > 0
+                    ? <span className="text-blue-600 font-medium">{t.consultasDependentes}</span>
+                    : <span className="text-gray-300">—</span>
+                  }
+                </td>
+                <td className="py-2.5 pr-3 text-sm text-right font-semibold text-[#1A3A2C]">{t.totalConsultas}</td>
+                <td className="py-2.5 text-sm text-right">
+                  <div className="font-bold text-[#1A3A2C]">{formatBRL(t.totalValor)}</div>
+                  {t.valorDependentes > 0 && (
+                    <div className="text-xs text-blue-500">{formatBRL(t.valorDependentes)} dep.</div>
+                  )}
+                </td>
+              </tr>
+              {/* Linhas de dependentes (expandíveis) */}
+              {expandido === i && t.dependentes.map((dep, di) => (
+                <tr key={`dep-${i}-${di}`} className="border-b border-blue-50 bg-blue-50/40">
+                  <td className="py-2 pr-2"></td>
+                  <td className="py-2 pr-3 pl-4" colSpan={1}>
+                    <div className="flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
+                      <span className="text-sm text-gray-700">{dep.nome}</span>
+                    </div>
+                  </td>
+                  <td className="py-2 pr-3">
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium capitalize">{dep.relacao}</span>
+                  </td>
+                  <td className="py-2 pr-3 text-xs text-gray-400">dependente</td>
+                  <td className="py-2 pr-3 text-sm text-right text-gray-400">—</td>
+                  <td className="py-2 pr-3 text-sm text-right text-blue-600 font-medium">{dep.consultas}</td>
+                  <td className="py-2 pr-3 text-sm text-right text-blue-600 font-medium">{dep.consultas}</td>
+                  <td className="py-2 text-sm text-right text-blue-600 font-semibold">{formatBRL(dep.valor)}</td>
+                </tr>
+              ))}
+            </>
+          ))}
+        </tbody>
+      </table>
+      <p className="text-xs text-gray-400 mt-3">* Clique em uma linha para ver os dependentes. O custo total do titular inclui suas próprias consultas e as dos seus dependentes.</p>
+    </div>
   )
 }
 
@@ -903,7 +1021,7 @@ export default function EmpresaDashboardClient() {
         )}
 
         {/* Tabela de detalhamento por tipo exato de relação */}
-        <ChartCard title="Detalhamento por Tipo de Vínculo" subtitle="Consultas e cadastros por cada tipo de relação">
+        <ChartCard title="Detalhamento por Tipo de Vínculo" subtitle="Consultas e cadastros por cada tipo de relação" className="mb-6">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -945,6 +1063,11 @@ export default function EmpresaDashboardClient() {
               </tbody>
             </table>
           </div>
+        </ChartCard>
+
+        {/* Tabela: Custo por Titular (funcionário + seus dependentes) */}
+        <ChartCard title="Custo por Titular — Funcionário e seus Dependentes" subtitle="Cada linha é um funcionário titular; a co-participação de seus dependentes também é atribuída a ele">
+          <TitularTable titulares={data.gastosPorTitular ?? []} formatBRL={formatBRL} />
         </ChartCard>
       </div>
 

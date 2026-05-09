@@ -12,6 +12,7 @@ interface Props {
 interface ResultadoImport {
   importados: number
   atualizados: number
+  vinculadosDependentes: number
   erros: string[]
 }
 
@@ -146,9 +147,10 @@ export default function ImportarFuncionarios({ empresaId, empresaNome = '' }: Pr
       xlsx.writeFile(wb, 'template_servidores_funservir.xlsx')
     } else {
       // Template CSV padrão
-      const header = 'nome_completo,cpf,email,registro_funcional,cargo,departamento,data_admissao,data_nascimento,sexo'
-      const exemplo = 'João Silva,123.456.789-00,joao@empresa.com,REG001,Analista,TI,2023-01-15,1990-05-20,masculino'
-      const csv = `${header}\n${exemplo}`
+      const header = 'nome_completo,cpf,email,registro_funcional,cargo,departamento,relacao,cpf_titular,data_admissao,data_nascimento,sexo'
+      const exemploFunc = 'João Silva,123.456.789-00,joao@empresa.com,REG001,Analista,TI,Funcionário,,2023-01-15,1990-05-20,masculino'
+      const exemploDep = 'Maria Silva,987.654.321-00,,,,TI,Filha,123.456.789-00,2015-03-10,2015-03-10,feminino'
+      const csv = `${header}\n${exemploFunc}\n${exemploDep}`
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -266,6 +268,9 @@ export default function ImportarFuncionarios({ empresaId, empresaNome = '' }: Pr
           {resultado.atualizados > 0 && (
             <p className="text-xs text-green-600">{resultado.atualizados} registro(s) atualizado(s)</p>
           )}
+          {resultado.vinculadosDependentes > 0 && (
+            <p className="text-xs text-green-600">{resultado.vinculadosDependentes} dependente(s) vinculado(s) ao titular</p>
+          )}
           {resultado.erros.length > 0 && (
             <div className="mt-2 space-y-0.5">
               <p className="text-xs font-medium text-orange-600">Avisos:</p>
@@ -305,6 +310,9 @@ export default function ImportarFuncionarios({ empresaId, empresaNome = '' }: Pr
               <p><span className="font-mono text-gray-600">nome_social</span> — opcional</p>
             </>
           )}
+          <p><span className="font-mono text-gray-600">relacao</span> — Funcionário | Filho | Filha | Cônjuge | etc.</p>
+          <p><span className="font-mono text-gray-600">cpf_titular</span> — CPF do funcionário titular ao qual o dependente está vinculado</p>
+          <p><span className="font-mono text-gray-600">registro_funcional_titular</span> — alternativa ao cpf_titular (ex.: EMA-0083)</p>
           <p><span className="font-mono text-gray-600">data_admissao</span> — formato YYYY-MM-DD ou DD/MM/AAAA</p>
           <p><span className="font-mono text-gray-600">data_nascimento</span>{isFunservir ? ' — obrigatório' : ''}</p>
           <p><span className="font-mono text-gray-600">sexo</span>{isFunservir ? ' — obrigatório' : ''} (masculino | feminino | outro | nao_informado)</p>

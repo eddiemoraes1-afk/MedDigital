@@ -68,7 +68,7 @@ export async function GET(req: Request) {
       .select('id, nome, preco_mensalidade, preco_consulta, ativo'),
     adminSupabase
       .from('vinculos_empresa')
-      .select('empresa_id, paciente_id, ativo, relacao'),
+      .select('id, empresa_id, paciente_id, ativo, relacao, titular_id, nome_completo, cargo, departamento, registro_funcional'),
     adminSupabase
       .from('agendamentos')
       .select('id, status, paciente_id, medico_id, data_hora')
@@ -317,6 +317,90 @@ export async function GET(req: Request) {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([mes, v]) => ({ mes, ...v }))
 
+  // ===== GASTOS POR TITULAR (global, todas as empresas) =====
+  const vinculoByIdGlobal = new Map<string, any>()
+  for (const v of allVinculos) vinculoByIdGlobal.set(v.id, v)
+
+  type TitularRowAdmin = {
+    nome: string
+    cargo: string
+    departamento: string
+    registroFuncional: string
+    empresa: string
+    consultasProprias: number
+    consultasDependentes: number
+    valorProprio: number
+    valorDependentes: number
+    dependentes: Map<string, { nome: string; relacao: string; consultas: number; valor: number }>
+  }
+
+  const titularMapGlobal = new Map<string, TitularRowAdmin>()
+
+  for (const a of ats) {
+    const vinculo = vinculoMapGlobal.get(a.paciente_id)
+    if (!vinculo) continue
+
+    const isDependente = classRelacao(vinculo.relacao) === 'Dependente' && vinculo.titular_id
+    const titularVinculo = isDependente ? vinculoByIdGlobal.get(vinculo.titular_id) : vinculo
+    const titularKey = isDependente ? vinculo.titular_id : (vinculo.id ?? a.paciente_id)
+    if (!titularKey) continue
+
+    const empId = pacienteEmpresa.get(a.paciente_id) ?? (vinculo.empresa_id as string | undefined)
+    const empresaNome = empId ? (empresaMap.get(empId) as any)?.nome ?? '—' : 'Particular'
+
+    const titularNome = titularVinculo?.nome_completo ?? vinculo.nome_completo ?? '—'
+    const cur = titularMapGlobal.get(titularKey) ?? {
+      nome: titularNome,
+      cargo: titularVinculo?.cargo ?? vinculo?.cargo ?? '—',
+      departamento: titularVinculo?.departamento ?? vinculo?.departamento ?? '—',
+      registroFuncional: titularVinculo?.registro_funcional ?? vinculo?.registro_funcional ?? '—',
+      empresa: empresaNome,
+      consultasProprias: 0,
+      consultasDependentes: 0,
+      valorProprio: 0,
+      valorDependentes: 0,
+      dependentes: new Map(),
+    }
+
+    const valor = a.valor_cobrado ?? 0
+    if (isDependente) {
+      cur.consultasDependentes++
+      cur.valorDependentes += valor
+      const depCur = cur.dependentes.get(a.paciente_id) ?? {
+        nome: vinculo.nome_completo ?? '—',
+        relacao: vinculo.relacao ?? '—',
+        consultas: 0,
+        valor: 0,
+      }
+      depCur.consultas++
+      depCur.valor += valor
+      cur.dependentes.set(a.paciente_id, depCur)
+    } else {
+      cur.consultasProprias++
+      cur.valorProprio += valor
+    }
+
+    titularMapGlobal.set(titularKey, cur)
+  }
+
+  const gastosPorTitularGlobal = [...titularMapGlobal.values()]
+    .map(t => ({
+      nome: t.nome,
+      cargo: t.cargo,
+      departamento: t.departamento,
+      registroFuncional: t.registroFuncional,
+      empresa: t.empresa,
+      consultasProprias: t.consultasProprias,
+      consultasDependentes: t.consultasDependentes,
+      totalConsultas: t.consultasProprias + t.consultasDependentes,
+      valorProprio: t.valorProprio,
+      valorDependentes: t.valorDependentes,
+      totalValor: t.valorProprio + t.valorDependentes,
+      dependentes: [...t.dependentes.values()],
+    }))
+    .sort((a, b) => b.totalValor - a.totalValor)
+    .slice(0, 20)
+
   return NextResponse.json({
     kpis: {
       totalConsultas,
@@ -341,5 +425,6 @@ export async function GET(req: Request) {
     distribuicaoRelacaoGlobal,
     detalheRelacaoGlobal,
     consultasRelacaoPorMesGlobal,
+    gastosPorTitularGlobal,
   })
 }

@@ -147,6 +147,29 @@ export async function POST(request: NextRequest) {
   let atualizados = 0
   const erros: string[] = []
 
+  // Normaliza datas: aceita YYYY-MM-DD, DD/MM/YYYY e DD-MM-YYYY
+  function parseData(raw: string): string | null {
+    if (!raw) return null
+    const s = raw.trim()
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s
+    const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/)
+    if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`
+    return null
+  }
+
+  // ─── PASSO 1: Inserir / atualizar todos os registros ───────────────────────
+  // Guarda {cpf → vinculo_id} e {registro_funcional → vinculo_id} para o passo 2
+  const cpfParaId = new Map<string, string>()
+  const regFuncParaId = new Map<string, string>()
+
+  // Registros que precisam de link titular (para o passo 2)
+  const pendentesLink: Array<{
+    vinculoId: string
+    cpfTitular: string
+    regFuncTitular: string
+    nome: string
+  }> = []
+
   for (const reg of registros) {
     const nome_completo = reg['nome_completo'] || reg['nome'] || ''
     const cpf = reg['cpf']?.replace(/\D/g, '') || ''
@@ -161,7 +184,7 @@ export async function POST(request: NextRequest) {
       .select('id')
       .eq('empresa_id', empresaId)
       .eq('cpf', cpf || '__sem_cpf__')
-      .single()
+      .maybeSingle()
 
     let pacienteId: string | null = null
     if (cpf) {
@@ -169,18 +192,8 @@ export async function POST(request: NextRequest) {
         .from('pacientes')
         .select('id')
         .eq('cpf', cpf)
-        .single()
+        .maybeSingle()
       pacienteId = paciente?.id ?? null
-    }
-
-    // Normaliza datas: aceita YYYY-MM-DD, DD/MM/YYYY e DD-MM-YYYY → sempre devolve YYYY-MM-DD
-    function parseData(raw: string): string | null {
-      if (!raw) return null
-      const s = raw.trim()
-      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s
-      const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/)
-      if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`
-      return null
     }
 
     const dataNasc = parseData(reg['data_nascimento'] || '')
@@ -209,26 +222,97 @@ export async function POST(request: NextRequest) {
       paciente_id: pacienteId,
     }
 
+    let vinculoId: string | null = existente?.id ?? null
+
     if (existente) {
       await adminSupabase.from('vinculos_empresa').update(dadosVinculo).eq('id', existente.id)
       atualizados++
+      vinculoId = existente.id
     } else {
-      const { error } = await adminSupabase.from('vinculos_empresa').insert(dadosVinculo)
+      const { data: novo, error } = await adminSupabase
+        .from('vinculos_empresa')
+        .insert(dadosVinculo)
+        .select('id')
+        .single()
       if (error) {
         erros.push(`${nome_completo}: ${error.message}`)
       } else {
         importados++
+        vinculoId = novo.id
       }
     }
 
-    // Se o funcionário já tem paciente vinculado, atualiza também o perfil do paciente
+    // Atualiza paciente se necessário
     if (pacienteId && (dataNasc || sexoValido)) {
       const updatePaciente: Record<string, string | null> = {}
       if (dataNasc) updatePaciente.data_nascimento = dataNasc
       if (sexoValido) updatePaciente.sexo = sexoValido
       await adminSupabase.from('pacientes').update(updatePaciente).eq('id', pacienteId)
     }
+
+    // Indexa para resolução de links no passo 2
+    if (vinculoId) {
+      if (cpf) cpfParaId.set(cpf, vinculoId)
+      const regFunc = reg['registro_funcional']?.trim()
+      if (regFunc) regFuncParaId.set(regFunc, vinculoId)
+
+      // Tem coluna de titular?
+      const cpfTitular = reg['cpf_titular']?.replace(/\D/g, '') || ''
+      const regFuncTitular = reg['registro_funcional_titular']?.trim() || ''
+      if (cpfTitular || regFuncTitular) {
+        pendentesLink.push({ vinculoId, cpfTitular, regFuncTitular, nome: nome_completo.trim() })
+      }
+    }
   }
 
-  return NextResponse.json({ importados, atualizados, erros })
+  // ─── PASSO 2: Resolver links titular_id ────────────────────────────────────
+  // Se algum titular ainda não estava no mapa (veio de importação anterior),
+  // busca no banco pelo CPF/registro_funcional dentro da mesma empresa.
+  let vinculadosDependentes = 0
+
+  for (const dep of pendentesLink) {
+    // Tenta resolver pelo mapa em memória primeiro (mais rápido)
+    let titularId: string | null =
+      (dep.cpfTitular && cpfParaId.get(dep.cpfTitular)) ||
+      (dep.regFuncTitular && regFuncParaId.get(dep.regFuncTitular)) ||
+      null
+
+    // Se não achou no mapa, vai ao banco
+    if (!titularId) {
+      if (dep.cpfTitular) {
+        const { data } = await adminSupabase
+          .from('vinculos_empresa')
+          .select('id')
+          .eq('empresa_id', empresaId)
+          .eq('cpf', dep.cpfTitular)
+          .maybeSingle()
+        titularId = data?.id ?? null
+      }
+      if (!titularId && dep.regFuncTitular) {
+        const { data } = await adminSupabase
+          .from('vinculos_empresa')
+          .select('id')
+          .eq('empresa_id', empresaId)
+          .eq('registro_funcional', dep.regFuncTitular)
+          .maybeSingle()
+        titularId = data?.id ?? null
+      }
+    }
+
+    if (titularId) {
+      await adminSupabase
+        .from('vinculos_empresa')
+        .update({ titular_id: titularId })
+        .eq('id', dep.vinculoId)
+      vinculadosDependentes++
+    } else {
+      erros.push(
+        `${dep.nome}: titular não encontrado` +
+        (dep.cpfTitular ? ` (CPF titular: ${dep.cpfTitular})` : '') +
+        (dep.regFuncTitular ? ` (Reg. funcional titular: ${dep.regFuncTitular})` : '')
+      )
+    }
+  }
+
+  return NextResponse.json({ importados, atualizados, vinculadosDependentes, erros })
 }
