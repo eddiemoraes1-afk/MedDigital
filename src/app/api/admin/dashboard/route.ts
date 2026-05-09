@@ -107,7 +107,10 @@ export async function GET(req: Request) {
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
     const cur = mesMap.get(key) ?? { consultas: 0, valor: 0 }
     cur.consultas++
-    cur.valor += a.valor_cobrado ?? 0
+    // Usa preco_consulta da empresa (mesma lógica dos relatórios individuais)
+    const empIdM = pacienteEmpresa.get(a.paciente_id)
+    const empM = empIdM ? (empresaMap.get(empIdM) as any) : null
+    cur.valor += empM?.preco_consulta ?? a.valor_cobrado ?? 0
     mesMap.set(key, cur)
   }
   const faturamentoPorMes = [...mesMap.entries()]
@@ -134,8 +137,10 @@ export async function GET(req: Request) {
     if (!empId) continue
     const cur = empMap.get(empId)
     if (!cur) continue
+    // Usa preco_consulta da empresa para consistência com os relatórios individuais
+    const empRef = empresaMap.get(empId) as any
     cur.consultas++
-    cur.valorConsultas += a.valor_cobrado ?? 0
+    cur.valorConsultas += empRef?.preco_consulta ?? a.valor_cobrado ?? 0
   }
   const faturamentoPorEmpresa = [...empMap.values()]
     .sort((a, b) => (b.valorConsultas + b.mensalidade) - (a.valorConsultas + a.mensalidade))
@@ -213,7 +218,12 @@ export async function GET(req: Request) {
 
   // ===== KPIs =====
   const totalConsultas = ats.length
-  const totalFaturamento = ats.reduce((s: number, a: any) => s + (a.valor_cobrado ?? 0), 0)
+  // Usa preco_consulta por empresa (alinhado com os relatórios individuais)
+  const totalFaturamento = ats.reduce((s: number, a: any) => {
+    const eId = pacienteEmpresa.get(a.paciente_id)
+    const emp = eId ? (empresaMap.get(eId) as any) : null
+    return s + (emp?.preco_consulta ?? a.valor_cobrado ?? 0)
+  }, 0)
   const totalMensalidades = [...empMap.values()].reduce((s, e) => s + e.mensalidade, 0)
   const totalEmpresasAtivas = ((empresas ?? []) as any[]).filter(e => e.ativo).length
   const totalMedicos = medMap.size
@@ -419,6 +429,40 @@ export async function GET(req: Request) {
     .sort((a, b) => b.totalValor - a.totalValor)
     .slice(0, 20)
 
+  // ===== RECEITAS POR MÊS — detalhado (consultas empresa + mensalidade + particular) =====
+  const mensalidadeMensal = totalMensalidades // valor de 1 mês de mensalidade de todas as empresas
+  const recMesMap = new Map<string, { valorConsultas: number; valorMensalidade: number; valorParticular: number }>()
+
+  for (const a of ats) {
+    const d = new Date(a.criado_em)
+    const mes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const cur = recMesMap.get(mes) ?? { valorConsultas: 0, valorMensalidade: 0, valorParticular: 0 }
+    const eId = pacienteEmpresa.get(a.paciente_id)
+    if (eId) {
+      const emp = empresaMap.get(eId) as any
+      cur.valorConsultas += emp?.preco_consulta ?? a.valor_cobrado ?? 0
+    } else {
+      cur.valorParticular += a.valor_cobrado ?? 0
+    }
+    recMesMap.set(mes, cur)
+  }
+
+  // Enumera meses no período e atribui mensalidade (fee mensal fixo por mês)
+  const pStart = new Date(inicio)
+  const pEnd = new Date(fim)
+  const mCursor = new Date(pStart.getFullYear(), pStart.getMonth(), 1)
+  while (mCursor <= pEnd) {
+    const mes = `${mCursor.getFullYear()}-${String(mCursor.getMonth() + 1).padStart(2, '0')}`
+    const cur = recMesMap.get(mes) ?? { valorConsultas: 0, valorMensalidade: 0, valorParticular: 0 }
+    cur.valorMensalidade = mensalidadeMensal
+    recMesMap.set(mes, cur)
+    mCursor.setMonth(mCursor.getMonth() + 1)
+  }
+
+  const receitasPorMes = [...recMesMap.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([mes, v]) => ({ mes, ...v }))
+
   return NextResponse.json({
     kpis: {
       totalConsultas,
@@ -444,5 +488,6 @@ export async function GET(req: Request) {
     detalheRelacaoGlobal,
     consultasRelacaoPorMesGlobal,
     gastosPorTitularGlobal,
+    receitasPorMes,
   })
 }

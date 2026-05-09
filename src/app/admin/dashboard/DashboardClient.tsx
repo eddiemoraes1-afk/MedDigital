@@ -75,6 +75,7 @@ interface DashboardData {
   detalheRelacaoGlobal: DetalheRelacaoItem[]
   consultasRelacaoPorMesGlobal: Array<{ mes: string; funcionarios: number; dependentes: number }>
   gastosPorTitularGlobal: TitularItemAdmin[]
+  receitasPorMes: Array<{ mes: string; valorConsultas: number; valorMensalidade: number; valorParticular: number }>
 }
 
 // ============================================================
@@ -1023,6 +1024,51 @@ export default function DashboardClient() {
           />
         </ChartCard>
       </div>
+
+      {/* ---- Row 2b: Receitas separadas por tipo ---- */}
+      {data.receitasPorMes && data.receitasPorMes.length > 0 && (
+        <>
+          <div className="grid lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <ChartCard title="Receita de Consultas por Mês" subtitle="Faturamento de consultas (usando preço configurado por empresa)">
+                <BarChartSVG
+                  data={data.receitasPorMes.map(d => ({ ...d, mes: formatMes(d.mes) }))}
+                  labelKey="mes" valueKey="valorConsultas" color="#3B82F6" formatValue={formatBRL}
+                />
+              </ChartCard>
+            </div>
+            <ChartCard title="Consultas vs Mensalidade" subtitle="Composição da receita total no período">
+              <DonutChart
+                slices={[
+                  { label: 'Consultas', value: data.receitasPorMes.reduce((s, d) => s + d.valorConsultas, 0), color: '#3B82F6' },
+                  { label: 'Mensalidades', value: data.receitasPorMes.reduce((s, d) => s + d.valorMensalidade, 0), color: '#8B5CF6' },
+                  ...(data.receitasPorMes.reduce((s, d) => s + d.valorParticular, 0) > 0
+                    ? [{ label: 'Particular', value: data.receitasPorMes.reduce((s, d) => s + d.valorParticular, 0), color: '#EC4899' }]
+                    : []),
+                ].filter(s => s.value > 0)}
+                formatValue={formatBRL}
+              />
+            </ChartCard>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <ChartCard title="Receita de Mensalidades por Mês" subtitle="Fee mensal de todas as empresas ativas (mesmo valor por mês)">
+                <BarChartSVG
+                  data={data.receitasPorMes.map(d => ({ ...d, mes: formatMes(d.mes) }))}
+                  labelKey="mes" valueKey="valorMensalidade" color="#8B5CF6" formatValue={formatBRL}
+                />
+              </ChartCard>
+            </div>
+            <ChartCard title="Receita Particular por Mês" subtitle="Faturamento de pacientes sem empresa vinculada">
+              <BarChartSVG
+                data={data.receitasPorMes.map(d => ({ ...d, mes: formatMes(d.mes) }))}
+                labelKey="mes" valueKey="valorParticular" color="#EC4899" formatValue={formatBRL}
+              />
+            </ChartCard>
+          </div>
+        </>
+      )}
 
       {/* ---- Row 3: Por empresa + Sexo ---- */}
       <div className="grid lg:grid-cols-3 gap-6">
