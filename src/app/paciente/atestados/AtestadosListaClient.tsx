@@ -214,7 +214,7 @@ export default function AtestadosListaClient({
 
   async function abrirEncaminhar(at: AtestadoItem) {
     // Em mobile, tenta native share primeiro
-    if (navigator.share) {
+    if ('share' in navigator) {
       const ok = await tentarNativeShare(at)
       if (ok) return
     }
