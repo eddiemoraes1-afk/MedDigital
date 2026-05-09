@@ -117,9 +117,9 @@ function DonutChart({ slices, formatValue, centerLabel }: {
   const total = slices.reduce((s, d) => s + d.value, 0)
   if (total === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-36 text-gray-300">
-        <BarChart2 className="w-8 h-8 mb-2 opacity-30" />
-        <span className="text-xs">Sem dados no período</span>
+      <div className="flex flex-col items-center justify-center h-40 text-gray-200">
+        <BarChart2 className="w-10 h-10 mb-2" />
+        <span className="text-xs text-gray-400">Sem dados no período</span>
       </div>
     )
   }
@@ -132,13 +132,13 @@ function DonutChart({ slices, formatValue, centerLabel }: {
   function sectorPath(startDeg: number, endDeg: number): string {
     const span = endDeg - startDeg
     if (span >= 360) { endDeg = startDeg + 359.9 }
-    const OUTER = 80, INNER = 52
+    const OUTER = 78, INNER = 54
     const [ox1, oy1] = polarXY(startDeg, OUTER)
     const [ox2, oy2] = polarXY(endDeg, OUTER)
     const [ix2, iy2] = polarXY(endDeg, INNER)
     const [ix1, iy1] = polarXY(startDeg, INNER)
     const lg = span > 180 ? 1 : 0
-    return `M${ox1},${oy1} A80,80 0 ${lg} 1 ${ox2},${oy2} L${ix2},${iy2} A52,52 0 ${lg} 0 ${ix1},${iy1}Z`
+    return `M${ox1},${oy1} A78,78 0 ${lg} 1 ${ox2},${oy2} L${ix2},${iy2} A54,54 0 ${lg} 0 ${ix1},${iy1}Z`
   }
 
   let cumDeg = 0
@@ -149,27 +149,39 @@ function DonutChart({ slices, formatValue, centerLabel }: {
     return { ...s, path: sectorPath(start, cumDeg) }
   })
 
-  const displayTotal = centerLabel || String(total)
+  // Fix center label: se formatValue disponível, usa-o; senão arredonda
+  const rawCenter = centerLabel ?? (formatValue ? formatValue(Math.round(total * 100) / 100) : String(Math.round(total)))
+  const isCurrency = rawCenter.startsWith('R$')
 
   return (
-    <div className="flex flex-col items-center gap-3">
-      <svg viewBox="-95 -95 190 190" className="w-44 h-44">
+    <div className="flex flex-col items-center gap-4">
+      <svg viewBox="-95 -95 190 190" className="w-48 h-48 drop-shadow-sm">
+        {/* Track de fundo */}
+        <circle cx="0" cy="0" r="78" fill="none" stroke="#F3F4F6" strokeWidth="24" />
         {sectors.map((s, i) => (
-          <path key={i} d={s.path} fill={s.color} stroke="white" strokeWidth="2">
+          <path key={i} d={s.path} fill={s.color} stroke="white" strokeWidth="2.5" strokeLinejoin="round">
             <title>{s.label}: {formatValue ? formatValue(s.value) : s.value}</title>
           </path>
         ))}
-        <text x="0" y="-6" textAnchor="middle" fontSize="13" fontWeight="bold" fill="#1A3A2C">
-          {displayTotal}
-        </text>
-        <text x="0" y="10" textAnchor="middle" fontSize="8" fill="#9CA3AF">total</text>
+        {/* Centro */}
+        {isCurrency ? (
+          <>
+            <text x="0" y="-10" textAnchor="middle" fontSize="8" fill="#9CA3AF" letterSpacing="1" fontWeight="500">TOTAL</text>
+            <text x="0" y="6" textAnchor="middle" fontSize="13" fontWeight="700" fill="#1A3A2C">{rawCenter}</text>
+          </>
+        ) : (
+          <>
+            <text x="0" y="6" textAnchor="middle" fontSize="22" fontWeight="800" fill="#1A3A2C">{rawCenter}</text>
+            <text x="0" y="20" textAnchor="middle" fontSize="8" fill="#9CA3AF" letterSpacing="0.5">TOTAL</text>
+          </>
+        )}
       </svg>
-      <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 max-w-xs">
+      <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 max-w-xs">
         {slices.map((s, i) => (
           <div key={i} className="flex items-center gap-1.5 text-xs text-gray-600">
-            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+            <span className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: s.color }} />
             <span className="truncate max-w-[90px]" title={s.label}>{s.label}</span>
-            <span className="font-semibold text-gray-700">{Math.round(s.value / total * 100)}%</span>
+            <span className="font-bold" style={{ color: s.color }}>{Math.round(s.value / total * 100)}%</span>
           </div>
         ))}
       </div>
@@ -194,21 +206,25 @@ function BarChartSVG({
   secondLabel?: string
 }) {
   if (!data.length) {
-    return <div className="flex items-center justify-center h-40 text-gray-300 text-xs">Sem dados no período</div>
+    return <div className="flex items-center justify-center h-40 text-gray-200 text-xs flex-col gap-2">
+      <BarChart2 className="w-8 h-8" /><span className="text-gray-400">Sem dados no período</span>
+    </div>
   }
 
-  const W = 580, H = 220
-  const PAD = { top: 24, right: 16, bottom: 52, left: 58 }
+  const W = 580, H = 230
+  const PAD = { top: 28, right: 16, bottom: 56, left: 62 }
   const plotW = W - PAD.left - PAD.right
   const plotH = H - PAD.top - PAD.bottom
 
   const maxVal = Math.max(...data.map(d => Math.max(d[valueKey] ?? 0, secondKey ? (d[secondKey] ?? 0) : 0)), 1)
   const n = data.length
   const slotW = plotW / n
-  const barW = secondKey ? slotW * 0.38 : slotW * 0.6
+  const barW = secondKey ? Math.min(slotW * 0.36, 26) : Math.min(slotW * 0.62, 52)
   const yTicks = 4
 
-  const tickVals = Array.from({ length: yTicks + 1 }, (_, i) => (i / yTicks) * maxVal)
+  // Gera ID único para gradiente
+  const gradId = `barGrad_${color.replace('#', '')}`
+  const grad2Id = `barGrad2_${(secondColor || '').replace('#', '')}`
 
   function fmtTick(v: number) {
     if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`
@@ -218,13 +234,28 @@ function BarChartSVG({
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="1" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.55" />
+        </linearGradient>
+        {secondKey && (
+          <linearGradient id={grad2Id} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={secondColor} stopOpacity="1" />
+            <stop offset="100%" stopColor={secondColor} stopOpacity="0.55" />
+          </linearGradient>
+        )}
+      </defs>
+
       {/* Y grid + ticks */}
-      {tickVals.map((tv, i) => {
+      {Array.from({ length: yTicks + 1 }, (_, i) => {
+        const tv = (i / yTicks) * maxVal
         const y = PAD.top + plotH - (tv / maxVal) * plotH
         return (
           <g key={i}>
-            <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="#F3F4F6" strokeWidth="1" />
-            <text x={PAD.left - 5} y={y + 3.5} textAnchor="end" fontSize="9" fill="#9CA3AF">{fmtTick(tv)}</text>
+            <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y}
+              stroke={i === 0 ? '#E5E7EB' : '#F3F4F6'} strokeWidth={i === 0 ? 1.5 : 1} strokeDasharray={i > 0 ? '4 4' : undefined} />
+            <text x={PAD.left - 7} y={y + 3.5} textAnchor="end" fontSize="9" fill="#9CA3AF" fontFamily="system-ui">{fmtTick(tv)}</text>
           </g>
         )
       })}
@@ -234,41 +265,37 @@ function BarChartSVG({
         const cx = PAD.left + i * slotW + slotW / 2
         const v1 = d[valueKey] ?? 0
         const v2 = secondKey ? (d[secondKey] ?? 0) : 0
-        const bh1 = Math.max(2, (v1 / maxVal) * plotH)
-        const bh2 = secondKey ? Math.max(2, (v2 / maxVal) * plotH) : 0
-
-        const x1 = secondKey ? cx - barW - 1 : cx - barW / 2
-        const x2 = cx + 1
-
+        const bh1 = Math.max(3, (v1 / maxVal) * plotH)
+        const bh2 = secondKey ? Math.max(3, (v2 / maxVal) * plotH) : 0
+        const x1 = secondKey ? cx - barW - 2 : cx - barW / 2
+        const x2 = cx + 2
         const rawLabel = String(d[labelKey])
-        const lbl = rawLabel.length > 9 ? rawLabel.slice(0, 7) + '…' : rawLabel
+        const lbl = rawLabel.length > 9 ? rawLabel.slice(0, 8) + '…' : rawLabel
 
         return (
           <g key={i}>
             {/* Primary bar */}
-            <rect
-              x={x1} y={PAD.top + plotH - bh1}
-              width={barW} height={bh1}
-              fill={color} rx="3"
-            >
+            <rect x={x1} y={PAD.top + plotH - bh1} width={barW} height={bh1}
+              fill={`url(#${gradId})`} rx="5" ry="5">
               <title>{rawLabel}: {formatValue(v1)}</title>
             </rect>
+            {/* Topo sólido da barra principal */}
+            <rect x={x1} y={PAD.top + plotH - bh1} width={barW} height={Math.min(bh1, 5)}
+              fill={color} rx="5" ry="5" />
             {/* Secondary bar */}
             {secondKey && (
-              <rect
-                x={x2} y={PAD.top + plotH - bh2}
-                width={barW} height={bh2}
-                fill={secondColor} rx="3"
-              >
-                <title>{rawLabel} ({secondLabel}): {v2}</title>
-              </rect>
+              <>
+                <rect x={x2} y={PAD.top + plotH - bh2} width={barW} height={bh2}
+                  fill={`url(#${grad2Id})`} rx="5" ry="5">
+                  <title>{rawLabel} ({secondLabel}): {v2}</title>
+                </rect>
+                <rect x={x2} y={PAD.top + plotH - bh2} width={barW} height={Math.min(bh2, 5)}
+                  fill={secondColor} rx="5" ry="5" />
+              </>
             )}
             {/* X label */}
-            <text
-              x={cx} y={PAD.top + plotH + 14}
-              textAnchor="middle" fontSize="9" fill="#6B7280"
-              transform={n > 7 ? `rotate(-35,${cx},${PAD.top + plotH + 14})` : ''}
-            >
+            <text x={cx} y={PAD.top + plotH + 16} textAnchor="middle" fontSize="9.5" fill="#6B7280" fontFamily="system-ui"
+              transform={n > 7 ? `rotate(-35,${cx},${PAD.top + plotH + 16})` : ''}>
               {lbl}
             </text>
           </g>
@@ -276,7 +303,7 @@ function BarChartSVG({
       })}
 
       {/* X axis line */}
-      <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} stroke="#E5E7EB" strokeWidth="1" />
+      <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} stroke="#E5E7EB" strokeWidth="1.5" />
     </svg>
   )
 }
@@ -297,37 +324,54 @@ function HBarChart({
 }) {
   const items = data.slice(0, maxItems)
   if (!items.length) {
-    return <div className="flex items-center justify-center h-16 text-gray-300 text-xs">Sem dados no período</div>
+    return <div className="flex items-center justify-center h-16 text-gray-300 text-xs flex-col gap-1">
+      <BarChart2 className="w-6 h-6" /><span className="text-gray-400">Sem dados no período</span>
+    </div>
   }
 
   const maxVal = Math.max(...items.map(d => d[valueKey] ?? 0), 1)
-  const ROW = 38
+  const ROW = 42
   const W = 520
-  const LABEL_W = 160
-  const BAR_AREA = 280
-  const H = items.length * ROW + 4
+  const LABEL_W = 170
+  const BAR_AREA = 260
+  const H = items.length * ROW + 6
+  const gradId = `hbarGrad_${color.replace('#', '')}`
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor={color} stopOpacity="1" />
+          <stop offset="100%" stopColor={color} stopOpacity="0.5" />
+        </linearGradient>
+      </defs>
       {items.map((d, i) => {
-        const bw = Math.max(4, ((d[valueKey] ?? 0) / maxVal) * BAR_AREA)
+        const val = d[valueKey] ?? 0
+        const bw = Math.max(6, (val / maxVal) * BAR_AREA)
         const y = i * ROW
         const label = String(d[labelKey])
-        const truncated = label.length > 24 ? label.slice(0, 22) + '…' : label
+        const truncated = label.length > 26 ? label.slice(0, 24) + '…' : label
         const isTop = i === 0
+        const pct = Math.round((val / maxVal) * 100)
 
         return (
           <g key={i}>
-            {/* Row bg for top */}
-            {isTop && <rect x={0} y={y + 2} width={W} height={ROW - 4} fill="#F9FAFB" rx="4" />}
-            <text x={0} y={y + ROW / 2 + 4} fontSize="10" fill={isTop ? '#1A3A2C' : '#374151'} fontWeight={isTop ? 'bold' : 'normal'}>
-              {truncated}
+            {/* Highlight row for #1 */}
+            {isTop && <rect x={0} y={y + 3} width={W} height={ROW - 6} fill={`${color}12`} rx="6" />}
+            {/* Label */}
+            <text x={4} y={y + ROW / 2 + 4.5} fontSize="10" fill={isTop ? '#1A3A2C' : '#374151'}
+              fontWeight={isTop ? '700' : '400'} fontFamily="system-ui">
+              {isTop ? `🥇 ${truncated}` : truncated}
             </text>
-            <rect x={LABEL_W} y={y + 8} width={bw} height={22} fill={color} rx="4" opacity={isTop ? 1 : 0.85}>
-              <title>{d[labelKey]}: {formatValue(d[valueKey] ?? 0)}</title>
+            {/* Track */}
+            <rect x={LABEL_W} y={y + 11} width={BAR_AREA} height={18} fill="#F3F4F6" rx="9" />
+            {/* Bar */}
+            <rect x={LABEL_W} y={y + 11} width={bw} height={18} fill={`url(#${gradId})`} rx="9">
+              <title>{d[labelKey]}: {formatValue(val)}</title>
             </rect>
-            <text x={LABEL_W + bw + 7} y={y + ROW / 2 + 4} fontSize="9" fill="#6B7280">
-              {formatValue(d[valueKey] ?? 0)}
+            {/* Value label */}
+            <text x={LABEL_W + bw + 8} y={y + ROW / 2 + 4.5} fontSize="9.5" fill="#6B7280" fontFamily="system-ui">
+              {formatValue(val)}
             </text>
           </g>
         )
@@ -349,11 +393,13 @@ function LineChartSVG({
   formatValue?: (v: number) => string
 }) {
   if (!data.length) {
-    return <div className="flex items-center justify-center h-40 text-gray-300 text-xs">Sem dados no período</div>
+    return <div className="flex items-center justify-center h-40 text-gray-200 text-xs flex-col gap-2">
+      <BarChart2 className="w-8 h-8" /><span className="text-gray-400">Sem dados no período</span>
+    </div>
   }
 
-  const W = 580, H = 200
-  const PAD = { top: 20, right: 16, bottom: 42, left: 48 }
+  const W = 580, H = 210
+  const PAD = { top: 24, right: 20, bottom: 46, left: 56 }
   const plotW = W - PAD.left - PAD.right
   const plotH = H - PAD.top - PAD.bottom
   const n = data.length
@@ -367,20 +413,35 @@ function LineChartSVG({
     value: d[valueKey] ?? 0,
   }))
 
-  const polyline = pts.map(p => `${p.x},${p.y}`).join(' ')
-  const area = `M${pts[0].x},${PAD.top + plotH} ${pts.map(p => `L${p.x},${p.y}`).join(' ')} L${pts[pts.length - 1].x},${PAD.top + plotH}Z`
+  // Smooth bezier path
+  function smoothPath(points: { x: number; y: number }[]): string {
+    if (points.length < 2) return `M${points[0].x},${points[0].y}`
+    let d = `M${points[0].x},${points[0].y}`
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1]
+      const curr = points[i]
+      const cpx = (prev.x + curr.x) / 2
+      d += ` C${cpx},${prev.y} ${cpx},${curr.y} ${curr.x},${curr.y}`
+    }
+    return d
+  }
+
+  const linePath = smoothPath(pts)
+  const areaPath = `${linePath} L${pts[pts.length - 1].x},${PAD.top + plotH} L${pts[0].x},${PAD.top + plotH}Z`
   const gradId = `lineGrad_${color.replace('#', '')}`
 
   function fmtTick(v: number) {
-    return v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v.toFixed(0)
+    if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`
+    if (v >= 1_000) return `${(v / 1_000).toFixed(0)}k`
+    return v.toFixed(0)
   }
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.18" />
-          <stop offset="100%" stopColor={color} stopOpacity="0.01" />
+          <stop offset="0%" stopColor={color} stopOpacity="0.22" />
+          <stop offset="85%" stopColor={color} stopOpacity="0.03" />
         </linearGradient>
       </defs>
 
@@ -390,33 +451,37 @@ function LineChartSVG({
         const y = PAD.top + plotH - (tv / maxVal) * plotH
         return (
           <g key={i}>
-            <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="#F3F4F6" strokeWidth="1" />
-            <text x={PAD.left - 4} y={y + 3.5} textAnchor="end" fontSize="9" fill="#9CA3AF">{fmtTick(tv)}</text>
+            <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y}
+              stroke={i === 0 ? '#E5E7EB' : '#F3F4F6'} strokeWidth={i === 0 ? 1.5 : 1} strokeDasharray={i > 0 ? '4 4' : undefined} />
+            <text x={PAD.left - 7} y={y + 3.5} textAnchor="end" fontSize="9" fill="#9CA3AF" fontFamily="system-ui">{fmtTick(tv)}</text>
           </g>
         )
       })}
 
       {/* Area fill */}
-      <path d={area} fill={`url(#${gradId})`} />
+      <path d={areaPath} fill={`url(#${gradId})`} />
 
-      {/* Line */}
-      <polyline points={polyline} fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+      {/* Smooth line */}
+      <path d={linePath} fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
 
       {/* Dots */}
       {pts.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r="4.5" fill="white" stroke={color} strokeWidth="2.5">
-          <title>{p.label}: {formatValue(p.value)}</title>
-        </circle>
+        <g key={i}>
+          <circle cx={p.x} cy={p.y} r="6" fill={`${color}20`} />
+          <circle cx={p.x} cy={p.y} r="3.5" fill="white" stroke={color} strokeWidth="2.5">
+            <title>{p.label}: {formatValue(p.value)}</title>
+          </circle>
+        </g>
       ))}
 
       {/* X labels */}
       {pts.map((p, i) => (
-        <text key={i} x={p.x} y={PAD.top + plotH + 16} textAnchor="middle" fontSize="9" fill="#9CA3AF">
+        <text key={i} x={p.x} y={PAD.top + plotH + 18} textAnchor="middle" fontSize="9.5" fill="#9CA3AF" fontFamily="system-ui">
           {p.label.length > 7 ? p.label.slice(0, 6) : p.label}
         </text>
       ))}
 
-      <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} stroke="#E5E7EB" strokeWidth="1" />
+      <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} stroke="#E5E7EB" strokeWidth="1.5" />
     </svg>
   )
 }
@@ -516,75 +581,96 @@ function TitularTableAdmin({ titulares }: { titulares: TitularItemAdmin[] }) {
 
 // ---- Grouped Bar Chart ----
 function GroupedBarChart({
-  data, labelKey, keys, colors, formatValue = (v: number) => String(v),
+  data, labelKey, keys, colors, labels, formatValue = (v: number) => String(v),
 }: {
   data: Record<string, any>[]
   labelKey: string
   keys: string[]
   colors: string[]
+  labels?: string[]
   formatValue?: (v: number) => string
 }) {
-  if (!data.length) return <div className="flex items-center justify-center h-40 text-gray-300 text-xs">Sem dados no período</div>
+  if (!data.length) return <div className="flex items-center justify-center h-40 text-gray-200 text-xs flex-col gap-2">
+    <BarChart2 className="w-8 h-8" /><span className="text-gray-400">Sem dados no período</span>
+  </div>
 
-  const W = 580, H = 220
-  const PAD = { top: 24, right: 16, bottom: 52, left: 44 }
+  const W = 580, H = 230
+  const PAD = { top: 28, right: 16, bottom: 56, left: 50 }
   const plotW = W - PAD.left - PAD.right
   const plotH = H - PAD.top - PAD.bottom
   const maxVal = Math.max(...data.flatMap(d => keys.map(k => d[k] ?? 0)), 1)
   const n = data.length
   const groupW = plotW / n
-  const barW = Math.min((groupW * 0.8) / keys.length, 24)
-  const groupPad = (groupW - barW * keys.length) / 2
+  const barW = Math.min((groupW * 0.78) / keys.length, 22)
+  const gap = 2
+  const totalBarsW = barW * keys.length + gap * (keys.length - 1)
+  const groupOffset = (groupW - totalBarsW) / 2
 
   function fmtTick(v: number) {
-    return v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v.toFixed(0)
+    if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`
+    if (v >= 1_000) return `${(v / 1_000).toFixed(0)}k`
+    return v.toFixed(0)
   }
 
   return (
     <div>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+        <defs>
+          {colors.map((c, i) => (
+            <linearGradient key={i} id={`grpGrad_${i}_${c.replace('#', '')}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={c} stopOpacity="1" />
+              <stop offset="100%" stopColor={c} stopOpacity="0.5" />
+            </linearGradient>
+          ))}
+        </defs>
         {Array.from({ length: 5 }, (_, i) => {
           const tv = (i / 4) * maxVal
           const y = PAD.top + plotH - (tv / maxVal) * plotH
           return (
             <g key={i}>
-              <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="#F3F4F6" strokeWidth="1" />
-              <text x={PAD.left - 4} y={y + 3.5} textAnchor="end" fontSize="9" fill="#9CA3AF">{fmtTick(tv)}</text>
+              <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y}
+                stroke={i === 0 ? '#E5E7EB' : '#F3F4F6'} strokeWidth={i === 0 ? 1.5 : 1} strokeDasharray={i > 0 ? '4 4' : undefined} />
+              <text x={PAD.left - 7} y={y + 3.5} textAnchor="end" fontSize="9" fill="#9CA3AF" fontFamily="system-ui">{fmtTick(tv)}</text>
             </g>
           )
         })}
         {data.map((d, i) => {
-          const gx = PAD.left + i * groupW + groupPad
+          const gx = PAD.left + i * groupW + groupOffset
           const rawLabel = String(d[labelKey])
-          const lbl = rawLabel.length > 8 ? rawLabel.slice(0, 6) + '…' : rawLabel
+          const lbl = rawLabel.length > 8 ? rawLabel.slice(0, 7) + '…' : rawLabel
           const cx = PAD.left + i * groupW + groupW / 2
           return (
             <g key={i}>
               {keys.map((k, ki) => {
                 const v = d[k] ?? 0
-                const bh = Math.max(2, (v / maxVal) * plotH)
-                const bx = gx + ki * barW
+                const bh = Math.max(3, (v / maxVal) * plotH)
+                const bx = gx + ki * (barW + gap)
+                const gradId = `grpGrad_${ki}_${(colors[ki] || '').replace('#', '')}`
                 return (
-                  <rect key={ki} x={bx} y={PAD.top + plotH - bh} width={barW - 2} height={bh}
-                    fill={colors[ki] || '#9CA3AF'} rx="2" opacity={0.9}>
-                    <title>{rawLabel} · {k}: {formatValue(v)}</title>
-                  </rect>
+                  <g key={ki}>
+                    <rect x={bx} y={PAD.top + plotH - bh} width={barW} height={bh}
+                      fill={`url(#${gradId})`} rx="4" ry="4">
+                      <title>{rawLabel} · {labels?.[ki] ?? k}: {formatValue(v)}</title>
+                    </rect>
+                    <rect x={bx} y={PAD.top + plotH - bh} width={barW} height={Math.min(bh, 4)}
+                      fill={colors[ki] || '#9CA3AF'} rx="4" ry="4" />
+                  </g>
                 )
               })}
-              <text x={cx} y={PAD.top + plotH + 14} textAnchor="middle" fontSize="9" fill="#6B7280"
-                transform={n > 6 ? `rotate(-35,${cx},${PAD.top + plotH + 14})` : ''}>
+              <text x={cx} y={PAD.top + plotH + 16} textAnchor="middle" fontSize="9.5" fill="#6B7280" fontFamily="system-ui"
+                transform={n > 6 ? `rotate(-35,${cx},${PAD.top + plotH + 16})` : ''}>
                 {lbl}
               </text>
             </g>
           )
         })}
-        <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} stroke="#E5E7EB" strokeWidth="1" />
+        <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} stroke="#E5E7EB" strokeWidth="1.5" />
       </svg>
-      <div className="flex justify-center gap-4 mt-1">
+      <div className="flex justify-center gap-5 mt-2">
         {keys.map((k, i) => (
-          <div key={k} className="flex items-center gap-1.5 text-xs text-gray-500">
-            <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: colors[i] }} />
-            {k.charAt(0).toUpperCase() + k.slice(1)}
+          <div key={k} className="flex items-center gap-1.5 text-xs font-medium" style={{ color: colors[i] }}>
+            <span className="w-3 h-3 rounded-sm shadow-sm" style={{ backgroundColor: colors[i] }} />
+            {labels?.[i] ?? (k.charAt(0).toUpperCase() + k.slice(1))}
           </div>
         ))}
       </div>
@@ -1256,6 +1342,7 @@ export default function DashboardClient() {
               labelKey="mes"
               keys={['funcionarios', 'dependentes']}
               colors={['#5BBD9B', '#3B82F6']}
+              labels={['Funcionários', 'Dependentes']}
               formatValue={v => `${v} consulta${v !== 1 ? 's' : ''}`}
             />
           </ChartCard>
