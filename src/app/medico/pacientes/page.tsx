@@ -35,40 +35,47 @@ export default async function MedicoPacientesPage() {
 
   const pacienteIds = pacientes.map(p => p.id)
 
-  // Buscar última triagem de cada paciente
-  const { data: todasTriagens } = await adminSupabase
-    .from('triagens')
-    .select('paciente_id, classificacao_risco, resumo_ia, criado_em')
-    .in('paciente_id', pacienteIds)
-    .order('criado_em', { ascending: false })
+  // Buscar triagens, atendimentos e atestados em paralelo
+  const [
+    { data: todasTriagens },
+    { data: todosAtendimentos },
+    { data: todosAtestados },
+  ] = await Promise.all([
+    adminSupabase
+      .from('triagens')
+      .select('paciente_id, classificacao_risco, resumo_ia, criado_em')
+      .in('paciente_id', pacienteIds)
+      .order('criado_em', { ascending: false }),
+    adminSupabase
+      .from('atendimentos')
+      .select('paciente_id')
+      .in('paciente_id', pacienteIds)
+      .eq('status', 'concluido'),
+    adminSupabase
+      .from('atestados')
+      .select('paciente_id')
+      .in('paciente_id', pacienteIds),
+  ])
 
-  // Buscar contagem de atendimentos por paciente
-  const { data: todosAtendimentos } = await adminSupabase
-    .from('atendimentos')
-    .select('paciente_id')
-    .in('paciente_id', pacienteIds)
-
-  // Montar mapa: paciente_id → última triagem
+  // Montar mapas
   const ultimaTriagemMap: Record<string, any> = {}
-  for (const t of todasTriagens ?? []) {
-    if (!ultimaTriagemMap[t.paciente_id]) {
-      ultimaTriagemMap[t.paciente_id] = t
-    }
-  }
-
-  // Montar mapa: paciente_id → total de triagens
   const totalTriagensMap: Record<string, number> = {}
   for (const t of todasTriagens ?? []) {
+    if (!ultimaTriagemMap[t.paciente_id]) ultimaTriagemMap[t.paciente_id] = t
     totalTriagensMap[t.paciente_id] = (totalTriagensMap[t.paciente_id] || 0) + 1
   }
 
-  // Montar mapa: paciente_id → total de atendimentos
   const totalAtendMap: Record<string, number> = {}
   for (const a of todosAtendimentos ?? []) {
     totalAtendMap[a.paciente_id] = (totalAtendMap[a.paciente_id] || 0) + 1
   }
 
-  // Montar lista final enriquecida
+  const totalAtestadosMap: Record<string, number> = {}
+  for (const a of todosAtestados ?? []) {
+    totalAtestadosMap[a.paciente_id] = (totalAtestadosMap[a.paciente_id] || 0) + 1
+  }
+
+  // Montar lista final enriquecida (sem ordenação — feita no client)
   const pacientesEnriquecidos = pacientes.map(p => ({
     id: p.id,
     nome: p.nome,
@@ -78,16 +85,10 @@ export default async function MedicoPacientesPage() {
     ultima_triagem: ultimaTriagemMap[p.id] ?? null,
     total_triagens: totalTriagensMap[p.id] ?? 0,
     total_atendimentos: totalAtendMap[p.id] ?? 0,
+    total_atestados: totalAtestadosMap[p.id] ?? 0,
+    total_exames: 0,
+    total_receitas: 0,
   }))
-
-  // Ordenar: primeiro quem tem triagem recente de risco alto, depois por nome
-  const ordemRisco: Record<string, number> = { vermelho: 0, laranja: 1, amarelo: 2, verde: 3 }
-  pacientesEnriquecidos.sort((a, b) => {
-    const ra = ordemRisco[a.ultima_triagem?.classificacao_risco ?? ''] ?? 4
-    const rb = ordemRisco[b.ultima_triagem?.classificacao_risco ?? ''] ?? 4
-    if (ra !== rb) return ra - rb
-    return a.nome.localeCompare(b.nome)
-  })
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">

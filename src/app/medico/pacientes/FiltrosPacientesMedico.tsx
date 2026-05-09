@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Search, Brain, ChevronRight, User, FileText, Phone } from 'lucide-react'
+import { Search, Brain, ChevronRight, User, FileText, Phone, ArrowUpDown, Calendar } from 'lucide-react'
 
 interface Paciente {
   id: string
@@ -17,6 +17,9 @@ interface Paciente {
   } | null
   total_triagens: number
   total_atendimentos: number
+  total_atestados: number
+  total_exames: number
+  total_receitas: number
 }
 
 const corRisco: Record<string, string> = {
@@ -33,6 +36,8 @@ const labelRisco: Record<string, string> = {
   vermelho: '🔴 Urgência',
 }
 
+const ordemRisco: Record<string, number> = { vermelho: 0, laranja: 1, amarelo: 2, verde: 3 }
+
 function calcularIdade(dataNasc: string | null): number | null {
   if (!dataNasc) return null
   const nasc = new Date(dataNasc)
@@ -46,9 +51,12 @@ function calcularIdade(dataNasc: string | null): number | null {
 export default function FiltrosPacientesMedico({ pacientes }: { pacientes: Paciente[] }) {
   const [busca, setBusca] = useState('')
   const [filtroRisco, setFiltroRisco] = useState<string>('todos')
+  const [ordenacao, setOrdenacao] = useState<'risco' | 'az' | 'za' | 'recentes'>('risco')
+  const [dataInicio, setDataInicio] = useState('')
+  const [dataFim, setDataFim] = useState('')
 
   const resultado = useMemo(() => {
-    return pacientes.filter(p => {
+    let lista = pacientes.filter(p => {
       const textoOk =
         !busca ||
         p.nome.toLowerCase().includes(busca.toLowerCase()) ||
@@ -60,14 +68,54 @@ export default function FiltrosPacientesMedico({ pacientes }: { pacientes: Pacie
         p.ultima_triagem?.classificacao_risco === filtroRisco ||
         (filtroRisco === 'sem_triagem' && !p.ultima_triagem)
 
-      return textoOk && riscoOk
+      // Filtro por data da última triagem
+      let dataOk = true
+      if (p.ultima_triagem?.criado_em) {
+        const d = new Date(p.ultima_triagem.criado_em)
+        if (dataInicio) dataOk = dataOk && d >= new Date(dataInicio + 'T00:00:00')
+        if (dataFim)    dataOk = dataOk && d <= new Date(dataFim + 'T23:59:59')
+      } else if (dataInicio || dataFim) {
+        dataOk = false // sem triagem não entra no filtro de data
+      }
+
+      return textoOk && riscoOk && dataOk
     })
-  }, [pacientes, busca, filtroRisco])
+
+    // Ordenação
+    lista = [...lista]
+    switch (ordenacao) {
+      case 'az':
+        lista.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+        break
+      case 'za':
+        lista.sort((a, b) => b.nome.localeCompare(a.nome, 'pt-BR'))
+        break
+      case 'recentes':
+        lista.sort((a, b) => {
+          const da = a.ultima_triagem?.criado_em ? new Date(a.ultima_triagem.criado_em).getTime() : 0
+          const db = b.ultima_triagem?.criado_em ? new Date(b.ultima_triagem.criado_em).getTime() : 0
+          return db - da
+        })
+        break
+      case 'risco':
+      default:
+        lista.sort((a, b) => {
+          const ra = ordemRisco[a.ultima_triagem?.classificacao_risco ?? ''] ?? 4
+          const rb = ordemRisco[b.ultima_triagem?.classificacao_risco ?? ''] ?? 4
+          if (ra !== rb) return ra - rb
+          return a.nome.localeCompare(b.nome, 'pt-BR')
+        })
+    }
+
+    return lista
+  }, [pacientes, busca, filtroRisco, ordenacao, dataInicio, dataFim])
+
+  const temFiltroData = dataInicio || dataFim
 
   return (
     <>
-      {/* Filtros */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      {/* Linha 1: busca + risco */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-3">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
@@ -90,6 +138,48 @@ export default function FiltrosPacientesMedico({ pacientes }: { pacientes: Pacie
           <option value="vermelho">🔴 Urgência</option>
           <option value="sem_triagem">Sem triagem</option>
         </select>
+      </div>
+
+      {/* Linha 2: data + ordenação */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-5">
+        <div className="flex items-center gap-2 flex-1">
+          <Calendar className="w-4 h-4 text-gray-400 shrink-0" />
+          <span className="text-xs text-gray-500 shrink-0">Triagem de:</span>
+          <input
+            type="date"
+            value={dataInicio}
+            onChange={e => setDataInicio(e.target.value)}
+            className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+          />
+          <span className="text-xs text-gray-400 shrink-0">até</span>
+          <input
+            type="date"
+            value={dataFim}
+            onChange={e => setDataFim(e.target.value)}
+            className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+          />
+          {temFiltroData && (
+            <button
+              onClick={() => { setDataInicio(''); setDataFim('') }}
+              className="text-xs text-red-400 hover:text-red-600 shrink-0"
+            >
+              limpar
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <ArrowUpDown className="w-4 h-4 text-gray-400 shrink-0" />
+          <select
+            value={ordenacao}
+            onChange={e => setOrdenacao(e.target.value as any)}
+            className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white"
+          >
+            <option value="risco">Por prioridade (risco)</option>
+            <option value="az">A → Z</option>
+            <option value="za">Z → A</option>
+            <option value="recentes">Triagem mais recente</option>
+          </select>
+        </div>
       </div>
 
       {/* Contagem */}
@@ -158,7 +248,7 @@ export default function FiltrosPacientesMedico({ pacientes }: { pacientes: Pacie
                   </div>
 
                   {/* Stats + seta */}
-                  <div className="flex items-center gap-4 shrink-0">
+                  <div className="flex items-center gap-3 shrink-0">
                     <div className="text-center hidden sm:block">
                       <p className="text-sm font-bold text-[#1A3A2C]">{p.total_triagens}</p>
                       <p className="text-xs text-gray-400">triagens</p>
@@ -166,6 +256,24 @@ export default function FiltrosPacientesMedico({ pacientes }: { pacientes: Pacie
                     <div className="text-center hidden sm:block">
                       <p className="text-sm font-bold text-[#1A3A2C]">{p.total_atendimentos}</p>
                       <p className="text-xs text-gray-400">consultas</p>
+                    </div>
+                    <div className="text-center hidden sm:block">
+                      <p className={`text-sm font-bold ${p.total_atestados > 0 ? 'text-blue-600' : 'text-gray-300'}`}>
+                        {p.total_atestados}
+                      </p>
+                      <p className="text-xs text-gray-400">atestados</p>
+                    </div>
+                    <div className="text-center hidden md:block">
+                      <p className={`text-sm font-bold ${p.total_exames > 0 ? 'text-purple-600' : 'text-gray-300'}`}>
+                        {p.total_exames}
+                      </p>
+                      <p className="text-xs text-gray-400">exames</p>
+                    </div>
+                    <div className="text-center hidden md:block">
+                      <p className={`text-sm font-bold ${p.total_receitas > 0 ? 'text-orange-600' : 'text-gray-300'}`}>
+                        {p.total_receitas}
+                      </p>
+                      <p className="text-xs text-gray-400">receitas</p>
                     </div>
                     <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-[#5BBD9B] transition-colors" />
                   </div>

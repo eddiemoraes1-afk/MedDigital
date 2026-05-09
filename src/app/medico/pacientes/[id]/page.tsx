@@ -6,7 +6,6 @@ import {
   Clock, CheckCircle2, Mail, Briefcase, MapPin, XCircle,
   ArrowLeft, Brain, AlertTriangle, AlertCircle, Info,
   Pill, Stethoscope, ThumbsUp, ThumbsDown, Minus,
-  ChevronDown,
 } from 'lucide-react'
 import MedicoHeader from '../../MedicoHeader'
 import AtestadosMedicoClient from './AtestadosMedicoClient'
@@ -83,21 +82,14 @@ export default async function MedicoPacientePage({ params }: Props) {
   const triagens = [...(triagensDirectas ?? []), ...triagemViaAtend]
     .sort((a, b) => new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime())
 
-  // Agendamentos
-  const { data: agendamentos } = await adminSupabase
-    .from('agendamentos')
-    .select('id, data_hora, status, tipo_consulta, medico_id')
-    .eq('paciente_id', id)
-    .order('data_hora', { ascending: false })
-    .limit(10)
-
-  // Atendimentos concluídos para calcular gasto total
+  // Atendimentos concluídos — histórico de consultas + gasto total
   const { data: atendimentosConcluidos } = await adminSupabase
     .from('atendimentos')
-    .select('id, valor_cobrado, criado_em')
+    .select('id, valor_cobrado, criado_em, notas_medico, medico_id, medicos(nome)')
     .eq('paciente_id', id)
     .eq('status', 'concluido')
     .order('criado_em', { ascending: false })
+    .limit(20)
 
   // Atestados do paciente (com dados completos do médico para PDF)
   const { data: atestados } = await adminSupabase
@@ -108,13 +100,6 @@ export default async function MedicoPacientePage({ params }: Props) {
 
   const totalGastoPaciente = (atendimentosConcluidos ?? []).reduce((s, a) => s + (a.valor_cobrado ?? 0), 0)
   const totalConsultasPaciente = atendimentosConcluidos?.length ?? 0
-
-  const medicoIds = [...new Set(agendamentos?.map(a => a.medico_id).filter(Boolean) ?? [])]
-  const { data: medicos } = medicoIds.length > 0
-    ? await adminSupabase.from('medicos').select('id, nome').in('id', medicoIds)
-    : { data: [] }
-  const medicoMap: Record<string, string> = {}
-  medicos?.forEach(m => { medicoMap[m.id] = m.nome })
 
   // Helpers
   function calcularIdade(dataNasc: string | null): number | null {
@@ -237,12 +222,20 @@ export default async function MedicoPacientePage({ params }: Props) {
                 <p className="text-2xl font-bold text-green-600">{totalConsultasPaciente}</p>
                 <p className="text-xs text-gray-400">consultas</p>
               </div>
-              {(atestados?.length ?? 0) > 0 && (
-                <div className="text-center bg-blue-50 rounded-xl px-4 py-3">
-                  <p className="text-2xl font-bold text-blue-600">{atestados!.length}</p>
-                  <p className="text-xs text-gray-400">atestados</p>
-                </div>
-              )}
+              <div className="text-center bg-blue-50 rounded-xl px-4 py-3">
+                <p className={`text-2xl font-bold ${(atestados?.length ?? 0) > 0 ? 'text-blue-600' : 'text-gray-300'}`}>
+                  {atestados?.length ?? 0}
+                </p>
+                <p className="text-xs text-gray-400">atestados</p>
+              </div>
+              <div className="text-center bg-purple-50 rounded-xl px-4 py-3">
+                <p className="text-2xl font-bold text-gray-300">0</p>
+                <p className="text-xs text-gray-400">exames</p>
+              </div>
+              <div className="text-center bg-orange-50 rounded-xl px-4 py-3">
+                <p className="text-2xl font-bold text-gray-300">0</p>
+                <p className="text-xs text-gray-400">receitas</p>
+              </div>
               {totalGastoPaciente > 0 && (
                 <div className="text-center bg-amber-50 rounded-xl px-4 py-3">
                   <p className="text-lg font-bold text-amber-700">
@@ -487,22 +480,24 @@ export default async function MedicoPacientePage({ params }: Props) {
               <div className="flex items-center gap-2 mb-3">
                 <Activity className="w-5 h-5 text-[#5BBD9B]" />
                 <h2 className="font-bold text-[#1A3A2C] text-lg">Histórico de Consultas</h2>
-                <span className="text-sm text-gray-400">({agendamentos?.length ?? 0})</span>
+                <span className="text-sm text-gray-400">({totalConsultasPaciente})</span>
               </div>
 
-              {agendamentos && agendamentos.length > 0 ? (
+              {atendimentosConcluidos && atendimentosConcluidos.length > 0 ? (
                 <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
                       <tr>
                         <th className="px-5 py-3 text-left">Data</th>
                         <th className="px-5 py-3 text-left">Médico</th>
-                        <th className="px-5 py-3 text-center">Status</th>
+                        <th className="px-5 py-3 text-left hidden md:table-cell">Notas</th>
+                        <th className="px-5 py-3 text-right">Valor</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                      {agendamentos.map(a => {
-                        const { data, hora } = formatDataHora(a.data_hora)
+                      {atendimentosConcluidos.map((a: any) => {
+                        const { data, hora } = formatDataHora(a.criado_em)
+                        const medicoNome = a.medicos?.nome
                         return (
                           <tr key={a.id} className="hover:bg-gray-50">
                             <td className="px-5 py-3">
@@ -512,18 +507,24 @@ export default async function MedicoPacientePage({ params }: Props) {
                               </p>
                             </td>
                             <td className="px-5 py-3 text-gray-600">
-                              {medicoMap[a.medico_id] ? `Dr(a). ${medicoMap[a.medico_id]}` : <span className="text-gray-300">—</span>}
+                              {medicoNome
+                                ? <span className="text-sm">{medicoNome}</span>
+                                : <span className="text-gray-300">—</span>
+                              }
                             </td>
-                            <td className="px-5 py-3 text-center">
-                              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                                a.status === 'concluido' ? 'bg-green-100 text-green-700' :
-                                a.status === 'cancelado' ? 'bg-red-100 text-red-600' :
-                                'bg-yellow-100 text-yellow-700'
-                              }`}>
-                                {a.status === 'concluido' ? 'Concluída' :
-                                 a.status === 'cancelado' ? 'Cancelada' :
-                                 a.status === 'confirmado' ? 'Confirmada' : 'Pendente'}
-                              </span>
+                            <td className="px-5 py-3 text-gray-400 text-xs hidden md:table-cell max-w-[200px]">
+                              {a.notas_medico
+                                ? <span className="line-clamp-2">{a.notas_medico}</span>
+                                : <span className="italic">Sem notas</span>
+                              }
+                            </td>
+                            <td className="px-5 py-3 text-right">
+                              {a.valor_cobrado != null
+                                ? <span className="text-sm font-medium text-gray-700">
+                                    {Number(a.valor_cobrado).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                  </span>
+                                : <span className="text-gray-300 text-xs">—</span>
+                              }
                             </td>
                           </tr>
                         )
