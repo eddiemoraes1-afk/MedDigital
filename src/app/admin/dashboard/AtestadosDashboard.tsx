@@ -235,7 +235,32 @@ export default function AdminAtestadosDashboard() {
             </Card>
           </div>
 
-          {/* Row 3: Por médico */}
+          {/* Row 3: Por CID */}
+          <Card title="Atestados por CID-10" sub="Diagnósticos mais frequentes no sistema">
+            <div className="space-y-2">
+              {(data.porCID ?? []).slice(0, 12).map((c: any, i: number) => {
+                const max = (data.porCID ?? [])[0]?.atestados ?? 1
+                return (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="font-mono text-xs font-bold text-[#1A3A2C] w-20 shrink-0">{c.cid}</span>
+                    <div className="flex-1 bg-gray-100 rounded-full h-2">
+                      <div className="h-2 rounded-full" style={{ width: `${(c.atestados / max) * 100}%`, backgroundColor: '#5BBD9B' }} />
+                    </div>
+                    <div className="flex items-center gap-3 text-xs shrink-0">
+                      <span className="font-semibold text-gray-700 w-6 text-right">{c.atestados}</span>
+                      <span className="text-gray-400 w-14 text-right">{c.dias} dias</span>
+                      <span className="text-gray-400 w-20 text-right">{c.pacientes} paciente{c.pacientes !== 1 ? 's' : ''}</span>
+                    </div>
+                  </div>
+                )
+              })}
+              {(!data.porCID || data.porCID.length === 0) && (
+                <p className="text-xs text-gray-300 text-center py-4">Sem dados de CID</p>
+              )}
+            </div>
+          </Card>
+
+          {/* Row 4: Por médico */}
           <div className="grid md:grid-cols-2 gap-6">
             <Card title="Atestados por Médico" sub="Quantidade emitida por médico">
               <HBar data={data.porMedico} labelKey="nome" valueKey="atestados" color="#8B5CF6" />
@@ -245,8 +270,8 @@ export default function AdminAtestadosDashboard() {
             </Card>
           </div>
 
-          {/* Top pacientes */}
-          <Card title="Top Pacientes por Dias de Afastamento" sub="Pacientes com mais dias acumulados">
+          {/* Top pacientes com CID */}
+          <Card title="Top Pacientes por Dias de Afastamento" sub="Inclui CID mais frequente por paciente">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
@@ -254,8 +279,9 @@ export default function AdminAtestadosDashboard() {
                     <th className="px-4 py-2.5 text-left">#</th>
                     <th className="px-4 py-2.5 text-left">Paciente</th>
                     <th className="px-4 py-2.5 text-left">Empresa</th>
+                    <th className="px-4 py-2.5 text-left">CID Principal</th>
                     <th className="px-4 py-2.5 text-center">Atestados</th>
-                    <th className="px-4 py-2.5 text-center">Total de Dias</th>
+                    <th className="px-4 py-2.5 text-center">Dias</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -264,6 +290,11 @@ export default function AdminAtestadosDashboard() {
                       <td className="px-4 py-2.5 text-xs text-gray-400 font-medium">{i + 1}</td>
                       <td className="px-4 py-2.5 font-medium text-[#1A3A2C] text-sm">{p.nome}</td>
                       <td className="px-4 py-2.5 text-xs text-gray-500">{p.empresa ?? 'Particular'}</td>
+                      <td className="px-4 py-2.5">
+                        {p.cidPrincipal && p.cidPrincipal !== '—' ? (
+                          <span className="font-mono text-xs bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full">{p.cidPrincipal}</span>
+                        ) : <span className="text-gray-300 text-xs">—</span>}
+                      </td>
                       <td className="px-4 py-2.5 text-center">
                         <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded-full">{p.atestados}</span>
                       </td>
@@ -273,7 +304,7 @@ export default function AdminAtestadosDashboard() {
                     </tr>
                   ))}
                   {data.topPacientes.length === 0 && (
-                    <tr><td colSpan={5} className="py-8 text-center text-gray-300 text-sm">Sem dados</td></tr>
+                    <tr><td colSpan={6} className="py-8 text-center text-gray-300 text-sm">Sem dados</td></tr>
                   )}
                 </tbody>
               </table>

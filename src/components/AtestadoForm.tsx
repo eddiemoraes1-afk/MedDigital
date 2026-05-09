@@ -174,7 +174,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
   const dataFim = calcDataFim(dataInicio, dias)
 
   async function salvar() {
-    if (!dias || !dataInicio) return
+    if (!dias || !dataInicio || !cid.trim()) return
     setSalvando(true)
     setErro('')
     try {
@@ -285,20 +285,25 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
       </p>
 
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">CID-10 <span className="text-gray-400">(opcional)</span></label>
+        <label className="block text-xs font-medium text-gray-600 mb-1">
+          CID-10 <span className="text-red-400">*</span>
+        </label>
         <input
           type="text" value={cid} onChange={e => setCid(e.target.value.toUpperCase())}
-          placeholder="Ex: J00, Z76.0"
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] font-mono"
+          placeholder="Ex: J00, Z76.0, M54.5"
+          className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] font-mono ${!cid.trim() ? 'border-red-200 bg-red-50' : 'border-gray-200'}`}
         />
+        {!cid.trim() && <p className="text-red-400 text-xs mt-1">CID-10 é obrigatório</p>}
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">Texto complementar <span className="text-gray-400">(opcional)</span></label>
+        <label className="block text-xs font-medium text-gray-600 mb-1">
+          Motivo / Diagnóstico <span className="text-gray-400">(opcional)</span>
+        </label>
         <textarea
           value={textComplementar} onChange={e => setTextComplementar(e.target.value)}
           rows={2}
-          placeholder="Informações adicionais que aparecerão no corpo do atestado..."
+          placeholder="Descrição do diagnóstico ou informações complementares para o atestado..."
           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none"
         />
       </div>
@@ -322,7 +327,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
       <div className="flex gap-2">
         <button
           onClick={salvar}
-          disabled={salvando || !dias || !dataInicio}
+          disabled={salvando || !dias || !dataInicio || !cid.trim()}
           className="flex-1 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
         >
           {salvando ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : <><FileText className="w-4 h-4" /> Salvar atestado</>}

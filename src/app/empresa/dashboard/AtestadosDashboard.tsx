@@ -217,7 +217,64 @@ export default function AtestadosDashboard() {
             </Card>
           </div>
 
-          {/* Row 3 — Barras horizontais */}
+          {/* Row 3 — CID */}
+          <Card title="Atestados por CID-10" sub="Diagnósticos mais frequentes">
+            <div className="space-y-2">
+              {(data.porCID ?? []).slice(0, 12).map((c: any, i: number) => {
+                const max = data.porCID[0]?.atestados ?? 1
+                return (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="font-mono text-xs font-bold text-[#1A3A2C] w-20 shrink-0">{c.cid}</span>
+                    <div className="flex-1 bg-gray-100 rounded-full h-2">
+                      <div className="h-2 rounded-full" style={{ width: `${(c.atestados / max) * 100}%`, backgroundColor: '#5BBD9B' }} />
+                    </div>
+                    <div className="flex items-center gap-3 text-xs shrink-0">
+                      <span className="font-semibold text-gray-700 w-6 text-right">{c.atestados}</span>
+                      <span className="text-gray-400 w-14 text-right">{c.dias} dias</span>
+                      <span className="text-gray-400 w-16 text-right">{c.funcionarios} func.</span>
+                    </div>
+                  </div>
+                )
+              })}
+              {(!data.porCID || data.porCID.length === 0) && (
+                <p className="text-xs text-gray-300 text-center py-4">Sem dados de CID</p>
+              )}
+            </div>
+          </Card>
+
+          {/* CID por Secretaria */}
+          {data.cidPorSecretaria && data.cidPorSecretaria.length > 0 && (
+            <Card title="CIDs Mais Frequentes por Secretaria" sub="Top 3 diagnósticos em cada unidade">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                    <tr>
+                      <th className="px-4 py-2.5 text-left">Secretaria</th>
+                      <th className="px-4 py-2.5 text-left">CIDs mais frequentes</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {data.cidPorSecretaria.map((s: any, i: number) => (
+                      <tr key={i} className="hover:bg-gray-50">
+                        <td className="px-4 py-2.5 text-xs font-medium text-[#1A3A2C]">{s.secretaria}</td>
+                        <td className="px-4 py-2.5">
+                          <div className="flex flex-wrap gap-1.5">
+                            {s.topCID.map((c: any, j: number) => (
+                              <span key={j} className="font-mono text-xs bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full">
+                                {c.cid} <span className="text-blue-400">×{c.n}</span>
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
+
+          {/* Row 4 — Barras horizontais */}
           <div className="grid md:grid-cols-2 gap-6">
             <Card title="Atestados por Secretaria" sub="Quantidade por unidade">
               <HBar data={data.porSecretaria} labelKey="secretaria" valueKey="atestados" color="#5BBD9B" />
@@ -236,8 +293,8 @@ export default function AtestadosDashboard() {
             </Card>
           </div>
 
-          {/* Top funcionários */}
-          <Card title="Top Funcionários por Dias de Afastamento" sub="Ordenado por total de dias">
+          {/* Top funcionários com CID */}
+          <Card title="Top Funcionários por Dias de Afastamento" sub="Ordenado por total de dias — inclui CID principal">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
@@ -246,6 +303,7 @@ export default function AtestadosDashboard() {
                     <th className="px-4 py-2.5 text-left">Funcionário</th>
                     <th className="px-4 py-2.5 text-left">Cargo</th>
                     <th className="px-4 py-2.5 text-left">Secretaria</th>
+                    <th className="px-4 py-2.5 text-left">CID Principal</th>
                     <th className="px-4 py-2.5 text-center">Atestados</th>
                     <th className="px-4 py-2.5 text-center">Dias</th>
                   </tr>
@@ -257,6 +315,11 @@ export default function AtestadosDashboard() {
                       <td className="px-4 py-2.5 font-medium text-[#1A3A2C] text-xs">{f.nome}</td>
                       <td className="px-4 py-2.5 text-xs text-gray-600">{f.cargo}</td>
                       <td className="px-4 py-2.5 text-xs text-gray-600">{f.secretaria}</td>
+                      <td className="px-4 py-2.5">
+                        {f.cidPrincipal && f.cidPrincipal !== '—' ? (
+                          <span className="font-mono text-xs bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full">{f.cidPrincipal}</span>
+                        ) : <span className="text-gray-300 text-xs">—</span>}
+                      </td>
                       <td className="px-4 py-2.5 text-center">
                         <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded-full">{f.atestados}</span>
                       </td>

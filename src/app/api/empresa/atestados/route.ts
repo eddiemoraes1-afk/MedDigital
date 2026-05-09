@@ -85,18 +85,57 @@ export async function GET() {
   const porCargo = agg('cargo', v => v?.cargo).map(r => ({ cargo: r.label, ...r }))
   const porRelacao = agg('relacao', v => v?.relacao).map(r => ({ relacao: r.label, ...r }))
 
-  // Top funcionários
-  const funcMap = new Map<string, { nome: string; cargo: string; secretaria: string; atestados: number; dias: number }>()
+  // Por CID
+  const cidMap = new Map<string, { cid: string; atestados: number; dias: number; funcionarios: Set<string> }>()
+  for (const a of ats) {
+    const cidKey = (a.cid ?? 'Não informado').trim().toUpperCase() || 'Não informado'
+    const cur = cidMap.get(cidKey) ?? { cid: cidKey, atestados: 0, dias: 0, funcionarios: new Set() }
+    cur.atestados++
+    cur.dias += a.dias ?? 0
+    if (a.paciente_id) cur.funcionarios.add(a.paciente_id)
+    cidMap.set(cidKey, cur)
+  }
+  const porCID = [...cidMap.values()]
+    .map(r => ({ cid: r.cid, atestados: r.atestados, dias: r.dias, funcionarios: r.funcionarios.size }))
+    .sort((a, b) => b.atestados - a.atestados)
+
+  // CID mais frequente por secretaria
+  const secretariaCIDMap = new Map<string, Map<string, number>>()
+  for (const a of ats) {
+    const v = vinculoByPaciente.get(a.paciente_id)
+    const sec = v?.departamento || 'Não informado'
+    const cidKey = (a.cid ?? 'Não informado').trim().toUpperCase() || 'Não informado'
+    if (!secretariaCIDMap.has(sec)) secretariaCIDMap.set(sec, new Map())
+    const inner = secretariaCIDMap.get(sec)!
+    inner.set(cidKey, (inner.get(cidKey) ?? 0) + 1)
+  }
+  const cidPorSecretaria = [...secretariaCIDMap.entries()].map(([secretaria, cidCounts]) => {
+    const topCID = [...cidCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([cid, n]) => ({ cid, n }))
+    return { secretaria, topCID }
+  })
+
+  // Top funcionários (com CID mais frequente)
+  const funcMap = new Map<string, { nome: string; cargo: string; secretaria: string; atestados: number; dias: number; cids: Map<string, number> }>()
   for (const a of ats) {
     if (!a.paciente_id) continue
     const v = vinculoByPaciente.get(a.paciente_id)
     const p = pacMap.get(a.paciente_id) as any
     const nome = v?.nome_completo ?? p?.nome ?? '—'
-    const cur = funcMap.get(a.paciente_id) ?? { nome, cargo: v?.cargo ?? '—', secretaria: v?.departamento ?? '—', atestados: 0, dias: 0 }
-    cur.atestados++; cur.dias += a.dias ?? 0
+    const cidKey = (a.cid ?? '').trim().toUpperCase() || '—'
+    const cur = funcMap.get(a.paciente_id) ?? { nome, cargo: v?.cargo ?? '—', secretaria: v?.departamento ?? '—', atestados: 0, dias: 0, cids: new Map() }
+    cur.atestados++
+    cur.dias += a.dias ?? 0
+    cur.cids.set(cidKey, (cur.cids.get(cidKey) ?? 0) + 1)
     funcMap.set(a.paciente_id, cur)
   }
-  const topFuncionarios = [...funcMap.values()].sort((a, b) => b.dias - a.dias).slice(0, 10)
+  const topFuncionarios = [...funcMap.values()]
+    .sort((a, b) => b.dias - a.dias)
+    .slice(0, 10)
+    .map(f => ({
+      nome: f.nome, cargo: f.cargo, secretaria: f.secretaria,
+      atestados: f.atestados, dias: f.dias,
+      cidPrincipal: [...f.cids.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—',
+    }))
 
-  return NextResponse.json({ kpis: { total, totalDias, mediaDias, funcionariosComAtestado }, porMes, porSexo, porSecretaria, porCargo, porRelacao, topFuncionarios })
+  return NextResponse.json({ kpis: { total, totalDias, mediaDias, funcionariosComAtestado }, porMes, porSexo, porSecretaria, porCargo, porRelacao, porCID, cidPorSecretaria, topFuncionarios })
 }

@@ -66,16 +66,39 @@ export async function GET() {
   }
   const porMedico = [...medAtMap.values()].sort((a, b) => b.atestados - a.atestados)
 
-  // Top pacientes
-  const pacAtMap = new Map<string, { nome: string; atestados: number; dias: number }>()
+  // Por CID
+  const cidMap = new Map<string, { cid: string; atestados: number; dias: number; pacientes: Set<string> }>()
+  for (const a of ats) {
+    const cidKey = (a.cid ?? 'Não informado').trim().toUpperCase() || 'Não informado'
+    const cur = cidMap.get(cidKey) ?? { cid: cidKey, atestados: 0, dias: 0, pacientes: new Set() }
+    cur.atestados++
+    cur.dias += a.dias ?? 0
+    if (a.paciente_id) cur.pacientes.add(a.paciente_id)
+    cidMap.set(cidKey, cur)
+  }
+  const porCID = [...cidMap.values()]
+    .map(r => ({ cid: r.cid, atestados: r.atestados, dias: r.dias, pacientes: r.pacientes.size }))
+    .sort((a, b) => b.atestados - a.atestados)
+
+  // Top pacientes (com CID principal)
+  const pacAtMap = new Map<string, { nome: string; empresa: string; atestados: number; dias: number; cids: Map<string, number> }>()
   for (const a of ats) {
     if (!a.paciente_id) continue
     const p = pacMap.get(a.paciente_id) as any
-    const cur = pacAtMap.get(a.paciente_id) ?? { nome: p?.nome ?? '—', atestados: 0, dias: 0 }
-    cur.atestados++; cur.dias += a.dias ?? 0
+    const cidKey = (a.cid ?? '').trim().toUpperCase() || '—'
+    const cur = pacAtMap.get(a.paciente_id) ?? { nome: p?.nome ?? '—', empresa: '—', atestados: 0, dias: 0, cids: new Map() }
+    cur.atestados++
+    cur.dias += a.dias ?? 0
+    cur.cids.set(cidKey, (cur.cids.get(cidKey) ?? 0) + 1)
     pacAtMap.set(a.paciente_id, cur)
   }
-  const topPacientes = [...pacAtMap.values()].sort((a, b) => b.atestados - a.atestados).slice(0, 10)
+  const topPacientes = [...pacAtMap.values()]
+    .sort((a, b) => b.atestados - a.atestados)
+    .slice(0, 10)
+    .map(p => ({
+      nome: p.nome, empresa: p.empresa, atestados: p.atestados, dias: p.dias,
+      cidPrincipal: [...p.cids.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—',
+    }))
 
-  return NextResponse.json({ kpis: { total, totalDias, mediaDias, pacientesUnicos }, porMes, porSexo, porMedico, topPacientes })
+  return NextResponse.json({ kpis: { total, totalDias, mediaDias, pacientesUnicos }, porMes, porSexo, porMedico, porCID, topPacientes })
 }
