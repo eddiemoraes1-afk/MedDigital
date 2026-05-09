@@ -25,6 +25,7 @@ interface RelacaoItem {
   cadastros: number
   pacientesAtivos: number
   consultas: number
+  valor: number
   taxaUso: number
 }
 
@@ -71,7 +72,7 @@ interface EmpresaDashData {
   gastosPorCargo: Array<{ cargo: string; consultas: number; valor: number }>
   distribuicaoRelacao: RelacaoItem[]
   detalheRelacao: DetalheRelacaoItem[]
-  consultasRelacaoPorMes: Array<{ mes: string; funcionarios: number; dependentes: number }>
+  consultasRelacaoPorMes: Array<{ mes: string; funcionarios: number; dependentes: number; valorFuncionarios: number; valorDependentes: number }>
   gastosPorTitular: TitularItem[]
 }
 
@@ -980,9 +981,9 @@ export default function EmpresaDashboardClient() {
           </div>
         )}
 
-        {/* Donuts: Composição e Consultas */}
+        {/* Donuts: Composição cadastral e gasto R$ */}
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
-          <ChartCard title="Composição da Base" subtitle="Funcionários vs Dependentes cadastrados">
+          <ChartCard title="Composição da Base" subtitle="Total de beneficiários cadastrados por tipo">
             <DonutChart
               slices={(data.distribuicaoRelacao ?? []).filter(d => d.cadastros > 0).map(d => ({
                 label: d.categoria,
@@ -993,28 +994,62 @@ export default function EmpresaDashboardClient() {
               formatCenter={total => String(total)}
             />
           </ChartCard>
-          <ChartCard title="Consultas por Relação" subtitle="Distribuição de atendimentos no período">
+          <ChartCard title="Gasto Total por Relação (R$)" subtitle="Valor gasto em consultas por tipo de beneficiário">
             <DonutChart
-              slices={(data.distribuicaoRelacao ?? []).filter(d => d.consultas > 0).map(d => ({
+              slices={(data.distribuicaoRelacao ?? []).filter(d => d.valor > 0).map(d => ({
                 label: d.categoria,
-                value: d.consultas,
+                value: d.valor,
                 color: d.categoria === 'Funcionário' ? '#1A3A2C' : '#3B82F6',
               }))}
-              formatValue={v => `${v} consultas`}
-              formatCenter={total => String(total)}
+              formatValue={v => formatBRL(v)}
             />
           </ChartCard>
         </div>
 
         {/* Consultas por mês: funcionários vs dependentes */}
+        {/* Cards de totais R$ por categoria */}
+        {data.distribuicaoRelacao && data.distribuicaoRelacao.some(r => r.valor > 0) && (
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            {data.distribuicaoRelacao.map(r => (
+              <div key={r.categoria} className={`rounded-2xl p-5 ${r.categoria === 'Funcionário' ? 'bg-[#1A3A2C]' : 'bg-blue-600'}`}>
+                <p className="text-xs font-semibold uppercase tracking-wide mb-1 opacity-70 text-white">{r.categoria}s — Total em Consultas</p>
+                <p className="text-2xl font-bold text-white mb-1">{formatBRL(r.valor)}</p>
+                <div className="flex items-center gap-3 text-xs text-white/70 mt-2">
+                  <span>{r.consultas} consulta{r.consultas !== 1 ? 's' : ''}</span>
+                  <span>·</span>
+                  <span>{r.pacientesAtivos} beneficiário{r.pacientesAtivos !== 1 ? 's' : ''} c/ uso</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Grouped bars: quantidade por mês */}
         {data.consultasRelacaoPorMes && data.consultasRelacaoPorMes.length > 0 && (
-          <ChartCard title="Consultas por Mês — Funcionários vs Dependentes" subtitle="Evolução mensal de atendimentos por tipo de beneficiário" className="mb-6">
+          <ChartCard title="Consultas por Mês — Funcionários vs Dependentes" subtitle="Quantidade de atendimentos por tipo de beneficiário" className="mb-6">
             <GroupedBarChart
               data={data.consultasRelacaoPorMes.map(d => ({ ...d, mes: formatMes(d.mes) }))}
               labelKey="mes"
               keys={['funcionarios', 'dependentes']}
               colors={['#5BBD9B', '#3B82F6']}
               formatValue={v => `${v} consulta${v !== 1 ? 's' : ''}`}
+            />
+          </ChartCard>
+        )}
+
+        {/* Grouped bars: valor R$ por mês */}
+        {data.consultasRelacaoPorMes && data.consultasRelacaoPorMes.some(d => d.valorFuncionarios + d.valorDependentes > 0) && (
+          <ChartCard title="Gasto por Mês (R$) — Funcionários vs Dependentes" subtitle="Valor gasto em consultas por tipo de beneficiário" className="mb-6">
+            <GroupedBarChart
+              data={data.consultasRelacaoPorMes.map(d => ({
+                mes: formatMes(d.mes),
+                funcionarios: d.valorFuncionarios,
+                dependentes: d.valorDependentes,
+              }))}
+              labelKey="mes"
+              keys={['funcionarios', 'dependentes']}
+              colors={['#1A3A2C', '#2563EB']}
+              formatValue={v => formatBRL(v)}
             />
           </ChartCard>
         )}

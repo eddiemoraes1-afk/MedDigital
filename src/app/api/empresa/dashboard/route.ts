@@ -281,13 +281,14 @@ export async function GET(req: Request) {
     composicaoMap.set(cat, cur)
   }
 
-  // Consultas por relação
+  // Consultas por relação (quantidade e valor)
   const consultasRelMap = new Map<string, number>()
-  const diasRelMap = new Map<string, number>()
+  const valorRelMap = new Map<string, number>()
   for (const a of ats) {
     const v = vinculoMap.get(a.paciente_id)
     const cat = classRelacao(v?.relacao)
     consultasRelMap.set(cat, (consultasRelMap.get(cat) ?? 0) + 1)
+    valorRelMap.set(cat, (valorRelMap.get(cat) ?? 0) + precoConsulta)
   }
 
   // Detalhamento por tipo exato de relação
@@ -316,16 +317,16 @@ export async function GET(req: Request) {
     }))
     .sort((a, b) => b.consultas - a.consultas)
 
-  // Consultas por relação por mês
-  const relMesMap = new Map<string, { funcionarios: number; dependentes: number }>()
+  // Consultas por relação por mês (quantidade e valor)
+  const relMesMap = new Map<string, { funcionarios: number; dependentes: number; valorFuncionarios: number; valorDependentes: number }>()
   for (const a of ats) {
     const d = new Date(a.criado_em)
     const mes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
     const v = vinculoMap.get(a.paciente_id)
     const cat = classRelacao(v?.relacao)
-    const cur = relMesMap.get(mes) ?? { funcionarios: 0, dependentes: 0 }
-    if (cat === 'Funcionário') cur.funcionarios++
-    else cur.dependentes++
+    const cur = relMesMap.get(mes) ?? { funcionarios: 0, dependentes: 0, valorFuncionarios: 0, valorDependentes: 0 }
+    if (cat === 'Funcionário') { cur.funcionarios++; cur.valorFuncionarios += precoConsulta }
+    else { cur.dependentes++; cur.valorDependentes += precoConsulta }
     relMesMap.set(mes, cur)
   }
   const consultasRelacaoPorMes = [...relMesMap.entries()]
@@ -337,6 +338,7 @@ export async function GET(req: Request) {
     cadastros: composicaoMap.get(cat)?.cadastros ?? 0,
     pacientesAtivos: composicaoMap.get(cat)?.pacientesAtivos ?? 0,
     consultas: consultasRelMap.get(cat) ?? 0,
+    valor: valorRelMap.get(cat) ?? 0,
     taxaUso: (() => {
       const ativos = composicaoMap.get(cat)?.pacientesAtivos ?? 0
       const c = consultasRelMap.get(cat) ?? 0
