@@ -194,7 +194,7 @@ export default async function PacienteDashboard() {
           <Link href="/paciente/triagem"
             className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 px-6 py-3 rounded-xl font-semibold text-sm transition-colors"
             style={{ color: tema.corPrimaria }}>
-            Iniciar triagem agora
+            Consulta Agora
             <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
@@ -202,8 +202,8 @@ export default async function PacienteDashboard() {
         {/* Cards de acesso rápido */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { icon: Brain, label: 'Nova triagem', href: '/paciente/triagem' },
-            { icon: Video, label: 'Consulta virtual', href: '/paciente/triagem' },
+            { icon: Video, label: 'Consulta Agora', href: '/paciente/triagem' },
+            { icon: Brain, label: 'Renovação de Receita', href: '/paciente/triagem' },
             { icon: Calendar, label: 'Meus agendamentos', href: '/paciente/agendamentos', badge: totalConsultas > 0 ? totalConsultas : undefined },
             { icon: FileText, label: 'Atestados', href: '/paciente/atestados', badge: atestadosValidos > 0 ? atestadosValidos : (totalAtestados > 0 ? totalAtestados : undefined), badgeValido: atestadosValidos > 0 },
           ].map((item) => (
@@ -258,10 +258,10 @@ export default async function PacienteDashboard() {
             )}
           </div>
 
-          {/* Histórico de atendimentos */}
+          {/* Histórico de Consultas */}
           <div className="bg-white rounded-2xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-[#1A3A2C]">Histórico de atendimentos</h3>
+              <h3 className="font-bold text-[#1A3A2C]">Histórico de Consultas</h3>
               <Link href="/paciente/atendimentos" className="text-xs hover:underline"
                 style={{ color: tema.corPrimaria }}>Ver todos</Link>
             </div>
