@@ -20,6 +20,15 @@ interface Consulta {
   valor_coparticipacao: number
 }
 
+interface Receita {
+  id: string
+  data: string
+  paciente_id: string
+  paciente_nome: string
+  valor_cobrado: number
+  observacao: string | null
+}
+
 interface RelatorioData {
   empresa: {
     id: string
@@ -27,8 +36,10 @@ interface RelatorioData {
     preco_mensalidade: number
     preco_consulta: number
     percentual_coparticipacao: number
+    preco_receita: number
   }
   consultas: Consulta[]
+  receitas: Receita[]
   funcionariosAtivos: number
   pacientesAtivos: number
   medicos: Array<{ id: string; nome: string }>
@@ -105,7 +116,9 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
   const totalConsultas = consultasFiltradas.reduce((s, c) => s + (c.valor_cobrado || 0), 0)
   const totalCoparticipacao = consultasFiltradas.reduce((s, c) => s + (c.valor_coparticipacao || 0), 0)
   const totalMensalidade = (dados?.empresa?.preco_mensalidade ?? 0) * (dados?.funcionariosAtivos ?? 0) * meses
-  const totalGeral = totalConsultas + totalMensalidade
+  const receitas = dados?.receitas ?? []
+  const totalReceitas = receitas.reduce((s, r) => s + (r.valor_cobrado || 0), 0)
+  const totalGeral = totalConsultas + totalMensalidade + totalReceitas
   const percentualCopart = dados?.empresa?.percentual_coparticipacao ?? 0
   const temCoparticipacao = percentualCopart > 0
 
@@ -173,7 +186,18 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
       wsPac['!cols'] = [{ wch: 35 }, { wch: 14 }, { wch: 18 }, ...(temCoparticipacao ? [{ wch: 18 }] : [])]
       XLSX.utils.book_append_sheet(wb, wsPac, 'Por Funcionário')
 
-      // ── Aba 3: Resumo ─────────────────────────────────────────────────────
+      // ── Aba 3: Receitas ───────────────────────────────────────────────────
+      const headersReceitas = ['Paciente', 'Data / Hora', 'Valor (R$)', 'Observação']
+      const rowsReceitas: any[][] = [headersReceitas]
+      for (const r of receitas) {
+        rowsReceitas.push([r.paciente_nome, formatDataCurta(r.data), r.valor_cobrado || 0, r.observacao || ''])
+      }
+      rowsReceitas.push(['', 'TOTAL', totalReceitas, ''])
+      const wsReceitas = XLSX.utils.aoa_to_sheet(rowsReceitas)
+      wsReceitas['!cols'] = [{ wch: 30 }, { wch: 22 }, { wch: 14 }, { wch: 30 }]
+      XLSX.utils.book_append_sheet(wb, wsReceitas, 'Receitas')
+
+      // ── Aba 4: Resumo ─────────────────────────────────────────────────────
       const nomeEmpresa = dados.empresa?.nome || 'Empresa'
       const rowsResumo: any[][] = [
         ['RELATÓRIO DE COBRANÇA'],
@@ -198,6 +222,11 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
         ['Mensalidade / funcionário / mês (R$)', dados.empresa?.preco_mensalidade || 0],
         ['Meses no período', meses],
         ['Total mensalidade (R$)', totalMensalidade],
+        [''],
+        ['─── RECEITAS ───', ''],
+        ['Receitas emitidas', receitas.length],
+        ['Preço por receita (R$)', dados.empresa?.preco_receita || 0],
+        ['Total receitas (R$)', totalReceitas],
         [''],
         ['TOTAL A PAGAR (R$)', totalGeral],
       ]
@@ -255,11 +284,13 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
   .card { flex: 1; padding: 10px 14px; border-radius: 8px; }
   .card.consultas { background: #e8f4ea; }
   .card.mensalidade { background: #ede9f6; }
+  .card.receitas { background: #e0f7f4; }
   .card.total { background: #1A3A2C; color: white; }
   .card .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: .5px; opacity: .7; }
   .card .val { font-size: 18px; font-weight: 700; margin-top: 2px; }
   .card.consultas .val { color: #1a7340; }
   .card.mensalidade .val { color: #6d28d9; }
+  .card.receitas .val { color: #0e7490; }
   .card.total .val { color: white; }
   .secao { margin-bottom: 20px; }
   .secao h2 { font-size: 12px; font-weight: 700; color: #1A3A2C; border-bottom: 2px solid #1A3A2C; padding-bottom: 4px; margin-bottom: 8px; }
@@ -319,6 +350,11 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
       <div class="val">${formatBRL(totalMensalidade)}</div>
       <div style="font-size:10px;color:#555;margin-top:2px">${dados.funcionariosAtivos} func. × ${formatBRL(dados.empresa?.preco_mensalidade || 0)} × ${meses} ${meses === 1 ? 'mês' : 'meses'}</div>
     </div>
+    ${receitas.length > 0 ? `<div class="card receitas">
+      <div class="lbl">Total receitas</div>
+      <div class="val">${formatBRL(totalReceitas)}</div>
+      <div style="font-size:10px;color:#555;margin-top:2px">${receitas.length} receita${receitas.length !== 1 ? 's' : ''} × ${formatBRL(dados.empresa?.preco_receita || 0)}</div>
+    </div>` : ''}
     <div class="card total">
       <div class="lbl">Total a Pagar</div>
       <div class="val">${formatBRL(totalGeral)}</div>
@@ -360,10 +396,27 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
     </table>
   </div>
 
+  ${receitas.length > 0 ? `
+  <div class="secao">
+    <h2>Renovações de Receita (${receitas.length})</h2>
+    <table>
+      <thead><tr><th>Paciente</th><th>Data / Hora</th><th style="text-align:right">Valor</th><th>Observação</th></tr></thead>
+      <tbody>${receitas.map(r => `
+        <tr>
+          <td>${r.paciente_nome}</td>
+          <td>${formatDataCurta(r.data)}</td>
+          <td class="valor">${formatBRL(r.valor_cobrado || 0)}</td>
+          <td style="color:#666;font-size:10px">${r.observacao || '—'}</td>
+        </tr>`).join('')}
+      </tbody>
+      <tfoot><tr><td colspan="2"><strong>Total (${receitas.length} receita${receitas.length !== 1 ? 's' : ''})</strong></td><td class="valor">${formatBRL(totalReceitas)}</td><td></td></tr></tfoot>
+    </table>
+  </div>` : ''}
+
   <div class="total-geral">
     <div>
       <div class="tg-lbl">Total a Pagar no período</div>
-      <div class="tg-sub">${formatBRL(totalConsultas)} consultas + ${formatBRL(totalMensalidade)} mensalidade</div>
+      <div class="tg-sub">${formatBRL(totalConsultas)} consultas + ${formatBRL(totalMensalidade)} mensalidade${totalReceitas > 0 ? ` + ${formatBRL(totalReceitas)} receitas` : ''}</div>
     </div>
     <div class="tg-val">${formatBRL(totalGeral)}</div>
   </div>
@@ -471,7 +524,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
         <div className="space-y-6">
 
           {/* Cards de resumo */}
-          <div className={`grid gap-4 ${temCoparticipacao ? 'grid-cols-2 md:grid-cols-5' : 'grid-cols-2 md:grid-cols-4'}`}>
+          <div className={`grid gap-4 grid-cols-2 ${temCoparticipacao ? 'md:grid-cols-3 lg:grid-cols-6' : 'md:grid-cols-3 lg:grid-cols-5'}`}>
             <div className="bg-blue-50 rounded-2xl p-4">
               <p className="text-xs text-blue-500 font-medium mb-1">Consultas</p>
               <p className="text-2xl font-bold text-blue-700">{consultasFiltradas.length}</p>
@@ -489,6 +542,11 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
               <p className="text-xs text-purple-400 mt-1">
                 {dados?.funcionariosAtivos ?? 0} func. × {meses} {meses === 1 ? 'mês' : 'meses'}
               </p>
+            </div>
+            <div className="bg-cyan-50 rounded-2xl p-4">
+              <p className="text-xs text-cyan-600 font-medium mb-1">Receitas emitidas</p>
+              <p className="text-2xl font-bold text-cyan-700">{receitas.length}</p>
+              <p className="text-xs text-cyan-500 mt-1">{formatBRL(totalReceitas)} no período</p>
             </div>
             {temCoparticipacao && (
               <div className="bg-orange-50 rounded-2xl p-4">
@@ -668,13 +726,64 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
             </table>
           </div>
 
+          {/* Receitas emitidas */}
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+              <p className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2">
+                <FileText className="w-4 h-4 text-cyan-500" />
+                Renovações de receita
+              </p>
+              <p className="text-xs text-gray-400">{receitas.length} registro{receitas.length !== 1 ? 's' : ''}</p>
+            </div>
+            {receitas.length === 0 ? (
+              <div className="text-center py-10">
+                <FileText className="w-10 h-10 text-gray-200 mx-auto mb-2" />
+                <p className="text-gray-400 text-sm">Nenhuma receita emitida no período</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Paciente</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Data / Hora</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">Valor</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Obs.</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {receitas.map(r => (
+                      <tr key={r.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 font-medium text-gray-800">{r.paciente_nome}</td>
+                        <td className="px-4 py-3 text-gray-500 text-xs">{formatDataHora(r.data)}</td>
+                        <td className="px-4 py-3 text-right font-semibold text-cyan-700">{formatBRL(r.valor_cobrado || 0)}</td>
+                        <td className="px-4 py-3 text-gray-400 text-xs">{r.observacao || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-cyan-50 border-t border-cyan-100">
+                    <tr>
+                      <td colSpan={2} className="px-4 py-3 font-bold text-[#1A3A2C]">
+                        Total ({receitas.length} receita{receitas.length !== 1 ? 's' : ''})
+                      </td>
+                      <td className="px-4 py-3 text-right font-bold text-cyan-700 text-base">
+                        {formatBRL(totalReceitas)}
+                      </td>
+                      <td />
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+          </div>
+
           {/* Total geral */}
           <div className="bg-[#1A3A2C] rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-300 text-sm font-semibold">Total a Pagar no período</p>
                 <p className="text-xs text-green-400 mt-1">
-                  {formatBRL(totalConsultas)} em consultas + {formatBRL(totalMensalidade)} em mensalidade
+                  {formatBRL(totalConsultas)} consultas + {formatBRL(totalMensalidade)} mensalidade{totalReceitas > 0 ? ` + ${formatBRL(totalReceitas)} receitas` : ''}
                 </p>
               </div>
               <div className="text-right">

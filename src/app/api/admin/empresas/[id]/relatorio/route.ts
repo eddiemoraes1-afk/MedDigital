@@ -16,7 +16,7 @@ export async function GET(
 
   const { data: empresa } = await adminSupabase
     .from('empresas')
-    .select('id, nome, preco_mensalidade, preco_consulta, percentual_coparticipacao')
+    .select('id, nome, preco_mensalidade, preco_consulta, percentual_coparticipacao, preco_receita')
     .eq('id', id)
     .single()
 
@@ -63,6 +63,32 @@ export async function GET(
     }
     return null
   }
+
+  // Receitas emitidas no período para pacientes desta empresa
+  const deISO_base = `${de}T00:00:00.000Z`
+  const ateISO_base = `${ate}T23:59:59.999Z`
+  const { data: receitasData } = pacienteIds.length > 0
+    ? await adminSupabase
+        .from('receitas')
+        .select('id, paciente_id, valor_cobrado, criado_em, status, observacao')
+        .in('paciente_id', pacienteIds)
+        .eq('status', 'emitida')
+        .gte('criado_em', deISO_base)
+        .lte('criado_em', ateISO_base)
+        .order('criado_em', { ascending: false })
+    : { data: [] }
+
+  const receitas = (receitasData ?? []).map((r: any) => {
+    const vinculo = vinculos?.find((v: any) => v.paciente_id === r.paciente_id)
+    return {
+      id: r.id,
+      data: r.criado_em,
+      paciente_id: r.paciente_id,
+      paciente_nome: vinculo?.nome_completo ?? '—',
+      valor_cobrado: r.valor_cobrado ?? empresa.preco_receita ?? 0,
+      observacao: r.observacao ?? null,
+    }
+  })
 
   let consultas: any[] = []
   let medicos: any[] = []
@@ -129,8 +155,10 @@ export async function GET(
       preco_mensalidade: empresa.preco_mensalidade ?? 0,
       preco_consulta: empresa.preco_consulta ?? 0,
       percentual_coparticipacao: empresa.percentual_coparticipacao ?? 0,
+      preco_receita: empresa.preco_receita ?? 0,
     },
     consultas,
+    receitas,
     funcionariosAtivos: totalFuncionariosAtivos,
     pacientesAtivos: pacienteIds.length,
     medicos,

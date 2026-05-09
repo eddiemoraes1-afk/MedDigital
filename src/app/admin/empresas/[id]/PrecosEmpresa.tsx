@@ -8,12 +8,14 @@ interface Props {
   precoMensalidadeAtual: number
   precoConsultaAtual: number
   percentualCoparticipacaoAtual: number
+  precoReceitaAtual: number
 }
 
-export default function PrecosEmpresa({ empresaId, precoMensalidadeAtual, precoConsultaAtual, percentualCoparticipacaoAtual }: Props) {
+export default function PrecosEmpresa({ empresaId, precoMensalidadeAtual, precoConsultaAtual, percentualCoparticipacaoAtual, precoReceitaAtual }: Props) {
   const [mensalidade, setMensalidade] = useState(precoMensalidadeAtual.toFixed(2))
   const [consulta, setConsulta] = useState(precoConsultaAtual.toFixed(2))
   const [coparticipacao, setCoparticipacao] = useState(percentualCoparticipacaoAtual.toString())
+  const [receita, setReceita] = useState(precoReceitaAtual.toFixed(2))
   const [salvando, setSalvando] = useState(false)
   const [salvo, setSalvo] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
@@ -35,6 +37,7 @@ export default function PrecosEmpresa({ empresaId, precoMensalidadeAtual, precoC
           preco_mensalidade: parseFloat(mensalidade) || 0,
           preco_consulta: parseFloat(consulta) || 0,
           percentual_coparticipacao: pct,
+          preco_receita: parseFloat(receita) || 0,
         }),
       })
       if (!res.ok) {
@@ -114,6 +117,25 @@ export default function PrecosEmpresa({ empresaId, precoMensalidadeAtual, precoC
           <p className="text-xs text-gray-400 mt-1">
             Parte do valor da consulta cobrada ao funcionário. 0% = empresa paga tudo.
           </p>
+        </div>
+
+        <div>
+          <label className="block text-xs text-gray-500 font-medium mb-1">
+            Preço por renovação de receita (R$)
+          </label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">R$</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={receita}
+              onChange={e => setReceita(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#5BBD9B] focus:outline-none"
+              placeholder="0,00"
+            />
+          </div>
+          <p className="text-xs text-gray-400 mt-1">Cobrado por cada receita emitida via renovação</p>
         </div>
 
         {erro && (

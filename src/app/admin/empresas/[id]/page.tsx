@@ -170,6 +170,7 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
                 precoMensalidadeAtual={empresa.preco_mensalidade ?? 0}
                 precoConsultaAtual={empresa.preco_consulta ?? 0}
                 percentualCoparticipacaoAtual={empresa.percentual_coparticipacao ?? 0}
+                precoReceitaAtual={empresa.preco_receita ?? 0}
               />
             </div>
 

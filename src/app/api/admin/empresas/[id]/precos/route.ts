@@ -13,8 +13,9 @@ export async function PATCH(
   const preco_mensalidade = parseFloat(body.preco_mensalidade ?? 0)
   const preco_consulta = parseFloat(body.preco_consulta ?? 0)
   const percentual_coparticipacao = parseFloat(body.percentual_coparticipacao ?? 0)
+  const preco_receita = parseFloat(body.preco_receita ?? 0)
 
-  if (isNaN(preco_mensalidade) || isNaN(preco_consulta) || isNaN(percentual_coparticipacao)) {
+  if (isNaN(preco_mensalidade) || isNaN(preco_consulta) || isNaN(percentual_coparticipacao) || isNaN(preco_receita)) {
     return NextResponse.json({ error: 'Valores inválidos' }, { status: 400 })
   }
 
@@ -25,7 +26,7 @@ export async function PATCH(
   const adminSupabase = createAdminClient()
   const { error } = await adminSupabase
     .from('empresas')
-    .update({ preco_mensalidade, preco_consulta, percentual_coparticipacao })
+    .update({ preco_mensalidade, preco_consulta, percentual_coparticipacao, preco_receita })
     .eq('id', id)
 
   if (error) {

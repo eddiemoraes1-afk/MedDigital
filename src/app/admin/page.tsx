@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import BotoesAprovacao from './components/BotoesAprovacao'
 import AdminHeader from './components/AdminHeader'
+import ConfiguracoesSistema from './components/ConfiguracoesSistema'
 
 export default async function AdminDashboardPage() {
   await requireAdmin()
@@ -39,6 +40,13 @@ export default async function AdminDashboardPage() {
     .select('id, nome, cnpj, ativo, criado_em')
     .order('criado_em', { ascending: false })
     .limit(5)
+
+  const { data: configRows } = await adminSupabase
+    .from('configuracoes_sistema')
+    .select('chave, valor')
+  const configMap: Record<string, string> = {}
+  for (const r of configRows ?? []) configMap[r.chave] = r.valor
+  const precoReceitaParticular = parseFloat(configMap['preco_receita_particular'] ?? '0') || 0
 
   const { data: medicosPendentes } = await adminSupabase
     .from('medicos')
@@ -160,6 +168,11 @@ export default async function AdminDashboardPage() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Configurações globais */}
+        <div className="mb-6">
+          <ConfiguracoesSistema precoReceitaParticularAtual={precoReceitaParticular} />
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
