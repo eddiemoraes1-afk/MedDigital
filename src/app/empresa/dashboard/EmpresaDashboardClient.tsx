@@ -20,6 +20,23 @@ interface KPIs {
   taxaUso: number
 }
 
+interface RelacaoItem {
+  categoria: 'Funcionário' | 'Dependente'
+  cadastros: number
+  pacientesAtivos: number
+  consultas: number
+  taxaUso: number
+}
+
+interface DetalheRelacaoItem {
+  relacao: string
+  categoria: 'Funcionário' | 'Dependente'
+  cadastros: number
+  pacientesAtivos: number
+  consultas: number
+  taxaUso: number
+}
+
 interface EmpresaDashData {
   kpis: KPIs
   gastosPorMes: Array<{ mes: string; consultas: number; valor: number }>
@@ -31,6 +48,9 @@ interface EmpresaDashData {
   topFuncionarios: Array<{ nome: string; cargo: string; departamento: string; consultas: number; valor: number }>
   gastosPorDepartamento: Array<{ departamento: string; consultas: number; valor: number }>
   gastosPorCargo: Array<{ cargo: string; consultas: number; valor: number }>
+  distribuicaoRelacao: RelacaoItem[]
+  detalheRelacao: DetalheRelacaoItem[]
+  consultasRelacaoPorMes: Array<{ mes: string; funcionarios: number; dependentes: number }>
 }
 
 // ============================================================
@@ -289,6 +309,84 @@ function LineChartSVG({
       ))}
       <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} stroke="#E5E7EB" strokeWidth="1" />
     </svg>
+  )
+}
+
+function GroupedBarChart({
+  data, labelKey, keys, colors, formatValue = (v: number) => String(v),
+}: {
+  data: Record<string, any>[]
+  labelKey: string
+  keys: string[]
+  colors: string[]
+  formatValue?: (v: number) => string
+}) {
+  if (!data.length) return <div className="flex items-center justify-center h-40 text-gray-300 text-xs">Sem dados no período</div>
+
+  const W = 580, H = 220
+  const PAD = { top: 24, right: 16, bottom: 52, left: 44 }
+  const plotW = W - PAD.left - PAD.right
+  const plotH = H - PAD.top - PAD.bottom
+  const maxVal = Math.max(...data.flatMap(d => keys.map(k => d[k] ?? 0)), 1)
+  const n = data.length
+  const groupW = plotW / n
+  const barW = Math.min((groupW * 0.8) / keys.length, 24)
+  const groupPad = (groupW - barW * keys.length) / 2
+
+  function fmtTick(v: number) {
+    if (v >= 1000) return `${(v / 1000).toFixed(0)}k`
+    return v.toFixed(0)
+  }
+
+  return (
+    <div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full">
+        {Array.from({ length: 5 }, (_, i) => {
+          const tv = (i / 4) * maxVal
+          const y = PAD.top + plotH - (tv / maxVal) * plotH
+          return (
+            <g key={i}>
+              <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="#F3F4F6" strokeWidth="1" />
+              <text x={PAD.left - 4} y={y + 3.5} textAnchor="end" fontSize="9" fill="#9CA3AF">{fmtTick(tv)}</text>
+            </g>
+          )
+        })}
+        {data.map((d, i) => {
+          const gx = PAD.left + i * groupW + groupPad
+          const rawLabel = String(d[labelKey])
+          const lbl = rawLabel.length > 8 ? rawLabel.slice(0, 6) + '…' : rawLabel
+          const cx = PAD.left + i * groupW + groupW / 2
+          return (
+            <g key={i}>
+              {keys.map((k, ki) => {
+                const v = d[k] ?? 0
+                const bh = Math.max(2, (v / maxVal) * plotH)
+                const bx = gx + ki * barW
+                return (
+                  <rect key={ki} x={bx} y={PAD.top + plotH - bh} width={barW - 2} height={bh}
+                    fill={colors[ki] || '#9CA3AF'} rx="2" opacity={0.9}>
+                    <title>{rawLabel} · {k}: {formatValue(v)}</title>
+                  </rect>
+                )
+              })}
+              <text x={cx} y={PAD.top + plotH + 14} textAnchor="middle" fontSize="9" fill="#6B7280"
+                transform={n > 6 ? `rotate(-35,${cx},${PAD.top + plotH + 14})` : ''}>
+                {lbl}
+              </text>
+            </g>
+          )
+        })}
+        <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} stroke="#E5E7EB" strokeWidth="1" />
+      </svg>
+      <div className="flex justify-center gap-4 mt-1">
+        {keys.map((k, i) => (
+          <div key={k} className="flex items-center gap-1.5 text-xs text-gray-500">
+            <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: colors[i] }} />
+            {k.charAt(0).toUpperCase() + k.slice(1)}
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -725,6 +823,130 @@ export default function EmpresaDashboardClient() {
           </table>
         </div>
       </ChartCard>
+
+      {/* ===== SEÇÃO: FUNCIONÁRIOS & DEPENDENTES ===== */}
+      <div className="border-t-2 border-[#5BBD9B] pt-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-9 h-9 bg-[#1A3A2C] rounded-xl flex items-center justify-center">
+            <Users className="w-5 h-5 text-[#5BBD9B]" />
+          </div>
+          <div>
+            <h2 className="font-bold text-[#1A3A2C] text-base">Funcionários & Dependentes</h2>
+            <p className="text-xs text-gray-400">Análise de utilização por tipo de beneficiário</p>
+          </div>
+        </div>
+
+        {/* KPI cards por categoria */}
+        {data.distribuicaoRelacao && data.distribuicaoRelacao.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {data.distribuicaoRelacao.map(r => (
+              <div key={r.categoria} className={`rounded-2xl p-4 border-2 ${r.categoria === 'Funcionário' ? 'border-[#5BBD9B] bg-green-50' : 'border-blue-200 bg-blue-50'}`}>
+                <p className={`text-xs font-bold uppercase tracking-wide mb-2 ${r.categoria === 'Funcionário' ? 'text-[#1A3A2C]' : 'text-blue-700'}`}>
+                  {r.categoria}
+                </p>
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-2xl font-bold text-[#1A3A2C]">{r.cadastros}</p>
+                    <p className="text-xs text-gray-500">cadastros</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-[#1A3A2C]">{r.consultas}</p>
+                    <p className="text-xs text-gray-500">consultas</p>
+                  </div>
+                </div>
+                <div className="mt-2 pt-2 border-t border-white/60">
+                  <p className="text-xs text-gray-500">Taxa de uso: <span className={`font-bold ${r.categoria === 'Funcionário' ? 'text-[#1A3A2C]' : 'text-blue-700'}`}>{r.taxaUso}%</span></p>
+                  <p className="text-xs text-gray-400">{r.pacientesAtivos} ativaram app</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Donuts: Composição e Consultas */}
+        <div className="grid lg:grid-cols-2 gap-6 mb-6">
+          <ChartCard title="Composição da Base" subtitle="Funcionários vs Dependentes cadastrados">
+            <DonutChart
+              slices={(data.distribuicaoRelacao ?? []).filter(d => d.cadastros > 0).map(d => ({
+                label: d.categoria,
+                value: d.cadastros,
+                color: d.categoria === 'Funcionário' ? '#5BBD9B' : '#3B82F6',
+              }))}
+              formatValue={v => `${v} cadastros`}
+              formatCenter={total => String(total)}
+            />
+          </ChartCard>
+          <ChartCard title="Consultas por Relação" subtitle="Distribuição de atendimentos no período">
+            <DonutChart
+              slices={(data.distribuicaoRelacao ?? []).filter(d => d.consultas > 0).map(d => ({
+                label: d.categoria,
+                value: d.consultas,
+                color: d.categoria === 'Funcionário' ? '#1A3A2C' : '#3B82F6',
+              }))}
+              formatValue={v => `${v} consultas`}
+              formatCenter={total => String(total)}
+            />
+          </ChartCard>
+        </div>
+
+        {/* Consultas por mês: funcionários vs dependentes */}
+        {data.consultasRelacaoPorMes && data.consultasRelacaoPorMes.length > 0 && (
+          <ChartCard title="Consultas por Mês — Funcionários vs Dependentes" subtitle="Evolução mensal de atendimentos por tipo de beneficiário" className="mb-6">
+            <GroupedBarChart
+              data={data.consultasRelacaoPorMes.map(d => ({ ...d, mes: formatMes(d.mes) }))}
+              labelKey="mes"
+              keys={['funcionarios', 'dependentes']}
+              colors={['#5BBD9B', '#3B82F6']}
+              formatValue={v => `${v} consulta${v !== 1 ? 's' : ''}`}
+            />
+          </ChartCard>
+        )}
+
+        {/* Tabela de detalhamento por tipo exato de relação */}
+        <ChartCard title="Detalhamento por Tipo de Vínculo" subtitle="Consultas e cadastros por cada tipo de relação">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Relação</th>
+                  <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Categoria</th>
+                  <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Cadastros</th>
+                  <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Ativaram App</th>
+                  <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Consultas</th>
+                  <th className="text-right text-xs text-gray-400 font-medium pb-2">Taxa de Uso</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(data.detalheRelacao ?? []).map((r, i) => (
+                  <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
+                    <td className="py-2.5 pr-3 text-sm font-medium text-[#1A3A2C] capitalize">{r.relacao}</td>
+                    <td className="py-2.5 pr-3">
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${r.categoria === 'Funcionário' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                        {r.categoria}
+                      </span>
+                    </td>
+                    <td className="py-2.5 pr-3 text-sm text-right text-gray-600">{r.cadastros}</td>
+                    <td className="py-2.5 pr-3 text-sm text-right text-gray-600">{r.pacientesAtivos}</td>
+                    <td className="py-2.5 pr-3 text-sm text-right font-semibold text-[#1A3A2C]">{r.consultas}</td>
+                    <td className="py-2.5 text-sm text-right">
+                      <span className={`font-bold ${r.taxaUso >= 50 ? 'text-green-600' : r.taxaUso > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
+                        {r.taxaUso}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {(!data.detalheRelacao || data.detalheRelacao.length === 0) && (
+                  <tr>
+                    <td colSpan={6} className="py-10 text-center text-gray-300 text-sm">
+                      Sem dados de relação cadastrados
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </ChartCard>
+      </div>
 
     </div>
   )

@@ -14,6 +14,12 @@ function calcFaixaEtaria(dataNasc: string | null): string {
   return '70+'
 }
 
+function classRelacao(rel: string | null | undefined): 'Funcionário' | 'Dependente' {
+  if (!rel) return 'Funcionário'
+  const v = rel.trim().toLowerCase()
+  return v === 'funcionário' || v === 'funcionario' ? 'Funcionário' : 'Dependente'
+}
+
 function groupBy<T>(arr: T[], key: (item: T) => string): Map<string, T[]> {
   const map = new Map<string, T[]>()
   for (const item of arr) {
@@ -62,7 +68,7 @@ export async function GET(req: Request) {
       .select('id, nome, preco_mensalidade, preco_consulta, ativo'),
     adminSupabase
       .from('vinculos_empresa')
-      .select('empresa_id, paciente_id, ativo'),
+      .select('empresa_id, paciente_id, ativo, relacao'),
     adminSupabase
       .from('agendamentos')
       .select('id, status, paciente_id, medico_id, data_hora')
@@ -228,6 +234,89 @@ export async function GET(req: Request) {
     .sort((a, b) => b.valor - a.valor)
     .slice(0, 10)
 
+  // ===== RELAÇÃO GLOBAL (Funcionário vs Dependente) =====
+  const allVinculos = (vinculos ?? []) as any[]
+
+  // paciente_id → vínculo (for relacao lookup in atendimentos)
+  const vinculoMapGlobal = new Map<string, any>()
+  for (const v of allVinculos) {
+    if (v.paciente_id && !vinculoMapGlobal.has(v.paciente_id)) {
+      vinculoMapGlobal.set(v.paciente_id, v)
+    }
+  }
+
+  // Composição da base de cadastros (todos os vínculos)
+  const composicaoGlobal = new Map<string, { cadastros: number; pacientesAtivos: number }>()
+  for (const v of allVinculos) {
+    const cat = classRelacao(v.relacao)
+    const cur = composicaoGlobal.get(cat) ?? { cadastros: 0, pacientesAtivos: 0 }
+    cur.cadastros++
+    if (v.paciente_id) cur.pacientesAtivos++
+    composicaoGlobal.set(cat, cur)
+  }
+
+  // Consultas por categoria de relação
+  const consultasRelGlobal = new Map<string, number>()
+  for (const a of ats) {
+    const v = vinculoMapGlobal.get(a.paciente_id)
+    const cat = classRelacao(v?.relacao)
+    consultasRelGlobal.set(cat, (consultasRelGlobal.get(cat) ?? 0) + 1)
+  }
+
+  const distribuicaoRelacaoGlobal = ['Funcionário', 'Dependente'].map(cat => ({
+    categoria: cat,
+    cadastros: composicaoGlobal.get(cat)?.cadastros ?? 0,
+    pacientesAtivos: composicaoGlobal.get(cat)?.pacientesAtivos ?? 0,
+    consultas: consultasRelGlobal.get(cat) ?? 0,
+    taxaUso: (() => {
+      const ativos = composicaoGlobal.get(cat)?.pacientesAtivos ?? 0
+      const c = consultasRelGlobal.get(cat) ?? 0
+      return ativos > 0 ? Math.round((c / ativos) * 100) : 0
+    })(),
+  }))
+
+  // Detalhe por tipo exato de relação
+  const tipoRelGlobal = new Map<string, { cadastros: number; consultas: number; pacientesAtivos: number }>()
+  for (const v of allVinculos) {
+    const rel = (v.relacao?.trim() || 'Não informado')
+    const cur = tipoRelGlobal.get(rel) ?? { cadastros: 0, consultas: 0, pacientesAtivos: 0 }
+    cur.cadastros++
+    if (v.paciente_id) cur.pacientesAtivos++
+    tipoRelGlobal.set(rel, cur)
+  }
+  for (const a of ats) {
+    const v = vinculoMapGlobal.get(a.paciente_id)
+    const rel = (v?.relacao?.trim() || 'Não informado')
+    const cur = tipoRelGlobal.get(rel)
+    if (cur) cur.consultas++
+  }
+  const detalheRelacaoGlobal = [...tipoRelGlobal.entries()]
+    .map(([relacao, d]) => ({
+      relacao,
+      categoria: classRelacao(relacao),
+      cadastros: d.cadastros,
+      pacientesAtivos: d.pacientesAtivos,
+      consultas: d.consultas,
+      taxaUso: d.pacientesAtivos > 0 ? Math.round((d.consultas / d.pacientesAtivos) * 100) : 0,
+    }))
+    .sort((a, b) => b.consultas - a.consultas)
+
+  // Consultas por relação por mês
+  const relMesGlobal = new Map<string, { funcionarios: number; dependentes: number }>()
+  for (const a of ats) {
+    const d = new Date(a.criado_em)
+    const mes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const v = vinculoMapGlobal.get(a.paciente_id)
+    const cat = classRelacao(v?.relacao)
+    const cur = relMesGlobal.get(mes) ?? { funcionarios: 0, dependentes: 0 }
+    if (cat === 'Funcionário') cur.funcionarios++
+    else cur.dependentes++
+    relMesGlobal.set(mes, cur)
+  }
+  const consultasRelacaoPorMesGlobal = [...relMesGlobal.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([mes, v]) => ({ mes, ...v }))
+
   return NextResponse.json({
     kpis: {
       totalConsultas,
@@ -249,5 +338,8 @@ export async function GET(req: Request) {
     consultasPorTipo,
     funcionariosPorEmpresa,
     topPacientes,
+    distribuicaoRelacaoGlobal,
+    detalheRelacaoGlobal,
+    consultasRelacaoPorMesGlobal,
   })
 }

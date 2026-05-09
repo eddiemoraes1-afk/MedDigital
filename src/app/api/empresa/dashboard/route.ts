@@ -36,7 +36,7 @@ export async function GET(req: Request) {
   // 2. Vínculos desta empresa
   const { data: vinculos } = await adminSupabase
     .from('vinculos_empresa')
-    .select('paciente_id, ativo, nome_completo, cargo, departamento, cpf')
+    .select('paciente_id, ativo, nome_completo, cargo, departamento, cpf, relacao')
     .eq('empresa_id', empresaId)
 
   const todosVinculos = (vinculos ?? []) as any[]
@@ -226,6 +226,86 @@ export async function GET(req: Request) {
     .sort((a, b) => b.valor - a.valor)
     .slice(0, 10)
 
+  // ===== RELAÇÃO: FUNCIONÁRIO vs DEPENDENTE =====
+  function classRelacao(rel: string | null | undefined): 'Funcionário' | 'Dependente' {
+    if (!rel) return 'Funcionário'
+    return rel.trim().toLowerCase() === 'funcionário' || rel.trim().toLowerCase() === 'funcionario'
+      ? 'Funcionário' : 'Dependente'
+  }
+
+  // Composição da base (cadastros)
+  const composicaoMap = new Map<string, { cadastros: number; pacientesAtivos: number }>()
+  for (const v of todosVinculos) {
+    const cat = classRelacao(v.relacao)
+    const cur = composicaoMap.get(cat) ?? { cadastros: 0, pacientesAtivos: 0 }
+    cur.cadastros++
+    if (v.paciente_id) cur.pacientesAtivos++
+    composicaoMap.set(cat, cur)
+  }
+
+  // Consultas por relação
+  const consultasRelMap = new Map<string, number>()
+  const diasRelMap = new Map<string, number>()
+  for (const a of ats) {
+    const v = vinculoMap.get(a.paciente_id)
+    const cat = classRelacao(v?.relacao)
+    consultasRelMap.set(cat, (consultasRelMap.get(cat) ?? 0) + 1)
+  }
+
+  // Detalhamento por tipo exato de relação
+  const tipoRelMap = new Map<string, { cadastros: number; consultas: number; pacientesAtivos: number }>()
+  for (const v of todosVinculos) {
+    const rel = (v.relacao?.trim() || 'Não informado')
+    const cur = tipoRelMap.get(rel) ?? { cadastros: 0, consultas: 0, pacientesAtivos: 0 }
+    cur.cadastros++
+    if (v.paciente_id) cur.pacientesAtivos++
+    tipoRelMap.set(rel, cur)
+  }
+  for (const a of ats) {
+    const v = vinculoMap.get(a.paciente_id)
+    const rel = (v?.relacao?.trim() || 'Não informado')
+    const cur = tipoRelMap.get(rel)
+    if (cur) cur.consultas++
+  }
+  const detalheRelacao = [...tipoRelMap.entries()]
+    .map(([relacao, d]) => ({
+      relacao,
+      categoria: classRelacao(relacao),
+      cadastros: d.cadastros,
+      pacientesAtivos: d.pacientesAtivos,
+      consultas: d.consultas,
+      taxaUso: d.pacientesAtivos > 0 ? Math.round((d.consultas / d.pacientesAtivos) * 100) : 0,
+    }))
+    .sort((a, b) => b.consultas - a.consultas)
+
+  // Consultas por relação por mês
+  const relMesMap = new Map<string, { funcionarios: number; dependentes: number }>()
+  for (const a of ats) {
+    const d = new Date(a.criado_em)
+    const mes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const v = vinculoMap.get(a.paciente_id)
+    const cat = classRelacao(v?.relacao)
+    const cur = relMesMap.get(mes) ?? { funcionarios: 0, dependentes: 0 }
+    if (cat === 'Funcionário') cur.funcionarios++
+    else cur.dependentes++
+    relMesMap.set(mes, cur)
+  }
+  const consultasRelacaoPorMes = [...relMesMap.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([mes, v]) => ({ mes, ...v }))
+
+  const distribuicaoRelacao = ['Funcionário', 'Dependente'].map(cat => ({
+    categoria: cat,
+    cadastros: composicaoMap.get(cat)?.cadastros ?? 0,
+    pacientesAtivos: composicaoMap.get(cat)?.pacientesAtivos ?? 0,
+    consultas: consultasRelMap.get(cat) ?? 0,
+    taxaUso: (() => {
+      const ativos = composicaoMap.get(cat)?.pacientesAtivos ?? 0
+      const c = consultasRelMap.get(cat) ?? 0
+      return ativos > 0 ? Math.round((c / ativos) * 100) : 0
+    })(),
+  }))
+
   // ===== KPIs =====
   const totalConsultas = ats.length
   const totalGastosConsultas = ats.length * precoConsulta
@@ -254,5 +334,8 @@ export async function GET(req: Request) {
     topFuncionarios,
     gastosPorDepartamento,
     gastosPorCargo,
+    distribuicaoRelacao,
+    detalheRelacao,
+    consultasRelacaoPorMes,
   })
 }
