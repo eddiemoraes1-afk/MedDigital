@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Loader2, Phone, FileText, CheckCircle2, ClipboardList, ChevronDown, ChevronUp } from 'lucide-react'
+import { Loader2, Phone, FileText, CheckCircle2, ClipboardList, ChevronDown, ChevronUp, Video } from 'lucide-react'
 import AtestadoForm from '@/components/AtestadoForm'
 
 export default function AtendimentoMedico() {
@@ -14,6 +14,7 @@ export default function AtendimentoMedico() {
   const [salvando, setSalvando] = useState(false)
   const [showAtestado, setShowAtestado] = useState(false)
   const [atestadoEmitido, setAtestadoEmitido] = useState(false)
+  const [entrou, setEntrou] = useState(false)
 
   useEffect(() => {
     fetch(`/api/medico/atendimento/${id}`)
@@ -58,11 +59,12 @@ export default function AtendimentoMedico() {
     vermelho: 'bg-red-100 text-red-700',
   }
 
-  // Adicionar nome do médico como parâmetro na URL da sala de vídeo
+  // Adicionar nome do médico e pular pre-join do Daily.co
   const videoUrl = (() => {
     try {
       const url = new URL(atendimento.sala_video)
       url.searchParams.set('name', `Dr. ${medico.nome}`)
+      url.searchParams.set('prejoin', 'false')
       return url.toString()
     } catch {
       return atendimento.sala_video
@@ -100,7 +102,32 @@ export default function AtendimentoMedico() {
       {/* Layout: vídeo + painel lateral */}
       <div className="flex-1 flex overflow-hidden" style={{ height: 'calc(100vh - 56px)' }}>
         {/* Vídeo */}
-        <div className="flex-1">
+        <div className="flex-1 relative">
+          {/* Tela de pré-consulta personalizada em português */}
+          {!entrou && (
+            <div className="absolute inset-0 bg-[#0F1F33] flex items-center justify-center z-10">
+              <div className="text-center text-white max-w-sm px-6">
+                <div className="w-24 h-24 bg-[#1A3A2C] rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Video className="w-12 h-12 text-[#5BBD9B]" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">Pronto(a) para começar a consulta?</h2>
+                {paciente && (
+                  <p className="text-green-300 text-sm mb-6">
+                    Paciente: <strong>{paciente.nome}</strong>
+                  </p>
+                )}
+                <p className="text-blue-300 text-xs mb-8">
+                  Verifique se sua câmera e microfone estão funcionando antes de entrar.
+                </p>
+                <button
+                  onClick={() => setEntrou(true)}
+                  className="w-full bg-[#5BBD9B] hover:bg-green-400 text-white font-bold py-3.5 px-8 rounded-2xl text-base transition-colors"
+                >
+                  Entrar na Consulta
+                </button>
+              </div>
+            </div>
+          )}
           <iframe
             src={videoUrl}
             allow="camera; microphone; fullscreen; display-capture; autoplay"

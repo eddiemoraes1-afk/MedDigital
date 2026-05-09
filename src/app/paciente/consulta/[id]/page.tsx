@@ -3,23 +3,38 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2, Clock, Phone } from 'lucide-react'
+import { Loader2, Clock, Phone, Video } from 'lucide-react'
 
 export default function ConsultaPaciente() {
   const { id } = useParams()
   const router = useRouter()
   const [atendimento, setAtendimento] = useState<any>(null)
+  const [pacienteNome, setPacienteNome] = useState<string>('')
   const [carregando, setCarregando] = useState(true)
+  const [entrou, setEntrou] = useState(false)
 
   useEffect(() => {
-    carregarAtendimento()
-    // Verificar status a cada 5 segundos
-    const interval = setInterval(carregarAtendimento, 5000)
+    carregarDados()
+    const interval = setInterval(carregarDados, 5000)
     return () => clearInterval(interval)
   }, [id])
 
-  async function carregarAtendimento() {
+  async function carregarDados() {
     const supabase = createClient()
+
+    // Buscar paciente logado
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { router.push('/login'); return }
+
+    if (!pacienteNome) {
+      const { data: pac } = await supabase
+        .from('pacientes')
+        .select('nome')
+        .eq('usuario_id', user.id)
+        .single()
+      if (pac?.nome) setPacienteNome(pac.nome)
+    }
+
     const { data } = await supabase
       .from('atendimentos')
       .select('*, medicos(nome, especialidade)')
@@ -64,6 +79,18 @@ export default function ConsultaPaciente() {
     )
   }
 
+  // Montar URL do vídeo com nome e sem pre-join do Daily
+  const videoUrl = (() => {
+    try {
+      const url = new URL(atendimento.sala_video)
+      if (pacienteNome) url.searchParams.set('name', pacienteNome)
+      url.searchParams.set('prejoin', 'false')
+      return url.toString()
+    } catch {
+      return atendimento.sala_video
+    }
+  })()
+
   return (
     <div className="min-h-screen bg-[#0F1F33] flex flex-col">
       {/* Header */}
@@ -97,6 +124,7 @@ export default function ConsultaPaciente() {
 
       {/* Vídeo */}
       <div className="flex-1 relative">
+        {/* Tela de espera enquanto status = aguardando */}
         {atendimento.status === 'aguardando' && (
           <div className="absolute inset-0 bg-[#0F1F33] flex items-center justify-center z-10 pointer-events-none">
             <div className="text-center text-white">
@@ -109,8 +137,35 @@ export default function ConsultaPaciente() {
             </div>
           </div>
         )}
+
+        {/* Tela de pré-consulta personalizada em português */}
+        {!entrou && atendimento.status !== 'aguardando' && (
+          <div className="absolute inset-0 bg-[#0F1F33] flex items-center justify-center z-10">
+            <div className="text-center text-white max-w-sm px-6">
+              <div className="w-24 h-24 bg-[#1A3A2C] rounded-full flex items-center justify-center mx-auto mb-6">
+                <Video className="w-12 h-12 text-[#5BBD9B]" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2">Pronto(a) para começar a consulta?</h2>
+              {atendimento.medicos && (
+                <p className="text-green-300 text-sm mb-6">
+                  Dr(a). {atendimento.medicos.nome} está na sala.
+                </p>
+              )}
+              <p className="text-blue-300 text-xs mb-8">
+                Verifique se sua câmera e microfone estão funcionando antes de entrar.
+              </p>
+              <button
+                onClick={() => setEntrou(true)}
+                className="w-full bg-[#5BBD9B] hover:bg-green-400 text-white font-bold py-3.5 px-8 rounded-2xl text-base transition-colors"
+              >
+                Entrar na Consulta
+              </button>
+            </div>
+          </div>
+        )}
+
         <iframe
-          src={atendimento.sala_video}
+          src={videoUrl}
           allow="camera; microphone; fullscreen; display-capture; autoplay"
           className="w-full h-full border-0"
           style={{ minHeight: 'calc(100vh - 56px)' }}
