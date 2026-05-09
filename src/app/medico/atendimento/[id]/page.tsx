@@ -2,60 +2,30 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { Loader2, Phone, FileText, CheckCircle2 } from 'lucide-react'
+import { Loader2, Phone, FileText, CheckCircle2, ClipboardList, ChevronDown, ChevronUp } from 'lucide-react'
+import AtestadoForm from '@/components/AtestadoForm'
 
 export default function AtendimentoMedico() {
   const { id } = useParams()
   const router = useRouter()
-  const [atendimento, setAtendimento] = useState<any>(null)
-  const [medico, setMedico] = useState<any>(null)
+  const [dados, setDados] = useState<any>(null)
   const [notas, setNotas] = useState('')
   const [carregando, setCarregando] = useState(true)
   const [salvando, setSalvando] = useState(false)
-  const [iniciado, setIniciado] = useState(false)
+  const [showAtestado, setShowAtestado] = useState(false)
+  const [atestadoEmitido, setAtestadoEmitido] = useState(false)
 
   useEffect(() => {
-    iniciarAtendimento()
+    fetch(`/api/medico/atendimento/${id}`)
+      .then(r => r.json())
+      .then(d => {
+        if (d.error) { router.push('/medico/dashboard'); return }
+        setDados(d)
+        setNotas(d.atendimento.notas_medico || '')
+        setCarregando(false)
+      })
+      .catch(() => router.push('/medico/dashboard'))
   }, [id])
-
-  async function iniciarAtendimento() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/login'); return }
-
-    // Buscar médico
-    const { data: med } = await supabase
-      .from('medicos').select('id').eq('usuario_id', user.id).single()
-    if (!med) { router.push('/login'); return }
-    setMedico(med)
-
-    // Buscar atendimento
-    const { data: at } = await supabase
-      .from('atendimentos')
-      .select('*, pacientes(nome, cpf, data_nascimento), triagens(classificacao_risco, resumo_ia)')
-      .eq('id', id)
-      .single()
-
-    if (!at) { router.push('/medico/dashboard'); return }
-    setAtendimento(at)
-    setNotas(at.notas_medico || '')
-
-    // Marcar como em andamento se ainda aguardando
-    if (at.status === 'aguardando') {
-      await supabase
-        .from('atendimentos')
-        .update({
-          status: 'em_andamento',
-          medico_id: med.id,
-          iniciado_em: new Date().toISOString(),
-        })
-        .eq('id', id)
-      setIniciado(true)
-    }
-
-    setCarregando(false)
-  }
 
   async function finalizarConsulta() {
     setSalvando(true)
@@ -79,12 +49,25 @@ export default function AtendimentoMedico() {
     )
   }
 
+  const { atendimento, triagem, paciente, medico } = dados
+
   const corRisco: Record<string, string> = {
     verde: 'bg-green-100 text-green-700',
     amarelo: 'bg-yellow-100 text-yellow-700',
     laranja: 'bg-orange-100 text-orange-700',
     vermelho: 'bg-red-100 text-red-700',
   }
+
+  // Adicionar nome do médico como parâmetro na URL da sala de vídeo
+  const videoUrl = (() => {
+    try {
+      const url = new URL(atendimento.sala_video)
+      url.searchParams.set('name', `Dr. ${medico.nome}`)
+      return url.toString()
+    } catch {
+      return atendimento.sala_video
+    }
+  })()
 
   return (
     <div className="min-h-screen bg-[#0F1F33] flex flex-col">
@@ -94,12 +77,12 @@ export default function AtendimentoMedico() {
           <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
           <span className="text-green-300 text-xs">— Atendimento Virtual</span>
         </div>
-        {atendimento?.pacientes && (
+        {paciente && (
           <div className="text-green-200 text-xs">
-            Paciente: <strong className="text-white">{atendimento.pacientes.nome}</strong>
-            {atendimento.triagens?.classificacao_risco && (
-              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${corRisco[atendimento.triagens.classificacao_risco] || ''}`}>
-                {atendimento.triagens.classificacao_risco}
+            Paciente: <strong className="text-white">{paciente.nome}</strong>
+            {triagem?.classificacao_risco && (
+              <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${corRisco[triagem.classificacao_risco] || ''}`}>
+                {triagem.classificacao_risco}
               </span>
             )}
           </div>
@@ -119,7 +102,7 @@ export default function AtendimentoMedico() {
         {/* Vídeo */}
         <div className="flex-1">
           <iframe
-            src={atendimento.sala_video}
+            src={videoUrl}
             allow="camera; microphone; fullscreen; display-capture; autoplay"
             className="w-full h-full border-0"
           />
@@ -127,13 +110,57 @@ export default function AtendimentoMedico() {
 
         {/* Painel lateral */}
         <div className="w-80 bg-[#1A3A2C] flex flex-col shrink-0 overflow-y-auto">
-          {/* Info do paciente */}
-          {atendimento.triagens?.resumo_ia && (
-            <div className="p-4 border-b border-blue-900">
+          {/* Resumo da triagem */}
+          {triagem?.resumo_ia && (
+            <div className="p-4 border-b border-[#2A4A3C]">
               <p className="text-green-300 text-xs font-medium uppercase tracking-wide mb-2">Resumo da triagem</p>
-              <p className="text-blue-100 text-sm leading-relaxed">{atendimento.triagens.resumo_ia}</p>
+              <p className="text-blue-100 text-sm leading-relaxed">{triagem.resumo_ia}</p>
             </div>
           )}
+
+          {/* Botão de atestado */}
+          <div className="p-4 border-b border-[#2A4A3C]">
+            <button
+              onClick={() => setShowAtestado(v => !v)}
+              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                showAtestado
+                  ? 'bg-[#5BBD9B] text-white'
+                  : 'bg-[#0F1F33] text-green-200 hover:bg-[#5BBD9B] hover:text-white'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <ClipboardList className="w-4 h-4" />
+                {atestadoEmitido ? 'Atestado emitido ✓' : 'Emitir Atestado'}
+              </span>
+              {showAtestado ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+
+            {showAtestado && paciente && (
+              <div className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
+                <AtestadoForm
+                  atendimentoId={atendimento.id}
+                  pacienteId={paciente.id}
+                  paciente={{
+                    nome: paciente.nome,
+                    cpf: paciente.cpf,
+                    data_nascimento: paciente.data_nascimento,
+                    sexo: paciente.sexo,
+                  }}
+                  medico={{
+                    nome: medico.nome,
+                    crm: medico.crm,
+                    crm_uf: medico.crm_uf,
+                    especialidade: medico.especialidade,
+                  }}
+                  onFechar={() => setShowAtestado(false)}
+                  onSalvo={() => {
+                    setAtestadoEmitido(true)
+                    setShowAtestado(false)
+                  }}
+                />
+              </div>
+            )}
+          </div>
 
           {/* Notas médicas */}
           <div className="p-4 flex-1 flex flex-col">
@@ -145,7 +172,7 @@ export default function AtendimentoMedico() {
               value={notas}
               onChange={e => setNotas(e.target.value)}
               placeholder="Anamnese, diagnóstico, prescrições, orientações..."
-              className="flex-1 bg-[#0F1F33] text-blue-100 text-sm rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] placeholder-blue-700 min-h-[200px]"
+              className="flex-1 bg-[#0F1F33] text-blue-100 text-sm rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] placeholder-blue-700 min-h-[180px]"
             />
             <button
               onClick={finalizarConsulta}
