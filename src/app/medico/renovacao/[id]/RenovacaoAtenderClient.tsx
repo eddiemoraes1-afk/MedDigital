@@ -67,9 +67,9 @@ export default function RenovacaoAtenderClient({
           data_emissao: hoje,
           status: 'emitida',
           // Billing
-          valor_cobrado:        valorCobrado        || null,
-          valor_medico:         valorMedico         || null,
-          valor_coparticipacao: valorCoparticipacao || null,
+          valor_cobrado:        valorCobrado,
+          valor_medico:         valorMedico         > 0 ? valorMedico         : null,
+          valor_coparticipacao: valorCoparticipacao > 0 ? valorCoparticipacao : null,
         }),
       })
       const recData = await recRes.json()
@@ -175,7 +175,7 @@ export default function RenovacaoAtenderClient({
           </div>
           {valorMedico > 0 && (
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-600">Seu ganho (custo médico)</span>
+              <span className="text-gray-600">Seu ganho</span>
               <span className="font-bold text-green-700">{formatBRL(valorMedico)}</span>
             </div>
           )}

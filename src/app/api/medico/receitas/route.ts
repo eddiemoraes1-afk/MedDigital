@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     validade: validade || null,
     data_emissao: data_emissao ?? new Date().toISOString().split('T')[0],
     status: 'emitida',
-    valor_cobrado:        valor_cobrado        != null ? Number(valor_cobrado)        : null,
+    valor_cobrado:        valor_cobrado        != null ? Number(valor_cobrado)        : 0,
     valor_medico:         valor_medico         != null ? Number(valor_medico)         : null,
     valor_coparticipacao: valor_coparticipacao != null ? Number(valor_coparticipacao) : null,
   }).select().single()
