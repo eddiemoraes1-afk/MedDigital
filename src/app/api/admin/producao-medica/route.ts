@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
       : ({ data: [] } as any),
 
     admin.from('receitas')
-      .select('id, medico_id, paciente_id, valor_cobrado, criado_em, status')
+      .select('id, medico_id, paciente_id, atendimento_id, valor_cobrado, criado_em, status')
       .eq('status', 'emitida')
       .gte('criado_em', deISO)
       .lte('criado_em', ateISO),
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
       .select('paciente_id, empresa_id, ativo'),
 
     admin.from('empresas')
-      .select('id, nome, preco_consulta'),
+      .select('id, nome, preco_consulta, preco_receita'),
   ])
 
   const ats = (atendimentos ?? []) as any[]
@@ -94,11 +94,22 @@ export async function GET(req: NextRequest) {
     return emp?.preco_consulta ?? valorFallback ?? 0
   }
 
+  function calcValorRenovacao(r: any): number {
+    const eId = pacienteEmpresa.get(r.paciente_id)
+    const emp = eId ? (empresaMap.get(eId) as any) : null
+    const precoReceita = emp?.preco_receita ?? 0
+    return (r.valor_cobrado != null && r.valor_cobrado > 0) ? r.valor_cobrado : precoReceita
+  }
+
+  // Divide receitas: renovações (atendimento_id IS NULL) vs emitidas em consulta
+  const renovacoes = recs.filter((r: any) => r.atendimento_id == null)
+  const receitasEmConsulta = recs.filter((r: any) => r.atendimento_id != null)
+
   // ── Produção por médico ───────────────────────────────────────────────────
   type ProdRow = {
     medico_id: string; nome: string; especialidade: string; crm: string
     consultas: number; faturamento: number; custo_consulta: number; custo: number; margem: number
-    atestados: number; receitas: number; exames: number
+    atestados: number; receitas: number; renovacoes: number; receitas_em_consulta: number; gasto_renovacoes: number; exames: number
   }
   const prodMap = new Map<string, ProdRow>()
 
@@ -111,7 +122,7 @@ export async function GET(req: NextRequest) {
       consultas: 0, faturamento: 0,
       custo_consulta: custoUnit,
       custo: 0, margem: 0,
-      atestados: 0, receitas: 0, exames: 0,
+      atestados: 0, receitas: 0, renovacoes: 0, receitas_em_consulta: 0, gasto_renovacoes: 0, exames: 0,
     })
   }
 
@@ -125,10 +136,23 @@ export async function GET(req: NextRequest) {
     const cur = prodMap.get(a.medico_id)
     if (cur) cur.atestados++
   }
-  for (const r of recs) {
+  for (const r of renovacoes) {
     if (r.medico_id) {
       const cur = prodMap.get(r.medico_id)
-      if (cur) cur.receitas++
+      if (cur) {
+        cur.renovacoes++
+        cur.receitas++
+        cur.gasto_renovacoes += calcValorRenovacao(r)
+      }
+    }
+  }
+  for (const r of receitasEmConsulta) {
+    if (r.medico_id) {
+      const cur = prodMap.get(r.medico_id)
+      if (cur) {
+        cur.receitas_em_consulta++
+        cur.receitas++
+      }
     }
   }
 
@@ -156,12 +180,15 @@ export async function GET(req: NextRequest) {
     .sort((a, b) => b.faturamento - a.faturamento)
 
   // ── Por mês ───────────────────────────────────────────────────────────────
-  const mesMap = new Map<string, { mes: string; consultas: number; faturamento: number; atestados: number; receitas: number }>()
+  type MesEntry = { mes: string; consultas: number; faturamento: number; atestados: number; receitas: number; renovacoes: number; receitas_em_consulta: number }
+  const mesMap = new Map<string, MesEntry>()
+
+  const emptyMes = (mes: string): MesEntry => ({ mes, consultas: 0, faturamento: 0, atestados: 0, receitas: 0, renovacoes: 0, receitas_em_consulta: 0 })
 
   for (const a of ats) {
     const d = new Date(a.criado_em)
     const mes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const cur = mesMap.get(mes) ?? { mes, consultas: 0, faturamento: 0, atestados: 0, receitas: 0 }
+    const cur = mesMap.get(mes) ?? emptyMes(mes)
     cur.consultas++
     cur.faturamento += precoConsulta(a.paciente_id, a.valor_cobrado)
     mesMap.set(mes, cur)
@@ -169,15 +196,24 @@ export async function GET(req: NextRequest) {
   for (const a of atests) {
     const d = new Date(a.criado_em)
     const mes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const cur = mesMap.get(mes) ?? { mes, consultas: 0, faturamento: 0, atestados: 0, receitas: 0 }
+    const cur = mesMap.get(mes) ?? emptyMes(mes)
     cur.atestados++
     mesMap.set(mes, cur)
   }
-  for (const r of recs) {
+  for (const r of renovacoes) {
     const d = new Date(r.criado_em)
     const mes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const cur = mesMap.get(mes) ?? { mes, consultas: 0, faturamento: 0, atestados: 0, receitas: 0 }
+    const cur = mesMap.get(mes) ?? emptyMes(mes)
     cur.receitas++
+    cur.renovacoes++
+    mesMap.set(mes, cur)
+  }
+  for (const r of receitasEmConsulta) {
+    const d = new Date(r.criado_em)
+    const mes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const cur = mesMap.get(mes) ?? emptyMes(mes)
+    cur.receitas++
+    cur.receitas_em_consulta++
     mesMap.set(mes, cur)
   }
   const porMes = [...mesMap.entries()]
@@ -187,6 +223,8 @@ export async function GET(req: NextRequest) {
   // ── Totais ────────────────────────────────────────────────────────────────
   const totalFaturamento = ats.reduce((s, a) => s + precoConsulta(a.paciente_id, a.valor_cobrado), 0)
   const totalCusto = [...prodMap.values()].reduce((s, r) => s + r.custo, 0)
+  const totalGastosRenovacoes = renovacoes.reduce((sum: number, r: any) => sum + calcValorRenovacao(r), 0)
+
   const totais = {
     consultas: ats.length,
     faturamento: totalFaturamento,
@@ -194,7 +232,10 @@ export async function GET(req: NextRequest) {
     margem: totalFaturamento - totalCusto,
     atestados: atests.length,
     receitas: recs.length,
-    exames: 0, // tabela ainda não criada
+    renovacoes: renovacoes.length,
+    receitas_em_consulta: receitasEmConsulta.length,
+    gastos_renovacoes: totalGastosRenovacoes,
+    exames: 0,
   }
 
   return NextResponse.json({

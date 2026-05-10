@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import {
   BarChart2, Stethoscope, DollarSign, FileText, ClipboardList,
   FlaskConical, Loader2, RefreshCw, Search, ChevronDown, ChevronUp,
-  TrendingDown, TrendingUp,
+  TrendingDown, TrendingUp, Receipt,
 } from 'lucide-react'
 
 // ============================================================
@@ -22,6 +22,9 @@ interface ProdRow {
   margem: number
   atestados: number
   receitas: number
+  renovacoes: number
+  receitas_em_consulta: number
+  gasto_renovacoes: number
   exames: number
 }
 
@@ -38,6 +41,8 @@ interface MesRow {
   faturamento: number
   atestados: number
   receitas: number
+  renovacoes: number
+  receitas_em_consulta: number
 }
 
 interface Totais {
@@ -47,6 +52,9 @@ interface Totais {
   margem: number
   atestados: number
   receitas: number
+  renovacoes: number
+  receitas_em_consulta: number
+  gastos_renovacoes: number
   exames: number
 }
 
@@ -605,7 +613,7 @@ export default function ProducaoMedicaDashboard() {
       </div>
 
       {/* ---- KPIs ---- */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4">
         <KpiCard
           label="Faturamento Total"
           value={formatBRL(totais.faturamento)}
@@ -639,9 +647,15 @@ export default function ProducaoMedicaDashboard() {
           icon={FileText} color="#F59E0B"
         />
         <KpiCard
-          label="Receitas Emitidas"
-          value={String(totais.receitas)}
-          sub="renovações de receita"
+          label="Renovações de Receita"
+          value={String(totais.renovacoes)}
+          sub={totais.gastos_renovacoes > 0 ? formatBRL(totais.gastos_renovacoes) : 'sem custo calculado'}
+          icon={Receipt} color="#F97316"
+        />
+        <KpiCard
+          label="Rx em Consultas"
+          value={String(totais.receitas_em_consulta)}
+          sub="emitidas durante atendimento"
           icon={ClipboardList} color="#8B5CF6"
         />
         <KpiCard
@@ -719,7 +733,7 @@ export default function ProducaoMedicaDashboard() {
         </div>
       )}
 
-      {/* ---- Atestados e Receitas por mês ---- */}
+      {/* ---- Atestados e Renovações por mês ---- */}
       {data.porMes.length > 0 && (
         <div className="grid lg:grid-cols-2 gap-6">
           <ChartCard title="Atestados por Mês" subtitle="Evolução de emissão de atestados médicos">
@@ -730,14 +744,50 @@ export default function ProducaoMedicaDashboard() {
               color="#F59E0B"
             />
           </ChartCard>
-          <ChartCard title="Receitas por Mês" subtitle="Evolução de emissão de receitas médicas">
+          <ChartCard title="Renovações de Receita por Mês" subtitle="Receitas avulsas emitidas fora de consulta">
             <BarChartSVG
               data={data.porMes.map(d => ({ ...d, mes: formatMes(d.mes) }))}
-              labelKey="mes" valueKey="receitas"
-              formatValue={v => `${v} receita${v !== 1 ? 's' : ''}`}
-              color="#8B5CF6"
+              labelKey="mes" valueKey="renovacoes"
+              formatValue={v => `${v} renovação${v !== 1 ? 'ões' : ''}`}
+              color="#F97316"
             />
           </ChartCard>
+        </div>
+      )}
+
+      {/* ---- Renovações por médico + Rx em consultas por mês ---- */}
+      {(data.producao.some(r => r.renovacoes > 0) || data.porMes.some(m => m.receitas_em_consulta > 0)) && (
+        <div className="grid lg:grid-cols-2 gap-6">
+          {data.producao.some(r => r.renovacoes > 0) && (
+            <ChartCard title="Renovações por Médico" subtitle="Quantidade de renovações de receita emitidas por profissional">
+              <HBarChart
+                data={[...data.producao].filter(r => r.renovacoes > 0).sort((a, b) => b.renovacoes - a.renovacoes)}
+                labelKey="nome" valueKey="renovacoes"
+                formatValue={v => `${v} renovação${v !== 1 ? 'ões' : ''}`}
+                color="#F97316"
+              />
+            </ChartCard>
+          )}
+          {data.producao.some(r => r.gasto_renovacoes > 0) && (
+            <ChartCard title="Valor de Renovações por Médico" subtitle="Custo total das renovações emitidas por cada médico">
+              <HBarChart
+                data={[...data.producao].filter(r => r.gasto_renovacoes > 0).sort((a, b) => b.gasto_renovacoes - a.gasto_renovacoes)}
+                labelKey="nome" valueKey="gasto_renovacoes"
+                formatValue={formatBRL}
+                color="#EF4444"
+              />
+            </ChartCard>
+          )}
+          {data.porMes.some(m => m.receitas_em_consulta > 0) && (
+            <ChartCard title="Rx em Consultas por Mês" subtitle="Receitas emitidas durante atendimento — sem custo adicional">
+              <BarChartSVG
+                data={data.porMes.map(d => ({ ...d, mes: formatMes(d.mes) }))}
+                labelKey="mes" valueKey="receitas_em_consulta"
+                formatValue={v => `${v} receita${v !== 1 ? 's' : ''}`}
+                color="#8B5CF6"
+              />
+            </ChartCard>
+          )}
         </div>
       )}
 
@@ -765,7 +815,8 @@ export default function ProducaoMedicaDashboard() {
                   <ThSort label="Custo" k="custo" right />
                   <ThSort label="Margem" k="margem" right />
                   <ThSort label="Atestados" k="atestados" right />
-                  <ThSort label="Receitas" k="receitas" right />
+                  <ThSort label="Renovações" k="renovacoes" right />
+                  <ThSort label="Rx Consulta" k="receitas_em_consulta" right />
                   <ThSort label="Exames" k="exames" right />
                 </tr>
               </thead>
@@ -807,8 +858,13 @@ export default function ProducaoMedicaDashboard() {
                         : <span className="text-gray-300">—</span>}
                     </td>
                     <td className="py-3 pr-3 text-right">
-                      {row.receitas > 0
-                        ? <span className="text-purple-600 font-medium">{row.receitas}</span>
+                      {row.renovacoes > 0
+                        ? <span className="text-orange-600 font-medium" title={`Custo: ${formatBRL(row.gasto_renovacoes)}`}>{row.renovacoes}</span>
+                        : <span className="text-gray-300">—</span>}
+                    </td>
+                    <td className="py-3 pr-3 text-right">
+                      {row.receitas_em_consulta > 0
+                        ? <span className="text-purple-600 font-medium">{row.receitas_em_consulta}</span>
                         : <span className="text-gray-300">—</span>}
                     </td>
                     <td className="py-3 text-right">
@@ -820,13 +876,14 @@ export default function ProducaoMedicaDashboard() {
               {/* Totals row */}
               <tfoot>
                 <tr className="border-t-2 border-gray-200 bg-gray-50">
-                  <td colSpan={4} className="py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Total</td>
+                  <td colSpan={4} className="py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Total do período</td>
                   <td className="py-3 pr-3 text-right font-bold text-[#1A3A2C]">{totais.consultas}</td>
                   <td className="py-3 pr-3 text-right font-bold text-[#1A3A2C]">{formatBRL(totais.faturamento)}</td>
                   <td className="py-3 pr-3 text-right font-bold text-orange-600">{totais.custo > 0 ? formatBRL(totais.custo) : '—'}</td>
                   <td className="py-3 pr-3 text-right font-bold text-green-600">{totais.custo > 0 ? formatBRL(totais.margem) : '—'}</td>
                   <td className="py-3 pr-3 text-right font-bold text-amber-600">{totais.atestados}</td>
-                  <td className="py-3 pr-3 text-right font-bold text-purple-600">{totais.receitas}</td>
+                  <td className="py-3 pr-3 text-right font-bold text-orange-600" title={`Custo total: ${formatBRL(totais.gastos_renovacoes)}`}>{totais.renovacoes}</td>
+                  <td className="py-3 pr-3 text-right font-bold text-purple-600">{totais.receitas_em_consulta}</td>
                   <td className="py-3 text-right text-gray-300 text-xs">—</td>
                 </tr>
               </tfoot>
