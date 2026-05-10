@@ -4,6 +4,7 @@ import Link from 'next/link'
 import {
   Users, Clock, CheckCircle2, AlertTriangle, Calendar,
   FileText, Stethoscope, ClipboardList, Video, FlaskConical,
+  ChevronRight,
 } from 'lucide-react'
 import PingMedico from '../PingMedico'
 import MedicoHeader from '../MedicoHeader'
@@ -41,60 +42,53 @@ export default async function MedicoDashboard() {
 
   // ── Início do dia em São Paulo (UTC-3 fixo desde 2019) ────────────────────
   const hojeStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' })
-  // "2026-05-10" → midnight SP = "2026-05-10T03:00:00.000Z"
   const hojeInicio = new Date(hojeStr + 'T00:00:00-03:00').toISOString()
 
-  // ── Fila virtual (aguardando) ─────────────────────────────────────────────
-  const { data: fila } = await adminSupabase
-    .from('atendimentos')
-    .select(`
-      id, criado_em, paciente_id,
-      pacientes (id, nome, cpf),
-      triagens (id, classificacao_risco, resumo_ia)
-    `)
-    .eq('status', 'aguardando')
-    .eq('tipo', 'virtual')
-    .order('criado_em', { ascending: true })
+  // ── Dados em paralelo ─────────────────────────────────────────────────────
+  const [filaRes, atendidosRes, atestadosRes, receitasRes] = await Promise.all([
+    // Fila virtual
+    adminSupabase
+      .from('atendimentos')
+      .select('id, criado_em, paciente_id, pacientes(id, nome, cpf), triagens(id, classificacao_risco, resumo_ia)')
+      .eq('status', 'aguardando')
+      .eq('tipo', 'virtual')
+      .order('criado_em', { ascending: true }),
 
-  // ── Atendimentos concluídos hoje por este médico ──────────────────────────
-  const { data: atendidosHoje } = await adminSupabase
-    .from('atendimentos')
-    .select(`
-      id, finalizado_em,
-      pacientes (id, nome),
-      triagens (classificacao_risco)
-    `)
-    .eq('medico_id', medico.id)
-    .eq('status', 'concluido')
-    .gte('finalizado_em', hojeInicio)
-    .order('finalizado_em', { ascending: false })
+    // Atendidos hoje
+    adminSupabase
+      .from('atendimentos')
+      .select('id, finalizado_em, pacientes(id, nome), triagens(classificacao_risco)')
+      .eq('medico_id', medico.id)
+      .eq('status', 'concluido')
+      .gte('finalizado_em', hojeInicio)
+      .order('finalizado_em', { ascending: false }),
 
-  // ── Atestados emitidos hoje ───────────────────────────────────────────────
-  const { data: atestadosHoje } = await adminSupabase
-    .from('atestados')
-    .select('id')
-    .eq('medico_id', medico.id)
-    .gte('criado_em', hojeInicio)
+    // Atestados hoje
+    adminSupabase
+      .from('atestados')
+      .select('id, criado_em, dias, cid, pacientes(id, nome)')
+      .eq('medico_id', medico.id)
+      .gte('criado_em', hojeInicio)
+      .order('criado_em', { ascending: false }),
 
-  // ── Receitas emitidas hoje ────────────────────────────────────────────────
-  const { data: receitasHoje } = await adminSupabase
-    .from('receitas')
-    .select('id')
-    .eq('medico_id', medico.id)
-    .gte('criado_em', hojeInicio)
+    // Receitas hoje
+    adminSupabase
+      .from('receitas')
+      .select('id, criado_em, status, valor_cobrado, pacientes(id, nome)')
+      .eq('medico_id', medico.id)
+      .gte('criado_em', hojeInicio)
+      .order('criado_em', { ascending: false }),
+  ])
 
-  // Exames: tabela ainda não existe — fica em 0
-  const examesHoje = 0
-
-  const qtdAtendidos  = atendidosHoje?.length ?? 0
-  const qtdAtestados  = atestadosHoje?.length ?? 0
-  const qtdReceitas   = receitasHoje?.length ?? 0
+  const fila        = filaRes.data     ?? []
+  const atendidos   = atendidosRes.data  ?? []
+  const atestados   = atestadosRes.data  ?? []
+  const receitas    = receitasRes.data   ?? []
+  const exames: any[] = [] // tabela ainda não criada
 
   const primeiroNome = medico.nome.split(' ')[0]
-
-  // ── Hora do dia ───────────────────────────────────────────────────────────
-  const horaAtual = new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo', hour: 'numeric', hour12: false })
-  const saudacao = Number(horaAtual) < 12 ? 'Bom dia' : Number(horaAtual) < 18 ? 'Boa tarde' : 'Boa noite'
+  const horaAtual = Number(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo', hour: 'numeric', hour12: false }))
+  const saudacao = horaAtual < 12 ? 'Bom dia' : horaAtual < 18 ? 'Boa tarde' : 'Boa noite'
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const corRisco: Record<string, string> = {
@@ -110,116 +104,256 @@ export default async function MedicoDashboard() {
 
   function formatarHora(iso: string | null) {
     if (!iso) return '—'
-    return new Date(iso).toLocaleTimeString('pt-BR', {
-      timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit',
-    })
+    return new Date(iso).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })
   }
 
+  function formatBRL(v: number | null) {
+    if (!v) return '—'
+    return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  }
+
+  // ── KPI card config ───────────────────────────────────────────────────────
+  const kpis = [
+    {
+      href: '#atendidos',
+      count: atendidos.length,
+      label: 'Atendidos hoje',
+      icon: CheckCircle2,
+      dark: true,
+      iconColor: 'text-[#5BBD9B]',
+      bgIcon: 'bg-white/10',
+    },
+    {
+      href: '#atestados',
+      count: atestados.length,
+      label: 'Atestados emitidos',
+      icon: FileText,
+      dark: false,
+      iconColor: 'text-amber-500',
+      bgIcon: 'bg-amber-50',
+    },
+    {
+      href: '#receitas',
+      count: receitas.length,
+      label: 'Receitas emitidas',
+      icon: ClipboardList,
+      dark: false,
+      iconColor: 'text-purple-500',
+      bgIcon: 'bg-purple-50',
+    },
+    {
+      href: '#exames',
+      count: exames.length,
+      label: 'Exames pedidos',
+      icon: FlaskConical,
+      dark: false,
+      iconColor: 'text-blue-500',
+      bgIcon: 'bg-blue-50',
+    },
+  ]
+
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
+    <div className="min-h-screen bg-[#F3FAF7] scroll-smooth">
       <PingMedico />
       <MedicoHeader titulo="Painel do Médico" medicoNome={medico.nome} />
 
-      <main className="max-w-5xl mx-auto px-6 py-8">
+      <main className="max-w-5xl mx-auto px-6 py-8 space-y-8">
 
         {/* Saudação */}
-        <div className="mb-8">
+        <div>
           <h1 className="text-2xl font-bold text-[#1A3A2C]">{saudacao}, Dr(a). {primeiroNome}!</h1>
           <p className="text-gray-500 mt-1">{medico.especialidade} — CRM {medico.crm}/{medico.crm_uf}</p>
         </div>
 
-        {/* ── KPIs do dia ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          {/* Atendidos hoje */}
-          <div className="bg-[#1A3A2C] rounded-2xl p-5 shadow-sm">
-            <div className="flex items-start justify-between mb-3">
-              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
-                <CheckCircle2 className="w-5 h-5 text-[#5BBD9B]" />
+        {/* ── KPI cards clicáveis ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {kpis.map(k => (
+            <a
+              key={k.href}
+              href={k.href}
+              className={`group rounded-2xl p-5 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${
+                k.dark ? 'bg-[#1A3A2C] hover:bg-[#122a1f]' : 'bg-white border border-gray-50 hover:border-gray-200'
+              }`}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${k.bgIcon}`}>
+                  <k.icon className={`w-5 h-5 ${k.iconColor}`} />
+                </div>
+                <ChevronRight className={`w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity ${k.dark ? 'text-green-300' : 'text-gray-300'}`} />
               </div>
-            </div>
-            <div className="text-3xl font-bold text-white">{qtdAtendidos}</div>
-            <div className="text-sm text-green-300 mt-1">Atendidos hoje</div>
-          </div>
-
-          {/* Atestados */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50">
-            <div className="flex items-start justify-between mb-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
-                <FileText className="w-5 h-5 text-amber-500" />
-              </div>
-            </div>
-            <div className="text-3xl font-bold text-[#1A3A2C]">{qtdAtestados}</div>
-            <div className="text-sm text-gray-400 mt-1">Atestados emitidos</div>
-          </div>
-
-          {/* Receitas */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50">
-            <div className="flex items-start justify-between mb-3">
-              <div className="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center">
-                <ClipboardList className="w-5 h-5 text-purple-500" />
-              </div>
-            </div>
-            <div className="text-3xl font-bold text-[#1A3A2C]">{qtdReceitas}</div>
-            <div className="text-sm text-gray-400 mt-1">Receitas emitidas</div>
-          </div>
-
-          {/* Exames */}
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50">
-            <div className="flex items-start justify-between mb-3">
-              <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
-                <FlaskConical className="w-5 h-5 text-blue-500" />
-              </div>
-            </div>
-            <div className="text-3xl font-bold text-[#1A3A2C]">{examesHoje}</div>
-            <div className="text-sm text-gray-400 mt-1">Exames pedidos</div>
-          </div>
+              <div className={`text-3xl font-bold ${k.dark ? 'text-white' : 'text-[#1A3A2C]'}`}>{k.count}</div>
+              <div className={`text-sm mt-1 ${k.dark ? 'text-green-300' : 'text-gray-400'}`}>{k.label}</div>
+            </a>
+          ))}
         </div>
 
-        {/* ── Atendidos hoje — lista ── */}
-        {qtdAtendidos > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-8">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-              <CheckCircle2 className="w-4 h-4 text-[#5BBD9B]" />
-              <h2 className="font-bold text-[#1A3A2C] text-sm">
-                Atendidos hoje
-                <span className="ml-2 text-xs text-gray-400 font-normal">({qtdAtendidos})</span>
-              </h2>
-            </div>
+        {/* ── Atendidos hoje ── */}
+        <div id="atendidos" className="bg-white rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <CheckCircle2 className="w-4 h-4 text-[#5BBD9B]" />
+            <h2 className="font-bold text-[#1A3A2C] text-sm">
+              Atendidos hoje
+              <span className="ml-2 text-xs text-gray-400 font-normal">({atendidos.length})</span>
+            </h2>
+          </div>
+          {atendidos.length > 0 ? (
             <div className="divide-y divide-gray-50">
-              {(atendidosHoje ?? []).map((a: any) => {
+              {atendidos.map((a: any) => {
                 const risco = a.triagens?.classificacao_risco
                 return (
                   <div key={a.id} className="px-6 py-3.5 flex items-center gap-4 hover:bg-gray-50 transition-colors">
-                    <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center shrink-0">
                       <CheckCircle2 className="w-4 h-4 text-[#5BBD9B]" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Link
-                          href={`/medico/pacientes/${a.pacientes?.id}`}
-                          className="font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors text-sm"
-                        >
-                          {a.pacientes?.nome || 'Paciente'}
-                        </Link>
-                        {risco && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${corRisco[risco] || corRisco.default}`}>
-                            {labelRisco[risco] || risco}
-                          </span>
-                        )}
-                      </div>
+                    <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
+                      <Link
+                        href={`/medico/pacientes/${a.pacientes?.id}`}
+                        className="font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors text-sm"
+                      >
+                        {a.pacientes?.nome || 'Paciente'}
+                      </Link>
+                      {risco && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${corRisco[risco] || corRisco.default}`}>
+                          {labelRisco[risco] || risco}
+                        </span>
+                      )}
                     </div>
-                    <span className="text-xs text-gray-400 shrink-0">
-                      {formatarHora(a.finalizado_em)}
-                    </span>
+                    <span className="text-xs text-gray-400 shrink-0">{formatarHora(a.finalizado_em)}</span>
                   </div>
                 )
               })}
             </div>
+          ) : (
+            <div className="py-10 text-center">
+              <CheckCircle2 className="w-9 h-9 text-gray-200 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">Nenhum atendimento concluído hoje</p>
+            </div>
+          )}
+        </div>
+
+        {/* ── Atestados emitidos hoje ── */}
+        <div id="atestados" className="bg-white rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <FileText className="w-4 h-4 text-amber-500" />
+            <h2 className="font-bold text-[#1A3A2C] text-sm">
+              Atestados emitidos hoje
+              <span className="ml-2 text-xs text-gray-400 font-normal">({atestados.length})</span>
+            </h2>
           </div>
-        )}
+          {atestados.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 text-xs text-gray-400 font-medium uppercase tracking-wide">
+                  <tr>
+                    <th className="px-5 py-3 text-left">Horário</th>
+                    <th className="px-5 py-3 text-left">Paciente</th>
+                    <th className="px-5 py-3 text-center">Dias</th>
+                    <th className="px-5 py-3 text-left">CID</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {atestados.map((a: any) => (
+                    <tr key={a.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-5 py-3 text-xs text-gray-500">{formatarHora(a.criado_em)}</td>
+                      <td className="px-5 py-3">
+                        <Link
+                          href={`/medico/pacientes/${a.pacientes?.id}`}
+                          className="font-medium text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
+                        >
+                          {a.pacientes?.nome || '—'}
+                        </Link>
+                      </td>
+                      <td className="px-5 py-3 text-center">
+                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                          {a.dias ?? '—'} dias
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-xs text-gray-500 font-mono">{a.cid || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="py-10 text-center">
+              <FileText className="w-9 h-9 text-gray-200 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">Nenhum atestado emitido hoje</p>
+            </div>
+          )}
+        </div>
+
+        {/* ── Receitas emitidas hoje ── */}
+        <div id="receitas" className="bg-white rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <ClipboardList className="w-4 h-4 text-purple-500" />
+            <h2 className="font-bold text-[#1A3A2C] text-sm">
+              Receitas emitidas hoje
+              <span className="ml-2 text-xs text-gray-400 font-normal">({receitas.length})</span>
+            </h2>
+          </div>
+          {receitas.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 text-xs text-gray-400 font-medium uppercase tracking-wide">
+                  <tr>
+                    <th className="px-5 py-3 text-left">Horário</th>
+                    <th className="px-5 py-3 text-left">Paciente</th>
+                    <th className="px-5 py-3 text-center">Status</th>
+                    <th className="px-5 py-3 text-right">Valor</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {receitas.map((r: any) => (
+                    <tr key={r.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-5 py-3 text-xs text-gray-500">{formatarHora(r.criado_em)}</td>
+                      <td className="px-5 py-3">
+                        <Link
+                          href={`/medico/pacientes/${r.pacientes?.id}`}
+                          className="font-medium text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
+                        >
+                          {r.pacientes?.nome || '—'}
+                        </Link>
+                      </td>
+                      <td className="px-5 py-3 text-center">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          r.status === 'emitida' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                        }`}>
+                          {r.status === 'emitida' ? 'Emitida' : r.status ?? '—'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-right text-sm font-semibold text-[#1A3A2C]">
+                        {formatBRL(r.valor_cobrado)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="py-10 text-center">
+              <ClipboardList className="w-9 h-9 text-gray-200 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">Nenhuma receita emitida hoje</p>
+            </div>
+          )}
+        </div>
+
+        {/* ── Exames pedidos hoje ── */}
+        <div id="exames" className="bg-white rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <FlaskConical className="w-4 h-4 text-blue-500" />
+            <h2 className="font-bold text-[#1A3A2C] text-sm">
+              Exames pedidos hoje
+              <span className="ml-2 text-xs text-gray-400 font-normal">(0)</span>
+            </h2>
+          </div>
+          <div className="py-10 text-center">
+            <FlaskConical className="w-9 h-9 text-gray-200 mx-auto mb-2" />
+            <p className="text-sm text-gray-400">Nenhum exame pedido hoje</p>
+          </div>
+        </div>
 
         {/* ── Atalhos ── */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <Link href="/medico/pacientes"
             className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow">
             <div className="w-10 h-10 bg-[#1A3A2C]/10 rounded-xl flex items-center justify-center shrink-0">
@@ -259,14 +393,14 @@ export default async function MedicoDashboard() {
               <Users className="w-5 h-5 text-[#5BBD9B]" />
               <h2 className="font-bold text-[#1A3A2C]">Fila de Atendimento Virtual</h2>
             </div>
-            {fila && fila.length > 0 && (
+            {fila.length > 0 && (
               <span className="bg-[#5BBD9B] text-white text-xs font-bold px-2.5 py-1 rounded-full">
                 {fila.length} aguardando
               </span>
             )}
           </div>
 
-          {!fila || fila.length === 0 ? (
+          {fila.length === 0 ? (
             <div className="py-16 text-center">
               <CheckCircle2 className="w-12 h-12 text-green-200 mx-auto mb-3" />
               <p className="text-gray-400 font-medium">Fila vazia</p>
