@@ -187,6 +187,123 @@ export default async function MedicoDashboard() {
           ))}
         </div>
 
+        {/* ── Atalhos ── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Link href="/medico/producao"
+            className="bg-[#1A3A2C] rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow">
+            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center shrink-0">
+              <BarChart2 className="w-5 h-5 text-[#5BBD9B]" />
+            </div>
+            <div>
+              <p className="font-semibold text-white text-sm">Minha Produção</p>
+              <p className="text-xs text-green-300">Ver ganhos e histórico</p>
+            </div>
+          </Link>
+          <Link href="/medico/pacientes"
+            className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow">
+            <div className="w-10 h-10 bg-[#1A3A2C]/10 rounded-xl flex items-center justify-center shrink-0">
+              <Stethoscope className="w-5 h-5 text-[#1A3A2C]" />
+            </div>
+            <div>
+              <p className="font-semibold text-[#1A3A2C] text-sm">Prontuários</p>
+              <p className="text-xs text-gray-400">Ver todos os pacientes</p>
+            </div>
+          </Link>
+          <Link href="/medico/disponibilidade"
+            className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow">
+            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center shrink-0">
+              <Clock className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-[#1A3A2C] text-sm">Disponibilidade</p>
+              <p className="text-xs text-gray-400">Gerenciar horários</p>
+            </div>
+          </Link>
+          <Link href="/medico/agendamentos"
+            className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow">
+            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
+              <Calendar className="w-5 h-5 text-green-600" />
+            </div>
+            <div>
+              <p className="font-semibold text-[#1A3A2C] text-sm">Agenda</p>
+              <p className="text-xs text-gray-400">Ver consultas agendadas</p>
+            </div>
+          </Link>
+        </div>
+
+        {/* ── Fila de Atendimento Virtual ── */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Users className="w-5 h-5 text-[#5BBD9B]" />
+              <h2 className="font-bold text-[#1A3A2C]">Fila de Atendimento Virtual</h2>
+            </div>
+            {fila.length > 0 && (
+              <span className="bg-[#5BBD9B] text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                {fila.length} aguardando
+              </span>
+            )}
+          </div>
+
+          {fila.length === 0 ? (
+            <div className="py-16 text-center">
+              <CheckCircle2 className="w-12 h-12 text-green-200 mx-auto mb-3" />
+              <p className="text-gray-400 font-medium">Fila vazia</p>
+              <p className="text-gray-300 text-sm mt-1">Nenhum paciente aguardando no momento</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {fila.map((atendimento: any, index: number) => {
+                const risco = atendimento.triagens?.classificacao_risco || null
+                const pacienteId = atendimento.pacientes?.id || atendimento.paciente_id
+                const resumo = atendimento.triagens?.resumo_ia
+                return (
+                  <div key={atendimento.id} className="px-6 py-5 flex items-center gap-4 hover:bg-gray-50">
+                    <div className="w-10 h-10 bg-[#1A3A2C]/10 rounded-full flex items-center justify-center font-bold text-[#1A3A2C] text-sm shrink-0">
+                      {index + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Link
+                          href={`/medico/pacientes/${pacienteId}`}
+                          className="font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
+                        >
+                          {atendimento.pacientes?.nome || 'Paciente'}
+                        </Link>
+                        {risco && (
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${corRisco[risco] || corRisco.default}`}>
+                            {labelRisco[risco] || risco}
+                          </span>
+                        )}
+                      </div>
+                      {resumo ? (
+                        <Link href={`/medico/pacientes/${pacienteId}`} className="flex items-start gap-1.5 mt-1 group">
+                          <FileText className="w-3.5 h-3.5 text-[#5BBD9B] shrink-0 mt-0.5" />
+                          <p className="text-sm text-gray-500 group-hover:text-[#1A3A2C] transition-colors line-clamp-2">
+                            {resumo}
+                          </p>
+                        </Link>
+                      ) : (
+                        <p className="text-sm text-gray-300 mt-0.5 italic">Sem resumo de triagem</p>
+                      )}
+                      <p className="text-xs text-gray-300 mt-1">
+                        Aguardando desde {formatarHora(atendimento.criado_em)}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/medico/atendimento/${atendimento.id}`}
+                      className="bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 shrink-0 transition-colors"
+                    >
+                      <Video className="w-4 h-4" />
+                      Atender
+                    </Link>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
         {/* ── Atendidos hoje ── */}
         <div id="atendidos" className="bg-white rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
@@ -352,122 +469,6 @@ export default async function MedicoDashboard() {
           </div>
         </div>
 
-        {/* ── Atalhos ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Link href="/medico/producao"
-            className="bg-[#1A3A2C] rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow">
-            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center shrink-0">
-              <BarChart2 className="w-5 h-5 text-[#5BBD9B]" />
-            </div>
-            <div>
-              <p className="font-semibold text-white text-sm">Minha Produção</p>
-              <p className="text-xs text-green-300">Ver ganhos e histórico</p>
-            </div>
-          </Link>
-          <Link href="/medico/pacientes"
-            className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow">
-            <div className="w-10 h-10 bg-[#1A3A2C]/10 rounded-xl flex items-center justify-center shrink-0">
-              <Stethoscope className="w-5 h-5 text-[#1A3A2C]" />
-            </div>
-            <div>
-              <p className="font-semibold text-[#1A3A2C] text-sm">Prontuários</p>
-              <p className="text-xs text-gray-400">Ver todos os pacientes</p>
-            </div>
-          </Link>
-          <Link href="/medico/disponibilidade"
-            className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow">
-            <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center shrink-0">
-              <Clock className="w-5 h-5 text-purple-600" />
-            </div>
-            <div>
-              <p className="font-semibold text-[#1A3A2C] text-sm">Disponibilidade</p>
-              <p className="text-xs text-gray-400">Gerenciar horários</p>
-            </div>
-          </Link>
-          <Link href="/medico/agendamentos"
-            className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow">
-            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
-              <Calendar className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <p className="font-semibold text-[#1A3A2C] text-sm">Agenda</p>
-              <p className="text-xs text-gray-400">Ver consultas agendadas</p>
-            </div>
-          </Link>
-        </div>
-
-        {/* ── Fila de Atendimento Virtual ── */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Users className="w-5 h-5 text-[#5BBD9B]" />
-              <h2 className="font-bold text-[#1A3A2C]">Fila de Atendimento Virtual</h2>
-            </div>
-            {fila.length > 0 && (
-              <span className="bg-[#5BBD9B] text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                {fila.length} aguardando
-              </span>
-            )}
-          </div>
-
-          {fila.length === 0 ? (
-            <div className="py-16 text-center">
-              <CheckCircle2 className="w-12 h-12 text-green-200 mx-auto mb-3" />
-              <p className="text-gray-400 font-medium">Fila vazia</p>
-              <p className="text-gray-300 text-sm mt-1">Nenhum paciente aguardando no momento</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-50">
-              {fila.map((atendimento: any, index: number) => {
-                const risco = atendimento.triagens?.classificacao_risco || null
-                const pacienteId = atendimento.pacientes?.id || atendimento.paciente_id
-                const resumo = atendimento.triagens?.resumo_ia
-                return (
-                  <div key={atendimento.id} className="px-6 py-5 flex items-center gap-4 hover:bg-gray-50">
-                    <div className="w-10 h-10 bg-[#1A3A2C]/10 rounded-full flex items-center justify-center font-bold text-[#1A3A2C] text-sm shrink-0">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Link
-                          href={`/medico/pacientes/${pacienteId}`}
-                          className="font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
-                        >
-                          {atendimento.pacientes?.nome || 'Paciente'}
-                        </Link>
-                        {risco && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${corRisco[risco] || corRisco.default}`}>
-                            {labelRisco[risco] || risco}
-                          </span>
-                        )}
-                      </div>
-                      {resumo ? (
-                        <Link href={`/medico/pacientes/${pacienteId}`} className="flex items-start gap-1.5 mt-1 group">
-                          <FileText className="w-3.5 h-3.5 text-[#5BBD9B] shrink-0 mt-0.5" />
-                          <p className="text-sm text-gray-500 group-hover:text-[#1A3A2C] transition-colors line-clamp-2">
-                            {resumo}
-                          </p>
-                        </Link>
-                      ) : (
-                        <p className="text-sm text-gray-300 mt-0.5 italic">Sem resumo de triagem</p>
-                      )}
-                      <p className="text-xs text-gray-300 mt-1">
-                        Aguardando desde {formatarHora(atendimento.criado_em)}
-                      </p>
-                    </div>
-                    <Link
-                      href={`/medico/atendimento/${atendimento.id}`}
-                      className="bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 shrink-0 transition-colors"
-                    >
-                      <Video className="w-4 h-4" />
-                      Atender
-                    </Link>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
 
       </main>
     </div>
