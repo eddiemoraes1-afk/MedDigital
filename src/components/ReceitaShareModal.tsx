@@ -1,13 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Mail, MessageCircle, Download, Copy, Check, Smartphone } from 'lucide-react'
+import { X, Mail, MessageCircle, Download, Copy, Check, Smartphone, Loader2 } from 'lucide-react'
 import {
   type ReceitaHTMLParams,
-  baixarReceita,
-  criarArquivoReceita,
+  gerarHTMLReceita,
+  nomeArquivoReceita,
   textoResumidoReceita,
 } from '@/lib/receitaHTML'
+import { criarFilePDF, baixarComoPDF } from '@/lib/gerarPDF'
 
 interface Props {
   params: ReceitaHTMLParams
@@ -24,16 +25,23 @@ export default function ReceitaShareModal({ params, onClose }: Props) {
   const [copiado, setCopiado] = useState(false)
   const [baixando, setBaixando] = useState(false)
   const [compartilhando, setCompartilhando] = useState(false)
+  const [gerando, setGerando] = useState(false)
+  const [erro, setErro] = useState('')
 
   const texto = textoResumidoReceita(params)
   const tipoLabel = LABEL_TIPO[params.tipo] ?? 'Receita Médica'
   const assunto = encodeURIComponent(`${tipoLabel} — RovarisMed`)
   const corpo = encodeURIComponent(texto)
+  const htmlDoc = gerarHTMLReceita(params, false)
+  const nomeDoc = nomeArquivoReceita(params.paciente, params.dataEmissao)
 
   async function compartilharArquivo() {
     setCompartilhando(true)
+    setErro('')
     try {
-      const file = criarArquivoReceita(params)
+      setGerando(true)
+      const file = await criarFilePDF(htmlDoc, nomeDoc)
+      setGerando(false)
       if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], title: `${tipoLabel} — RovarisMed` })
         onClose()
@@ -42,19 +50,25 @@ export default function ReceitaShareModal({ params, onClose }: Props) {
       if ('share' in navigator) {
         await navigator.share({ title: `${tipoLabel} — RovarisMed`, text: texto })
         onClose()
-        return
       }
-    } catch {
-      // usuário cancelou
+    } catch (e: any) {
+      if (e?.name !== 'AbortError') setErro('Erro ao gerar PDF. Tente baixar manualmente.')
     } finally {
       setCompartilhando(false)
+      setGerando(false)
     }
   }
 
-  function baixar() {
+  async function baixar() {
     setBaixando(true)
-    baixarReceita(params)
-    setTimeout(() => setBaixando(false), 1500)
+    setErro('')
+    try {
+      await baixarComoPDF(htmlDoc, nomeDoc)
+    } catch {
+      setErro('Erro ao gerar PDF. Verifique sua conexão e tente novamente.')
+    } finally {
+      setTimeout(() => setBaixando(false), 1500)
+    }
   }
 
   async function copiar() {
@@ -87,24 +101,42 @@ export default function ReceitaShareModal({ params, onClose }: Props) {
         </div>
 
         <div className="p-4 space-y-2">
+          {gerando && (
+            <div className="flex items-center gap-2 bg-purple-50 border border-purple-100 rounded-xl px-3 py-2.5 text-xs text-purple-700">
+              <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+              Gerando PDF da receita…
+            </div>
+          )}
+
+          {erro && (
+            <div className="bg-red-50 border border-red-100 rounded-xl px-3 py-2 text-xs text-red-600">
+              {erro}
+            </div>
+          )}
+
+          {/* Compartilhar PDF (native share) */}
           {temNativeShare && (
             <button
               onClick={compartilharArquivo}
-              disabled={compartilhando}
-              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-[#5BBD9B] bg-[#F0FDF4] transition-colors"
+              disabled={compartilhando || baixando}
+              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-[#5BBD9B] bg-[#F0FDF4] transition-colors disabled:opacity-60"
             >
               <div className="w-9 h-9 bg-[#5BBD9B] rounded-xl flex items-center justify-center shrink-0">
-                <Smartphone className="w-4 h-4 text-white" />
+                {compartilhando
+                  ? <Loader2 className="w-4 h-4 text-white animate-spin" />
+                  : <Smartphone className="w-4 h-4 text-white" />
+                }
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm text-[#1A3A2C]">
-                  {compartilhando ? 'Abrindo...' : 'Compartilhar arquivo'}
+                  {compartilhando ? 'Gerando PDF…' : 'Compartilhar PDF'}
                 </p>
                 <p className="text-xs text-gray-500">WhatsApp, iMessage, e-mail, Drive…</p>
               </div>
             </button>
           )}
 
+          {/* Email */}
           <a
             href={`mailto:?subject=${assunto}&body=${corpo}`}
             className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-gray-100 transition-colors"
@@ -114,10 +146,11 @@ export default function ReceitaShareModal({ params, onClose }: Props) {
             </div>
             <div>
               <p className="font-semibold text-sm text-gray-700">E-mail</p>
-              <p className="text-xs text-gray-400">Abre seu cliente de e-mail</p>
+              <p className="text-xs text-gray-400">Abre o cliente de e-mail com resumo</p>
             </div>
           </a>
 
+          {/* WhatsApp */}
           <a
             href={`https://wa.me/?text=${corpo}`}
             target="_blank"
@@ -128,14 +161,16 @@ export default function ReceitaShareModal({ params, onClose }: Props) {
               <MessageCircle className="w-4 h-4 text-green-600" />
             </div>
             <div>
-              <p className="font-semibold text-sm text-gray-700">WhatsApp</p>
-              <p className="text-xs text-gray-400">Abre o WhatsApp Web com o texto</p>
+              <p className="font-semibold text-sm text-gray-700">WhatsApp Web</p>
+              <p className="text-xs text-gray-400">Texto com dados da receita</p>
             </div>
           </a>
 
+          {/* Baixar PDF */}
           <button
             onClick={baixar}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-gray-100 transition-colors"
+            disabled={baixando || compartilhando}
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-gray-100 transition-colors disabled:opacity-60"
           >
             <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${baixando ? 'bg-green-100' : 'bg-purple-100'}`}>
               {baixando
@@ -145,12 +180,13 @@ export default function ReceitaShareModal({ params, onClose }: Props) {
             </div>
             <div className="text-left">
               <p className="font-semibold text-sm text-gray-700">
-                {baixando ? 'Baixado!' : 'Baixar arquivo'}
+                {baixando ? 'Baixando PDF…' : 'Baixar PDF'}
               </p>
-              <p className="text-xs text-gray-400">Salve e encaminhe pelo app que preferir</p>
+              <p className="text-xs text-gray-400">Salva a receita em PDF no dispositivo</p>
             </div>
           </button>
 
+          {/* Copiar texto */}
           <button
             onClick={copiar}
             className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-gray-100 transition-colors"

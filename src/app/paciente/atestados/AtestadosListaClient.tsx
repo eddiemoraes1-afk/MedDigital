@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Printer, Download, Share2, Eye, Lock, CheckCircle2, Clock, FileText } from 'lucide-react'
-import { imprimirAtestado, baixarAtestado, type AtestadoHTMLParams } from '@/lib/atestadoHTML'
+import { Printer, Download, Share2, Eye, Lock, CheckCircle2, Clock, FileText, Loader2 } from 'lucide-react'
+import { imprimirAtestado, gerarHTMLAtestado, nomeArquivo, type AtestadoHTMLParams } from '@/lib/atestadoHTML'
+import { baixarComoPDF } from '@/lib/gerarPDF'
 import AtestadoShareModal from '@/components/AtestadoShareModal'
 
 interface AtestadoItem {
@@ -57,6 +58,16 @@ export default function AtestadosListaClient({
   paciente: Paciente
 }) {
   const [shareParams, setShareParams] = useState<AtestadoHTMLParams | null>(null)
+  const [baixandoId, setBaixandoId] = useState<string | null>(null)
+
+  async function baixar(id: string, params: AtestadoHTMLParams) {
+    setBaixandoId(id)
+    try {
+      await baixarComoPDF(gerarHTMLAtestado(params, false), nomeArquivo(params.paciente, params.dataEmissao))
+    } finally {
+      setBaixandoId(null)
+    }
+  }
 
   if (atestados.length === 0) {
     return (
@@ -153,10 +164,14 @@ export default function AtestadosListaClient({
                           <Printer className="w-3.5 h-3.5" /> Imprimir
                         </button>
                         <button
-                          onClick={() => baixarAtestado(params)}
-                          className="flex items-center gap-1.5 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-green-50 px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
+                          onClick={() => baixar(at.id, params)}
+                          disabled={baixandoId === at.id}
+                          className="flex items-center gap-1.5 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-green-50 px-4 py-2 rounded-xl text-xs font-semibold transition-colors disabled:opacity-60"
                         >
-                          <Download className="w-3.5 h-3.5" /> Baixar
+                          {baixandoId === at.id
+                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            : <Download className="w-3.5 h-3.5" />}
+                          {baixandoId === at.id ? 'Gerando…' : 'Baixar PDF'}
                         </button>
                         <button
                           onClick={() => setShareParams(params)}

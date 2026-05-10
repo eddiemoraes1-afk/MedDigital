@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Printer, Download, Share2, Eye } from 'lucide-react'
-import { imprimirAtestado, baixarAtestado, type AtestadoHTMLParams } from '@/lib/atestadoHTML'
+import { Printer, Download, Share2, Eye, Loader2 } from 'lucide-react'
+import { imprimirAtestado, gerarHTMLAtestado, nomeArquivo, type AtestadoHTMLParams } from '@/lib/atestadoHTML'
+import { baixarComoPDF } from '@/lib/gerarPDF'
 import AtestadoShareModal from '@/components/AtestadoShareModal'
 
 interface AtestadoDetalhe {
@@ -52,6 +53,16 @@ export default function AtestadosMedicoClient({
   medicoId: string
 }) {
   const [shareParams, setShareParams] = useState<AtestadoHTMLParams | null>(null)
+  const [baixandoId, setBaixandoId] = useState<string | null>(null)
+
+  async function baixar(id: string, params: AtestadoHTMLParams) {
+    setBaixandoId(id)
+    try {
+      await baixarComoPDF(gerarHTMLAtestado(params, false), nomeArquivo(params.paciente, params.dataEmissao))
+    } finally {
+      setBaixandoId(null)
+    }
+  }
 
   return (
     <>
@@ -115,10 +126,14 @@ export default function AtestadosMedicoClient({
                         <Printer className="w-3 h-3" /> Imprimir
                       </button>
                       <button
-                        onClick={() => baixarAtestado(params)}
-                        className="flex items-center gap-1 border border-gray-200 text-gray-600 hover:bg-gray-50 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                        onClick={() => baixar(at.id, params)}
+                        disabled={baixandoId === at.id}
+                        className="flex items-center gap-1 border border-gray-200 text-gray-600 hover:bg-gray-50 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors disabled:opacity-60"
                       >
-                        <Download className="w-3 h-3" /> Baixar
+                        {baixandoId === at.id
+                          ? <Loader2 className="w-3 h-3 animate-spin" />
+                          : <Download className="w-3 h-3" />}
+                        {baixandoId === at.id ? '…' : 'Baixar'}
                       </button>
                       <button
                         onClick={() => setShareParams(params)}
