@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle2, Loader2, AlertCircle } from 'lucide-react'
+import { CheckCircle2, Loader2, AlertCircle, DollarSign, Info } from 'lucide-react'
 
 interface Props {
   solicitacaoId:       string
@@ -18,17 +18,28 @@ interface Props {
   tipoReceita:         string
   medicamentosIniciais: string
   instrucoesIniciais:  string
+  // Billing
+  valorCobrado:          number   // quanto a empresa paga
+  valorMedico:           number   // quanto o médico recebe
+  valorCoparticipacao:   number   // quanto o funcionário paga (co-part.)
+  percentualCopart:      number   // % de co-participação
+}
+
+function formatBRL(v: number) {
+  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
 export default function RenovacaoAtenderClient({
   solicitacaoId, pacienteId, pacienteNome, pacienteCPF, pacienteNascimento,
   medicoId, medicoNome, medicoCRM, medicoCRMUF, medicoEspecialidade,
   tipoReceita, medicamentosIniciais, instrucoesIniciais,
+  valorCobrado, valorMedico, valorCoparticipacao, percentualCopart,
 }: Props) {
   const router = useRouter()
   const [medicamentos, setMedicamentos] = useState(medicamentosIniciais)
   const [instrucoes, setInstrucoes]     = useState(instrucoesIniciais)
   const [observacoes, setObservacoes]   = useState('')
+  const [validade, setValidade]         = useState('')
   const [salvando, setSalvando]         = useState(false)
   const [erro, setErro]                 = useState('')
 
@@ -52,8 +63,13 @@ export default function RenovacaoAtenderClient({
           medicamentos,
           instrucoes,
           observacoes: observacoes || null,
+          validade:    validade || null,
           data_emissao: hoje,
           status: 'emitida',
+          // Billing
+          valor_cobrado:        valorCobrado        || null,
+          valor_medico:         valorMedico         || null,
+          valor_coparticipacao: valorCoparticipacao || null,
         }),
       })
       const recData = await recRes.json()
@@ -122,6 +138,20 @@ export default function RenovacaoAtenderClient({
         />
       </div>
 
+      {/* Validade */}
+      <div>
+        <label className="block text-sm font-semibold text-[#1A3A2C] mb-1.5">
+          Data de validade da receita <span className="text-gray-400 font-normal">(opcional)</span>
+        </label>
+        <input
+          type="date"
+          value={validade}
+          onChange={e => setValidade(e.target.value)}
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+        />
+        <p className="text-xs text-gray-400 mt-1">Prazo de validade para uso da receita pelo paciente</p>
+      </div>
+
       {/* Observações */}
       <div>
         <label className="block text-sm font-semibold text-[#1A3A2C] mb-1.5">
@@ -135,6 +165,34 @@ export default function RenovacaoAtenderClient({
           className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none"
         />
       </div>
+
+      {/* Resumo de cobrança */}
+      {(valorCobrado > 0 || valorMedico > 0) && (
+        <div className="bg-green-50 border border-green-100 rounded-xl px-4 py-3 space-y-1.5">
+          <div className="flex items-center gap-1.5 mb-1">
+            <DollarSign className="w-4 h-4 text-green-600 shrink-0" />
+            <p className="text-xs font-bold text-green-800 uppercase tracking-wide">Cobrança desta renovação</p>
+          </div>
+          {valorMedico > 0 && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-600">Seu ganho (custo médico)</span>
+              <span className="font-bold text-green-700">{formatBRL(valorMedico)}</span>
+            </div>
+          )}
+          {valorCobrado > 0 && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-600">Cobrado da empresa</span>
+              <span className="font-semibold text-gray-700">{formatBRL(valorCobrado)}</span>
+            </div>
+          )}
+          {valorCoparticipacao > 0 && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-gray-600">Co-participação do funcionário ({percentualCopart}%)</span>
+              <span className="font-semibold text-orange-600">{formatBRL(valorCoparticipacao)}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {erro && (
         <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">

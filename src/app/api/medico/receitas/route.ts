@@ -21,7 +21,11 @@ export async function POST(req: NextRequest) {
   if (!medico) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
   const body = await req.json()
-  const { paciente_id, atendimento_id, tipo, medicamentos, instrucoes, observacoes, validade, data_emissao } = body
+  const {
+    paciente_id, atendimento_id, tipo, medicamentos, instrucoes, observacoes,
+    validade, data_emissao,
+    valor_cobrado, valor_medico, valor_coparticipacao,
+  } = body
 
   if (!paciente_id || !medicamentos?.trim()) {
     return NextResponse.json({ error: 'Campos obrigatórios ausentes' }, { status: 400 })
@@ -53,6 +57,9 @@ export async function POST(req: NextRequest) {
     validade: validade || null,
     data_emissao: data_emissao ?? new Date().toISOString().split('T')[0],
     status: 'emitida',
+    valor_cobrado:        valor_cobrado        != null ? Number(valor_cobrado)        : null,
+    valor_medico:         valor_medico         != null ? Number(valor_medico)         : null,
+    valor_coparticipacao: valor_coparticipacao != null ? Number(valor_coparticipacao) : null,
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

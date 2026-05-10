@@ -25,7 +25,12 @@ interface Receita {
   data: string
   paciente_id: string
   paciente_nome: string
+  relacao: string
+  e_dependente: boolean
+  titular_id: string | null
+  titular_nome: string
   valor_cobrado: number
+  valor_coparticipacao: number
   observacao: string | null
 }
 
@@ -118,6 +123,8 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
   const totalMensalidade = (dados?.empresa?.preco_mensalidade ?? 0) * (dados?.funcionariosAtivos ?? 0) * meses
   const receitas = dados?.receitas ?? []
   const totalReceitas = receitas.reduce((s, r) => s + (r.valor_cobrado || 0), 0)
+  const totalCoparticipacaoReceitas = receitas.reduce((s, r) => s + (r.valor_coparticipacao || 0), 0)
+  const totalCoparticipacaoGeral = totalCoparticipacao + totalCoparticipacaoReceitas
   const totalGeral = totalConsultas + totalMensalidade + totalReceitas
   const percentualCopart = dados?.empresa?.percentual_coparticipacao ?? 0
   const temCoparticipacao = percentualCopart > 0
@@ -187,14 +194,28 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
       XLSX.utils.book_append_sheet(wb, wsPac, 'Por Funcionário')
 
       // ── Aba 3: Receitas ───────────────────────────────────────────────────
-      const headersReceitas = ['Paciente', 'Data / Hora', 'Valor (R$)', 'Observação']
+      const headersReceitas = ['Paciente', 'Relação', 'Responsável co-part.', 'Data / Hora', 'Valor (R$)']
+      if (temCoparticipacao) headersReceitas.push(`Co-part. ${percentualCopart}% (R$)`)
+      headersReceitas.push('Observação')
       const rowsReceitas: any[][] = [headersReceitas]
       for (const r of receitas) {
-        rowsReceitas.push([r.paciente_nome, formatDataCurta(r.data), r.valor_cobrado || 0, r.observacao || ''])
+        const row: any[] = [
+          r.paciente_nome,
+          r.e_dependente ? 'Dependente' : 'Funcionário',
+          r.titular_nome,
+          formatDataCurta(r.data),
+          r.valor_cobrado || 0,
+        ]
+        if (temCoparticipacao) row.push(r.valor_coparticipacao || 0)
+        row.push(r.observacao || '')
+        rowsReceitas.push(row)
       }
-      rowsReceitas.push(['', 'TOTAL', totalReceitas, ''])
+      const totalRowReceitas: any[] = ['', '', '', 'TOTAL', totalReceitas]
+      if (temCoparticipacao) totalRowReceitas.push(totalCoparticipacaoReceitas)
+      totalRowReceitas.push('')
+      rowsReceitas.push(totalRowReceitas)
       const wsReceitas = XLSX.utils.aoa_to_sheet(rowsReceitas)
-      wsReceitas['!cols'] = [{ wch: 30 }, { wch: 22 }, { wch: 14 }, { wch: 30 }]
+      wsReceitas['!cols'] = [{ wch: 30 }, { wch: 14 }, { wch: 30 }, { wch: 22 }, { wch: 14 }, ...(temCoparticipacao ? [{ wch: 18 }] : []), { wch: 25 }]
       XLSX.utils.book_append_sheet(wb, wsReceitas, 'Receitas')
 
       // ── Aba 4: Resumo ─────────────────────────────────────────────────────
@@ -227,8 +248,18 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
         ['Receitas emitidas', receitas.length],
         ['Preço por receita (R$)', dados.empresa?.preco_receita || 0],
         ['Total receitas (R$)', totalReceitas],
+        ...(temCoparticipacao && totalCoparticipacaoReceitas > 0 ? [
+          ['Co-participação funcionários em receitas (R$)', totalCoparticipacaoReceitas],
+        ] : []),
         [''],
         ['TOTAL A PAGAR (R$)', totalGeral],
+        ...(temCoparticipacao ? [
+          [''],
+          ['─── CO-PARTICIPAÇÃO TOTAL ───', ''],
+          ['Co-part. em consultas (R$)', totalCoparticipacao],
+          ['Co-part. em receitas (R$)', totalCoparticipacaoReceitas],
+          ['Total co-participação funcionários (R$)', totalCoparticipacaoGeral],
+        ] : []),
       ]
       const wsResumo = XLSX.utils.aoa_to_sheet(rowsResumo)
       wsResumo['!cols'] = [{ wch: 38 }, { wch: 20 }]
@@ -400,16 +431,18 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
   <div class="secao">
     <h2>Renovações de Receita (${receitas.length})</h2>
     <table>
-      <thead><tr><th>Paciente</th><th>Data / Hora</th><th style="text-align:right">Valor</th><th>Observação</th></tr></thead>
+      <thead><tr><th>Paciente</th><th>Responsável co-part.</th><th>Data / Hora</th><th style="text-align:right">Valor</th>${temCoparticipacao ? `<th class="copart-h" style="text-align:right">Co-part. ${percentualCopart}%</th>` : ''}<th>Obs.</th></tr></thead>
       <tbody>${receitas.map(r => `
         <tr>
-          <td>${r.paciente_nome}</td>
+          <td>${r.paciente_nome}<br><span class="badge ${r.e_dependente ? 'badge-dep' : 'badge-func'}">${r.e_dependente ? 'Dependente' : 'Funcionário'}</span></td>
+          <td>${r.titular_nome}</td>
           <td>${formatDataCurta(r.data)}</td>
           <td class="valor">${formatBRL(r.valor_cobrado || 0)}</td>
+          ${temCoparticipacao ? `<td class="copart">${formatBRL(r.valor_coparticipacao || 0)}</td>` : ''}
           <td style="color:#666;font-size:10px">${r.observacao || '—'}</td>
         </tr>`).join('')}
       </tbody>
-      <tfoot><tr><td colspan="2"><strong>Total (${receitas.length} receita${receitas.length !== 1 ? 's' : ''})</strong></td><td class="valor">${formatBRL(totalReceitas)}</td><td></td></tr></tfoot>
+      <tfoot><tr><td colspan="3"><strong>Total (${receitas.length} receita${receitas.length !== 1 ? 's' : ''})</strong></td><td class="valor">${formatBRL(totalReceitas)}</td>${temCoparticipacao ? `<td class="copart">${formatBRL(totalCoparticipacaoReceitas)}</td>` : ''}<td></td></tr></tfoot>
     </table>
   </div>` : ''}
 
@@ -424,10 +457,10 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
   ${temCoparticipacao ? `
   <div class="copart-bloco">
     <div>
-      <div class="lbl">Co-participação dos funcionários (${percentualCopart}%)</div>
-      <div class="sub">${consultasFiltradas.length} consulta${consultasFiltradas.length !== 1 ? 's' : ''} × ${percentualCopart}% do valor cobrado</div>
+      <div class="lbl">Co-participação total dos funcionários (${percentualCopart}%)</div>
+      <div class="sub">${consultasFiltradas.length} consulta${consultasFiltradas.length !== 1 ? 's' : ''} + ${receitas.filter(r => (r.valor_coparticipacao || 0) > 0).length} receita${receitas.filter(r => (r.valor_coparticipacao || 0) > 0).length !== 1 ? 's' : ''} com co-part.</div>
     </div>
-    <div class="val">${formatBRL(totalCoparticipacao)}</div>
+    <div class="val">${formatBRL(totalCoparticipacaoGeral)}</div>
   </div>` : ''}
 
   <div class="rodape">Relatório gerado pelo sistema RovarisMed em ${geradoEm}</div>
@@ -551,8 +584,11 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
             {temCoparticipacao && (
               <div className="bg-orange-50 rounded-2xl p-4">
                 <p className="text-xs text-orange-500 font-medium mb-1">Co-participação ({percentualCopart}%)</p>
-                <p className="text-xl font-bold text-orange-700 leading-tight">{formatBRL(totalCoparticipacao)}</p>
-                <p className="text-xs text-orange-400 mt-1">cobrado dos funcionários</p>
+                <p className="text-xl font-bold text-orange-700 leading-tight">{formatBRL(totalCoparticipacaoGeral)}</p>
+                <p className="text-xs text-orange-400 mt-1">
+                  {formatBRL(totalCoparticipacao)} consultas
+                  {totalCoparticipacaoReceitas > 0 && ` + ${formatBRL(totalCoparticipacaoReceitas)} receitas`}
+                </p>
               </div>
             )}
             <div className="bg-[#1A3A2C] rounded-2xl p-4">
@@ -746,29 +782,49 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Paciente</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Responsável co-part.</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Data / Hora</th>
                       <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">Valor</th>
+                      {temCoparticipacao && (
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-orange-500 uppercase tracking-wide">Co-part. ({percentualCopart}%)</th>
+                      )}
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Obs.</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {receitas.map(r => (
                       <tr key={r.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-gray-800">{r.paciente_nome}</td>
+                        <td className="px-4 py-3">
+                          <div className="font-medium text-gray-800">{r.paciente_nome}</div>
+                          <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                            r.e_dependente ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+                          }`}>
+                            {r.e_dependente ? 'Dependente' : 'Funcionário'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-700 text-sm">{r.titular_nome}</td>
                         <td className="px-4 py-3 text-gray-500 text-xs">{formatDataHora(r.data)}</td>
                         <td className="px-4 py-3 text-right font-semibold text-cyan-700">{formatBRL(r.valor_cobrado || 0)}</td>
+                        {temCoparticipacao && (
+                          <td className="px-4 py-3 text-right font-semibold text-orange-600">{formatBRL(r.valor_coparticipacao || 0)}</td>
+                        )}
                         <td className="px-4 py-3 text-gray-400 text-xs">{r.observacao || '—'}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot className="bg-cyan-50 border-t border-cyan-100">
                     <tr>
-                      <td colSpan={2} className="px-4 py-3 font-bold text-[#1A3A2C]">
+                      <td colSpan={3} className="px-4 py-3 font-bold text-[#1A3A2C]">
                         Total ({receitas.length} receita{receitas.length !== 1 ? 's' : ''})
                       </td>
                       <td className="px-4 py-3 text-right font-bold text-cyan-700 text-base">
                         {formatBRL(totalReceitas)}
                       </td>
+                      {temCoparticipacao && (
+                        <td className="px-4 py-3 text-right font-bold text-orange-600 text-base">
+                          {formatBRL(totalCoparticipacaoReceitas)}
+                        </td>
+                      )}
                       <td />
                     </tr>
                   </tfoot>
@@ -793,13 +849,14 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
             {temCoparticipacao && (
               <div className="border-t border-green-800 pt-4 flex items-center justify-between">
                 <div>
-                  <p className="text-orange-300 text-sm font-semibold">Co-participação dos funcionários ({percentualCopart}%)</p>
+                  <p className="text-orange-300 text-sm font-semibold">Co-participação total dos funcionários ({percentualCopart}%)</p>
                   <p className="text-xs text-orange-400 mt-1">
-                    {consultasFiltradas.length} consulta{consultasFiltradas.length !== 1 ? 's' : ''} × {percentualCopart}% do valor
+                    {formatBRL(totalCoparticipacao)} consultas
+                    {totalCoparticipacaoReceitas > 0 && ` + ${formatBRL(totalCoparticipacaoReceitas)} receitas`}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-2xl font-bold text-orange-300">{formatBRL(totalCoparticipacao)}</p>
+                  <p className="text-2xl font-bold text-orange-300">{formatBRL(totalCoparticipacaoGeral)}</p>
                 </div>
               </div>
             )}

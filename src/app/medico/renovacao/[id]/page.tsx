@@ -20,7 +20,7 @@ export default async function RenovacaoAtenderPage({
 
   const { data: medico } = await supabase
     .from('medicos')
-    .select('id, nome, crm, crm_uf, especialidade, status')
+    .select('id, nome, crm, crm_uf, especialidade, status, custo_receita')
     .eq('usuario_id', user.id)
     .single()
 
@@ -30,7 +30,7 @@ export default async function RenovacaoAtenderPage({
   const { data: solicitacao, error } = await admin
     .from('solicitacoes_renovacao')
     .select(`
-      id, tipo_receita, medicamentos, instrucoes, status, criado_em,
+      id, empresa_id, tipo_receita, medicamentos, instrucoes, status, criado_em,
       cpf_confirmado, telefone_contato,
       pacientes(id, nome, cpf, data_nascimento, sexo)
     `)
@@ -41,6 +41,32 @@ export default async function RenovacaoAtenderPage({
   if (solicitacao.status !== 'pendente') redirect('/medico/dashboard')
 
   const paciente = solicitacao.pacientes as any
+
+  // ── Buscar preços para cobrança ────────────────────────────────────────────
+  // empresa_id vem do registro da solicitação (salvo pelo POST /api/renovacao/solicitar)
+  const solicitacaoAny = solicitacao as any
+  const empresaId: string | null = solicitacaoAny.empresa_id ?? null
+
+  let precoReceita      = 0
+  let percentualCopart  = 0
+
+  if (empresaId) {
+    const { data: empresaPrecos } = await admin
+      .from('empresas')
+      .select('preco_receita, percentual_coparticipacao')
+      .eq('id', empresaId)
+      .single()
+
+    precoReceita     = Number(empresaPrecos?.preco_receita ?? 0)
+    percentualCopart = Number(empresaPrecos?.percentual_coparticipacao ?? 0)
+  }
+
+  const custoMedico          = Number(medico.custo_receita ?? 0)
+  const valorCobrado         = precoReceita
+  const valorMedico          = custoMedico
+  const valorCoparticipacao  = percentualCopart > 0
+    ? Math.round(precoReceita * (percentualCopart / 100) * 100) / 100
+    : 0
   const LABEL_TIPO: Record<string, string> = {
     simples:        'Receita Simples',
     especial:       'Receita Especial',
@@ -132,6 +158,10 @@ export default async function RenovacaoAtenderPage({
           tipoReceita={solicitacao.tipo_receita}
           medicamentosIniciais={solicitacao.medicamentos}
           instrucoesIniciais={solicitacao.instrucoes ?? ''}
+          valorCobrado={valorCobrado}
+          valorMedico={valorMedico}
+          valorCoparticipacao={valorCoparticipacao}
+          percentualCopart={percentualCopart}
         />
       </main>
     </div>

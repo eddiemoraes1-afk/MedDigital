@@ -52,7 +52,7 @@ export default async function PacienteDashboard() {
       .eq('paciente_id', paciente?.id),
     adminSupabase
       .from('receitas')
-      .select('id, validade')
+      .select('id, validade, valor_coparticipacao')
       .eq('paciente_id', paciente?.id),
   ])
   const atestadosPaciente = atestadosRes.data
@@ -61,6 +61,8 @@ export default async function PacienteDashboard() {
   const atestadosValidos = (atestadosPaciente ?? []).filter((a: any) => a.data_fim >= hoje).length
   const totalReceitas = receitasPaciente?.length ?? 0
   const receitasValidas = (receitasPaciente ?? []).filter((r: any) => !r.validade || r.validade >= hoje).length
+  // Co-participação acumulada do paciente em receitas
+  const copartReceitas = (receitasPaciente ?? []).reduce((s: number, r: any) => s + (Number(r.valor_coparticipacao) || 0), 0)
 
   // Próximas consultas
   const agora = new Date().toISOString()
@@ -234,6 +236,27 @@ export default async function PacienteDashboard() {
             </Link>
           ))}
         </div>
+
+        {/* Co-participação em receitas */}
+        {copartReceitas > 0 && (
+          <div className="bg-orange-50 border border-orange-100 rounded-2xl px-5 py-4 flex items-center gap-4 mb-2">
+            <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center shrink-0">
+              <Pill className="w-5 h-5 text-orange-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-orange-800">Co-participação em renovações de receita</p>
+              <p className="text-xs text-orange-600 mt-0.5">
+                Valor cobrado de você pela empresa conforme política de co-participação
+              </p>
+            </div>
+            <div className="text-right shrink-0">
+              <p className="text-lg font-bold text-orange-700">
+                {copartReceitas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </p>
+              <p className="text-xs text-orange-500">acumulado</p>
+            </div>
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Últimas triagens */}

@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
   const { data: receitasData } = pacienteIds.length > 0
     ? await adminSupabase
         .from('receitas')
-        .select('id, paciente_id, valor_cobrado, criado_em, status, observacao')
+        .select('id, paciente_id, valor_cobrado, valor_coparticipacao, criado_em, status, observacao')
         .in('paciente_id', pacienteIds)
         .eq('status', 'emitida')
         .gte('criado_em', deISO_base)
@@ -78,14 +78,32 @@ export async function GET(req: NextRequest) {
         .order('criado_em', { ascending: false })
     : { data: [] }
 
+  const precoReceita     = empresa.preco_receita ?? 0
+  const percentualCopart = empresa.percentual_coparticipacao ?? 0
+
   const receitas = (receitasData ?? []).map((r: any) => {
-    const vinculo = vinculos?.find((v: any) => v.paciente_id === r.paciente_id)
+    const vinculo         = vinculos?.find((v: any) => v.paciente_id === r.paciente_id)
+    const eDependente     = classRelacaoLocal(vinculo?.relacao) === 'Dependente'
+    const titularVinculo  = eDependente ? resolverTitularVinculo(vinculo) : vinculo
+    const titularNome     = titularVinculo?.nome_completo ?? vinculo?.nome_completo ?? '—'
+    const titularId       = titularVinculo?.id ?? vinculo?.id ?? null
+
+    const valorCobrado          = r.valor_cobrado ?? precoReceita
+    const valorCoparticipacao   = percentualCopart > 0
+      ? Math.round(valorCobrado * (percentualCopart / 100) * 100) / 100
+      : (r.valor_coparticipacao ?? 0)
+
     return {
       id: r.id,
       data: r.criado_em,
       paciente_id: r.paciente_id,
       paciente_nome: vinculo?.nome_completo ?? '—',
-      valor_cobrado: r.valor_cobrado ?? empresa.preco_receita ?? 0,
+      relacao: vinculo?.relacao ?? 'Funcionário',
+      e_dependente: eDependente,
+      titular_id: titularId,
+      titular_nome: titularNome,
+      valor_cobrado: valorCobrado,
+      valor_coparticipacao: valorCoparticipacao,
       observacao: r.observacao ?? null,
     }
   })
