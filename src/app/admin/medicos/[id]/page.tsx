@@ -3,15 +3,15 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import {
-  Stethoscope, CheckCircle2, XCircle, Clock, Calendar,
+  Stethoscope, CheckCircle2, XCircle, Calendar,
   CreditCard, MapPin, Activity, User, Mail, Phone,
   DollarSign, TrendingDown, TrendingUp, FileText, ClipboardList,
-  Building2, Users,
 } from 'lucide-react'
 import AdminHeader from '../../components/AdminHeader'
 import BotoesAprovacao from '../../components/BotoesAprovacao'
 import ToggleMedicoAtivo from '../ToggleMedicoAtivo'
 import ConfigMedico from './ConfigMedico'
+import FichaConsultasClient, { type AtendimentoEnriquecido } from './FichaConsultasClient'
 
 export default async function FichaMedicoPage({
   params,
@@ -115,6 +115,35 @@ export default async function FichaMedicoPage({
   // falsos negativos por timezone. Mostra ✓ se o médico já emitiu para o paciente.
   const atestatoPacientes = new Set(atests.map(a => a.paciente_id).filter(Boolean))
   const receitaPacientes = new Set(recs.map(r => r.paciente_id).filter(Boolean))
+
+  // ── Enriquece atendimentos para o componente cliente ─────────────────────
+  const atendimentosEnriquecidos: AtendimentoEnriquecido[] = ats.map(a => {
+    const fmtDH = formatDataHora(a.finalizado_em ?? a.criado_em)
+    const orig = origemPaciente(a.paciente_id)
+    const val = valorConsulta(a.paciente_id, a.valor_cobrado ?? 0)
+    const custoUnit = Number(medico.custo_consulta ?? 0)
+    return {
+      id: a.id,
+      isoDate: a.finalizado_em ?? a.criado_em ?? '',
+      data: fmtDH.data,
+      hora: fmtDH.hora,
+      pacienteId: a.paciente_id ?? '',
+      pacienteNome: pacienteMap[a.paciente_id] ?? '',
+      origemLabel: orig.label,
+      origemTipo: orig.tipo,
+      empresaId: pacienteEmpresaId[a.paciente_id] ?? null,
+      valor: val,
+      custo: custoUnit,
+      hasAtestado: atestatoPacientes.has(a.paciente_id),
+      hasReceita: receitaPacientes.has(a.paciente_id),
+    }
+  })
+
+  // Unique empresas for the filter dropdown
+  const empresasParaFiltro = empresaIds.map(eid => ({
+    id: eid,
+    nome: empresaMap[eid]?.nome ?? eid,
+  }))
 
   // ── KPIs ──────────────────────────────────────────────────────────────────
   const totalConsultas = ats.length
@@ -321,112 +350,15 @@ export default async function FichaMedicoPage({
           {/* ── Histórico de consultas (2/3) ── */}
           <div className="lg:col-span-2 space-y-6">
 
-            {/* Consultas realizadas */}
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
-                  <Activity className="w-4 h-4 text-[#5BBD9B]" />
-                  Histórico de Consultas
-                  <span className="text-xs text-gray-400 font-normal">({totalConsultas})</span>
-                </h2>
-                {totalConsultas > 0 && (
-                  <span className="text-xs text-gray-400">
-                    {formatBRL(faturamento)} faturado
-                    {custoConsulta > 0 && ` · ${formatBRL(custoTotal)} custo`}
-                  </span>
-                )}
-              </div>
-
-              {ats.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50 text-xs text-gray-400 font-medium uppercase tracking-wide">
-                      <tr>
-                        <th className="px-5 py-3 text-left">Data</th>
-                        <th className="px-5 py-3 text-left">Paciente</th>
-                        <th className="px-5 py-3 text-left">Origem</th>
-                        <th className="px-5 py-3 text-right">Faturado</th>
-                        {custoConsulta > 0 && <th className="px-5 py-3 text-right">Custo</th>}
-                        <th className="px-5 py-3 text-center">Atestado</th>
-                        <th className="px-5 py-3 text-center">Receita</th>
-                        <th className="px-5 py-3 text-center">Exame</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {ats.map(a => {
-                        const { data, hora } = formatDataHora(a.finalizado_em ?? a.criado_em)
-                        const origem = origemPaciente(a.paciente_id)
-                        const val = valorConsulta(a.paciente_id, a.valor_cobrado ?? 0)
-                        const hasAtestado = atestatoPacientes.has(a.paciente_id)
-                        const hasReceita = receitaPacientes.has(a.paciente_id)
-                        const nomePaciente = pacienteMap[a.paciente_id]
-
-                        return (
-                          <tr key={a.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-5 py-3">
-                              <p className="font-medium text-gray-800 text-xs">{data}</p>
-                              <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-                                <Clock className="w-3 h-3" /> {hora}
-                              </p>
-                            </td>
-                            <td className="px-5 py-3">
-                              {a.paciente_id && nomePaciente ? (
-                                <Link
-                                  href={`/admin/pacientes/${a.paciente_id}?back=${encodeURIComponent(`/admin/medicos/${id}`)}`}
-                                  className="text-sm text-[#5BBD9B] hover:underline font-medium"
-                                >
-                                  {nomePaciente}
-                                </Link>
-                              ) : (
-                                <span className="text-gray-300 text-xs">—</span>
-                              )}
-                            </td>
-                            <td className="px-5 py-3">
-                              <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${
-                                origem.tipo === 'empresa'
-                                  ? 'bg-blue-50 text-blue-700'
-                                  : 'bg-gray-100 text-gray-600'
-                              }`}>
-                                {origem.tipo === 'empresa'
-                                  ? <Building2 className="w-3 h-3" />
-                                  : <Users className="w-3 h-3" />}
-                                {origem.label.length > 18 ? origem.label.slice(0, 16) + '…' : origem.label}
-                              </span>
-                            </td>
-                            <td className="px-5 py-3 text-right text-sm font-semibold text-[#1A3A2C]">
-                              {val > 0 ? formatBRL(val) : '—'}
-                            </td>
-                            {custoConsulta > 0 && (
-                              <td className="px-5 py-3 text-right text-xs text-orange-500 font-medium">
-                                {formatBRL(custoConsulta)}
-                              </td>
-                            )}
-                            <td className="px-5 py-3 text-center">
-                              {hasAtestado
-                                ? <span title="Atestado emitido" className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100"><CheckCircle2 className="w-3 h-3 text-amber-600" /></span>
-                                : <span className="text-gray-200 text-xs">—</span>}
-                            </td>
-                            <td className="px-5 py-3 text-center">
-                              {hasReceita
-                                ? <span title="Receita emitida" className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-purple-100"><CheckCircle2 className="w-3 h-3 text-purple-600" /></span>
-                                : <span className="text-gray-200 text-xs">—</span>}
-                            </td>
-                            <td className="px-5 py-3 text-center">
-                              <span className="text-gray-200 text-xs">—</span>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="py-14 text-center">
-                  <Activity className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                  <p className="text-sm text-gray-400">Nenhuma consulta registrada</p>
-                </div>
-              )}
-            </div>
+            {/* Consultas realizadas — com filtros interativos */}
+            <FichaConsultasClient
+              atendimentos={atendimentosEnriquecidos}
+              empresas={empresasParaFiltro}
+              custoConsulta={custoConsulta}
+              medicoId={id}
+              faturamentoTotal={faturamento}
+              custoTotal={custoConsultasTotal}
+            />
 
             {/* Atestados emitidos */}
             {atests.length > 0 && (
