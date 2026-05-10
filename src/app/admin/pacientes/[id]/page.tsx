@@ -114,7 +114,8 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
   function formatDataHora(iso: string | null | undefined) {
     if (!iso) return { data: '—', hora: '—' }
     try {
-      const d = new Date(iso.endsWith('Z') ? iso : iso + 'Z')
+      const d = new Date(iso) // Supabase retorna ISO 8601 com offset, ex: "2026-05-09T21:23:45.123+00:00"
+      if (isNaN(d.getTime())) return { data: '—', hora: '—' }
       return {
         data: d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: 'short', year: 'numeric' }),
         hora: d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }),

@@ -110,23 +110,20 @@ export default async function FichaMedicoPage({
     return emp?.preco_consulta ?? valorFallback ?? 0
   }
 
-  // ── Sets para cruzamento rápido (atestado/receita por data+paciente) ──────
-  // Key: "YYYY-MM-DD|pacienteId"
-  const atestatoDates = new Set(atests.map(a => {
-    const d = new Date(a.criado_em).toISOString().slice(0, 10)
-    return `${d}|${a.paciente_id}`
-  }))
-  const receitaDates = new Set(recs.map(r => {
-    const d = new Date(r.criado_em).toISOString().slice(0, 10)
-    return `${d}|${r.paciente_id}`
-  }))
+  // ── Sets para cruzamento rápido (atestado/receita por paciente) ──────────
+  // Usando apenas paciente_id como chave (sem comparar data) para evitar
+  // falsos negativos por timezone. Mostra ✓ se o médico já emitiu para o paciente.
+  const atestatoPacientes = new Set(atests.map(a => a.paciente_id).filter(Boolean))
+  const receitaPacientes = new Set(recs.map(r => r.paciente_id).filter(Boolean))
 
   // ── KPIs ──────────────────────────────────────────────────────────────────
   const totalConsultas = ats.length
   const faturamento = ats.reduce((s, a) => s + valorConsulta(a.paciente_id, a.valor_cobrado ?? 0), 0)
   const custoConsulta = Number(medico.custo_consulta ?? 0)
-  const custoTotal = totalConsultas * custoConsulta
-  const lucro = faturamento - custoTotal
+  const custoReceita = Number(medico.custo_receita ?? 0)
+  const custoTotal = totalConsultas * custoConsulta + atests.length * 0 // receitas têm custo próprio
+  const custoConsultasTotal = totalConsultas * custoConsulta
+  const lucro = faturamento - custoConsultasTotal
   const totalAtestados = atests.length
   const totalReceitas = recs.length
 
@@ -142,7 +139,8 @@ export default async function FichaMedicoPage({
   function formatDataHora(iso: string | null | undefined) {
     if (!iso) return { data: '—', hora: '—', dateKey: '' }
     try {
-      const d = new Date(iso.endsWith('Z') ? iso : iso + 'Z')
+      const d = new Date(iso) // Supabase retorna ISO 8601 com offset, ex: "2026-05-09T21:23:45.123+00:00"
+      if (isNaN(d.getTime())) return { data: '—', hora: '—', dateKey: '' }
       return {
         data: d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: 'short', year: 'numeric' }),
         hora: d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }),
@@ -347,7 +345,8 @@ export default async function FichaMedicoPage({
                         <th className="px-5 py-3 text-left">Data</th>
                         <th className="px-5 py-3 text-left">Paciente</th>
                         <th className="px-5 py-3 text-left">Origem</th>
-                        <th className="px-5 py-3 text-right">Valor</th>
+                        <th className="px-5 py-3 text-right">Faturado</th>
+                        {custoConsulta > 0 && <th className="px-5 py-3 text-right">Custo</th>}
                         <th className="px-5 py-3 text-center">Atestado</th>
                         <th className="px-5 py-3 text-center">Receita</th>
                         <th className="px-5 py-3 text-center">Exame</th>
@@ -355,11 +354,11 @@ export default async function FichaMedicoPage({
                     </thead>
                     <tbody className="divide-y divide-gray-50">
                       {ats.map(a => {
-                        const { data, hora, dateKey } = formatDataHora(a.finalizado_em ?? a.criado_em)
+                        const { data, hora } = formatDataHora(a.finalizado_em ?? a.criado_em)
                         const origem = origemPaciente(a.paciente_id)
                         const val = valorConsulta(a.paciente_id, a.valor_cobrado ?? 0)
-                        const hasAtestado = atestatoDates.has(`${dateKey}|${a.paciente_id}`)
-                        const hasReceita = receitaDates.has(`${dateKey}|${a.paciente_id}`)
+                        const hasAtestado = atestatoPacientes.has(a.paciente_id)
+                        const hasReceita = receitaPacientes.has(a.paciente_id)
                         const nomePaciente = pacienteMap[a.paciente_id]
 
                         return (
@@ -397,6 +396,11 @@ export default async function FichaMedicoPage({
                             <td className="px-5 py-3 text-right text-sm font-semibold text-[#1A3A2C]">
                               {val > 0 ? formatBRL(val) : '—'}
                             </td>
+                            {custoConsulta > 0 && (
+                              <td className="px-5 py-3 text-right text-xs text-orange-500 font-medium">
+                                {formatBRL(custoConsulta)}
+                              </td>
+                            )}
                             <td className="px-5 py-3 text-center">
                               {hasAtestado
                                 ? <span title="Atestado emitido" className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100"><CheckCircle2 className="w-3 h-3 text-amber-600" /></span>
@@ -546,7 +550,11 @@ export default async function FichaMedicoPage({
             </div>
 
             {/* Config — remuneração por consulta */}
-            <ConfigMedico medicoId={medico.id} custoAtual={custoConsulta} />
+            <ConfigMedico
+              medicoId={medico.id}
+              custoConsultaAtual={custoConsulta}
+              custoReceitaAtual={custoReceita}
+            />
 
             {/* Dados do perfil */}
             {(medico.bio || medico.valor_consulta) && (
@@ -572,7 +580,7 @@ export default async function FichaMedicoPage({
             )}
 
             {/* Resumo financeiro */}
-            {custoConsulta > 0 && totalConsultas > 0 && (
+            {(custoConsulta > 0 || custoReceita > 0) && totalConsultas > 0 && (
               <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
                 <h3 className="font-semibold text-[#1A3A2C] text-xs uppercase tracking-wide mb-3">Resumo Financeiro</h3>
                 <div className="space-y-2 text-xs">
@@ -581,9 +589,15 @@ export default async function FichaMedicoPage({
                     <span className="font-semibold text-[#1A3A2C]">{formatBRL(faturamento)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Custo ({totalConsultas} × {formatBRL(custoConsulta)})</span>
-                    <span className="font-semibold text-orange-600">- {formatBRL(custoTotal)}</span>
+                    <span className="text-gray-500">Custo consultas ({totalConsultas} × {formatBRL(custoConsulta)})</span>
+                    <span className="font-semibold text-orange-600">- {formatBRL(custoConsultasTotal)}</span>
                   </div>
+                  {custoReceita > 0 && totalReceitas > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Custo receitas ({totalReceitas} × {formatBRL(custoReceita)})</span>
+                      <span className="font-semibold text-orange-600">- {formatBRL(totalReceitas * custoReceita)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between pt-2 border-t border-gray-200">
                     <span className="font-bold text-[#1A3A2C]">Margem bruta</span>
                     <span className={`font-bold ${lucro >= 0 ? 'text-green-600' : 'text-red-500'}`}>{formatBRL(lucro)}</span>
