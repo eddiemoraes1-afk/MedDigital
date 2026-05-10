@@ -387,7 +387,7 @@ export default async function ProducaoMedicoPage({
                           {/* Paciente */}
                           <div className="flex-1 min-w-0">
                             <Link
-                              href={`/medico/pacientes/${a.pacientes?.id}`}
+                              href={`/medico/pacientes/${a.pacientes?.id}?back=${encodeURIComponent('/medico/producao')}`}
                               className="text-sm font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
                             >
                               {a.pacientes?.nome || 'Paciente'}

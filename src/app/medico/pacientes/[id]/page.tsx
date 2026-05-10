@@ -12,10 +12,12 @@ import AtestadosMedicoClient from './AtestadosMedicoClient'
 
 interface Props {
   params: Promise<{ id: string }>
+  searchParams: Promise<{ back?: string }>
 }
 
-export default async function MedicoPacientePage({ params }: Props) {
+export default async function MedicoPacientePage({ params, searchParams }: Props) {
   const { id } = await params
+  const { back } = await searchParams
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -25,11 +27,14 @@ export default async function MedicoPacientePage({ params }: Props) {
 
   const { data: medico } = await adminSupabase
     .from('medicos')
-    .select('id, status')
+    .select('id, status, custo_consulta, custo_receita')
     .eq('usuario_id', user.id)
     .single()
 
   if (!medico || medico.status !== 'aprovado') redirect('/medico/dashboard')
+
+  const custoConsulta: number = medico.custo_consulta ?? 0
+  const backHref = back ? decodeURIComponent(back) : '/medico/pacientes'
 
   // Buscar paciente
   const { data: paciente } = await adminSupabase
@@ -98,8 +103,9 @@ export default async function MedicoPacientePage({ params }: Props) {
     .eq('paciente_id', id)
     .order('data_emissao', { ascending: false })
 
-  const totalGastoPaciente = (atendimentosConcluidos ?? []).reduce((s, a) => s + (a.valor_cobrado ?? 0), 0)
   const totalConsultasPaciente = atendimentosConcluidos?.length ?? 0
+  const consultasMedico = (atendimentosConcluidos ?? []).filter((a: any) => a.medico_id === medico.id)
+  const totalProducaoMedico = consultasMedico.length * custoConsulta
 
   // Helpers
   function calcularIdade(dataNasc: string | null): number | null {
@@ -166,7 +172,7 @@ export default async function MedicoPacientePage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <MedicoHeader titulo="Prontuário do Paciente" backHref="/medico/pacientes" />
+      <MedicoHeader titulo="Prontuário do Paciente" backHref={backHref} />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
 
@@ -236,12 +242,12 @@ export default async function MedicoPacientePage({ params }: Props) {
                 <p className="text-2xl font-bold text-gray-300">0</p>
                 <p className="text-xs text-gray-400">receitas</p>
               </div>
-              {totalGastoPaciente > 0 && (
+              {totalProducaoMedico > 0 && (
                 <div className="text-center bg-amber-50 rounded-xl px-4 py-3">
                   <p className="text-lg font-bold text-amber-700">
-                    {totalGastoPaciente.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    {totalProducaoMedico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </p>
-                  <p className="text-xs text-gray-400">gasto total</p>
+                  <p className="text-xs text-gray-400">minha produção</p>
                 </div>
               )}
             </div>
@@ -519,9 +525,9 @@ export default async function MedicoPacientePage({ params }: Props) {
                               }
                             </td>
                             <td className="px-5 py-3 text-right">
-                              {a.valor_cobrado != null
-                                ? <span className="text-sm font-medium text-gray-700">
-                                    {Number(a.valor_cobrado).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                              {a.medico_id === medico.id && custoConsulta > 0
+                                ? <span className="text-sm font-medium text-amber-700">
+                                    {custoConsulta.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                                   </span>
                                 : <span className="text-gray-300 text-xs">—</span>
                               }
@@ -617,10 +623,10 @@ export default async function MedicoPacientePage({ params }: Props) {
             </div>
 
             <Link
-              href="/medico/pacientes"
+              href={backHref}
               className="w-full flex items-center justify-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3 rounded-xl text-sm font-medium transition-colors"
             >
-              <ArrowLeft className="w-4 h-4" /> Voltar à lista
+              <ArrowLeft className="w-4 h-4" /> Voltar
             </Link>
           </div>
         </div>
