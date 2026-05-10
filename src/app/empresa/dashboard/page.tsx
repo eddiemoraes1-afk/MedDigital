@@ -3,11 +3,9 @@ import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import {
   Building2, LogOut, Users, Calendar,
-  TrendingUp, Activity, CheckCircle2, Clock,
-  AlertCircle, UserX, Download
+  TrendingUp, CheckCircle2,
+  AlertCircle, UserX,
 } from 'lucide-react'
-import FiltrosFuncionarios from './FiltrosFuncionarios'
-import { Suspense } from 'react'
 import { gerarTema } from '@/lib/tema'
 import EmpresaTabs from './EmpresaTabs'
 
@@ -85,24 +83,6 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
   const totalVinculados = vinculos?.filter(v => v.paciente_id).length ?? 0
   const naoAtivaram = totalAtivos - totalVinculados
 
-  // Departamentos únicos
-  const departamentos = [...new Set(vinculos?.map(v => v.departamento).filter(Boolean) ?? [])] as string[]
-
-  // Aplicar filtros
-  const funcionarios = (vinculos ?? []).filter(v => {
-    if (departamento && v.departamento !== departamento) return false
-    if (status === 'ativo' && !v.paciente_id) return false
-    if (status === 'inativo' && v.paciente_id) return false
-    return true
-  })
-
-  function formatDataHora(iso: string) {
-    const d = new Date(iso)
-    if (isNaN(d.getTime())) return '—'
-    return d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: 'short', year: 'numeric' })
-  }
-
-  const exportUrl = `/api/empresa/funcionarios/exportar?empresa_id=${empresaId}${departamento ? `&departamento=${encodeURIComponent(departamento)}` : ''}${status ? `&status=${status}` : ''}`
 
   return (
     <div className="min-h-screen" style={{ ...tema.vars, backgroundColor: tema.corBgPagina }}>
@@ -212,131 +192,8 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
           </div>
         )}
 
-        {/* Tabs: Relatório de Cobrança / Dashboard de Gastos */}
+        {/* Tabs: Relatório de Cobrança / Dashboard de Gastos / Funcionários / Atestados */}
         <EmpresaTabs />
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Tabela de funcionários */}
-          <div className="md:col-span-2">
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
-                  <Users className="w-4 h-4" style={{ color: tema.corPrimaria }} /> Funcionários
-                  <span className="text-xs text-gray-400 font-normal">({funcionarios.length})</span>
-                </h2>
-                <a
-                  href={`${exportUrl}&formato=xlsx`}
-                  target="_blank"
-                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors font-medium"
-                  style={{ color: tema.corPrimaria, backgroundColor: tema.corBgCard }}
-                >
-                  <Download className="w-3.5 h-3.5" /> Exportar Excel
-                </a>
-              </div>
-
-              <Suspense fallback={null}>
-                <FiltrosFuncionarios departamentos={departamentos} />
-              </Suspense>
-
-              {funcionarios.length === 0 ? (
-                <div className="py-12 text-center">
-                  <UserX className="w-10 h-10 text-gray-200 mx-auto mb-2" />
-                  <p className="text-sm text-gray-400">Nenhum funcionário encontrado</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-gray-50 text-left">
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Nome</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Cargo / Depto</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Consultas</th>
-                        <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Última</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {funcionarios.map((v: any) => {
-                        const saude = v.paciente_id ? (consultasPorPaciente[v.paciente_id] ?? { total: 0, ultima: null }) : null
-                        return (
-                          <tr key={v.id} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-4 py-3">
-                              <p className="font-medium text-gray-800 text-sm">{v.nome_completo}</p>
-                              {v.email && <p className="text-xs text-gray-400">{v.email}</p>}
-                            </td>
-                            <td className="px-4 py-3">
-                              <p className="text-xs text-gray-700">{v.cargo || '—'}</p>
-                              {v.departamento && <p className="text-xs text-gray-400">{v.departamento}</p>}
-                            </td>
-                            <td className="px-4 py-3">
-                              {v.paciente_id ? (
-                                <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
-                                  <CheckCircle2 className="w-3 h-3" /> Ativo
-                                </span>
-                              ) : (
-                                <span className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-500 px-2.5 py-1 rounded-full">
-                                  <UserX className="w-3 h-3" /> Não ativou
-                                </span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                              {saude ? (
-                                <span className={`text-sm font-semibold ${saude.total > 0 ? 'text-[#1A3A2C]' : 'text-gray-300'}`}>
-                                  {saude.total}
-                                </span>
-                              ) : (
-                                <span className="text-gray-300 text-sm">—</span>
-                              )}
-                            </td>
-                            <td className="px-4 py-3">
-                              {saude?.ultima ? (
-                                <span className="text-xs text-gray-500">{formatDataHora(saude.ultima)}</span>
-                              ) : (
-                                <span className="text-xs text-gray-300">—</span>
-                              )}
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Consultas recentes */}
-          <div className="md:col-span-1">
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 mb-4">
-                <Activity className="w-4 h-4" style={{ color: tema.corPrimaria }} /> Consultas recentes
-              </h2>
-              {agendamentosRecentes.length > 0 ? (
-                <div className="space-y-3">
-                  {agendamentosRecentes.map((a: any) => (
-                    <div key={a.id} className="border-l-2 pl-3" style={{ borderColor: tema.corPrimaria }}>
-                      <p className="text-sm font-medium text-gray-800 leading-tight">
-                        {mapPaciente[a.paciente_id] || 'Funcionário'}
-                      </p>
-                      <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
-                        <Clock className="w-3 h-3" />
-                        {formatDataHora(a.finalizado_em ?? a.criado_em)}
-                      </p>
-                      <span className="text-xs px-2 py-0.5 rounded-full mt-1 inline-block bg-green-100 text-green-700">
-                        Concluída
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Calendar className="w-10 h-10 text-gray-200 mx-auto mb-2" />
-                  <p className="text-sm text-gray-400">Nenhuma consulta ainda</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
 
       </main>
     </div>
