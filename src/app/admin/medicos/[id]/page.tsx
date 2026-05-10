@@ -6,7 +6,7 @@ import {
   Stethoscope, CheckCircle2, XCircle, Clock, Calendar,
   CreditCard, MapPin, Activity, User, Mail, Phone,
   DollarSign, TrendingDown, TrendingUp, FileText, ClipboardList,
-  Building2, UserCircle,
+  Building2, Users,
 } from 'lucide-react'
 import AdminHeader from '../../components/AdminHeader'
 import BotoesAprovacao from '../../components/BotoesAprovacao'
@@ -132,12 +132,17 @@ export default async function FichaMedicoPage({ params }: { params: Promise<{ id
     return { label: 'Aguardando aprovação', cls: 'bg-amber-100 text-amber-700', icon: <Clock className="w-4 h-4" /> }
   }
 
-  function formatDataHora(iso: string) {
-    const d = new Date(iso + (iso.endsWith('Z') ? '' : 'Z'))
-    return {
-      data: d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: 'short', year: 'numeric' }),
-      hora: d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }),
-      dateKey: d.toISOString().slice(0, 10),
+  function formatDataHora(iso: string | null | undefined) {
+    if (!iso) return { data: '—', hora: '—', dateKey: '' }
+    try {
+      const d = new Date(iso.endsWith('Z') ? iso : iso + 'Z')
+      return {
+        data: d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: 'short', year: 'numeric' }),
+        hora: d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }),
+        dateKey: d.toISOString().slice(0, 10),
+      }
+    } catch {
+      return { data: '—', hora: '—', dateKey: '' }
     }
   }
 
@@ -378,7 +383,7 @@ export default async function FichaMedicoPage({ params }: { params: Promise<{ id
                               }`}>
                                 {origem.tipo === 'empresa'
                                   ? <Building2 className="w-3 h-3" />
-                                  : <UserCircle className="w-3 h-3" />}
+                                  : <Users className="w-3 h-3" />}
                                 {origem.label.length > 18 ? origem.label.slice(0, 16) + '…' : origem.label}
                               </span>
                             </td>
