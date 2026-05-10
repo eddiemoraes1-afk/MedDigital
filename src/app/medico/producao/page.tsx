@@ -200,7 +200,7 @@ export default async function ProducaoMedicoPage({
 
     admin
       .from('receitas')
-      .select('id, criado_em, tipo, paciente_id, pacientes(id, nome)')
+      .select('id, criado_em, tipo, paciente_id, valor_medico, pacientes(id, nome)')
       .eq('medico_id', medico.id)
       .gte('criado_em', inicioISO)
       .lte('criado_em', fimISO)
@@ -212,11 +212,14 @@ export default async function ProducaoMedicoPage({
   const recs   = recRes.data   ?? []
 
   // ── Valores configurados pelo admin ──────────────────────────────────────
-  const custoConsulta    = Number(medico.custo_consulta ?? 0)
-  const custoReceita     = Number(medico.custo_receita  ?? 0)
-  const ganhoConsultas   = ats.length  * custoConsulta
-  const ganhoReceitas    = recs.length * custoReceita
-  const totalGanho       = ganhoConsultas + ganhoReceitas
+  const custoConsulta = Number(medico.custo_consulta ?? 0)
+  const custoReceita  = Number(medico.custo_receita  ?? 0)
+
+  // Só renovações geram ganho (valor_medico > 0); receitas emitidas em consulta = sem ganho
+  const renovacoesRecs = recs.filter((r: any) => Number(r.valor_medico ?? 0) > 0)
+  const ganhoConsultas = ats.length * custoConsulta
+  const ganhoReceitas  = renovacoesRecs.reduce((s: number, r: any) => s + Number(r.valor_medico), 0)
+  const totalGanho     = ganhoConsultas + ganhoReceitas
   const valorConfigurado = custoConsulta > 0 || custoReceita > 0
 
   // ── Lookup: pacienteId → atestado/receita no mesmo dia ───────────────────
@@ -262,12 +265,13 @@ export default async function ProducaoMedicoPage({
     cid:          a.cid ?? null,
   }))
 
-  const receitaRows: ReceitaRow[] = recs.map(r => ({
+  const receitaRows: ReceitaRow[] = recs.map((r: any) => ({
     id:           r.id,
     criado_em:    r.criado_em ?? '',
     paciente_id:  r.paciente_id ?? '',
     paciente_nome: (r.pacientes as any)?.nome ?? 'Paciente',
     tipo:         r.tipo ?? 'simples',
+    valor_medico: r.valor_medico != null ? Number(r.valor_medico) : null,
   }))
 
   // ── Label de período ──────────────────────────────────────────────────────
@@ -350,11 +354,11 @@ export default async function ProducaoMedicoPage({
                   <span className="font-bold text-[#1A3A2C]">{formatBRL(ganhoConsultas)}</span>
                 </div>
               )}
-              {custoReceita > 0 && (
+              {ganhoReceitas > 0 && (
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-500">
                     Renovações de receita
-                    <span className="ml-2 text-gray-400 text-xs">({recs.length} × {formatBRL(custoReceita)})</span>
+                    <span className="ml-2 text-gray-400 text-xs">({renovacoesRecs.length} × {formatBRL(custoReceita)})</span>
                   </span>
                   <span className="font-bold text-[#1A3A2C]">{formatBRL(ganhoReceitas)}</span>
                 </div>

@@ -74,7 +74,7 @@ export default async function MedicoDashboard() {
     // Receitas hoje
     adminSupabase
       .from('receitas')
-      .select('id, criado_em, status, valor_cobrado, pacientes(id, nome)')
+      .select('id, criado_em, status, valor_medico, pacientes(id, nome)')
       .eq('medico_id', medico.id)
       .gte('criado_em', hojeInicio)
       .order('criado_em', { ascending: false }),
@@ -487,34 +487,44 @@ export default async function MedicoDashboard() {
                   <tr>
                     <th className="px-5 py-3 text-left">Horário</th>
                     <th className="px-5 py-3 text-left">Paciente</th>
-                    <th className="px-5 py-3 text-center">Status</th>
-                    <th className="px-5 py-3 text-right">Valor</th>
+                    <th className="px-5 py-3 text-center">Tipo</th>
+                    <th className="px-5 py-3 text-right">Ganho</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {receitas.map((r: any) => (
-                    <tr key={r.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-5 py-3 text-xs text-gray-500">{formatarHora(r.criado_em)}</td>
-                      <td className="px-5 py-3">
-                        <Link
-                          href={`/medico/pacientes/${r.pacientes?.id}`}
-                          className="font-medium text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
-                        >
-                          {r.pacientes?.nome || '—'}
-                        </Link>
-                      </td>
-                      <td className="px-5 py-3 text-center">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                          r.status === 'emitida' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                        }`}>
-                          {r.status === 'emitida' ? 'Emitida' : r.status ?? '—'}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3 text-right text-sm font-semibold text-[#1A3A2C]">
-                        {formatBRL(r.valor_cobrado)}
-                      </td>
-                    </tr>
-                  ))}
+                  {receitas.map((r: any) => {
+                    const isRenovacao = Number(r.valor_medico) > 0
+                    return (
+                      <tr key={r.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-5 py-3 text-xs text-gray-500">{formatarHora(r.criado_em)}</td>
+                        <td className="px-5 py-3">
+                          <Link
+                            href={`/medico/pacientes/${r.pacientes?.id}`}
+                            className="font-medium text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
+                          >
+                            {r.pacientes?.nome || '—'}
+                          </Link>
+                        </td>
+                        <td className="px-5 py-3 text-center">
+                          {isRenovacao ? (
+                            <span className="text-xs bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-semibold">
+                              Renovação
+                            </span>
+                          ) : (
+                            <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-full font-medium">
+                              Em consulta
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-5 py-3 text-right text-sm font-semibold">
+                          {isRenovacao
+                            ? <span className="text-green-600">{formatBRL(Number(r.valor_medico))}</span>
+                            : <span className="text-gray-300">—</span>
+                          }
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

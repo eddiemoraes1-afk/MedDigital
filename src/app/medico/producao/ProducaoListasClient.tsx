@@ -31,6 +31,7 @@ export interface ReceitaRow {
   paciente_id: string
   paciente_nome: string
   tipo: string
+  valor_medico: number | null   // null = receita de consulta (sem ganho); > 0 = renovação com ganho
 }
 
 interface Props {
@@ -108,14 +109,21 @@ function gerarCSV(
   linhas.push('')
 
   linhas.push('RECEITAS EMITIDAS')
-  linhas.push('Data,Paciente,Tipo')
+  linhas.push('Data,Paciente,Tipo,Origem,Ganho')
   receitas.forEach(r => {
+    const isRenovacao = Number(r.valor_medico ?? 0) > 0
     linhas.push([
       fmtData(r.criado_em),
       `"${r.paciente_nome}"`,
       LABEL_TIPO[r.tipo] || r.tipo,
+      isRenovacao ? 'Renovação' : 'Em consulta',
+      isRenovacao ? formatBRL(Number(r.valor_medico)) : '—',
     ].join(','))
   })
+  const totalGanhoRec = receitas.reduce((s, r) => s + (Number(r.valor_medico) || 0), 0)
+  if (totalGanhoRec > 0) {
+    linhas.push(`,,,,Total renovações,${formatBRL(totalGanhoRec)}`)
+  }
 
   return '﻿' + linhas.join('\r\n')
 }
@@ -198,14 +206,24 @@ function imprimirRelatorio(
 
   <h2>Receitas Emitidas (${receitas.length})</h2>
   <table>
-    <thead><tr><th>Data</th><th>Paciente</th><th>Tipo</th></tr></thead>
+    <thead><tr><th>Data</th><th>Paciente</th><th>Tipo</th><th>Origem</th><th>Ganho</th></tr></thead>
     <tbody>
-      ${receitas.map(r => `
+      ${receitas.map(r => {
+        const isRenovacao = Number(r.valor_medico ?? 0) > 0
+        return `
       <tr>
         <td>${fmtData(r.criado_em)}</td>
         <td>${r.paciente_nome}</td>
         <td>${LABEL_TIPO[r.tipo] || r.tipo}</td>
-      </tr>`).join('')}
+        <td>${isRenovacao ? '<span class="badge bg-purple">Renovação</span>' : '<span class="badge" style="background:#f3f4f6;color:#6b7280">Em consulta</span>'}</td>
+        <td>${isRenovacao ? `<span class="val">${formatBRL(Number(r.valor_medico))}</span>` : '—'}</td>
+      </tr>`
+      }).join('')}
+      ${receitas.some(r => Number(r.valor_medico ?? 0) > 0) ? `
+      <tr class="total-row">
+        <td colspan="4">Total renovações</td>
+        <td class="val">${formatBRL(receitas.reduce((s, r) => s + (Number(r.valor_medico) || 0), 0))}</td>
+      </tr>` : ''}
     </tbody>
   </table>
 </body>
@@ -409,27 +427,64 @@ export default function ProducaoListasClient({
           <div className="py-10 text-center text-gray-400 text-sm">
             {buscaR ? 'Nenhum paciente encontrado com esse nome' : 'Nenhuma receita no período'}
           </div>
-        ) : (
-          <div className="divide-y divide-gray-50">
-            {receitasFiltradas.map((r, idx) => (
-              <div key={r.id} className="px-6 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
-                <span className="text-xs text-gray-300 font-mono w-5 text-right shrink-0">{idx + 1}</span>
-                <span className="text-xs text-gray-400 shrink-0">{fmtData(r.criado_em)}</span>
-                <Link
-                  href={`/medico/pacientes/${r.paciente_id}?back=${encodeURIComponent('/medico/producao')}`}
-                  className="flex-1 text-sm font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
-                >
-                  {r.paciente_nome}
-                </Link>
-                <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold shrink-0 ${
-                  r.tipo === 'simples' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'
-                }`}>
-                  {LABEL_TIPO[r.tipo] || r.tipo}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
+        ) : (() => {
+          const totalGanhoRenovacoes = receitasFiltradas.reduce((s, r) => s + (Number(r.valor_medico) || 0), 0)
+          const qtdRenovacoes = receitasFiltradas.filter(r => (r.valor_medico ?? 0) > 0).length
+          return (
+            <div className="divide-y divide-gray-50">
+              {receitasFiltradas.map((r, idx) => {
+                const isRenovacao = Number(r.valor_medico ?? 0) > 0
+                return (
+                  <div key={r.id} className="px-6 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+                    <span className="text-xs text-gray-300 font-mono w-5 text-right shrink-0">{idx + 1}</span>
+                    <span className="text-xs text-gray-400 shrink-0">{fmtData(r.criado_em)}</span>
+                    <Link
+                      href={`/medico/pacientes/${r.paciente_id}?back=${encodeURIComponent('/medico/producao')}`}
+                      className="flex-1 text-sm font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
+                    >
+                      {r.paciente_nome}
+                    </Link>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isRenovacao ? (
+                        <span className="text-xs bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-bold">
+                          Renovação
+                        </span>
+                      ) : (
+                        <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-full font-medium">
+                          Em consulta
+                        </span>
+                      )}
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${
+                        r.tipo === 'simples'
+                          ? 'border-green-200 text-green-700 bg-green-50'
+                          : 'border-blue-200 text-blue-700 bg-blue-50'
+                      }`}>
+                        {LABEL_TIPO[r.tipo] || r.tipo}
+                      </span>
+                    </div>
+                    {isRenovacao ? (
+                      <span className="text-sm font-bold text-green-600 shrink-0">
+                        {formatBRL(Number(r.valor_medico))}
+                      </span>
+                    ) : (
+                      <span className="text-gray-300 text-sm shrink-0">—</span>
+                    )}
+                  </div>
+                )
+              })}
+              {totalGanhoRenovacoes > 0 && (
+                <div className="px-6 py-3 flex items-center justify-between bg-purple-50">
+                  <span className="text-xs font-bold text-[#1A3A2C]">
+                    Subtotal renovações ({qtdRenovacoes})
+                  </span>
+                  <span className="text-sm font-bold text-green-700">
+                    {formatBRL(totalGanhoRenovacoes)}
+                  </span>
+                </div>
+              )}
+            </div>
+          )
+        })()}
       </div>
 
     </div>
