@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react'
 import {
   BarChart2, Stethoscope, DollarSign, FileText, ClipboardList,
   FlaskConical, Loader2, RefreshCw, Search, ChevronDown, ChevronUp,
+  TrendingDown, TrendingUp,
 } from 'lucide-react'
 
 // ============================================================
@@ -16,6 +17,9 @@ interface ProdRow {
   crm: string
   consultas: number
   faturamento: number
+  custo_consulta: number
+  custo: number
+  margem: number
   atestados: number
   receitas: number
   exames: number
@@ -39,6 +43,8 @@ interface MesRow {
 interface Totais {
   consultas: number
   faturamento: number
+  custo: number
+  margem: number
   atestados: number
   receitas: number
   exames: number
@@ -599,7 +605,7 @@ export default function ProducaoMedicaDashboard() {
       </div>
 
       {/* ---- KPIs ---- */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
         <KpiCard
           label="Faturamento Total"
           value={formatBRL(totais.faturamento)}
@@ -611,6 +617,20 @@ export default function ProducaoMedicaDashboard() {
           value={String(totais.consultas)}
           sub="atendimentos concluídos"
           icon={Stethoscope} color="#3B82F6"
+        />
+        <KpiCard
+          label="Custo Total"
+          value={totais.custo > 0 ? formatBRL(totais.custo) : '—'}
+          sub={totais.custo > 0 ? 'repasse aos médicos' : 'nenhum custo configurado'}
+          icon={TrendingDown} color="#F97316"
+        />
+        <KpiCard
+          label="Margem Bruta"
+          value={totais.custo > 0 ? formatBRL(totais.margem) : '—'}
+          sub={totais.custo > 0 && totais.faturamento > 0
+            ? `${Math.round((totais.margem / totais.faturamento) * 100)}% do faturamento`
+            : 'configure os custos'}
+          icon={TrendingUp} color="#14B8A6"
         />
         <KpiCard
           label="Atestados Emitidos"
@@ -742,6 +762,8 @@ export default function ProducaoMedicaDashboard() {
                   <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">CRM</th>
                   <ThSort label="Consultas" k="consultas" right />
                   <ThSort label="Faturamento" k="faturamento" right />
+                  <ThSort label="Custo" k="custo" right />
+                  <ThSort label="Margem" k="margem" right />
                   <ThSort label="Atestados" k="atestados" right />
                   <ThSort label="Receitas" k="receitas" right />
                   <ThSort label="Exames" k="exames" right />
@@ -770,6 +792,16 @@ export default function ProducaoMedicaDashboard() {
                       <span className="font-bold text-[#1A3A2C]">{formatBRL(row.faturamento)}</span>
                     </td>
                     <td className="py-3 pr-3 text-right">
+                      {row.custo_consulta > 0
+                        ? <span className="text-orange-600 font-medium">{formatBRL(row.custo)}</span>
+                        : <span className="text-gray-300 text-xs">—</span>}
+                    </td>
+                    <td className="py-3 pr-3 text-right">
+                      {row.custo_consulta > 0
+                        ? <span className={`font-semibold ${row.margem >= 0 ? 'text-green-600' : 'text-red-500'}`}>{formatBRL(row.margem)}</span>
+                        : <span className="text-gray-300 text-xs">—</span>}
+                    </td>
+                    <td className="py-3 pr-3 text-right">
                       {row.atestados > 0
                         ? <span className="text-amber-600 font-medium">{row.atestados}</span>
                         : <span className="text-gray-300">—</span>}
@@ -791,6 +823,8 @@ export default function ProducaoMedicaDashboard() {
                   <td colSpan={4} className="py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Total</td>
                   <td className="py-3 pr-3 text-right font-bold text-[#1A3A2C]">{totais.consultas}</td>
                   <td className="py-3 pr-3 text-right font-bold text-[#1A3A2C]">{formatBRL(totais.faturamento)}</td>
+                  <td className="py-3 pr-3 text-right font-bold text-orange-600">{totais.custo > 0 ? formatBRL(totais.custo) : '—'}</td>
+                  <td className="py-3 pr-3 text-right font-bold text-green-600">{totais.custo > 0 ? formatBRL(totais.margem) : '—'}</td>
                   <td className="py-3 pr-3 text-right font-bold text-amber-600">{totais.atestados}</td>
                   <td className="py-3 pr-3 text-right font-bold text-purple-600">{totais.receitas}</td>
                   <td className="py-3 text-right text-gray-300 text-xs">—</td>

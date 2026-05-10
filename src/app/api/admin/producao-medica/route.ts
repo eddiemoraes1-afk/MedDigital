@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   // ── Medicos (todos aprovados) ─────────────────────────────────────────────
   const { data: medicosData } = await admin
     .from('medicos')
-    .select('id, nome, especialidade, crm, crm_uf')
+    .select('id, nome, especialidade, crm, crm_uf, custo_consulta')
     .eq('status', 'aprovado')
     .order('nome')
   const medicos = (medicosData ?? []) as any[]
@@ -97,16 +97,21 @@ export async function GET(req: NextRequest) {
   // ── Produção por médico ───────────────────────────────────────────────────
   type ProdRow = {
     medico_id: string; nome: string; especialidade: string; crm: string
-    consultas: number; faturamento: number; atestados: number; receitas: number; exames: number
+    consultas: number; faturamento: number; custo_consulta: number; custo: number; margem: number
+    atestados: number; receitas: number; exames: number
   }
   const prodMap = new Map<string, ProdRow>()
 
   for (const m of medicosFiltrados) {
+    const custoUnit = Number(m.custo_consulta ?? 0)
     prodMap.set(m.id, {
       medico_id: m.id, nome: m.nome,
       especialidade: m.especialidade ?? '—',
       crm: m.crm ? `${m.crm}/${m.crm_uf ?? ''}` : '—',
-      consultas: 0, faturamento: 0, atestados: 0, receitas: 0, exames: 0,
+      consultas: 0, faturamento: 0,
+      custo_consulta: custoUnit,
+      custo: 0, margem: 0,
+      atestados: 0, receitas: 0, exames: 0,
     })
   }
 
@@ -125,6 +130,12 @@ export async function GET(req: NextRequest) {
       const cur = prodMap.get(r.medico_id)
       if (cur) cur.receitas++
     }
+  }
+
+  // Recalcula custo e margem após consolidar consultas
+  for (const row of prodMap.values()) {
+    row.custo = row.consultas * row.custo_consulta
+    row.margem = row.faturamento - row.custo
   }
 
   const producao = [...prodMap.values()].sort((a, b) => b.faturamento - a.faturamento)
@@ -174,9 +185,13 @@ export async function GET(req: NextRequest) {
     .map(([, v]) => v)
 
   // ── Totais ────────────────────────────────────────────────────────────────
+  const totalFaturamento = ats.reduce((s, a) => s + precoConsulta(a.paciente_id, a.valor_cobrado), 0)
+  const totalCusto = [...prodMap.values()].reduce((s, r) => s + r.custo, 0)
   const totais = {
     consultas: ats.length,
-    faturamento: ats.reduce((s, a) => s + precoConsulta(a.paciente_id, a.valor_cobrado), 0),
+    faturamento: totalFaturamento,
+    custo: totalCusto,
+    margem: totalFaturamento - totalCusto,
     atestados: atests.length,
     receitas: recs.length,
     exames: 0, // tabela ainda não criada
