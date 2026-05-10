@@ -4,7 +4,7 @@ import Link from 'next/link'
 import {
   Users, Clock, CheckCircle2, AlertTriangle, Calendar,
   FileText, Stethoscope, ClipboardList, Video, FlaskConical,
-  ChevronRight, BarChart2,
+  ChevronRight, BarChart2, ScrollText,
 } from 'lucide-react'
 import PingMedico from '../PingMedico'
 import MedicoHeader from '../MedicoHeader'
@@ -45,7 +45,7 @@ export default async function MedicoDashboard() {
   const hojeInicio = new Date(hojeStr + 'T00:00:00-03:00').toISOString()
 
   // ── Dados em paralelo ─────────────────────────────────────────────────────
-  const [filaRes, atendidosRes, atestadosRes, receitasRes] = await Promise.all([
+  const [filaRes, atendidosRes, atestadosRes, receitasRes, renovacoesRes] = await Promise.all([
     // Fila virtual
     adminSupabase
       .from('atendimentos')
@@ -78,12 +78,20 @@ export default async function MedicoDashboard() {
       .eq('medico_id', medico.id)
       .gte('criado_em', hojeInicio)
       .order('criado_em', { ascending: false }),
+
+    // Renovações pendentes
+    adminSupabase
+      .from('solicitacoes_renovacao')
+      .select('id, tipo_receita, medicamentos, criado_em, pacientes(id, nome)')
+      .eq('status', 'pendente')
+      .order('criado_em', { ascending: true }),
   ])
 
-  const fila        = filaRes.data     ?? []
-  const atendidos   = atendidosRes.data  ?? []
-  const atestados   = atestadosRes.data  ?? []
+  const fila        = filaRes.data        ?? []
+  const atendidos   = atendidosRes.data   ?? []
+  const atestados   = atestadosRes.data   ?? []
   const receitas    = receitasRes.data   ?? []
+  const renovacoes = renovacoesRes.data ?? []
   const exames: any[] = [] // tabela ainda não criada
 
   const primeiroNome = medico.nome.split(' ')[0]
@@ -296,6 +304,70 @@ export default async function MedicoDashboard() {
                     >
                       <Video className="w-4 h-4" />
                       Atender
+                    </Link>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* ── Renovações de Receita Pendentes ── */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <ScrollText className="w-5 h-5 text-purple-500" />
+              <h2 className="font-bold text-[#1A3A2C]">Renovações de Receita</h2>
+            </div>
+            {renovacoes.length > 0 && (
+              <span className="bg-purple-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                {renovacoes.length} pendente{renovacoes.length !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+
+          {renovacoes.length === 0 ? (
+            <div className="py-12 text-center">
+              <ScrollText className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+              <p className="text-gray-400 font-medium text-sm">Nenhuma renovação pendente</p>
+              <p className="text-gray-300 text-sm mt-1">Pedidos de renovação de receita aparecerão aqui</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {renovacoes.map((r: any) => {
+                const LABEL_TIPO: Record<string, string> = {
+                  simples: 'Receita Simples', especial: 'Receita Especial', antimicrobiano: 'Antimicrobiano',
+                }
+                const COR_TIPO: Record<string, string> = {
+                  simples: 'bg-green-100 text-green-700', especial: 'bg-purple-100 text-purple-700', antimicrobiano: 'bg-blue-100 text-blue-700',
+                }
+                return (
+                  <div key={r.id} className="px-6 py-4 flex items-center gap-4 hover:bg-gray-50">
+                    <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">
+                      <ScrollText className="w-5 h-5 text-purple-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <span className="font-semibold text-[#1A3A2C] text-sm">
+                          {(r.pacientes as any)?.nome ?? 'Paciente'}
+                        </span>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${COR_TIPO[r.tipo_receita] ?? 'bg-gray-100 text-gray-600'}`}>
+                          {LABEL_TIPO[r.tipo_receita] ?? r.tipo_receita}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 font-mono line-clamp-1">
+                        {r.medicamentos?.split('\n')[0] ?? '—'}
+                      </p>
+                      <p className="text-xs text-gray-300 mt-0.5">
+                        Solicitado às {formatarHora(r.criado_em)}
+                      </p>
+                    </div>
+                    <Link
+                      href={`/medico/renovacao/${r.id}`}
+                      className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 shrink-0 transition-colors"
+                    >
+                      <ScrollText className="w-4 h-4" />
+                      Emitir
                     </Link>
                   </div>
                 )

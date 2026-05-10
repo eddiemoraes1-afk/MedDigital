@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Brain, Clock, FileText, Calendar, Video, ChevronRight, User, Pill } from 'lucide-react'
+import { ScrollText, Clock, FileText, Calendar, Video, ChevronRight, User, Pill } from 'lucide-react'
 import { gerarTema } from '@/lib/tema'
 import { getEmpresaPaciente } from '@/lib/getEmpresaPaciente'
 import PacienteHeader from '../PacienteHeader'
@@ -194,7 +194,7 @@ export default async function PacienteDashboard() {
           style={{ background: `linear-gradient(135deg, ${tema.corPrimaria}, ${tema.corPrimaria}CC)` }}>
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-              <Brain className="w-6 h-6" style={{ color: tema.corTexto }} />
+              <ScrollText className="w-6 h-6" style={{ color: tema.corTexto }} />
             </div>
             <div>
               <h2 className="text-xl font-bold" style={{ color: tema.corTexto }}>Precisa de atendimento?</h2>
@@ -213,7 +213,7 @@ export default async function PacienteDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           {[
             { icon: Video, label: 'Consulta Agora', href: '/paciente/triagem' },
-            { icon: Brain, label: 'Renovação de Receita', href: '/paciente/triagem' },
+            { icon: ScrollText, label: 'Renovação de Receita', href: '/paciente/renovacao-receita' },
             { icon: Calendar, label: 'Meus agendamentos', href: '/paciente/agendamentos', badge: totalConsultas > 0 ? totalConsultas : undefined },
             { icon: FileText, label: 'Atestados', href: '/paciente/atestados', badge: atestadosValidos > 0 ? atestadosValidos : (totalAtestados > 0 ? totalAtestados : undefined), badgeValido: atestadosValidos > 0 },
             { icon: Pill, label: 'Receitas', href: '/paciente/receitas', badge: receitasValidas > 0 ? receitasValidas : (totalReceitas > 0 ? totalReceitas : undefined), badgeValido: receitasValidas > 0 },
