@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import {
   BarChart2, TrendingUp, Building2, DollarSign, Download,
-  Printer, Loader2, Activity, UserCheck, Users, RefreshCw,
+  Printer, Loader2, Activity, UserCheck, Users, RefreshCw, Receipt,
 } from 'lucide-react'
 
 // ============================================================
@@ -13,6 +13,9 @@ interface KPIs {
   totalConsultas: number
   totalFaturamento: number
   totalMensalidades: number
+  totalRenovacoes: number
+  totalGastosRenovacoes: number
+  totalReceitasEmConsulta: number
   totalGeral: number
   totalEmpresasAtivas: number
   totalMedicos: number
@@ -75,7 +78,10 @@ interface DashboardData {
   detalheRelacaoGlobal: DetalheRelacaoItem[]
   consultasRelacaoPorMesGlobal: Array<{ mes: string; funcionarios: number; dependentes: number }>
   gastosPorTitularGlobal: TitularItemAdmin[]
-  receitasPorMes: Array<{ mes: string; valorConsultas: number; valorMensalidade: number; valorParticular: number }>
+  receitasPorMes: Array<{ mes: string; valorConsultas: number; valorMensalidade: number; valorParticular: number; valorRenovacoes: number }>
+  renovacoesPorMes: Array<{ mes: string; count: number; valor: number }>
+  renovacoesPorEmpresa: Array<{ nome: string; count: number; valor: number }>
+  receitasConsultaPorMes: Array<{ mes: string; count: number }>
 }
 
 // ============================================================
@@ -724,9 +730,12 @@ async function exportarExcel(data: DashboardData, setLoading: (v: boolean) => vo
 
     const kpiRows = [
       ['Métrica', 'Valor'],
-      ['Total Geral (Consultas + Mensalidades)', formatBRL(data.kpis.totalGeral)],
+      ['Total Geral (Consultas + Mensalidades + Renovações)', formatBRL(data.kpis.totalGeral)],
       ['Faturamento Consultas', formatBRL(data.kpis.totalFaturamento)],
       ['Mensalidades', formatBRL(data.kpis.totalMensalidades)],
+      ['Renovações de Receita (qtd)', data.kpis.totalRenovacoes],
+      ['Renovações de Receita (valor)', formatBRL(data.kpis.totalGastosRenovacoes)],
+      ['Rx emitidas em Consultas (sem custo)', data.kpis.totalReceitasEmConsulta],
       ['Consultas Realizadas', data.kpis.totalConsultas],
       ['Ticket Médio', formatBRL(data.kpis.ticketMedio)],
       ['Empresas Ativas', data.kpis.totalEmpresasAtivas],
@@ -787,6 +796,30 @@ async function exportarExcel(data: DashboardData, setLoading: (v: boolean) => vo
     ]
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(pacRows), 'Top Pacientes')
 
+    if ((data.renovacoesPorMes ?? []).length > 0) {
+      const renovMesRows = [
+        ['Mês', 'Renovações (qtd)', 'Valor Total (R$)'],
+        ...(data.renovacoesPorMes ?? []).map(r => [formatMes(r.mes), r.count, r.valor]),
+      ]
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(renovMesRows), 'Renovações por Mês')
+    }
+
+    if ((data.renovacoesPorEmpresa ?? []).length > 0) {
+      const renovEmpRows = [
+        ['Empresa', 'Renovações (qtd)', 'Valor Total (R$)'],
+        ...(data.renovacoesPorEmpresa ?? []).map(r => [r.nome, r.count, r.valor]),
+      ]
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(renovEmpRows), 'Renovações por Empresa')
+    }
+
+    if ((data.receitasConsultaPorMes ?? []).length > 0) {
+      const rxConsRows = [
+        ['Mês', 'Receitas em Consultas (qtd)'],
+        ...(data.receitasConsultaPorMes ?? []).map(r => [formatMes(r.mes), r.count]),
+      ]
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rxConsRows), 'Rx em Consultas')
+    }
+
     XLSX.writeFile(wb, `dashboard-admin-${new Date().toISOString().slice(0, 10)}.xlsx`)
   } finally {
     setLoading(false)
@@ -838,7 +871,7 @@ function exportarPDF(data: DashboardData) {
 
 <div class="kpis">
   <div class="kpi highlight">
-    <div class="kpi-label">Total Geral</div>
+    <div class="kpi-label">Total Geral (Consultas + Mensalidades + Renovações)</div>
     <div class="kpi-value">${formatBRL(k.totalGeral)}</div>
   </div>
   <div class="kpi">
@@ -848,6 +881,18 @@ function exportarPDF(data: DashboardData) {
   <div class="kpi">
     <div class="kpi-label">Mensalidades</div>
     <div class="kpi-value">${formatBRL(k.totalMensalidades)}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Renovações de Receita</div>
+    <div class="kpi-value">${formatBRL(k.totalGastosRenovacoes)}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Renovações (qtd)</div>
+    <div class="kpi-value">${k.totalRenovacoes}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">Rx em Consultas</div>
+    <div class="kpi-value">${k.totalReceitasEmConsulta}</div>
   </div>
   <div class="kpi">
     <div class="kpi-label">Consultas Realizadas</div>
@@ -1059,13 +1104,15 @@ export default function DashboardClient() {
       </div>
 
       {/* ---- KPIs ---- */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        <KpiCard label="Total Geral" value={formatBRL(kpis.totalGeral)} sub="consultas + mensalidades" icon={DollarSign} color="#5BBD9B" highlight />
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4">
+        <KpiCard label="Total Geral" value={formatBRL(kpis.totalGeral)} sub="consultas + mensalidades + renovações" icon={DollarSign} color="#5BBD9B" highlight />
         <KpiCard label="Faturamento Consultas" value={formatBRL(kpis.totalFaturamento)} sub={`${kpis.totalConsultas} realizadas`} icon={Activity} color="#3B82F6" />
         <KpiCard label="Mensalidades" value={formatBRL(kpis.totalMensalidades)} sub={`${kpis.totalEmpresasAtivas} empresas`} icon={Building2} color="#8B5CF6" />
+        <KpiCard label="Renovações de Receita" value={formatBRL(kpis.totalGastosRenovacoes)} sub={`${kpis.totalRenovacoes} emitidas`} icon={Receipt} color="#F97316" />
         <KpiCard label="Ticket Médio" value={formatBRL(kpis.ticketMedio)} sub="por consulta" icon={TrendingUp} color="#F59E0B" />
         <KpiCard label="Médicos Ativos" value={String(kpis.totalMedicos)} sub="com consultas no período" icon={UserCheck} color="#14B8A6" />
         <KpiCard label="Particular" value={formatBRL(kpis.valorParticular)} sub={`${kpis.consultasParticulares} consultas`} icon={Users} color="#EC4899" />
+        <KpiCard label="Rx em Consultas" value={String(kpis.totalReceitasEmConsulta)} sub="sem custo adicional" icon={Receipt} color="#14B8A6" />
       </div>
 
       {/* ---- Row 1: Faturamento por mês + Status ---- */}
@@ -1123,11 +1170,12 @@ export default function DashboardClient() {
                 />
               </ChartCard>
             </div>
-            <ChartCard title="Consultas vs Mensalidade" subtitle="Composição da receita total no período">
+            <ChartCard title="Composição da Receita" subtitle="Consultas + Mensalidades + Renovações no período">
               <DonutChart
                 slices={[
                   { label: 'Consultas', value: data.receitasPorMes.reduce((s, d) => s + d.valorConsultas, 0), color: '#3B82F6' },
                   { label: 'Mensalidades', value: data.receitasPorMes.reduce((s, d) => s + d.valorMensalidade, 0), color: '#8B5CF6' },
+                  { label: 'Renovações', value: data.receitasPorMes.reduce((s, d) => s + (d.valorRenovacoes ?? 0), 0), color: '#F97316' },
                   ...(data.receitasPorMes.reduce((s, d) => s + d.valorParticular, 0) > 0
                     ? [{ label: 'Particular', value: data.receitasPorMes.reduce((s, d) => s + d.valorParticular, 0), color: '#EC4899' }]
                     : []),
@@ -1153,6 +1201,34 @@ export default function DashboardClient() {
               />
             </ChartCard>
           </div>
+
+          {/* Renovações de Receita */}
+          <div className="grid lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <ChartCard title="Renovações de Receita por Mês" subtitle="Receitas emitidas fora de consultas — têm custo para a empresa">
+                <BarChartSVG
+                  data={(data.renovacoesPorMes ?? []).map(d => ({ ...d, mes: formatMes(d.mes) }))}
+                  labelKey="mes" valueKey="valor" color="#F97316" formatValue={formatBRL}
+                />
+              </ChartCard>
+            </div>
+            <ChartCard title="Rx em Consultas por Mês" subtitle="Emitidas durante atendimento — sem custo adicional">
+              <BarChartSVG
+                data={(data.receitasConsultaPorMes ?? []).map(d => ({ ...d, mes: formatMes(d.mes) }))}
+                labelKey="mes" valueKey="count" color="#14B8A6"
+                formatValue={v => `${v} receita${v !== 1 ? 's' : ''}`}
+              />
+            </ChartCard>
+          </div>
+
+          {(data.renovacoesPorEmpresa ?? []).length > 0 && (
+            <ChartCard title="Renovações de Receita por Empresa" subtitle="Total cobrado por empresa no período">
+              <HBarChart
+                data={data.renovacoesPorEmpresa ?? []}
+                labelKey="nome" valueKey="valor" formatValue={formatBRL} color="#F97316"
+              />
+            </ChartCard>
+          )}
         </>
       )}
 

@@ -65,7 +65,7 @@ export async function GET(req: Request) {
       .select('id, nome, especialidade'),
     adminSupabase
       .from('empresas')
-      .select('id, nome, preco_mensalidade, preco_consulta, ativo'),
+      .select('id, nome, preco_mensalidade, preco_consulta, preco_receita, percentual_coparticipacao, ativo'),
     adminSupabase
       .from('vinculos_empresa')
       .select('id, empresa_id, paciente_id, ativo, relacao, titular_id, nome_completo, cargo, departamento, registro_funcional'),
@@ -97,6 +97,79 @@ export async function GET(req: Request) {
       funcAtivosMap.set(eid, (funcAtivosMap.get(eid) ?? 0) + 1)
     }
   }
+
+  // ===== RECEITAS — todos os pacientes de empresa no período =====
+  const allPacienteIds = [...new Set(
+    (vinculos ?? []).filter((v: any) => v.paciente_id).map((v: any) => v.paciente_id)
+  )] as string[]
+
+  const { data: todasReceitasData } = allPacienteIds.length > 0
+    ? await adminSupabase
+        .from('receitas')
+        .select('id, paciente_id, atendimento_id, valor_cobrado, criado_em')
+        .in('paciente_id', allPacienteIds)
+        .eq('status', 'emitida')
+        .gte('criado_em', inicio)
+        .lte('criado_em', fim)
+    : { data: [] }
+
+  const todasReceitas = (todasReceitasData ?? []) as any[]
+  // Renovação: emitida fora de uma consulta (atendimento_id IS NULL) → tem custo
+  // Em consulta: atendimento_id preenchido → sem custo adicional para empresa
+  const renovacoes = todasReceitas.filter((r: any) => r.atendimento_id == null)
+  const receitasEmConsulta = todasReceitas.filter((r: any) => r.atendimento_id != null)
+
+  function calcValorRenovacao(r: any): number {
+    const empId = pacienteEmpresa.get(r.paciente_id)
+    const emp = empId ? (empresaMap.get(empId) as any) : null
+    const precoReceita = emp?.preco_receita ?? 0
+    return (r.valor_cobrado != null && r.valor_cobrado > 0) ? r.valor_cobrado : precoReceita
+  }
+
+  const totalRenovacoes = renovacoes.length
+  const totalReceitasEmConsulta = receitasEmConsulta.length
+  const totalGastosRenovacoes = renovacoes.reduce((sum: number, r: any) => sum + calcValorRenovacao(r), 0)
+
+  // Renovações por mês
+  const renovMesMap = new Map<string, { count: number; valor: number }>()
+  for (const r of renovacoes) {
+    const d = new Date(r.criado_em)
+    const mes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const valor = calcValorRenovacao(r)
+    const cur = renovMesMap.get(mes) ?? { count: 0, valor: 0 }
+    cur.count++
+    cur.valor += valor
+    renovMesMap.set(mes, cur)
+  }
+  const renovacoesPorMes = [...renovMesMap.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([mes, v]) => ({ mes, ...v }))
+
+  // Receitas emitidas em consultas (sem custo) por mês
+  const recConsultaMesMap = new Map<string, number>()
+  for (const r of receitasEmConsulta) {
+    const d = new Date(r.criado_em)
+    const mes = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    recConsultaMesMap.set(mes, (recConsultaMesMap.get(mes) ?? 0) + 1)
+  }
+  const receitasConsultaPorMes = [...recConsultaMesMap.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([mes, count]) => ({ mes, count }))
+
+  // Renovações por empresa
+  const renovEmpMap = new Map<string, { nome: string; count: number; valor: number }>()
+  for (const r of renovacoes) {
+    const empId = pacienteEmpresa.get(r.paciente_id)
+    if (!empId) continue
+    const emp = empresaMap.get(empId) as any
+    if (!emp) continue
+    const valor = calcValorRenovacao(r)
+    const cur = renovEmpMap.get(empId) ?? { nome: emp.nome, count: 0, valor: 0 }
+    cur.count++
+    cur.valor += valor
+    renovEmpMap.set(empId, cur)
+  }
+  const renovacoesPorEmpresa = [...renovEmpMap.values()].sort((a, b) => b.valor - a.valor)
 
   const ats = (atendimentos ?? []) as any[]
 
@@ -461,14 +534,17 @@ export async function GET(req: Request) {
 
   const receitasPorMes = [...recMesMap.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([mes, v]) => ({ mes, ...v }))
+    .map(([mes, v]) => ({ mes, ...v, valorRenovacoes: renovMesMap.get(mes)?.valor ?? 0 }))
 
   return NextResponse.json({
     kpis: {
       totalConsultas,
       totalFaturamento,
       totalMensalidades,
-      totalGeral: totalFaturamento + totalMensalidades,
+      totalRenovacoes,
+      totalGastosRenovacoes,
+      totalReceitasEmConsulta,
+      totalGeral: totalFaturamento + totalMensalidades + totalGastosRenovacoes,
       totalEmpresasAtivas,
       totalMedicos,
       ticketMedio,
@@ -489,5 +565,8 @@ export async function GET(req: Request) {
     consultasRelacaoPorMesGlobal,
     gastosPorTitularGlobal,
     receitasPorMes,
+    renovacoesPorMes,
+    renovacoesPorEmpresa,
+    receitasConsultaPorMes,
   })
 }
