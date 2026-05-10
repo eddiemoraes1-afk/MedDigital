@@ -199,11 +199,11 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
       XLSX.utils.book_append_sheet(wb, wsConsultas, 'Consultas')
 
       // ── Aba 2: Por funcionário (agrupado por titular) ─────────────────────
-      const headersPac = ['Funcionário', 'Consultas', 'Total Consultas (R$)', 'Renovações', 'Total Renovações (R$)']
+      const headersPac = ['Funcionário', 'Consultas', 'Total Consultas (R$)', 'Renovações', 'Total Renovações (R$)', 'Total Gasto (R$)']
       if (temCoparticipacao) headersPac.push(`Co-part. ${percentualCopart}% (R$)`)
       const rowsPac: any[][] = [headersPac]
       for (const p of listaTitulares) {
-        const row: any[] = [p.nome + (p.temDependentes ? ' (+ dep.)' : ''), p.qtd, p.total, p.qtdRenovacoes, p.totalRenovacoes]
+        const row: any[] = [p.nome + (p.temDependentes ? ' (+ dep.)' : ''), p.qtd, p.total, p.qtdRenovacoes, p.totalRenovacoes, p.total + p.totalRenovacoes]
         if (temCoparticipacao) row.push(p.copart + p.copartRenovacoes)
         rowsPac.push(row)
       }
@@ -211,12 +211,13 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
         'TOTAL',
         listaTitulares.reduce((s, p) => s + p.qtd, 0), totalConsultas,
         listaTitulares.reduce((s, p) => s + p.qtdRenovacoes, 0), totalReceitas,
+        totalConsultas + totalReceitas,
       ]
       if (temCoparticipacao) totalRowPac.push(totalCoparticipacaoGeral)
       rowsPac.push(totalRowPac)
 
       const wsPac = XLSX.utils.aoa_to_sheet(rowsPac)
-      wsPac['!cols'] = [{ wch: 35 }, { wch: 12 }, { wch: 20 }, { wch: 12 }, { wch: 20 }, ...(temCoparticipacao ? [{ wch: 18 }] : [])]
+      wsPac['!cols'] = [{ wch: 35 }, { wch: 12 }, { wch: 20 }, { wch: 12 }, { wch: 20 }, { wch: 18 }, ...(temCoparticipacao ? [{ wch: 18 }] : [])]
       XLSX.utils.book_append_sheet(wb, wsPac, 'Por Funcionário')
 
       // ── Aba 3: Receitas ───────────────────────────────────────────────────
@@ -323,6 +324,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
         <td class="valor">${p.total > 0 ? formatBRL(p.total) : '—'}</td>
         <td class="center">${p.qtdRenovacoes > 0 ? p.qtdRenovacoes : '—'}</td>
         <td class="valor">${p.totalRenovacoes > 0 ? formatBRL(p.totalRenovacoes) : '—'}</td>
+        <td class="valor" style="font-weight:700">${formatBRL(p.total + p.totalRenovacoes)}</td>
         ${temCoparticipacao ? `<td class="copart">${(p.copart + p.copartRenovacoes) > 0 ? formatBRL(p.copart + p.copartRenovacoes) : '—'}</td>` : ''}
       </tr>`).join('')
 
@@ -455,9 +457,9 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
   <div class="secao">
     <h2>Gastos por Funcionário (incluindo dependentes)</h2>
     <table>
-      <thead><tr><th>Funcionário</th><th style="text-align:center">Consultas</th><th style="text-align:right">Total consultas</th><th style="text-align:center">Renovações</th><th style="text-align:right">Total renovações</th>${temCoparticipacao ? `<th class="copart-h" style="text-align:right">Co-part. ${percentualCopart}%</th>` : ''}</tr></thead>
+      <thead><tr><th>Funcionário</th><th style="text-align:center">Consultas</th><th style="text-align:right">Total consultas</th><th style="text-align:center">Renovações</th><th style="text-align:right">Total renovações</th><th style="text-align:right">Total gasto</th>${temCoparticipacao ? `<th class="copart-h" style="text-align:right">Co-part. ${percentualCopart}%</th>` : ''}</tr></thead>
       <tbody>${linhasPacientes}</tbody>
-      <tfoot><tr><td><strong>Total</strong></td><td class="center">${listaTitulares.reduce((s, p) => s + p.qtd, 0)}</td><td class="valor">${formatBRL(totalConsultas)}</td><td class="center">${listaTitulares.reduce((s, p) => s + p.qtdRenovacoes, 0)}</td><td class="valor">${formatBRL(totalReceitas)}</td>${temCoparticipacao ? `<td class="copart">${formatBRL(totalCoparticipacaoGeral)}</td>` : ''}</tr></tfoot>
+      <tfoot><tr><td><strong>Total</strong></td><td class="center">${listaTitulares.reduce((s, p) => s + p.qtd, 0)}</td><td class="valor">${formatBRL(totalConsultas)}</td><td class="center">${listaTitulares.reduce((s, p) => s + p.qtdRenovacoes, 0)}</td><td class="valor">${formatBRL(totalReceitas)}</td><td class="valor">${formatBRL(totalConsultas + totalReceitas)}</td>${temCoparticipacao ? `<td class="copart">${formatBRL(totalCoparticipacaoGeral)}</td>` : ''}</tr></tfoot>
     </table>
   </div>` : ''}
 
@@ -831,6 +833,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
                       <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">Total consultas</th>
                       <th className="px-4 py-3 text-center text-xs font-semibold text-purple-500 uppercase tracking-wide">Renovações</th>
                       <th className="px-4 py-3 text-right text-xs font-semibold text-purple-500 uppercase tracking-wide">Total renovações</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-[#1A3A2C] uppercase tracking-wide">Total gasto</th>
                       {temCoparticipacao && (
                         <th className="px-4 py-3 text-right text-xs font-semibold text-orange-500 uppercase tracking-wide">Co-part. ({percentualCopart}%)</th>
                       )}
@@ -856,6 +859,9 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
                         <td className="px-4 py-3 text-right font-semibold text-purple-700">
                           {p.totalRenovacoes > 0 ? formatBRL(p.totalRenovacoes) : <span className="text-gray-300">—</span>}
                         </td>
+                        <td className="px-4 py-3 text-right font-bold text-[#1A3A2C]">
+                          {formatBRL(p.total + p.totalRenovacoes)}
+                        </td>
                         {temCoparticipacao && (
                           <td className="px-4 py-3 text-right font-semibold text-orange-600">
                             {(p.copart + p.copartRenovacoes) > 0 ? formatBRL(p.copart + p.copartRenovacoes) : '—'}
@@ -871,6 +877,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
                       <td className="px-4 py-3 text-right font-bold text-[#1A3A2C]">{formatBRL(totalConsultas)}</td>
                       <td className="px-4 py-3 text-center font-bold text-purple-700">{listaTitulares.reduce((s, p) => s + p.qtdRenovacoes, 0)}</td>
                       <td className="px-4 py-3 text-right font-bold text-purple-700">{formatBRL(totalReceitas)}</td>
+                      <td className="px-4 py-3 text-right font-bold text-[#1A3A2C]">{formatBRL(totalConsultas + totalReceitas)}</td>
                       {temCoparticipacao && (
                         <td className="px-4 py-3 text-right font-bold text-orange-600">{formatBRL(totalCoparticipacaoGeral)}</td>
                       )}
