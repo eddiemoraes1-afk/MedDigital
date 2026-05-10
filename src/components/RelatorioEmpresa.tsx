@@ -320,8 +320,10 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
       <tr>
         <td>${p.nome}${p.temDependentes ? ' <span class="badge badge-dep" style="font-size:9px">+ dep.</span>' : ''}</td>
         <td class="center">${p.qtd}</td>
-        <td class="valor">${formatBRL(p.total)}</td>
-        ${temCoparticipacao ? `<td class="copart">${formatBRL(p.copart)}</td>` : ''}
+        <td class="valor">${p.total > 0 ? formatBRL(p.total) : '—'}</td>
+        <td class="center">${p.qtdRenovacoes > 0 ? p.qtdRenovacoes : '—'}</td>
+        <td class="valor">${p.totalRenovacoes > 0 ? formatBRL(p.totalRenovacoes) : '—'}</td>
+        ${temCoparticipacao ? `<td class="copart">${(p.copart + p.copartRenovacoes) > 0 ? formatBRL(p.copart + p.copartRenovacoes) : '—'}</td>` : ''}
       </tr>`).join('')
 
     const html = `<!DOCTYPE html>
@@ -427,16 +429,37 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
       <tbody>${linhasConsultas}</tbody>
       <tfoot><tr><td colspan="5"><strong>Total (${consultasFiltradas.length} consulta${consultasFiltradas.length !== 1 ? 's' : ''})</strong></td><td class="valor">${formatBRL(totalConsultas)}</td>${temCoparticipacao ? `<td class="copart">${formatBRL(totalCoparticipacao)}</td>` : ''}</tr></tfoot>
     </table>
-  </div>
+  </div>` : `<p style="color:#888;font-style:italic;margin-bottom:16px">Nenhuma consulta registrada no período selecionado.</p>`}
 
+  ${receitas.length > 0 ? `
+  <div class="secao">
+    <h2>Receitas Emitidas (${receitas.length})</h2>
+    <table>
+      <thead><tr><th>Paciente</th><th>Tipo</th><th>Responsável co-part.</th><th>Data / Hora</th><th style="text-align:right">Valor</th>${temCoparticipacao ? `<th class="copart-h" style="text-align:right">Co-part. ${percentualCopart}%</th>` : ''}<th>Obs.</th></tr></thead>
+      <tbody>${receitas.map(r => `
+        <tr>
+          <td>${r.paciente_nome}<br><span class="badge ${r.e_dependente ? 'badge-dep' : 'badge-func'}">${r.e_dependente ? 'Dependente' : 'Funcionário'}</span></td>
+          <td><span class="badge ${r.is_renovacao ? 'badge-agendada' : ''}" style="${r.is_renovacao ? '' : 'background:#f3f4f6;color:#6b7280'}">${r.is_renovacao ? 'Renovação' : 'Em consulta'}</span></td>
+          <td>${r.titular_nome}</td>
+          <td>${formatDataCurta(r.data)}</td>
+          <td class="valor">${r.is_renovacao ? formatBRL(r.valor_cobrado || 0) : '—'}</td>
+          ${temCoparticipacao ? `<td class="copart">${r.is_renovacao && (r.valor_coparticipacao || 0) > 0 ? formatBRL(r.valor_coparticipacao || 0) : '—'}</td>` : ''}
+          <td style="color:#666;font-size:10px">${r.observacao || '—'}</td>
+        </tr>`).join('')}
+      </tbody>
+      ${renovacoes.length > 0 ? `<tfoot><tr><td colspan="4"><strong>Total renovações (${renovacoes.length})</strong></td><td class="valor">${formatBRL(totalReceitas)}</td>${temCoparticipacao ? `<td class="copart">${formatBRL(totalCoparticipacaoReceitas)}</td>` : ''}<td></td></tr></tfoot>` : ''}
+    </table>
+  </div>` : ''}
+
+  ${listaTitulares.length > 0 ? `
   <div class="secao">
     <h2>Gastos por Funcionário (incluindo dependentes)</h2>
     <table>
-      <thead><tr><th>Funcionário</th><th style="text-align:center">Consultas</th><th style="text-align:right">Total gasto</th>${temCoparticipacao ? `<th class="copart-h" style="text-align:right">Co-part. ${percentualCopart}%</th>` : ''}</tr></thead>
+      <thead><tr><th>Funcionário</th><th style="text-align:center">Consultas</th><th style="text-align:right">Total consultas</th><th style="text-align:center">Renovações</th><th style="text-align:right">Total renovações</th>${temCoparticipacao ? `<th class="copart-h" style="text-align:right">Co-part. ${percentualCopart}%</th>` : ''}</tr></thead>
       <tbody>${linhasPacientes}</tbody>
-      <tfoot><tr><td><strong>Total</strong></td><td class="center">${listaTitulares.reduce((s, p) => s + p.qtd, 0)}</td><td class="valor">${formatBRL(totalConsultas)}</td>${temCoparticipacao ? `<td class="copart">${formatBRL(totalCoparticipacao)}</td>` : ''}</tr></tfoot>
+      <tfoot><tr><td><strong>Total</strong></td><td class="center">${listaTitulares.reduce((s, p) => s + p.qtd, 0)}</td><td class="valor">${formatBRL(totalConsultas)}</td><td class="center">${listaTitulares.reduce((s, p) => s + p.qtdRenovacoes, 0)}</td><td class="valor">${formatBRL(totalReceitas)}</td>${temCoparticipacao ? `<td class="copart">${formatBRL(totalCoparticipacaoGeral)}</td>` : ''}</tr></tfoot>
     </table>
-  </div>` : `<p style="color:#888;font-style:italic;margin-bottom:16px">Nenhuma consulta registrada no período selecionado.</p>`}
+  </div>` : ''}
 
   <div class="secao">
     <h2>Mensalidade do Sistema</h2>
@@ -453,25 +476,6 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
       <tfoot><tr><td colspan="3"><strong>Total mensalidade</strong></td><td class="valor">${formatBRL(totalMensalidade)}</td></tr></tfoot>
     </table>
   </div>
-
-  ${receitas.length > 0 ? `
-  <div class="secao">
-    <h2>Renovações de Receita (${receitas.length})</h2>
-    <table>
-      <thead><tr><th>Paciente</th><th>Responsável co-part.</th><th>Data / Hora</th><th style="text-align:right">Valor</th>${temCoparticipacao ? `<th class="copart-h" style="text-align:right">Co-part. ${percentualCopart}%</th>` : ''}<th>Obs.</th></tr></thead>
-      <tbody>${receitas.map(r => `
-        <tr>
-          <td>${r.paciente_nome}<br><span class="badge ${r.e_dependente ? 'badge-dep' : 'badge-func'}">${r.e_dependente ? 'Dependente' : 'Funcionário'}</span></td>
-          <td>${r.titular_nome}</td>
-          <td>${formatDataCurta(r.data)}</td>
-          <td class="valor">${formatBRL(r.valor_cobrado || 0)}</td>
-          ${temCoparticipacao ? `<td class="copart">${formatBRL(r.valor_coparticipacao || 0)}</td>` : ''}
-          <td style="color:#666;font-size:10px">${r.observacao || '—'}</td>
-        </tr>`).join('')}
-      </tbody>
-      <tfoot><tr><td colspan="3"><strong>Total (${receitas.length} receita${receitas.length !== 1 ? 's' : ''})</strong></td><td class="valor">${formatBRL(totalReceitas)}</td>${temCoparticipacao ? `<td class="copart">${formatBRL(totalCoparticipacaoReceitas)}</td>` : ''}<td></td></tr></tfoot>
-    </table>
-  </div>` : ''}
 
   <div class="total-geral">
     <div>
@@ -715,6 +719,100 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
             )}
           </div>
 
+          {/* Receitas emitidas */}
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
+              <p className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2">
+                <FileText className="w-4 h-4 text-cyan-500" />
+                Receitas emitidas
+              </p>
+              <div className="flex items-center gap-3">
+                {receitasConsulta.length > 0 && (
+                  <span className="text-xs text-gray-400">{receitasConsulta.length} em consulta (sem custo)</span>
+                )}
+                {renovacoes.length > 0 && (
+                  <span className="text-xs text-purple-600 font-medium">{renovacoes.length} renovação{renovacoes.length !== 1 ? 'ões' : ''} (cobradas)</span>
+                )}
+              </div>
+            </div>
+            {receitas.length === 0 ? (
+              <div className="text-center py-10">
+                <FileText className="w-10 h-10 text-gray-200 mx-auto mb-2" />
+                <p className="text-gray-400 text-sm">Nenhuma receita emitida no período</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Paciente</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Tipo</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Responsável co-part.</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Data / Hora</th>
+                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">Valor</th>
+                      {temCoparticipacao && (
+                        <th className="px-4 py-3 text-right text-xs font-semibold text-orange-500 uppercase tracking-wide">Co-part. ({percentualCopart}%)</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {receitas.map(r => (
+                      <tr key={r.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="font-medium text-gray-800">{r.paciente_nome}</div>
+                          <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                            r.e_dependente ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+                          }`}>
+                            {r.e_dependente ? 'Dependente' : 'Funcionário'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {r.is_renovacao
+                            ? <span className="text-xs bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-bold">Renovação</span>
+                            : <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-full font-medium">Em consulta</span>
+                          }
+                        </td>
+                        <td className="px-4 py-3 text-gray-700 text-sm">{r.titular_nome}</td>
+                        <td className="px-4 py-3 text-gray-500 text-xs">{formatDataHora(r.data)}</td>
+                        <td className="px-4 py-3 text-right font-semibold">
+                          {r.is_renovacao && r.valor_cobrado > 0
+                            ? <span className="text-cyan-700">{formatBRL(r.valor_cobrado)}</span>
+                            : <span className="text-gray-300">—</span>
+                          }
+                        </td>
+                        {temCoparticipacao && (
+                          <td className="px-4 py-3 text-right font-semibold">
+                            {r.is_renovacao && r.valor_coparticipacao > 0
+                              ? <span className="text-orange-600">{formatBRL(r.valor_coparticipacao)}</span>
+                              : <span className="text-gray-300">—</span>
+                            }
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                  {renovacoes.length > 0 && (
+                    <tfoot className="bg-cyan-50 border-t border-cyan-100">
+                      <tr>
+                        <td colSpan={4} className="px-4 py-3 font-bold text-[#1A3A2C]">
+                          Total renovações ({renovacoes.length})
+                        </td>
+                        <td className="px-4 py-3 text-right font-bold text-cyan-700 text-base">
+                          {formatBRL(totalReceitas)}
+                        </td>
+                        {temCoparticipacao && (
+                          <td className="px-4 py-3 text-right font-bold text-orange-600 text-base">
+                            {formatBRL(totalCoparticipacaoReceitas)}
+                          </td>
+                        )}
+                      </tr>
+                    </tfoot>
+                  )}
+                </table>
+              </div>
+            )}
+          </div>
+
           {/* Gastos por funcionário (agrupado por titular) */}
           {listaTitulares.length > 0 && (
             <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
@@ -815,100 +913,6 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
                 </tr>
               </tfoot>
             </table>
-          </div>
-
-          {/* Receitas emitidas */}
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
-              <p className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2">
-                <FileText className="w-4 h-4 text-cyan-500" />
-                Receitas emitidas
-              </p>
-              <div className="flex items-center gap-3">
-                {receitasConsulta.length > 0 && (
-                  <span className="text-xs text-gray-400">{receitasConsulta.length} em consulta (sem custo)</span>
-                )}
-                {renovacoes.length > 0 && (
-                  <span className="text-xs text-purple-600 font-medium">{renovacoes.length} renovação{renovacoes.length !== 1 ? 'ões' : ''} (cobradas)</span>
-                )}
-              </div>
-            </div>
-            {receitas.length === 0 ? (
-              <div className="text-center py-10">
-                <FileText className="w-10 h-10 text-gray-200 mx-auto mb-2" />
-                <p className="text-gray-400 text-sm">Nenhuma receita emitida no período</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Paciente</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Tipo</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Responsável co-part.</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Data / Hora</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">Valor</th>
-                      {temCoparticipacao && (
-                        <th className="px-4 py-3 text-right text-xs font-semibold text-orange-500 uppercase tracking-wide">Co-part. ({percentualCopart}%)</th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {receitas.map(r => (
-                      <tr key={r.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="font-medium text-gray-800">{r.paciente_nome}</div>
-                          <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
-                            r.e_dependente ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
-                          }`}>
-                            {r.e_dependente ? 'Dependente' : 'Funcionário'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          {r.is_renovacao
-                            ? <span className="text-xs bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-bold">Renovação</span>
-                            : <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-full font-medium">Em consulta</span>
-                          }
-                        </td>
-                        <td className="px-4 py-3 text-gray-700 text-sm">{r.titular_nome}</td>
-                        <td className="px-4 py-3 text-gray-500 text-xs">{formatDataHora(r.data)}</td>
-                        <td className="px-4 py-3 text-right font-semibold">
-                          {r.is_renovacao && r.valor_cobrado > 0
-                            ? <span className="text-cyan-700">{formatBRL(r.valor_cobrado)}</span>
-                            : <span className="text-gray-300">—</span>
-                          }
-                        </td>
-                        {temCoparticipacao && (
-                          <td className="px-4 py-3 text-right font-semibold">
-                            {r.is_renovacao && r.valor_coparticipacao > 0
-                              ? <span className="text-orange-600">{formatBRL(r.valor_coparticipacao)}</span>
-                              : <span className="text-gray-300">—</span>
-                            }
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                  {renovacoes.length > 0 && (
-                    <tfoot className="bg-cyan-50 border-t border-cyan-100">
-                      <tr>
-                        <td colSpan={4} className="px-4 py-3 font-bold text-[#1A3A2C]">
-                          Total renovações ({renovacoes.length})
-                        </td>
-                        <td className="px-4 py-3 text-right font-bold text-cyan-700 text-base">
-                          {formatBRL(totalReceitas)}
-                        </td>
-                        {temCoparticipacao && (
-                          <td className="px-4 py-3 text-right font-bold text-orange-600 text-base">
-                            {formatBRL(totalCoparticipacaoReceitas)}
-                          </td>
-                        )}
-                      </tr>
-                    </tfoot>
-                  )}
-                </table>
-              </div>
-            )}
           </div>
 
           {/* Total geral */}
