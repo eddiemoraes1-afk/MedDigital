@@ -437,14 +437,14 @@ export default function ProducaoListasClient({
                 return (
                   <div key={r.id} className="px-6 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
                     <span className="text-xs text-gray-300 font-mono w-5 text-right shrink-0">{idx + 1}</span>
-                    <span className="text-xs text-gray-400 shrink-0">{fmtData(r.criado_em)}</span>
+                    <span className="text-xs text-gray-400 w-20 shrink-0">{fmtData(r.criado_em)}</span>
                     <Link
                       href={`/medico/pacientes/${r.paciente_id}?back=${encodeURIComponent('/medico/producao')}`}
                       className="flex-1 text-sm font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
                     >
                       {r.paciente_nome}
                     </Link>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <span className="w-24 flex justify-center shrink-0">
                       {isRenovacao ? (
                         <span className="text-xs bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-bold">
                           Renovação
@@ -454,21 +454,22 @@ export default function ProducaoListasClient({
                           Em consulta
                         </span>
                       )}
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${
-                        r.tipo === 'simples'
-                          ? 'border-green-200 text-green-700 bg-green-50'
-                          : 'border-blue-200 text-blue-700 bg-blue-50'
+                    </span>
+                    <span className="w-28 flex justify-center shrink-0">
+                      <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold ${
+                        r.tipo === 'simples'        ? 'bg-green-100 text-green-700'  :
+                        r.tipo === 'especial'       ? 'bg-purple-100 text-purple-700' :
+                                                     'bg-blue-100 text-blue-700'
                       }`}>
                         {LABEL_TIPO[r.tipo] || r.tipo}
                       </span>
-                    </div>
-                    {isRenovacao ? (
-                      <span className="text-sm font-bold text-green-600 shrink-0">
-                        {formatBRL(Number(r.valor_medico))}
-                      </span>
-                    ) : (
-                      <span className="text-gray-300 text-sm shrink-0">—</span>
-                    )}
+                    </span>
+                    <span className="w-20 text-right shrink-0">
+                      {isRenovacao
+                        ? <span className="text-sm font-bold text-green-600">{formatBRL(Number(r.valor_medico))}</span>
+                        : <span className="text-gray-300 text-sm">—</span>
+                      }
+                    </span>
                   </div>
                 )
               })}
