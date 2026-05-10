@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
   const { data: receitasData } = pacienteIds.length > 0
     ? await adminSupabase
         .from('receitas')
-        .select('id, paciente_id, valor_cobrado, valor_coparticipacao, criado_em, status, observacao')
+        .select('id, paciente_id, atendimento_id, valor_cobrado, valor_coparticipacao, criado_em, status, observacao')
         .in('paciente_id', pacienteIds)
         .eq('status', 'emitida')
         .gte('criado_em', deISO_base)
@@ -82,16 +82,23 @@ export async function GET(req: NextRequest) {
   const percentualCopart = empresa.percentual_coparticipacao ?? 0
 
   const receitas = (receitasData ?? []).map((r: any) => {
-    const vinculo         = vinculos?.find((v: any) => v.paciente_id === r.paciente_id)
-    const eDependente     = classRelacaoLocal(vinculo?.relacao) === 'Dependente'
-    const titularVinculo  = eDependente ? resolverTitularVinculo(vinculo) : vinculo
-    const titularNome     = titularVinculo?.nome_completo ?? vinculo?.nome_completo ?? '—'
-    const titularId       = titularVinculo?.id ?? vinculo?.id ?? null
+    // Renovação: atendimento_id é null (não foi emitida dentro de uma consulta)
+    // Em consulta: atendimento_id preenchido → sem custo para a empresa
+    const isRenovacao = r.atendimento_id === null || r.atendimento_id === undefined
 
-    const valorCobrado          = r.valor_cobrado ?? precoReceita
-    const valorCoparticipacao   = percentualCopart > 0
+    const vinculo        = vinculos?.find((v: any) => v.paciente_id === r.paciente_id)
+    const eDependente    = classRelacaoLocal(vinculo?.relacao) === 'Dependente'
+    const titularVinculo = eDependente ? resolverTitularVinculo(vinculo) : vinculo
+    const titularNome    = titularVinculo?.nome_completo ?? vinculo?.nome_completo ?? '—'
+    const titularId      = titularVinculo?.id ?? vinculo?.id ?? null
+
+    // Só renovações têm custo; receitas de consulta = R$ 0,00
+    const valorCobrado = isRenovacao
+      ? (r.valor_cobrado != null && r.valor_cobrado > 0 ? r.valor_cobrado : precoReceita)
+      : 0
+    const valorCoparticipacao = isRenovacao && percentualCopart > 0
       ? Math.round(valorCobrado * (percentualCopart / 100) * 100) / 100
-      : (r.valor_coparticipacao ?? 0)
+      : 0
 
     return {
       id: r.id,
@@ -102,6 +109,7 @@ export async function GET(req: NextRequest) {
       e_dependente: eDependente,
       titular_id: titularId,
       titular_nome: titularNome,
+      is_renovacao: isRenovacao,
       valor_cobrado: valorCobrado,
       valor_coparticipacao: valorCoparticipacao,
       observacao: r.observacao ?? null,
