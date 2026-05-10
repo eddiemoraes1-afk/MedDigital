@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Brain, Clock, FileText, Calendar, Video, ChevronRight, User } from 'lucide-react'
+import { Brain, Clock, FileText, Calendar, Video, ChevronRight, User, Pill } from 'lucide-react'
 import { gerarTema } from '@/lib/tema'
 import { getEmpresaPaciente } from '@/lib/getEmpresaPaciente'
 import PacienteHeader from '../PacienteHeader'
@@ -43,14 +43,24 @@ export default async function PacienteDashboard() {
     .order('criado_em', { ascending: false })
     .limit(3)
 
-  // Atestados do paciente
+  // Atestados e receitas do paciente
   const hoje = new Date().toISOString().slice(0, 10)
-  const { data: atestadosPaciente } = await adminSupabase
-    .from('atestados')
-    .select('id, data_fim')
-    .eq('paciente_id', paciente?.id)
+  const [atestadosRes, receitasRes] = await Promise.all([
+    adminSupabase
+      .from('atestados')
+      .select('id, data_fim')
+      .eq('paciente_id', paciente?.id),
+    adminSupabase
+      .from('receitas')
+      .select('id, validade')
+      .eq('paciente_id', paciente?.id),
+  ])
+  const atestadosPaciente = atestadosRes.data
+  const receitasPaciente = receitasRes.data
   const totalAtestados = atestadosPaciente?.length ?? 0
   const atestadosValidos = (atestadosPaciente ?? []).filter((a: any) => a.data_fim >= hoje).length
+  const totalReceitas = receitasPaciente?.length ?? 0
+  const receitasValidas = (receitasPaciente ?? []).filter((r: any) => !r.validade || r.validade >= hoje).length
 
   // Próximas consultas
   const agora = new Date().toISOString()
@@ -200,12 +210,13 @@ export default async function PacienteDashboard() {
         </div>
 
         {/* Cards de acesso rápido */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
           {[
             { icon: Video, label: 'Consulta Agora', href: '/paciente/triagem' },
             { icon: Brain, label: 'Renovação de Receita', href: '/paciente/triagem' },
             { icon: Calendar, label: 'Meus agendamentos', href: '/paciente/agendamentos', badge: totalConsultas > 0 ? totalConsultas : undefined },
             { icon: FileText, label: 'Atestados', href: '/paciente/atestados', badge: atestadosValidos > 0 ? atestadosValidos : (totalAtestados > 0 ? totalAtestados : undefined), badgeValido: atestadosValidos > 0 },
+            { icon: Pill, label: 'Receitas', href: '/paciente/receitas', badge: receitasValidas > 0 ? receitasValidas : (totalReceitas > 0 ? totalReceitas : undefined), badgeValido: receitasValidas > 0 },
           ].map((item) => (
             <Link key={item.label} href={item.href}
               className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md text-center group relative transition-shadow">
