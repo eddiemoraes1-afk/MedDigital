@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import {
   BarChart2, TrendingDown, Building2, DollarSign,
-  Download, Printer, Loader2, Activity, Users, RefreshCw, UserCheck,
+  Download, Printer, Loader2, Activity, Users, RefreshCw, UserCheck, FileText,
 } from 'lucide-react'
 
 // ============================================================
@@ -13,6 +13,8 @@ interface KPIs {
   totalConsultas: number
   totalGastosConsultas: number
   totalMensalidade: number
+  totalRenovacoes: number
+  totalGastosRenovacoes: number
   totalGeral: number
   funcionariosAtivos: number
   funcionariosComUso: number
@@ -43,6 +45,8 @@ interface TitularDep {
   relacao: string
   consultas: number
   valor: number
+  renovacoes: number
+  valorRenovacoes: number
 }
 
 interface TitularItem {
@@ -55,19 +59,26 @@ interface TitularItem {
   totalConsultas: number
   valorProprio: number
   valorDependentes: number
+  totalValorConsultas: number
+  renovacoesProprias: number
+  renovacoesDependentes: number
+  totalRenovacoes: number
+  valorRenovacoesProprias: number
+  valorRenovacoesDependentes: number
+  totalValorRenovacoes: number
   totalValor: number
   dependentes: TitularDep[]
 }
 
 interface EmpresaDashData {
   kpis: KPIs
-  gastosPorMes: Array<{ mes: string; consultas: number; valor: number }>
+  gastosPorMes: Array<{ mes: string; consultas: number; valor: number; renovacoes: number; valorRenovacoes: number; valorTotal: number }>
   gastosPorMedico: Array<{ nome: string; especialidade: string; consultas: number; valor: number }>
   gastosPorFaixaEtaria: Array<{ faixa: string; consultas: number; valor: number }>
   gastosPorSexo: Array<{ sexo: string; consultas: number; valor: number }>
   consultasPorStatus: Array<{ status: string; count: number }>
   consultasPorTipo: Array<{ tipo: string; count: number }>
-  topFuncionarios: Array<{ nome: string; cargo: string; departamento: string; consultas: number; valor: number }>
+  topFuncionarios: Array<{ nome: string; cargo: string; departamento: string; consultas: number; valor: number; renovacoes: number; valorRenovacoes: number; totalValor: number }>
   gastosPorDepartamento: Array<{ departamento: string; consultas: number; valor: number }>
   gastosPorCargo: Array<{ cargo: string; consultas: number; valor: number }>
   distribuicaoRelacao: RelacaoItem[]
@@ -344,7 +355,7 @@ function TitularTable({ titulares, formatBRL }: {
   if (!titulares.length) {
     return (
       <div className="flex items-center justify-center py-10 text-gray-300 text-sm">
-        Nenhuma consulta no período selecionado
+        Nenhuma consulta ou renovação no período selecionado
       </div>
     )
   }
@@ -358,10 +369,11 @@ function TitularTable({ titulares, formatBRL }: {
             <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Titular / Funcionário</th>
             <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Registro</th>
             <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Cargo / Depto</th>
-            <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Próprias</th>
-            <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Depend.</th>
-            <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Total</th>
-            <th className="text-right text-xs text-gray-400 font-medium pb-2">Custo Total</th>
+            <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Consultas</th>
+            <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Custo Consultas</th>
+            <th className="text-right text-xs text-purple-400 font-medium pb-2 pr-3">Renovações</th>
+            <th className="text-right text-xs text-purple-400 font-medium pb-2 pr-3">Custo Renovações</th>
+            <th className="text-right text-xs text-[#1A3A2C] font-medium pb-2">Total Gasto</th>
           </tr>
         </thead>
         <tbody>
@@ -386,26 +398,28 @@ function TitularTable({ titulares, formatBRL }: {
                   {t.cargo !== '—' && <div>{t.cargo}</div>}
                   {t.departamento !== '—' && <div className="text-gray-400">{t.departamento}</div>}
                 </td>
-                <td className="py-2.5 pr-3 text-sm text-right text-gray-600">{t.consultasProprias}</td>
+                <td className="py-2.5 pr-3 text-sm text-right text-gray-600">{t.totalConsultas}</td>
+                <td className="py-2.5 pr-3 text-sm text-right font-semibold text-[#1A3A2C]">
+                  {t.totalValorConsultas > 0 ? formatBRL(t.totalValorConsultas) : <span className="text-gray-300">—</span>}
+                </td>
                 <td className="py-2.5 pr-3 text-sm text-right">
-                  {t.consultasDependentes > 0
-                    ? <span className="text-blue-600 font-medium">{t.consultasDependentes}</span>
+                  {t.totalRenovacoes > 0
+                    ? <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">{t.totalRenovacoes}</span>
                     : <span className="text-gray-300">—</span>
                   }
                 </td>
-                <td className="py-2.5 pr-3 text-sm text-right font-semibold text-[#1A3A2C]">{t.totalConsultas}</td>
+                <td className="py-2.5 pr-3 text-sm text-right font-semibold text-purple-700">
+                  {t.totalValorRenovacoes > 0 ? formatBRL(t.totalValorRenovacoes) : <span className="text-gray-300">—</span>}
+                </td>
                 <td className="py-2.5 text-sm text-right">
                   <div className="font-bold text-[#1A3A2C]">{formatBRL(t.totalValor)}</div>
-                  {t.valorDependentes > 0 && (
-                    <div className="text-xs text-blue-500">{formatBRL(t.valorDependentes)} dep.</div>
-                  )}
                 </td>
               </tr>
               {/* Linhas de dependentes (expandíveis) */}
               {expandido === i && t.dependentes.map((dep, di) => (
                 <tr key={`dep-${i}-${di}`} className="border-b border-blue-50 bg-blue-50/40">
                   <td className="py-2 pr-2"></td>
-                  <td className="py-2 pr-3 pl-4" colSpan={1}>
+                  <td className="py-2 pr-3 pl-4">
                     <div className="flex items-center gap-2">
                       <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
                       <span className="text-sm text-gray-700">{dep.nome}</span>
@@ -415,17 +429,23 @@ function TitularTable({ titulares, formatBRL }: {
                     <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium capitalize">{dep.relacao}</span>
                   </td>
                   <td className="py-2 pr-3 text-xs text-gray-400">dependente</td>
-                  <td className="py-2 pr-3 text-sm text-right text-gray-400">—</td>
-                  <td className="py-2 pr-3 text-sm text-right text-blue-600 font-medium">{dep.consultas}</td>
-                  <td className="py-2 pr-3 text-sm text-right text-blue-600 font-medium">{dep.consultas}</td>
-                  <td className="py-2 text-sm text-right text-blue-600 font-semibold">{formatBRL(dep.valor)}</td>
+                  <td className="py-2 pr-3 text-sm text-right text-blue-600 font-medium">{dep.consultas || '—'}</td>
+                  <td className="py-2 pr-3 text-sm text-right text-blue-600 font-semibold">{dep.valor > 0 ? formatBRL(dep.valor) : '—'}</td>
+                  <td className="py-2 pr-3 text-sm text-right">
+                    {(dep.renovacoes ?? 0) > 0
+                      ? <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">{dep.renovacoes}</span>
+                      : <span className="text-gray-300">—</span>
+                    }
+                  </td>
+                  <td className="py-2 pr-3 text-sm text-right text-purple-600 font-semibold">{(dep.valorRenovacoes ?? 0) > 0 ? formatBRL(dep.valorRenovacoes) : '—'}</td>
+                  <td className="py-2 text-sm text-right font-bold text-blue-700">{formatBRL((dep.valor ?? 0) + (dep.valorRenovacoes ?? 0))}</td>
                 </tr>
               ))}
             </React.Fragment>
           ))}
         </tbody>
       </table>
-      <p className="text-xs text-gray-400 mt-3">* Clique em uma linha para ver os dependentes. O custo total do titular inclui suas próprias consultas e as dos seus dependentes.</p>
+      <p className="text-xs text-gray-400 mt-3">* Clique em uma linha para ver os dependentes. O custo total do titular inclui suas próprias consultas, renovações e as dos seus dependentes.</p>
     </div>
   )
 }
@@ -565,10 +585,12 @@ async function exportarExcel(data: EmpresaDashData, setLoading: (v: boolean) => 
 
     const kpiRows = [
       ['Métrica', 'Valor'],
-      ['Total de Gastos (Consultas + Mensalidade)', formatBRL(data.kpis.totalGeral)],
+      ['Total de Gastos (Consultas + Mensalidade + Renovações)', formatBRL(data.kpis.totalGeral)],
       ['Gastos com Consultas', formatBRL(data.kpis.totalGastosConsultas)],
       ['Mensalidade', formatBRL(data.kpis.totalMensalidade)],
+      ['Gastos com Renovações de Receita', formatBRL(data.kpis.totalGastosRenovacoes)],
       ['Consultas Realizadas', data.kpis.totalConsultas],
+      ['Renovações Emitidas', data.kpis.totalRenovacoes],
       ['Custo Médio por Consulta', formatBRL(data.kpis.ticketMedio)],
       ['Funcionários Ativos', data.kpis.funcionariosAtivos],
       ['Funcionários com Uso', data.kpis.funcionariosComUso],
@@ -577,8 +599,8 @@ async function exportarExcel(data: EmpresaDashData, setLoading: (v: boolean) => 
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(kpiRows), 'KPIs')
 
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
-      ['Mês', 'Consultas', 'Gastos (R$)'],
-      ...data.gastosPorMes.map(r => [formatMes(r.mes), r.consultas, r.valor]),
+      ['Mês', 'Consultas', 'Gastos Consultas (R$)', 'Renovações', 'Gastos Renovações (R$)', 'Total Gastos (R$)'],
+      ...data.gastosPorMes.map(r => [formatMes(r.mes), r.consultas, r.valor, r.renovacoes, r.valorRenovacoes, r.valorTotal]),
     ]), 'Gastos por Mês')
 
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
@@ -602,8 +624,8 @@ async function exportarExcel(data: EmpresaDashData, setLoading: (v: boolean) => 
     ]), 'Status Agendamentos')
 
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
-      ['Funcionário', 'Cargo', 'Departamento', 'Consultas', 'Total Gasto (R$)'],
-      ...data.topFuncionarios.map(r => [r.nome, r.cargo, r.departamento, r.consultas, r.valor]),
+      ['Funcionário', 'Cargo', 'Departamento', 'Consultas', 'Custo Consultas (R$)', 'Renovações', 'Custo Renovações (R$)', 'Total Gasto (R$)'],
+      ...data.topFuncionarios.map(r => [r.nome, r.cargo, r.departamento, r.consultas, r.valor, r.renovacoes ?? 0, r.valorRenovacoes ?? 0, r.totalValor]),
     ]), 'Top Funcionários')
 
     XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
@@ -656,18 +678,20 @@ function exportarPDF(data: EmpresaDashData) {
   <div class="kpi hi"><div class="kpi-label">Total de Gastos</div><div class="kpi-value">${formatBRL(k.totalGeral)}</div></div>
   <div class="kpi"><div class="kpi-label">Gastos c/ Consultas</div><div class="kpi-value">${formatBRL(k.totalGastosConsultas)}</div></div>
   <div class="kpi"><div class="kpi-label">Mensalidade</div><div class="kpi-value">${formatBRL(k.totalMensalidade)}</div></div>
+  <div class="kpi"><div class="kpi-label">Renovações de Receita</div><div class="kpi-value">${formatBRL(k.totalGastosRenovacoes)}</div></div>
   <div class="kpi"><div class="kpi-label">Consultas Realizadas</div><div class="kpi-value">${k.totalConsultas}</div></div>
+  <div class="kpi"><div class="kpi-label">Renovações Emitidas</div><div class="kpi-value">${k.totalRenovacoes}</div></div>
   <div class="kpi"><div class="kpi-label">Custo Médio / Consulta</div><div class="kpi-value">${formatBRL(k.ticketMedio)}</div></div>
   <div class="kpi"><div class="kpi-label">Taxa de Uso</div><div class="kpi-value">${k.taxaUso}% (${k.funcionariosComUso}/${k.funcionariosAtivos})</div></div>
 </div>
-<section><h2>Gastos por Mês</h2>${tbl(['Mês', 'Consultas', 'Gastos'], data.gastosPorMes.map(r => [formatMes(r.mes), String(r.consultas), formatBRL(r.valor)]))}</section>
+<section><h2>Gastos por Mês</h2>${tbl(['Mês', 'Consultas', 'Gastos Consultas', 'Renovações', 'Gastos Renovações', 'Total'], data.gastosPorMes.map(r => [formatMes(r.mes), String(r.consultas), formatBRL(r.valor), String(r.renovacoes), formatBRL(r.valorRenovacoes), formatBRL(r.valorTotal)]))}</section>
 <section><h2>Gastos por Médico</h2>${tbl(['Médico', 'Especialidade', 'Consultas', 'Gastos'], data.gastosPorMedico.map(r => [r.nome, r.especialidade, String(r.consultas), formatBRL(r.valor)]))}</section>
 <section><h2>Por Faixa Etária</h2>${tbl(['Faixa', 'Consultas', 'Gastos'], data.gastosPorFaixaEtaria.map(r => [r.faixa, String(r.consultas), formatBRL(r.valor)]))}</section>
 <section><h2>Por Sexo</h2>${tbl(['Sexo', 'Consultas', 'Gastos'], data.gastosPorSexo.map(r => [r.sexo, String(r.consultas), formatBRL(r.valor)]))}</section>
 <section><h2>Status dos Agendamentos</h2>${tbl(['Status', 'Quantidade'], data.consultasPorStatus.map(r => [labelStatus(r.status), String(r.count)]))}</section>
 <section><h2>Gastos por Departamento</h2>${tbl(['Departamento', 'Consultas', 'Gastos'], data.gastosPorDepartamento.map(r => [r.departamento, String(r.consultas), formatBRL(r.valor)]))}</section>
 <section><h2>Gastos por Cargo</h2>${tbl(['Cargo', 'Consultas', 'Gastos'], data.gastosPorCargo.map(r => [r.cargo, String(r.consultas), formatBRL(r.valor)]))}</section>
-<section><h2>Top 10 Funcionários por Gasto</h2>${tbl(['Funcionário', 'Cargo', 'Departamento', 'Consultas', 'Total Gasto'], data.topFuncionarios.map(r => [r.nome, r.cargo, r.departamento, String(r.consultas), formatBRL(r.valor)]))}</section>
+<section><h2>Top 10 Funcionários por Gasto</h2>${tbl(['Funcionário', 'Cargo', 'Departamento', 'Consultas', 'Custo Consultas', 'Renovações', 'Custo Renovações', 'Total'], data.topFuncionarios.map(r => [r.nome, r.cargo, r.departamento, String(r.consultas), formatBRL(r.valor), String(r.renovacoes ?? 0), formatBRL(r.valorRenovacoes ?? 0), formatBRL(r.totalValor)]))}</section>
 <script>window.onload=()=>setTimeout(()=>window.print(),400)</script>
 </body></html>`
 
@@ -794,10 +818,13 @@ export default function EmpresaDashboardClient() {
       </div>
 
       {/* ---- KPIs ---- */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <KpiCard label="Total de Gastos" value={formatBRL(kpis.totalGeral)} sub="consultas + mensalidade" icon={DollarSign} color="#5BBD9B" highlight />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <KpiCard label="Total de Gastos" value={formatBRL(kpis.totalGeral)} sub="consultas + mensalidade + renovações" icon={DollarSign} color="#5BBD9B" highlight />
         <KpiCard label="Gastos Consultas" value={formatBRL(kpis.totalGastosConsultas)} sub={`${kpis.totalConsultas} realizadas`} icon={Activity} color="#3B82F6" />
         <KpiCard label="Mensalidade" value={formatBRL(kpis.totalMensalidade)} sub={`${kpis.funcionariosAtivos} funcionários ativos`} icon={Building2} color="#8B5CF6" />
+        {kpis.totalRenovacoes > 0 && (
+          <KpiCard label="Renovações de Receita" value={formatBRL(kpis.totalGastosRenovacoes)} sub={`${kpis.totalRenovacoes} renovação${kpis.totalRenovacoes !== 1 ? 'ões' : ''} emitida${kpis.totalRenovacoes !== 1 ? 's' : ''}`} icon={FileText} color="#8B5CF6" />
+        )}
         <KpiCard label="Custo Médio" value={formatBRL(kpis.ticketMedio)} sub="por consulta" icon={TrendingDown} color="#F59E0B" />
         <KpiCard label="Funcionários Ativos" value={String(kpis.funcionariosAtivos)} sub={`${kpis.funcionariosComUso} com uso`} icon={Users} color="#14B8A6" />
         <KpiCard label="Taxa de Uso" value={`${kpis.taxaUso}%`} sub="da equipe utilizou" icon={UserCheck} color="#EC4899" />
@@ -806,9 +833,14 @@ export default function EmpresaDashboardClient() {
       {/* ---- Row 1: Gastos por mês + Status ---- */}
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <ChartCard title="Gastos por Mês" subtitle="Custo total de consultas no período">
+          <ChartCard title="Gastos por Mês" subtitle="Custo total (consultas + renovações) no período">
             <BarChartSVG data={data.gastosPorMes.map(d => ({ ...d, mes: formatMes(d.mes) }))}
-              labelKey="mes" valueKey="valor" color="#5BBD9B" formatValue={formatBRL} />
+              labelKey="mes" valueKey="valorTotal" color="#5BBD9B" formatValue={formatBRL} />
+            {data.gastosPorMes.some(d => d.valorRenovacoes > 0) && (
+              <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+                <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-[#5BBD9B] inline-block" /> Total (consultas + renovações)</span>
+              </div>
+            )}
           </ChartCard>
         </div>
         <ChartCard title="Status dos Agendamentos" subtitle="Distribuição no período">
@@ -906,7 +938,7 @@ export default function EmpresaDashboardClient() {
       </div>
 
       {/* ---- Row 6: Top funcionários ---- */}
-      <ChartCard title="Top 10 Funcionários por Gasto" subtitle="Maiores utilizadores do plano no período">
+      <ChartCard title="Top 10 Funcionários por Gasto" subtitle="Maiores utilizadores do plano no período (consultas + renovações)">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -916,7 +948,10 @@ export default function EmpresaDashboardClient() {
                 <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Cargo</th>
                 <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Departamento</th>
                 <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Consultas</th>
-                <th className="text-right text-xs text-gray-400 font-medium pb-2">Total Gasto</th>
+                <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Custo Consultas</th>
+                <th className="text-right text-xs text-purple-400 font-medium pb-2 pr-3">Renovações</th>
+                <th className="text-right text-xs text-purple-400 font-medium pb-2 pr-3">Custo Renov.</th>
+                <th className="text-right text-xs text-[#1A3A2C] font-medium pb-2">Total</th>
               </tr>
             </thead>
             <tbody>
@@ -927,13 +962,21 @@ export default function EmpresaDashboardClient() {
                   <td className="py-2.5 pr-3 text-xs text-gray-500">{f.cargo}</td>
                   <td className="py-2.5 pr-3 text-xs text-gray-500">{f.departamento}</td>
                   <td className="py-2.5 pr-3 text-sm text-right text-gray-600">{f.consultas}</td>
-                  <td className="py-2.5 text-sm text-right font-semibold text-[#1A3A2C]">{formatBRL(f.valor)}</td>
+                  <td className="py-2.5 pr-3 text-sm text-right font-semibold text-[#1A3A2C]">{f.valor > 0 ? formatBRL(f.valor) : '—'}</td>
+                  <td className="py-2.5 pr-3 text-sm text-right">
+                    {(f.renovacoes ?? 0) > 0
+                      ? <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">{f.renovacoes}</span>
+                      : <span className="text-gray-300">—</span>
+                    }
+                  </td>
+                  <td className="py-2.5 pr-3 text-sm text-right font-semibold text-purple-700">{(f.valorRenovacoes ?? 0) > 0 ? formatBRL(f.valorRenovacoes) : <span className="text-gray-300">—</span>}</td>
+                  <td className="py-2.5 text-sm text-right font-bold text-[#1A3A2C]">{formatBRL(f.totalValor)}</td>
                 </tr>
               ))}
               {data.topFuncionarios.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-10 text-center text-gray-300 text-sm">
-                    Nenhuma consulta realizada no período selecionado
+                  <td colSpan={9} className="py-10 text-center text-gray-300 text-sm">
+                    Nenhuma consulta ou renovação no período selecionado
                   </td>
                 </tr>
               )}

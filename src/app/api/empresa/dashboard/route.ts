@@ -29,7 +29,7 @@ export async function GET(req: Request) {
   // 1. Empresa (para preços)
   const { data: empresa } = await adminSupabase
     .from('empresas')
-    .select('id, nome, preco_mensalidade, preco_consulta')
+    .select('id, nome, preco_mensalidade, preco_consulta, preco_receita, percentual_coparticipacao')
     .eq('id', empresaId)
     .single()
 
@@ -89,14 +89,19 @@ export async function GET(req: Request) {
     return t ?? v
   }
 
+  const precoConsulta = empresa?.preco_consulta ?? 0
+  const precoReceita = empresa?.preco_receita ?? 0
+
   if (pacienteIds.length === 0) {
-    // Nenhum funcionário ativou ainda
+    const totalMensalidade = (empresa?.preco_mensalidade ?? 0) * funcionariosAtivos
     return NextResponse.json({
       kpis: {
         totalConsultas: 0,
         totalGastosConsultas: 0,
-        totalMensalidade: (empresa?.preco_mensalidade ?? 0) * funcionariosAtivos,
-        totalGeral: (empresa?.preco_mensalidade ?? 0) * funcionariosAtivos,
+        totalMensalidade,
+        totalRenovacoes: 0,
+        totalGastosRenovacoes: 0,
+        totalGeral: totalMensalidade,
         funcionariosAtivos,
         funcionariosComUso: 0,
         ticketMedio: 0,
@@ -119,6 +124,7 @@ export async function GET(req: Request) {
     { data: pacientes },
     { data: medicos },
     { data: agendamentos },
+    { data: receitasData },
   ] = await Promise.all([
     adminSupabase
       .from('atendimentos')
@@ -140,27 +146,47 @@ export async function GET(req: Request) {
       .in('paciente_id', pacienteIds)
       .gte('data_hora', inicio)
       .lte('data_hora', fim),
+    adminSupabase
+      .from('receitas')
+      .select('id, paciente_id, atendimento_id, valor_cobrado, criado_em')
+      .in('paciente_id', pacienteIds)
+      .eq('status', 'emitida')
+      .is('atendimento_id', null)   // apenas renovações (sem consulta vinculada)
+      .gte('criado_em', inicio)
+      .lte('criado_em', fim),
   ])
 
   const pacienteMap = new Map((pacientes ?? []).map((p: any) => [p.id, p]))
   const medicoMap = new Map((medicos ?? []).map((m: any) => [m.id, m]))
   const ats = (atendimentos ?? []) as any[]
 
-  const precoConsulta = empresa?.preco_consulta ?? 0
+  // Renovações com valor resolvido
+  const renovacoes = ((receitasData ?? []) as any[]).map(r => ({
+    ...r,
+    valorFinal: (r.valor_cobrado != null && r.valor_cobrado > 0) ? r.valor_cobrado : precoReceita,
+  }))
 
-  // ===== GASTOS POR MÊS =====
-  const mesMap = new Map<string, { consultas: number; valor: number }>()
+  // ===== GASTOS POR MÊS (consultas + renovações) =====
+  const mesMap = new Map<string, { consultas: number; valor: number; renovacoes: number; valorRenovacoes: number }>()
   for (const a of ats) {
     const d = new Date(a.criado_em)
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const cur = mesMap.get(key) ?? { consultas: 0, valor: 0 }
+    const cur = mesMap.get(key) ?? { consultas: 0, valor: 0, renovacoes: 0, valorRenovacoes: 0 }
     cur.consultas++
     cur.valor += precoConsulta
     mesMap.set(key, cur)
   }
+  for (const r of renovacoes) {
+    const d = new Date(r.criado_em)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const cur = mesMap.get(key) ?? { consultas: 0, valor: 0, renovacoes: 0, valorRenovacoes: 0 }
+    cur.renovacoes++
+    cur.valorRenovacoes += r.valorFinal
+    mesMap.set(key, cur)
+  }
   const gastosPorMes = [...mesMap.entries()]
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([mes, v]) => ({ mes, ...v }))
+    .map(([mes, v]) => ({ mes, ...v, valorTotal: v.valor + v.valorRenovacoes }))
 
   // ===== GASTOS POR MÉDICO =====
   type MedRow = { nome: string; especialidade: string; consultas: number; valor: number }
@@ -245,8 +271,9 @@ export async function GET(req: Request) {
     .map(([cargo, v]) => ({ cargo, ...v }))
     .sort((a, b) => b.valor - a.valor)
 
-  // ===== TOP FUNCIONÁRIOS POR GASTO (dependentes somados ao titular) =====
-  const funcGasto = new Map<string, { nome: string; cargo: string; departamento: string; consultas: number; valor: number }>()
+  // ===== TOP FUNCIONÁRIOS POR GASTO (consultas + renovações, dependentes somados ao titular) =====
+  const funcGasto = new Map<string, { nome: string; cargo: string; departamento: string; consultas: number; valor: number; renovacoes: number; valorRenovacoes: number }>()
+
   for (const a of ats) {
     const vinculo = vinculoMap.get(a.paciente_id)
     const isDep = classRelacao(vinculo?.relacao) === 'Dependente'
@@ -258,20 +285,37 @@ export async function GET(req: Request) {
       nome,
       cargo: titularVinculo?.cargo ?? '—',
       departamento: titularVinculo?.departamento ?? '—',
-      consultas: 0,
-      valor: 0,
+      consultas: 0, valor: 0, renovacoes: 0, valorRenovacoes: 0,
     }
     cur.consultas++
     cur.valor += precoConsulta
     funcGasto.set(key, cur)
   }
+
+  for (const r of renovacoes) {
+    const vinculo = vinculoMap.get(r.paciente_id)
+    const isDep = classRelacao(vinculo?.relacao) === 'Dependente'
+    const titularVinculo = isDep ? (resolverTitularVinculo(vinculo) ?? vinculo) : vinculo
+    const key = titularVinculo?.id ?? vinculo?.id ?? r.paciente_id
+    if (!key) continue
+    const nome = titularVinculo?.nome_completo ?? '—'
+    const cur = funcGasto.get(key) ?? {
+      nome,
+      cargo: titularVinculo?.cargo ?? '—',
+      departamento: titularVinculo?.departamento ?? '—',
+      consultas: 0, valor: 0, renovacoes: 0, valorRenovacoes: 0,
+    }
+    cur.renovacoes++
+    cur.valorRenovacoes += r.valorFinal
+    funcGasto.set(key, cur)
+  }
+
   const topFuncionarios = [...funcGasto.values()]
-    .sort((a, b) => b.valor - a.valor)
+    .map(f => ({ ...f, totalValor: f.valor + f.valorRenovacoes }))
+    .sort((a, b) => b.totalValor - a.totalValor)
     .slice(0, 10)
 
   // ===== RELAÇÃO: FUNCIONÁRIO vs DEPENDENTE =====
-
-  // Composição da base (cadastros)
   const composicaoMap = new Map<string, { cadastros: number; pacientesAtivos: number }>()
   for (const v of todosVinculos) {
     const cat = classRelacao(v.relacao)
@@ -281,7 +325,6 @@ export async function GET(req: Request) {
     composicaoMap.set(cat, cur)
   }
 
-  // Consultas por relação (quantidade e valor)
   const consultasRelMap = new Map<string, number>()
   const valorRelMap = new Map<string, number>()
   for (const a of ats) {
@@ -291,7 +334,6 @@ export async function GET(req: Request) {
     valorRelMap.set(cat, (valorRelMap.get(cat) ?? 0) + precoConsulta)
   }
 
-  // Detalhamento por tipo exato de relação
   const tipoRelMap = new Map<string, { cadastros: number; consultas: number; pacientesAtivos: number }>()
   for (const v of todosVinculos) {
     const rel = (v.relacao?.trim() || 'Não informado')
@@ -317,7 +359,6 @@ export async function GET(req: Request) {
     }))
     .sort((a, b) => b.consultas - a.consultas)
 
-  // Consultas por relação por mês (quantidade e valor)
   const relMesMap = new Map<string, { funcionarios: number; dependentes: number; valorFuncionarios: number; valorDependentes: number }>()
   for (const a of ats) {
     const d = new Date(a.criado_em)
@@ -346,61 +387,52 @@ export async function GET(req: Request) {
     })(),
   }))
 
-  // ===== GASTOS POR TITULAR (funcionário + seus dependentes) =====
-  // Para cada atendimento, descobre quem é o titular cobrado
-  // Se o paciente é dependente → o titular é o funcionário com titular_id apontado
-  // Se o paciente é funcionário (ou sem titular_id) → ele mesmo é o titular
+  // ===== GASTOS POR TITULAR (consultas + renovações, dependentes atribuídos ao titular) =====
   type TitularRow = {
-    nome: string
-    cargo: string
-    departamento: string
-    registroFuncional: string
-    consultasProprias: number
-    consultasDependentes: number
-    valorProprio: number
-    valorDependentes: number
-    dependentes: Map<string, { nome: string; relacao: string; consultas: number; valor: number }>
+    nome: string; cargo: string; departamento: string; registroFuncional: string
+    consultasProprias: number; consultasDependentes: number
+    valorProprio: number; valorDependentes: number
+    renovacoesProprias: number; renovacoesDependentes: number
+    valorRenovacoesProprias: number; valorRenovacoesDependentes: number
+    dependentes: Map<string, { nome: string; relacao: string; consultas: number; valor: number; renovacoes: number; valorRenovacoes: number }>
   }
 
   const titularMap = new Map<string, TitularRow>()
 
+  function ensureTitular(key: string, titularVinculo: any, fallbackVinculo: any): TitularRow {
+    if (!titularMap.has(key)) {
+      titularMap.set(key, {
+        nome: titularVinculo?.nome_completo ?? fallbackVinculo?.nome_completo ?? '—',
+        cargo: titularVinculo?.cargo ?? fallbackVinculo?.cargo ?? '—',
+        departamento: titularVinculo?.departamento ?? fallbackVinculo?.departamento ?? '—',
+        registroFuncional: titularVinculo?.registro_funcional ?? fallbackVinculo?.registro_funcional ?? '—',
+        consultasProprias: 0, consultasDependentes: 0,
+        valorProprio: 0, valorDependentes: 0,
+        renovacoesProprias: 0, renovacoesDependentes: 0,
+        valorRenovacoesProprias: 0, valorRenovacoesDependentes: 0,
+        dependentes: new Map(),
+      })
+    }
+    return titularMap.get(key)!
+  }
+
   for (const a of ats) {
     const vinculo = vinculoMap.get(a.paciente_id)
     if (!vinculo) continue
-
-    // isDependente: apenas pela relação, independente de titular_id estar preenchido
     const isDependente = classRelacao(vinculo.relacao) === 'Dependente'
     const titularVinculo = isDependente ? resolverTitularVinculo(vinculo) : vinculo
-    // Chave do titular: id do vinculo titular se dependente, próprio id se funcionário
     const titularKey = isDependente
       ? (titularVinculo?.id ?? vinculo.id ?? a.paciente_id)
       : (vinculo.id ?? a.paciente_id)
-
     if (!titularKey) continue
 
-    const titularNome = titularVinculo?.nome_completo ?? vinculo.nome_completo ?? '—'
-    const cur = titularMap.get(titularKey) ?? {
-      nome: titularNome,
-      cargo: titularVinculo?.cargo ?? vinculo?.cargo ?? '—',
-      departamento: titularVinculo?.departamento ?? vinculo?.departamento ?? '—',
-      registroFuncional: titularVinculo?.registro_funcional ?? vinculo?.registro_funcional ?? '—',
-      consultasProprias: 0,
-      consultasDependentes: 0,
-      valorProprio: 0,
-      valorDependentes: 0,
-      dependentes: new Map(),
-    }
+    const cur = ensureTitular(titularKey, titularVinculo, vinculo)
 
     if (isDependente) {
       cur.consultasDependentes++
       cur.valorDependentes += precoConsulta
       const depKey = a.paciente_id
-      const depCur = cur.dependentes.get(depKey) ?? {
-        nome: vinculo.nome_completo ?? '—',
-        relacao: vinculo.relacao ?? '—',
-        consultas: 0,
-        valor: 0,
-      }
+      const depCur = cur.dependentes.get(depKey) ?? { nome: vinculo.nome_completo ?? '—', relacao: vinculo.relacao ?? '—', consultas: 0, valor: 0, renovacoes: 0, valorRenovacoes: 0 }
       depCur.consultas++
       depCur.valor += precoConsulta
       cur.dependentes.set(depKey, depCur)
@@ -408,22 +440,48 @@ export async function GET(req: Request) {
       cur.consultasProprias++
       cur.valorProprio += precoConsulta
     }
+    titularMap.set(titularKey, cur)
+  }
 
+  for (const r of renovacoes) {
+    const vinculo = vinculoMap.get(r.paciente_id)
+    if (!vinculo) continue
+    const isDependente = classRelacao(vinculo.relacao) === 'Dependente'
+    const titularVinculo = isDependente ? resolverTitularVinculo(vinculo) : vinculo
+    const titularKey = isDependente
+      ? (titularVinculo?.id ?? vinculo.id ?? r.paciente_id)
+      : (vinculo.id ?? r.paciente_id)
+    if (!titularKey) continue
+
+    const cur = ensureTitular(titularKey, titularVinculo, vinculo)
+
+    if (isDependente) {
+      cur.renovacoesDependentes++
+      cur.valorRenovacoesDependentes += r.valorFinal
+      const depKey = r.paciente_id
+      const depCur = cur.dependentes.get(depKey) ?? { nome: vinculo.nome_completo ?? '—', relacao: vinculo.relacao ?? '—', consultas: 0, valor: 0, renovacoes: 0, valorRenovacoes: 0 }
+      depCur.renovacoes++
+      depCur.valorRenovacoes += r.valorFinal
+      cur.dependentes.set(depKey, depCur)
+    } else {
+      cur.renovacoesProprias++
+      cur.valorRenovacoesProprias += r.valorFinal
+    }
     titularMap.set(titularKey, cur)
   }
 
   const gastosPorTitular = [...titularMap.values()]
     .map(t => ({
-      nome: t.nome,
-      cargo: t.cargo,
-      departamento: t.departamento,
-      registroFuncional: t.registroFuncional,
-      consultasProprias: t.consultasProprias,
-      consultasDependentes: t.consultasDependentes,
+      nome: t.nome, cargo: t.cargo, departamento: t.departamento, registroFuncional: t.registroFuncional,
+      consultasProprias: t.consultasProprias, consultasDependentes: t.consultasDependentes,
       totalConsultas: t.consultasProprias + t.consultasDependentes,
-      valorProprio: t.valorProprio,
-      valorDependentes: t.valorDependentes,
-      totalValor: t.valorProprio + t.valorDependentes,
+      valorProprio: t.valorProprio, valorDependentes: t.valorDependentes,
+      totalValorConsultas: t.valorProprio + t.valorDependentes,
+      renovacoesProprias: t.renovacoesProprias, renovacoesDependentes: t.renovacoesDependentes,
+      totalRenovacoes: t.renovacoesProprias + t.renovacoesDependentes,
+      valorRenovacoesProprias: t.valorRenovacoesProprias, valorRenovacoesDependentes: t.valorRenovacoesDependentes,
+      totalValorRenovacoes: t.valorRenovacoesProprias + t.valorRenovacoesDependentes,
+      totalValor: t.valorProprio + t.valorDependentes + t.valorRenovacoesProprias + t.valorRenovacoesDependentes,
       dependentes: [...t.dependentes.values()],
     }))
     .sort((a, b) => b.totalValor - a.totalValor)
@@ -433,7 +491,9 @@ export async function GET(req: Request) {
   const totalConsultas = ats.length
   const totalGastosConsultas = ats.length * precoConsulta
   const totalMensalidade = (empresa?.preco_mensalidade ?? 0) * funcionariosAtivos
-  const totalGeral = totalGastosConsultas + totalMensalidade
+  const totalRenovacoes = renovacoes.length
+  const totalGastosRenovacoes = renovacoes.reduce((s, r) => s + r.valorFinal, 0)
+  const totalGeral = totalGastosConsultas + totalMensalidade + totalGastosRenovacoes
   const ticketMedio = totalConsultas > 0 ? totalGastosConsultas / totalConsultas : 0
   const taxaUso = funcionariosAtivos > 0 ? Math.round((funcionariosComUso / funcionariosAtivos) * 100) : 0
 
@@ -442,6 +502,8 @@ export async function GET(req: Request) {
       totalConsultas,
       totalGastosConsultas,
       totalMensalidade,
+      totalRenovacoes,
+      totalGastosRenovacoes,
       totalGeral,
       funcionariosAtivos,
       funcionariosComUso,
