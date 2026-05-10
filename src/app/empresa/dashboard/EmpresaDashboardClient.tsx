@@ -703,54 +703,6 @@ export default function EmpresaDashboardClient() {
         </ChartCard>
       </div>
 
-      {/* ---- Row 6: Top funcionários ---- */}
-      <ChartCard title="Top 10 Funcionários por Gasto" subtitle="Maiores utilizadores do plano no período (consultas + renovações)">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">#</th>
-                <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Funcionário</th>
-                <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Cargo</th>
-                <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Departamento</th>
-                <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Consultas</th>
-                <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Custo Consultas</th>
-                <th className="text-right text-xs text-purple-400 font-medium pb-2 pr-3">Renovações</th>
-                <th className="text-right text-xs text-purple-400 font-medium pb-2 pr-3">Custo Renov.</th>
-                <th className="text-right text-xs text-[#1A3A2C] font-medium pb-2">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.topFuncionarios.map((f, i) => (
-                <tr key={i} className={`border-b border-gray-50 ${i === 0 ? 'bg-amber-50' : ''}`}>
-                  <td className="py-2.5 pr-3 text-xs text-gray-400 font-medium">{i + 1}</td>
-                  <td className="py-2.5 pr-3 text-sm font-medium text-[#1A3A2C]">{f.nome}</td>
-                  <td className="py-2.5 pr-3 text-xs text-gray-500">{f.cargo}</td>
-                  <td className="py-2.5 pr-3 text-xs text-gray-500">{f.departamento}</td>
-                  <td className="py-2.5 pr-3 text-sm text-right text-gray-600">{f.consultas}</td>
-                  <td className="py-2.5 pr-3 text-sm text-right font-semibold text-[#1A3A2C]">{f.valor > 0 ? formatBRL(f.valor) : '—'}</td>
-                  <td className="py-2.5 pr-3 text-sm text-right">
-                    {(f.renovacoes ?? 0) > 0
-                      ? <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">{f.renovacoes}</span>
-                      : <span className="text-gray-300">—</span>
-                    }
-                  </td>
-                  <td className="py-2.5 pr-3 text-sm text-right font-semibold text-purple-700">{(f.valorRenovacoes ?? 0) > 0 ? formatBRL(f.valorRenovacoes) : <span className="text-gray-300">—</span>}</td>
-                  <td className="py-2.5 text-sm text-right font-bold text-[#1A3A2C]">{formatBRL(f.totalValor)}</td>
-                </tr>
-              ))}
-              {data.topFuncionarios.length === 0 && (
-                <tr>
-                  <td colSpan={9} className="py-10 text-center text-gray-300 text-sm">
-                    Nenhuma consulta ou renovação no período selecionado
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </ChartCard>
-
     </div>
   )
 }
