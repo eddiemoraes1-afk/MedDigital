@@ -617,7 +617,7 @@ export default function ProducaoMedicaDashboard() {
         <KpiCard
           label="Faturamento Total"
           value={formatBRL(totais.faturamento)}
-          sub={`${totais.consultas} consultas`}
+          sub={`${totais.consultas} consultas + ${totais.renovacoes} renovações`}
           icon={DollarSign} color="#5BBD9B" highlight
         />
         <KpiCard
@@ -629,7 +629,7 @@ export default function ProducaoMedicaDashboard() {
         <KpiCard
           label="Custo Total"
           value={totais.custo > 0 ? formatBRL(totais.custo) : '—'}
-          sub={totais.custo > 0 ? 'repasse aos médicos' : 'nenhum custo configurado'}
+          sub={totais.custo > 0 ? 'repasse: consultas + renovações' : 'nenhum custo configurado'}
           icon={TrendingDown} color="#F97316"
         />
         <KpiCard
@@ -840,7 +840,14 @@ export default function ProducaoMedicaDashboard() {
                       <span className="font-semibold text-gray-700">{row.consultas}</span>
                     </td>
                     <td className="py-3 pr-3 text-right">
-                      <span className="font-bold text-[#1A3A2C]">{formatBRL(row.faturamento)}</span>
+                      <span className="font-bold text-[#1A3A2C]" title={row.gasto_renovacoes > 0 ? `Consultas: ${formatBRL(row.faturamento - row.gasto_renovacoes)} | Renovações: ${formatBRL(row.gasto_renovacoes)}` : undefined}>
+                        {formatBRL(row.faturamento)}
+                      </span>
+                      {row.gasto_renovacoes > 0 && (
+                        <div className="text-[10px] text-orange-500 font-medium leading-tight">
+                          +{formatBRL(row.gasto_renovacoes)} renov.
+                        </div>
+                      )}
                     </td>
                     <td className="py-3 pr-3 text-right">
                       {row.custo_consulta > 0
@@ -894,7 +901,7 @@ export default function ProducaoMedicaDashboard() {
 
       {/* ---- Especialidades table ---- */}
       {data.porEspecialidade.length > 0 && (
-        <ChartCard title="Detalhamento por Especialidade" subtitle="Consultas, faturamento e médicos ativos por área">
+        <ChartCard title="Detalhamento por Especialidade" subtitle="Consultas + renovações de receita, faturamento e médicos ativos por área">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>

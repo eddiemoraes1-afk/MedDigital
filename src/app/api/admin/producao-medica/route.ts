@@ -142,7 +142,9 @@ export async function GET(req: NextRequest) {
       if (cur) {
         cur.renovacoes++
         cur.receitas++
-        cur.gasto_renovacoes += calcValorRenovacao(r)
+        const valor = calcValorRenovacao(r)
+        cur.gasto_renovacoes += valor
+        cur.faturamento += valor  // renovação compõe faturamento do médico
       }
     }
   }
@@ -156,9 +158,9 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Recalcula custo e margem após consolidar consultas
+  // Recalcula custo (repasse) e margem: custo_consulta aplicado a consultas + renovações
   for (const row of prodMap.values()) {
-    row.custo = row.consultas * row.custo_consulta
+    row.custo = (row.consultas + row.renovacoes) * row.custo_consulta
     row.margem = row.faturamento - row.custo
   }
 
@@ -173,6 +175,17 @@ export async function GET(req: NextRequest) {
     cur.consultas++
     cur.faturamento += precoConsulta(a.paciente_id, a.valor_cobrado)
     cur.medicos.add(a.medico_id)
+    espMap.set(esp, cur)
+  }
+  // Adiciona receita das renovações ao faturamento por especialidade
+  for (const r of renovacoes) {
+    if (!r.medico_id) continue
+    const m = medicoMap.get(r.medico_id) as any
+    if (!m) continue
+    const esp = m?.especialidade ?? 'Não informado'
+    const cur = espMap.get(esp) ?? { especialidade: esp, consultas: 0, faturamento: 0, medicos: new Set() }
+    cur.faturamento += calcValorRenovacao(r)
+    cur.medicos.add(r.medico_id)
     espMap.set(esp, cur)
   }
   const porEspecialidade = [...espMap.values()]
@@ -206,6 +219,7 @@ export async function GET(req: NextRequest) {
     const cur = mesMap.get(mes) ?? emptyMes(mes)
     cur.receitas++
     cur.renovacoes++
+    cur.faturamento += calcValorRenovacao(r)  // renovação compõe faturamento mensal
     mesMap.set(mes, cur)
   }
   for (const r of receitasEmConsulta) {
@@ -221,14 +235,15 @@ export async function GET(req: NextRequest) {
     .map(([, v]) => v)
 
   // ── Totais ────────────────────────────────────────────────────────────────
-  const totalFaturamento = ats.reduce((s, a) => s + precoConsulta(a.paciente_id, a.valor_cobrado), 0)
+  // Faturamento consolidado inclui consultas + renovações (já somados no prodMap)
+  const totalFaturamento = [...prodMap.values()].reduce((s, r) => s + r.faturamento, 0)
   const totalCusto = [...prodMap.values()].reduce((s, r) => s + r.custo, 0)
   const totalGastosRenovacoes = renovacoes.reduce((sum: number, r: any) => sum + calcValorRenovacao(r), 0)
 
   const totais = {
     consultas: ats.length,
-    faturamento: totalFaturamento,
-    custo: totalCusto,
+    faturamento: totalFaturamento,           // consultas + renovações
+    custo: totalCusto,                       // repasse por consultas + renovações
     margem: totalFaturamento - totalCusto,
     atestados: atests.length,
     receitas: recs.length,
