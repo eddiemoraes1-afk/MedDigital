@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Mail, MessageCircle, Download, Copy, Check, Smartphone, Loader2 } from 'lucide-react'
+import { X, Mail, MessageCircle, Download, Copy, Check, Smartphone, Loader2, Info } from 'lucide-react'
 import {
   type ReceitaHTMLParams,
   gerarHTMLReceita,
@@ -15,6 +15,8 @@ interface Props {
   onClose: () => void
 }
 
+type Acao = 'share' | 'email' | 'whatsapp' | 'baixar' | null
+
 const LABEL_TIPO: Record<string, string> = {
   simples: 'Receita Simples',
   especial: 'Receita Especial',
@@ -23,25 +25,41 @@ const LABEL_TIPO: Record<string, string> = {
 
 export default function ReceitaShareModal({ params, onClose }: Props) {
   const [copiado, setCopiado] = useState(false)
-  const [baixando, setBaixando] = useState(false)
-  const [compartilhando, setCompartilhando] = useState(false)
-  const [gerando, setGerando] = useState(false)
+  const [acaoAtiva, setAcaoAtiva] = useState<Acao>(null)
   const [erro, setErro] = useState('')
 
   const texto = textoResumidoReceita(params)
   const tipoLabel = LABEL_TIPO[params.tipo] ?? 'Receita Médica'
   const assunto = encodeURIComponent(`${tipoLabel} — RovarisMed`)
-  const corpo = encodeURIComponent(texto)
+  const corpoPDF = encodeURIComponent(
+    `${texto}\n\n— O arquivo PDF da receita foi salvo no seu dispositivo. Adicione-o como anexo.`
+  )
+  const corpoWA = encodeURIComponent(
+    `${texto}\n\n_O PDF da receita foi salvo no seu dispositivo. Anexe o arquivo ao enviar._`
+  )
   const htmlDoc = gerarHTMLReceita(params, false)
   const nomeDoc = nomeArquivoReceita(params.paciente, params.dataEmissao)
 
-  async function compartilharArquivo() {
-    setCompartilhando(true)
+  const ocupado = acaoAtiva !== null
+
+  async function gerarEExecutar(acao: Acao, executar: () => void) {
+    setAcaoAtiva(acao)
     setErro('')
     try {
-      setGerando(true)
+      await baixarComoPDF(htmlDoc, nomeDoc)
+      executar()
+    } catch {
+      setErro('Erro ao gerar o PDF. Tente novamente.')
+    } finally {
+      setAcaoAtiva(null)
+    }
+  }
+
+  async function compartilharNativo() {
+    setAcaoAtiva('share')
+    setErro('')
+    try {
       const file = await criarFilePDF(htmlDoc, nomeDoc)
-      setGerando(false)
       if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], title: `${tipoLabel} — RovarisMed` })
         onClose()
@@ -54,20 +72,7 @@ export default function ReceitaShareModal({ params, onClose }: Props) {
     } catch (e: any) {
       if (e?.name !== 'AbortError') setErro('Erro ao gerar PDF. Tente baixar manualmente.')
     } finally {
-      setCompartilhando(false)
-      setGerando(false)
-    }
-  }
-
-  async function baixar() {
-    setBaixando(true)
-    setErro('')
-    try {
-      await baixarComoPDF(htmlDoc, nomeDoc)
-    } catch {
-      setErro('Erro ao gerar PDF. Verifique sua conexão e tente novamente.')
-    } finally {
-      setTimeout(() => setBaixando(false), 1500)
+      setAcaoAtiva(null)
     }
   }
 
@@ -88,6 +93,7 @@ export default function ReceitaShareModal({ params, onClose }: Props) {
         className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
+        {/* Header */}
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
             <p className="font-semibold text-[#1A3A2C] text-sm">Encaminhar receita</p>
@@ -101,12 +107,12 @@ export default function ReceitaShareModal({ params, onClose }: Props) {
         </div>
 
         <div className="p-4 space-y-2">
-          {gerando && (
-            <div className="flex items-center gap-2 bg-purple-50 border border-purple-100 rounded-xl px-3 py-2.5 text-xs text-purple-700">
-              <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
-              Gerando PDF da receita…
-            </div>
-          )}
+
+          {/* Aviso informativo */}
+          <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5 text-xs text-blue-700 mb-1">
+            <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+            <span>O PDF é gerado e salvo no dispositivo antes de abrir o app. Basta anexá-lo ao enviar.</span>
+          </div>
 
           {erro && (
             <div className="bg-red-50 border border-red-100 rounded-xl px-3 py-2 text-xs text-red-600">
@@ -114,73 +120,87 @@ export default function ReceitaShareModal({ params, onClose }: Props) {
             </div>
           )}
 
-          {/* Compartilhar PDF (native share) */}
+          {/* Compartilhar nativo (mobile) */}
           {temNativeShare && (
             <button
-              onClick={compartilharArquivo}
-              disabled={compartilhando || baixando}
+              onClick={compartilharNativo}
+              disabled={ocupado}
               className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-[#5BBD9B] bg-[#F0FDF4] transition-colors disabled:opacity-60"
             >
               <div className="w-9 h-9 bg-[#5BBD9B] rounded-xl flex items-center justify-center shrink-0">
-                {compartilhando
+                {acaoAtiva === 'share'
                   ? <Loader2 className="w-4 h-4 text-white animate-spin" />
                   : <Smartphone className="w-4 h-4 text-white" />
                 }
               </div>
               <div className="text-left">
                 <p className="font-semibold text-sm text-[#1A3A2C]">
-                  {compartilhando ? 'Gerando PDF…' : 'Compartilhar PDF'}
+                  {acaoAtiva === 'share' ? 'Gerando PDF…' : 'Compartilhar PDF'}
                 </p>
-                <p className="text-xs text-gray-500">WhatsApp, iMessage, e-mail, Drive…</p>
+                <p className="text-xs text-gray-500">Envia o arquivo PDF direto pelo app</p>
               </div>
             </button>
           )}
 
-          {/* Email */}
-          <a
-            href={`mailto:?subject=${assunto}&body=${corpo}`}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-gray-100 transition-colors"
-          >
-            <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
-              <Mail className="w-4 h-4 text-blue-600" />
-            </div>
-            <div>
-              <p className="font-semibold text-sm text-gray-700">E-mail</p>
-              <p className="text-xs text-gray-400">Abre o cliente de e-mail com resumo</p>
-            </div>
-          </a>
-
-          {/* WhatsApp */}
-          <a
-            href={`https://wa.me/?text=${corpo}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-gray-100 transition-colors"
-          >
-            <div className="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
-              <MessageCircle className="w-4 h-4 text-green-600" />
-            </div>
-            <div>
-              <p className="font-semibold text-sm text-gray-700">WhatsApp Web</p>
-              <p className="text-xs text-gray-400">Texto com dados da receita</p>
-            </div>
-          </a>
-
-          {/* Baixar PDF */}
+          {/* E-mail — baixa PDF + abre cliente de e-mail */}
           <button
-            onClick={baixar}
-            disabled={baixando || compartilhando}
+            onClick={() => gerarEExecutar('email', () => {
+              window.location.href = `mailto:?subject=${assunto}&body=${corpoPDF}`
+            })}
+            disabled={ocupado}
             className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-gray-100 transition-colors disabled:opacity-60"
           >
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${baixando ? 'bg-green-100' : 'bg-purple-100'}`}>
-              {baixando
+            <div className="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
+              {acaoAtiva === 'email'
+                ? <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                : <Mail className="w-4 h-4 text-blue-600" />
+              }
+            </div>
+            <div className="text-left">
+              <p className="font-semibold text-sm text-gray-700">
+                {acaoAtiva === 'email' ? 'Gerando PDF…' : 'E-mail'}
+              </p>
+              <p className="text-xs text-gray-400">Salva o PDF + abre o cliente de e-mail</p>
+            </div>
+          </button>
+
+          {/* WhatsApp — baixa PDF + abre WhatsApp Web */}
+          <button
+            onClick={() => gerarEExecutar('whatsapp', () => {
+              window.open(`https://wa.me/?text=${corpoWA}`, '_blank')
+            })}
+            disabled={ocupado}
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-gray-100 transition-colors disabled:opacity-60"
+          >
+            <div className="w-9 h-9 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
+              {acaoAtiva === 'whatsapp'
+                ? <Loader2 className="w-4 h-4 text-green-600 animate-spin" />
+                : <MessageCircle className="w-4 h-4 text-green-600" />
+              }
+            </div>
+            <div className="text-left">
+              <p className="font-semibold text-sm text-gray-700">
+                {acaoAtiva === 'whatsapp' ? 'Gerando PDF…' : 'WhatsApp'}
+              </p>
+              <p className="text-xs text-gray-400">Salva o PDF + abre o WhatsApp Web</p>
+            </div>
+          </button>
+
+          {/* Baixar PDF apenas */}
+          <button
+            onClick={() => gerarEExecutar('baixar', () => {})}
+            disabled={ocupado}
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-gray-100 transition-colors disabled:opacity-60"
+          >
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${acaoAtiva === 'baixar' ? 'bg-green-100' : 'bg-purple-100'}`}>
+              {acaoAtiva === 'baixar'
                 ? <Check className="w-4 h-4 text-green-600" />
                 : <Download className="w-4 h-4 text-purple-600" />
               }
             </div>
             <div className="text-left">
               <p className="font-semibold text-sm text-gray-700">
-                {baixando ? 'Baixando PDF…' : 'Baixar PDF'}
+                {acaoAtiva === 'baixar' ? 'Baixando…' : 'Baixar PDF'}
               </p>
               <p className="text-xs text-gray-400">Salva a receita em PDF no dispositivo</p>
             </div>
@@ -189,7 +209,8 @@ export default function ReceitaShareModal({ params, onClose }: Props) {
           {/* Copiar texto */}
           <button
             onClick={copiar}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-gray-100 transition-colors"
+            disabled={ocupado}
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-gray-100 transition-colors disabled:opacity-60"
           >
             <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${copiado ? 'bg-green-100' : 'bg-gray-100'}`}>
               {copiado
