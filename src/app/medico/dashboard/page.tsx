@@ -4,7 +4,7 @@ import Link from 'next/link'
 import {
   Users, Clock, CheckCircle2, AlertTriangle, Calendar,
   FileText, Stethoscope, ClipboardList, Video, FlaskConical,
-  ChevronRight,
+  ChevronRight, BarChart2,
 } from 'lucide-react'
 import PingMedico from '../PingMedico'
 import MedicoHeader from '../MedicoHeader'
@@ -353,7 +353,17 @@ export default async function MedicoDashboard() {
         </div>
 
         {/* ── Atalhos ── */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Link href="/medico/producao"
+            className="bg-[#1A3A2C] rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow">
+            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center shrink-0">
+              <BarChart2 className="w-5 h-5 text-[#5BBD9B]" />
+            </div>
+            <div>
+              <p className="font-semibold text-white text-sm">Minha Produção</p>
+              <p className="text-xs text-green-300">Ver ganhos e histórico</p>
+            </div>
+          </Link>
           <Link href="/medico/pacientes"
             className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow">
             <div className="w-10 h-10 bg-[#1A3A2C]/10 rounded-xl flex items-center justify-center shrink-0">

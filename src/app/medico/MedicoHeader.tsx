@@ -1,21 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, LogOut } from 'lucide-react'
+import { ArrowLeft, LogOut, LayoutDashboard, BarChart2 } from 'lucide-react'
 
 interface Props {
-  /** Nome da seção/tela exibido como badge no header */
   titulo: string
-  /** Onde o botão Voltar leva. Omitir na tela inicial (dashboard). */
   backHref?: string
-  /** Nome completo do médico logado (opcional em páginas client sem acesso a dados) */
   medicoNome?: string
 }
 
-/**
- * Header padronizado para todas as páginas da área /medico.
- * Componente client para funcionar tanto em server pages quanto client pages.
- */
 export default function MedicoHeader({ titulo, backHref, medicoNome }: Props) {
   const primeiroNome = medicoNome?.split(' ')[0] ?? ''
 
@@ -23,7 +16,7 @@ export default function MedicoHeader({ titulo, backHref, medicoNome }: Props) {
     <header className="bg-[#1A3A2C] text-white px-6 py-3.5 shrink-0">
       <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
 
-        {/* Esquerda: voltar + logo + badge de seção */}
+        {/* Esquerda: voltar + logo + badge */}
         <div className="flex items-center gap-3 min-w-0">
           {backHref && (
             <Link
@@ -41,10 +34,24 @@ export default function MedicoHeader({ titulo, backHref, medicoNome }: Props) {
           </span>
         </div>
 
-        {/* Direita: nome + logout */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Direita: nav + nome + logout */}
+        <div className="flex items-center gap-1 shrink-0">
+          <Link
+            href="/medico/dashboard"
+            className="flex items-center gap-1.5 text-green-200 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+          >
+            <LayoutDashboard className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Painel</span>
+          </Link>
+          <Link
+            href="/medico/producao"
+            className="flex items-center gap-1.5 text-green-200 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
+          >
+            <BarChart2 className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Minha Produção</span>
+          </Link>
           {primeiroNome && (
-            <span className="text-sm font-semibold text-white hidden sm:block">
+            <span className="text-sm font-semibold text-white hidden lg:block px-2">
               Dr(a). {primeiroNome}
             </span>
           )}
