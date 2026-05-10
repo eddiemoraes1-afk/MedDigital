@@ -13,8 +13,15 @@ import BotoesAprovacao from '../../components/BotoesAprovacao'
 import ToggleMedicoAtivo from '../ToggleMedicoAtivo'
 import ConfigMedico from './ConfigMedico'
 
-export default async function FichaMedicoPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function FichaMedicoPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ back?: string }>
+}) {
   const { id } = await params
+  const { back } = await searchParams
   await requireAdmin()
 
   const admin = createAdminClient()
@@ -154,7 +161,7 @@ export default async function FichaMedicoPage({ params }: { params: Promise<{ id
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <AdminHeader titulo="Ficha do Médico" backHref="/admin/medicos" />
+      <AdminHeader titulo="Ficha do Médico" backHref={back ? decodeURIComponent(back) : '/admin/medicos'} />
 
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-6">
 
@@ -366,7 +373,7 @@ export default async function FichaMedicoPage({ params }: { params: Promise<{ id
                             <td className="px-5 py-3">
                               {a.paciente_id && nomePaciente ? (
                                 <Link
-                                  href={`/admin/pacientes/${a.paciente_id}`}
+                                  href={`/admin/pacientes/${a.paciente_id}?back=${encodeURIComponent(`/admin/medicos/${id}`)}`}
                                   className="text-sm text-[#5BBD9B] hover:underline font-medium"
                                 >
                                   {nomePaciente}
@@ -445,7 +452,7 @@ export default async function FichaMedicoPage({ params }: { params: Promise<{ id
                             <td className="px-5 py-3 text-xs text-gray-600">{data}</td>
                             <td className="px-5 py-3">
                               {a.paciente_id && pacienteMap[a.paciente_id] ? (
-                                <Link href={`/admin/pacientes/${a.paciente_id}`} className="text-sm text-[#5BBD9B] hover:underline">
+                                <Link href={`/admin/pacientes/${a.paciente_id}?back=${encodeURIComponent(`/admin/medicos/${id}`)}`} className="text-sm text-[#5BBD9B] hover:underline">
                                   {pacienteMap[a.paciente_id]}
                                 </Link>
                               ) : <span className="text-gray-300 text-xs">—</span>}

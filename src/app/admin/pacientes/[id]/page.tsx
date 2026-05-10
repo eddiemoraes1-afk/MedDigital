@@ -4,24 +4,25 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import {
   User, Phone, FileText, Building2, Calendar, Activity,
-  Clock, CheckCircle2, Mail, Briefcase, MapPin, XCircle, AlertCircle
+  Clock, CheckCircle2, Mail, Briefcase, MapPin, XCircle,
+  Stethoscope, ClipboardList, DollarSign,
 } from 'lucide-react'
 import AdminHeader from '../../components/AdminHeader'
 
 interface Props {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ filtro?: string }>
+  searchParams: Promise<{ filtro?: string; back?: string }>
 }
 
 export default async function FichaPacientePage({ params, searchParams }: Props) {
   const { id } = await params
-  const { filtro } = await searchParams
+  const { filtro, back } = await searchParams
   await requireAdmin()
 
-  const adminSupabase = createAdminClient()
+  const admin = createAdminClient()
 
-  // Buscar paciente
-  const { data: paciente } = await adminSupabase
+  // ── Paciente ──────────────────────────────────────────────────────────────
+  const { data: paciente } = await admin
     .from('pacientes')
     .select('*')
     .eq('id', id)
@@ -29,110 +30,137 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
 
   if (!paciente) redirect('/admin/pacientes')
 
-  // Buscar vínculo com empresa pelo CPF
+  // ── Vínculo com empresa ───────────────────────────────────────────────────
   const { data: vinculo } = paciente.cpf
-    ? await adminSupabase
+    ? await admin
         .from('vinculos_empresa')
         .select('*, empresas(id, nome, cnpj)')
         .eq('cpf', paciente.cpf)
         .maybeSingle()
     : { data: null }
 
-  // Buscar agendamentos do paciente
-  const { data: agendamentos } = await adminSupabase
-    .from('agendamentos')
-    .select('id, data_hora, status, tipo_consulta, medico_id')
+  // ── Atendimentos concluídos ───────────────────────────────────────────────
+  const { data: atendimentosData } = await admin
+    .from('atendimentos')
+    .select('id, criado_em, finalizado_em, medico_id, valor_cobrado, agendamento_id')
     .eq('paciente_id', id)
-    .order('data_hora', { ascending: false })
+    .eq('status', 'concluido')
+    .order('criado_em', { ascending: false })
 
-  // IDs de médicos para buscar nomes
-  const medicoIds = [...new Set(agendamentos?.map(a => a.medico_id).filter(Boolean) ?? [])]
+  const atendimentos = atendimentosData ?? []
+
+  // ── Atestados ─────────────────────────────────────────────────────────────
+  const { data: atestadosData } = await admin
+    .from('atestados')
+    .select('id, medico_id, criado_em, dias, cid')
+    .eq('paciente_id', id)
+    .order('criado_em', { ascending: false })
+
+  const atestados = atestadosData ?? []
+
+  // ── Receitas ──────────────────────────────────────────────────────────────
+  const { data: receitasData } = await admin
+    .from('receitas')
+    .select('id, medico_id, criado_em, status, valor_cobrado')
+    .eq('paciente_id', id)
+    .order('criado_em', { ascending: false })
+
+  const receitas = receitasData ?? []
+
+  // ── Médicos (para nomes) ──────────────────────────────────────────────────
+  const medicoIds = [...new Set([
+    ...atendimentos.map(a => a.medico_id),
+    ...atestados.map(a => a.medico_id),
+    ...receitas.map(r => r.medico_id),
+  ].filter(Boolean))]
+
   const { data: medicos } = medicoIds.length > 0
-    ? await adminSupabase
-        .from('medicos')
-        .select('id, nome')
-        .in('id', medicoIds)
+    ? await admin.from('medicos').select('id, nome').in('id', medicoIds)
     : { data: [] }
 
   const medicoMap: Record<string, string> = {}
-  medicos?.forEach(m => { medicoMap[m.id] = m.nome })
+  ;(medicos ?? []).forEach(m => { medicoMap[m.id] = m.nome })
 
-  const totalConsultas = agendamentos?.length ?? 0
-  const consultasRealizadas = agendamentos?.filter(a => a.status === 'concluido').length ?? 0
-  const proximaConsulta = agendamentos?.find(a =>
+  // ── Agendamentos futuros (próxima consulta) ───────────────────────────────
+  const { data: agendamentos } = await admin
+    .from('agendamentos')
+    .select('id, data_hora, status, medico_id')
+    .eq('paciente_id', id)
+    .order('data_hora', { ascending: false })
+
+  const proximaConsulta = (agendamentos ?? []).find(a =>
     a.status !== 'cancelado' && new Date(a.data_hora) > new Date()
   )
 
-  // Aplicar filtro de visualização
-  const consultasExibidas = filtro === 'concluido'
-    ? agendamentos?.filter(a => a.status === 'concluido') ?? []
-    : agendamentos ?? []
+  // ── Agendamentos p/ historico (fallback) ──────────────────────────────────
+  const allAgendamentos = agendamentos ?? []
+  const consultasAgendadas = filtro === 'concluido'
+    ? allAgendamentos.filter(a => a.status === 'concluido')
+    : allAgendamentos
 
-  function formatDataHora(iso: string) {
-    const d = new Date(iso + (iso.endsWith('Z') ? '' : 'Z'))
-    return {
-      data: d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: 'short', year: 'numeric' }),
-      hora: d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }),
-    }
-  }
+  // ── KPIs ──────────────────────────────────────────────────────────────────
+  const totalAtendimentos = atendimentos.length
+  const totalAtestados = atestados.length
+  const totalReceitas = receitas.length
 
-  function statusBadge(status: string) {
-    if (status === 'concluido') return 'bg-green-100 text-green-700'
-    if (status === 'confirmado') return 'bg-green-100 text-green-700'
-    if (status === 'cancelado') return 'bg-red-100 text-red-600'
-    return 'bg-yellow-100 text-yellow-700'
-  }
-
-  function statusLabel(status: string) {
-    if (status === 'concluido') return 'Concluída'
-    if (status === 'confirmado') return 'Confirmada'
-    if (status === 'cancelado') return 'Cancelada'
-    return 'Pendente'
-  }
-
+  // ── Helpers ───────────────────────────────────────────────────────────────
   const empresa = vinculo?.empresas as any
 
-  // Verificar se há dados cadastrais extras para mostrar
   const temDadosCadastrais = paciente.data_nascimento || paciente.sexo ||
     paciente.convenio || paciente.numero_convenio || paciente.email
 
+  const backHref = back ? decodeURIComponent(back) : '/admin/pacientes'
+
+  function formatDataHora(iso: string | null | undefined) {
+    if (!iso) return { data: '—', hora: '—' }
+    try {
+      const d = new Date(iso.endsWith('Z') ? iso : iso + 'Z')
+      return {
+        data: d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: 'short', year: 'numeric' }),
+        hora: d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' }),
+      }
+    } catch {
+      return { data: '—', hora: '—' }
+    }
+  }
+
+  function formatBRL(v: number) {
+    return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  }
+
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <AdminHeader titulo="Ficha do Paciente" backHref="/admin/pacientes" />
+      <AdminHeader titulo="Ficha do Paciente" backHref={backHref} />
 
-      <main className="max-w-5xl mx-auto px-6 py-8">
+      <main className="max-w-6xl mx-auto px-6 py-8 space-y-6">
 
-        {/* Cabeçalho do paciente */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+        {/* ── Cabeçalho do paciente ── */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm">
           <div className="flex items-start gap-5">
             <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center shrink-0">
               <User className="w-8 h-8 text-green-600" />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-bold text-[#1A3A2C]">{paciente.nome}</h1>
               <div className="flex flex-wrap gap-4 mt-2">
                 {paciente.cpf && (
                   <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                    <FileText className="w-3.5 h-3.5 text-gray-400" />
-                    {paciente.cpf}
+                    <FileText className="w-3.5 h-3.5 text-gray-400" />{paciente.cpf}
                   </span>
                 )}
                 {paciente.telefone && (
                   <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                    <Phone className="w-3.5 h-3.5 text-gray-400" />
-                    {paciente.telefone}
+                    <Phone className="w-3.5 h-3.5 text-gray-400" />{paciente.telefone}
                   </span>
                 )}
                 {paciente.email && (
                   <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                    <Mail className="w-3.5 h-3.5 text-gray-400" />
-                    {paciente.email}
+                    <Mail className="w-3.5 h-3.5 text-gray-400" />{paciente.email}
                   </span>
                 )}
                 {paciente.convenio && (
                   <span className="flex items-center gap-1.5 text-sm text-gray-500">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />
-                    {paciente.convenio}
+                    <CheckCircle2 className="w-3.5 h-3.5 text-blue-400" />{paciente.convenio}
                   </span>
                 )}
               </div>
@@ -142,79 +170,82 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
               </p>
             </div>
 
-            {/* KPIs clicáveis */}
+            {/* KPIs */}
             <div className="flex gap-3 shrink-0">
-              <Link
-                href={`/admin/pacientes/${id}#historico`}
-                className="text-center bg-[#F3FAF7] hover:bg-green-50 transition-colors rounded-xl px-4 py-3 cursor-pointer"
-              >
-                <p className="text-2xl font-bold text-[#1A3A2C]">{totalConsultas}</p>
+              <div className="text-center bg-[#F3FAF7] rounded-xl px-4 py-3">
+                <p className="text-2xl font-bold text-[#1A3A2C]">{totalAtendimentos}</p>
                 <p className="text-xs text-gray-400">consultas</p>
-              </Link>
-              <Link
-                href={`/admin/pacientes/${id}?filtro=concluido#historico`}
-                className="text-center bg-green-50 hover:bg-green-100 transition-colors rounded-xl px-4 py-3 cursor-pointer"
-              >
-                <p className="text-2xl font-bold text-green-600">{consultasRealizadas}</p>
-                <p className="text-xs text-gray-400">realizadas</p>
-              </Link>
+              </div>
+              <div className="text-center bg-amber-50 rounded-xl px-4 py-3">
+                <p className="text-2xl font-bold text-amber-600">{totalAtestados}</p>
+                <p className="text-xs text-gray-400">atestados</p>
+              </div>
+              <div className="text-center bg-purple-50 rounded-xl px-4 py-3">
+                <p className="text-2xl font-bold text-purple-600">{totalReceitas}</p>
+                <p className="text-xs text-gray-400">receitas</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        {/* ── Grid: conteúdo + sidebar ── */}
+        <div className="grid lg:grid-cols-3 gap-6">
 
-          {/* Histórico de consultas — 2/3 */}
-          <div className="md:col-span-2" id="historico">
-            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          {/* ── Coluna principal ── */}
+          <div className="lg:col-span-2 space-y-6">
+
+            {/* Histórico de Atendimentos Concluídos */}
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden" id="historico">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
+                <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
                   <Activity className="w-4 h-4 text-[#5BBD9B]" />
-                  {filtro === 'concluido' ? 'Consultas Realizadas' : 'Histórico de Consultas'}
-                  <span className="text-xs text-gray-400 font-normal">({consultasExibidas.length})</span>
+                  Consultas Realizadas
+                  <span className="text-xs text-gray-400 font-normal">({totalAtendimentos})</span>
                 </h2>
-                {filtro === 'concluido' && (
-                  <Link
-                    href={`/admin/pacientes/${id}#historico`}
-                    className="text-xs text-[#5BBD9B] hover:underline"
-                  >
-                    Ver todas
-                  </Link>
-                )}
               </div>
 
-              {consultasExibidas.length > 0 ? (
+              {atendimentos.length > 0 ? (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                    <thead className="bg-gray-50 text-xs text-gray-400 font-medium uppercase tracking-wide">
                       <tr>
                         <th className="px-5 py-3 text-left">Data</th>
                         <th className="px-5 py-3 text-left">Médico</th>
                         <th className="px-5 py-3 text-left">Tipo</th>
-                        <th className="px-5 py-3 text-center">Status</th>
+                        <th className="px-5 py-3 text-right">Valor</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                      {consultasExibidas.map(a => {
-                        const { data, hora } = formatDataHora(a.data_hora)
+                      {atendimentos.map(a => {
+                        const { data, hora } = formatDataHora(a.finalizado_em ?? a.criado_em)
+                        const medicoNome = a.medico_id ? medicoMap[a.medico_id] : null
                         return (
                           <tr key={a.id} className="hover:bg-gray-50 transition-colors">
                             <td className="px-5 py-3">
-                              <p className="font-medium text-gray-800">{data}</p>
-                              <p className="text-xs text-gray-400 flex items-center gap-1">
+                              <p className="font-medium text-gray-800 text-xs">{data}</p>
+                              <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
                                 <Clock className="w-3 h-3" /> {hora}
                               </p>
                             </td>
-                            <td className="px-5 py-3 text-gray-600 text-sm">
-                              {medicoMap[a.medico_id] || <span className="text-gray-300">—</span>}
+                            <td className="px-5 py-3">
+                              {medicoNome ? (
+                                <Link
+                                  href={`/admin/medicos/${a.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
+                                  className="text-sm text-[#5BBD9B] hover:underline font-medium"
+                                >
+                                  {medicoNome}
+                                </Link>
+                              ) : (
+                                <span className="text-gray-300 text-xs">—</span>
+                              )}
                             </td>
-                            <td className="px-5 py-3 text-gray-500 text-xs">
-                              {a.tipo_consulta || '—'}
-                            </td>
-                            <td className="px-5 py-3 text-center">
-                              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusBadge(a.status)}`}>
-                                {statusLabel(a.status)}
+                            <td className="px-5 py-3">
+                              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                                {a.agendamento_id ? 'Agendada' : 'Virtual'}
                               </span>
+                            </td>
+                            <td className="px-5 py-3 text-right text-sm font-semibold text-[#1A3A2C]">
+                              {a.valor_cobrado ? formatBRL(a.valor_cobrado) : '—'}
                             </td>
                           </tr>
                         )
@@ -225,26 +256,137 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
               ) : (
                 <div className="py-14 text-center">
                   <Activity className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                  <p className="text-sm text-gray-400">
-                    {filtro === 'concluido'
-                      ? 'Nenhuma consulta realizada ainda'
-                      : 'Nenhuma consulta registrada'}
-                  </p>
+                  <p className="text-sm text-gray-400">Nenhuma consulta realizada</p>
                 </div>
               )}
             </div>
+
+            {/* Atestados */}
+            {atestados.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100">
+                  <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
+                    <FileText className="w-4 h-4 text-amber-500" />
+                    Atestados Emitidos
+                    <span className="text-xs text-gray-400 font-normal">({atestados.length})</span>
+                  </h2>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 text-xs text-gray-400 font-medium uppercase tracking-wide">
+                      <tr>
+                        <th className="px-5 py-3 text-left">Data</th>
+                        <th className="px-5 py-3 text-left">Médico</th>
+                        <th className="px-5 py-3 text-center">Dias</th>
+                        <th className="px-5 py-3 text-left">CID</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {atestados.map(a => {
+                        const { data } = formatDataHora(a.criado_em)
+                        return (
+                          <tr key={a.id} className="hover:bg-gray-50">
+                            <td className="px-5 py-3 text-xs text-gray-600">{data}</td>
+                            <td className="px-5 py-3">
+                              {a.medico_id && medicoMap[a.medico_id] ? (
+                                <Link
+                                  href={`/admin/medicos/${a.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
+                                  className="text-sm text-[#5BBD9B] hover:underline"
+                                >
+                                  {medicoMap[a.medico_id]}
+                                </Link>
+                              ) : <span className="text-gray-300 text-xs">—</span>}
+                            </td>
+                            <td className="px-5 py-3 text-center">
+                              <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+                                {a.dias ?? '—'} dias
+                              </span>
+                            </td>
+                            <td className="px-5 py-3 text-xs text-gray-500 font-mono">{a.cid || '—'}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Receitas */}
+            {receitas.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100">
+                  <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
+                    <ClipboardList className="w-4 h-4 text-purple-500" />
+                    Receitas Emitidas
+                    <span className="text-xs text-gray-400 font-normal">({receitas.length})</span>
+                  </h2>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 text-xs text-gray-400 font-medium uppercase tracking-wide">
+                      <tr>
+                        <th className="px-5 py-3 text-left">Data</th>
+                        <th className="px-5 py-3 text-left">Médico</th>
+                        <th className="px-5 py-3 text-center">Status</th>
+                        <th className="px-5 py-3 text-right">Valor</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {receitas.map(r => {
+                        const { data } = formatDataHora(r.criado_em)
+                        return (
+                          <tr key={r.id} className="hover:bg-gray-50">
+                            <td className="px-5 py-3 text-xs text-gray-600">{data}</td>
+                            <td className="px-5 py-3">
+                              {r.medico_id && medicoMap[r.medico_id] ? (
+                                <Link
+                                  href={`/admin/medicos/${r.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
+                                  className="text-sm text-[#5BBD9B] hover:underline"
+                                >
+                                  {medicoMap[r.medico_id]}
+                                </Link>
+                              ) : <span className="text-gray-300 text-xs">—</span>}
+                            </td>
+                            <td className="px-5 py-3 text-center">
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                                r.status === 'emitida' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                              }`}>
+                                {r.status === 'emitida' ? 'Emitida' : r.status ?? '—'}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3 text-right text-sm font-semibold text-[#1A3A2C]">
+                              {r.valor_cobrado ? formatBRL(r.valor_cobrado) : '—'}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Se não há nenhuma atividade */}
+            {atendimentos.length === 0 && atestados.length === 0 && receitas.length === 0 && (
+              <div className="bg-white rounded-2xl shadow-sm py-14 text-center">
+                <Activity className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+                <p className="text-sm text-gray-400">Nenhuma atividade registrada para este paciente</p>
+              </div>
+            )}
+
           </div>
 
-          {/* Painel lateral — 1/3 */}
+          {/* ── Sidebar ── */}
           <div className="space-y-4">
 
             {/* Próxima consulta */}
             {proximaConsulta && (
               <div className="bg-green-50 border border-green-200 rounded-2xl p-5">
-                <h3 className="font-semibold text-blue-800 text-sm flex items-center gap-2 mb-2">
+                <h3 className="font-semibold text-green-800 text-sm flex items-center gap-2 mb-2">
                   <Calendar className="w-4 h-4" /> Próxima consulta
                 </h3>
-                <p className="text-blue-900 font-medium">
+                <p className="text-green-900 font-medium">
                   {formatDataHora(proximaConsulta.data_hora).data}
                 </p>
                 <p className="text-sm text-green-600 flex items-center gap-1 mt-1">
@@ -252,8 +394,8 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                   {formatDataHora(proximaConsulta.data_hora).hora}
                 </p>
                 {proximaConsulta.medico_id && medicoMap[proximaConsulta.medico_id] && (
-                  <p className="text-xs text-blue-500 mt-1">
-                    {medicoMap[proximaConsulta.medico_id]}
+                  <p className="text-xs text-green-600 mt-1">
+                    Dr(a). {medicoMap[proximaConsulta.medico_id]}
                   </p>
                 )}
               </div>
@@ -352,6 +494,43 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                 <p className="text-xs text-gray-400">Nenhum dado adicional cadastrado</p>
               )}
             </div>
+
+            {/* Resumo de atividade */}
+            {(totalAtendimentos > 0 || totalAtestados > 0 || totalReceitas > 0) && (
+              <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                <h3 className="font-semibold text-[#1A3A2C] text-xs uppercase tracking-wide mb-3">Resumo de Atividade</h3>
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-1.5 text-gray-500">
+                      <Stethoscope className="w-3.5 h-3.5 text-[#5BBD9B]" /> Consultas
+                    </span>
+                    <span className="font-bold text-[#1A3A2C]">{totalAtendimentos}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-1.5 text-gray-500">
+                      <FileText className="w-3.5 h-3.5 text-amber-500" /> Atestados
+                    </span>
+                    <span className="font-bold text-amber-600">{totalAtestados}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-1.5 text-gray-500">
+                      <ClipboardList className="w-3.5 h-3.5 text-purple-500" /> Receitas
+                    </span>
+                    <span className="font-bold text-purple-600">{totalReceitas}</span>
+                  </div>
+                  {totalAtendimentos > 0 && (
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                      <span className="flex items-center gap-1.5 text-gray-500">
+                        <DollarSign className="w-3.5 h-3.5 text-[#5BBD9B]" /> Total gasto
+                      </span>
+                      <span className="font-bold text-[#1A3A2C]">
+                        {formatBRL(atendimentos.reduce((s, a) => s + (a.valor_cobrado ?? 0), 0))}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
           </div>
         </div>
