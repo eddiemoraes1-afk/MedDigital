@@ -9,7 +9,7 @@ export async function GET(
   await requireAdmin()
   const { id } = await params
   const { searchParams } = new URL(req.url)
-  const de = searchParams.get('de') ?? new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
+  const de  = searchParams.get('de')  ?? new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
   const ate = searchParams.get('ate') ?? new Date().toISOString().split('T')[0]
 
   const adminSupabase = createAdminClient()
@@ -53,6 +53,7 @@ export async function GET(
     }
   })
 
+  // Resolve o vínculo do titular de um vínculo qualquer
   function resolverTitularVinculo(v: any): any {
     if (!v) return null
     const eDep = classRelacaoLocal(v.relacao) === 'Dependente'
@@ -65,12 +66,13 @@ export async function GET(
   }
 
   // Receitas emitidas no período para pacientes desta empresa
-  const deISO_base = `${de}T00:00:00.000Z`
+  // IMPORTANTE: inclui atendimento_id para distinguir renovação de receita de consulta
+  const deISO_base  = `${de}T00:00:00.000Z`
   const ateISO_base = `${ate}T23:59:59.999Z`
   const { data: receitasData } = pacienteIds.length > 0
     ? await adminSupabase
         .from('receitas')
-        .select('id, paciente_id, valor_cobrado, criado_em, status, observacao')
+        .select('id, paciente_id, atendimento_id, valor_cobrado, valor_coparticipacao, criado_em, status, observacao')
         .in('paciente_id', pacienteIds)
         .eq('status', 'emitida')
         .gte('criado_em', deISO_base)
@@ -78,14 +80,40 @@ export async function GET(
         .order('criado_em', { ascending: false })
     : { data: [] }
 
+  const precoReceita     = empresa.preco_receita ?? 0
+  const percentualCopart = empresa.percentual_coparticipacao ?? 0
+
   const receitas = (receitasData ?? []).map((r: any) => {
-    const vinculo = vinculos?.find((v: any) => v.paciente_id === r.paciente_id)
+    // Renovação: atendimento_id é null (receita emitida fora de uma consulta)
+    // Receita de consulta: atendimento_id preenchido → custo R$ 0 para a empresa
+    const isRenovacao = r.atendimento_id === null || r.atendimento_id === undefined
+
+    const vinculo        = vinculoByPacienteId[r.paciente_id]
+    const eDependente    = classRelacaoLocal(vinculo?.relacao) === 'Dependente'
+    const titularVinculo = eDependente ? resolverTitularVinculo(vinculo) : vinculo
+    const titularNome    = titularVinculo?.nome_completo ?? vinculo?.nome_completo ?? '—'
+    const titularId      = titularVinculo?.id ?? vinculo?.id ?? null
+
+    // Só renovações têm custo; receitas emitidas durante consulta = R$ 0,00
+    const valorCobrado = isRenovacao
+      ? (r.valor_cobrado != null && r.valor_cobrado > 0 ? r.valor_cobrado : precoReceita)
+      : 0
+    const valorCoparticipacao = isRenovacao && percentualCopart > 0
+      ? Math.round(valorCobrado * (percentualCopart / 100) * 100) / 100
+      : 0
+
     return {
       id: r.id,
       data: r.criado_em,
       paciente_id: r.paciente_id,
       paciente_nome: vinculo?.nome_completo ?? '—',
-      valor_cobrado: r.valor_cobrado ?? empresa.preco_receita ?? 0,
+      relacao: vinculo?.relacao ?? 'Funcionário',
+      e_dependente: eDependente,
+      titular_id: titularId,
+      titular_nome: titularNome,
+      is_renovacao: isRenovacao,
+      valor_cobrado: valorCobrado,
+      valor_coparticipacao: valorCoparticipacao,
       observacao: r.observacao ?? null,
     }
   })
@@ -94,7 +122,7 @@ export async function GET(
   let medicos: any[] = []
 
   if (pacienteIds.length > 0) {
-    const deISO = `${de}T00:00:00.000Z`
+    const deISO  = `${de}T00:00:00.000Z`
     const ateISO = `${ate}T23:59:59.999Z`
 
     const { data: atendimentos } = await adminSupabase
@@ -116,15 +144,14 @@ export async function GET(
     medicos.forEach(m => { medicoMap[m.id] = m.nome })
 
     const precoConsulta = empresa.preco_consulta ?? 0
-    const percentualCopart = empresa.percentual_coparticipacao ?? 0
 
     consultas = (atendimentos ?? []).map(a => {
       const vinculo = vinculoByPacienteId[a.paciente_id]
-      const eDependente = classRelacaoLocal(vinculo?.relacao) === 'Dependente'
+      const eDependente    = classRelacaoLocal(vinculo?.relacao) === 'Dependente'
       const titularVinculo = eDependente ? resolverTitularVinculo(vinculo) : vinculo
-      const titularNome = titularVinculo?.nome_completo ?? vinculo?.nome_completo ?? '—'
+      const titularNome    = titularVinculo?.nome_completo ?? vinculo?.nome_completo ?? '—'
       const titularRegistro = titularVinculo?.registro_funcional ?? null
-      const titularId = titularVinculo?.id ?? vinculo?.id ?? null
+      const titularId       = titularVinculo?.id ?? vinculo?.id ?? null
 
       const valorCobrado = precoConsulta
       return {
