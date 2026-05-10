@@ -1,13 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { Receipt, BarChart2, FileText, Users } from 'lucide-react'
+import { Receipt, BarChart2, FileText, Users, List } from 'lucide-react'
 import RelatorioEmpresa from '@/components/RelatorioEmpresa'
 import EmpresaDashboardClient from './EmpresaDashboardClient'
 import AtestadosDashboard from './AtestadosDashboard'
 import FuncionariosDashboard from './FuncionariosDashboard'
+import ListaFuncionariosDashboard from './ListaFuncionariosDashboard'
 
-type Aba = 'relatorio' | 'dashboard' | 'funcionarios' | 'atestados'
+type Aba = 'relatorio' | 'dashboard' | 'funcionarios' | 'atestados' | 'lista'
 
 export default function EmpresaTabs() {
   const [aba, setAba] = useState<Aba>('relatorio')
@@ -38,6 +39,11 @@ export default function EmpresaTabs() {
           Funcionários
         </button>
 
+        <button onClick={() => setAba('lista')} className={btnClass('lista')}>
+          <List className="w-4 h-4" />
+          Lista de Funcionários
+        </button>
+
         <button onClick={() => setAba('atestados')} className={btnClass('atestados')}>
           <FileText className="w-4 h-4" />
           Atestados
@@ -60,6 +66,10 @@ export default function EmpresaTabs() {
 
       {aba === 'funcionarios' && (
         <FuncionariosDashboard />
+      )}
+
+      {aba === 'lista' && (
+        <ListaFuncionariosDashboard />
       )}
 
       {aba === 'atestados' && (
