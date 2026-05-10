@@ -4,11 +4,12 @@ import Link from 'next/link'
 import {
   User, Phone, FileText, Building2, Calendar, Activity,
   Clock, CheckCircle2, Mail, Briefcase, MapPin, XCircle,
-  ArrowLeft, Brain, AlertTriangle, AlertCircle, Info,
-  Pill, Stethoscope, ThumbsUp, ThumbsDown, Minus,
+  ArrowLeft, Brain, AlertTriangle, AlertCircle,
+  Pill, Stethoscope,
 } from 'lucide-react'
 import MedicoHeader from '../../MedicoHeader'
 import AtestadosMedicoClient from './AtestadosMedicoClient'
+import ReceitasMedicoClient from './ReceitasMedicoClient'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -96,12 +97,19 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
     .order('criado_em', { ascending: false })
     .limit(20)
 
-  // Atestados do paciente (com dados completos do médico para PDF)
+  // Atestados do paciente
   const { data: atestados } = await adminSupabase
     .from('atestados')
     .select('id, data_emissao, data_inicio, data_fim, dias, cid, texto_complementar, medico_id, medicos(nome, crm, crm_uf, especialidade)')
     .eq('paciente_id', id)
     .order('data_emissao', { ascending: false })
+
+  // Receitas do paciente
+  const { data: receitas } = await adminSupabase
+    .from('receitas')
+    .select('id, criado_em, tipo, medicamentos, instrucoes, observacoes, validade, data_emissao, medico_id, medicos(id, nome, crm, crm_uf, especialidade)')
+    .eq('paciente_id', id)
+    .order('criado_em', { ascending: false })
 
   const totalConsultasPaciente = atendimentosConcluidos?.length ?? 0
   const consultasMedico = (atendimentosConcluidos ?? []).filter((a: any) => a.medico_id === medico.id)
@@ -239,7 +247,9 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                 <p className="text-xs text-gray-400">exames</p>
               </div>
               <div className="text-center bg-orange-50 rounded-xl px-4 py-3">
-                <p className="text-2xl font-bold text-gray-300">0</p>
+                <p className={`text-2xl font-bold ${(receitas?.length ?? 0) > 0 ? 'text-orange-600' : 'text-gray-300'}`}>
+                  {receitas?.length ?? 0}
+                </p>
                 <p className="text-xs text-gray-400">receitas</p>
               </div>
               {totalProducaoMedico > 0 && (
@@ -477,6 +487,33 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                 <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
                   <FileText className="w-10 h-10 text-gray-200 mx-auto mb-3" />
                   <p className="text-sm text-gray-400">Nenhum atestado emitido</p>
+                </div>
+              )}
+            </div>
+
+            {/* Receitas médicas */}
+            <div className="mt-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Pill className="w-5 h-5 text-[#5BBD9B]" />
+                <h2 className="font-bold text-[#1A3A2C] text-lg">Receitas Médicas</h2>
+                <span className="text-sm text-gray-400">({receitas?.length ?? 0})</span>
+              </div>
+
+              {receitas && receitas.length > 0 ? (
+                <ReceitasMedicoClient
+                  receitas={receitas as any}
+                  paciente={{
+                    nome: paciente.nome,
+                    cpf: paciente.cpf ?? null,
+                    data_nascimento: paciente.data_nascimento ?? null,
+                    sexo: paciente.sexo ?? null,
+                  }}
+                  medicoId={medico.id}
+                />
+              ) : (
+                <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
+                  <Pill className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+                  <p className="text-sm text-gray-400">Nenhuma receita emitida</p>
                 </div>
               )}
             </div>

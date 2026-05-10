@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Loader2, Phone, FileText, CheckCircle2, ClipboardList, ChevronDown, ChevronUp, Video } from 'lucide-react'
+import { Loader2, Phone, FileText, CheckCircle2, ClipboardList, ChevronDown, ChevronUp, Video, Pill } from 'lucide-react'
 import AtestadoForm from '@/components/AtestadoForm'
+import ReceitaForm from '@/components/ReceitaForm'
 
 export default function AtendimentoMedico() {
   const { id } = useParams()
@@ -14,6 +15,8 @@ export default function AtendimentoMedico() {
   const [salvando, setSalvando] = useState(false)
   const [showAtestado, setShowAtestado] = useState(false)
   const [atestadoEmitido, setAtestadoEmitido] = useState(false)
+  const [showReceita, setShowReceita] = useState(false)
+  const [receitaEmitida, setReceitaEmitida] = useState(false)
   const [entrou, setEntrou] = useState(false)
 
   useEffect(() => {
@@ -59,7 +62,6 @@ export default function AtendimentoMedico() {
     vermelho: 'bg-red-100 text-red-700',
   }
 
-  // Adicionar nome do médico e pular pre-join do Daily.co
   const videoUrl = (() => {
     try {
       const url = new URL(atendimento.sala_video)
@@ -70,6 +72,16 @@ export default function AtendimentoMedico() {
       return atendimento.sala_video
     }
   })()
+
+  function toggleAtestado() {
+    if (!showAtestado) setShowReceita(false)
+    setShowAtestado(v => !v)
+  }
+
+  function toggleReceita() {
+    if (!showReceita) setShowAtestado(false)
+    setShowReceita(v => !v)
+  }
 
   return (
     <div className="min-h-screen bg-[#0F1F33] flex flex-col">
@@ -103,7 +115,6 @@ export default function AtendimentoMedico() {
       <div className="flex-1 flex overflow-hidden" style={{ height: 'calc(100vh - 56px)' }}>
         {/* Vídeo */}
         <div className="flex-1 relative">
-          {/* Tela de pré-consulta personalizada em português */}
           {!entrou && (
             <div className="absolute inset-0 bg-[#0F1F33] flex items-center justify-center z-10">
               <div className="text-center text-white max-w-sm px-6">
@@ -137,6 +148,7 @@ export default function AtendimentoMedico() {
 
         {/* Painel lateral */}
         <div className="w-80 bg-[#1A3A2C] flex flex-col shrink-0 overflow-y-auto">
+
           {/* Resumo da triagem */}
           {triagem?.resumo_ia && (
             <div className="p-4 border-b border-[#2A4A3C]">
@@ -148,7 +160,7 @@ export default function AtendimentoMedico() {
           {/* Botão de atestado */}
           <div className="p-4 border-b border-[#2A4A3C]">
             <button
-              onClick={() => setShowAtestado(v => !v)}
+              onClick={toggleAtestado}
               className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                 showAtestado
                   ? 'bg-[#5BBD9B] text-white'
@@ -189,6 +201,50 @@ export default function AtendimentoMedico() {
             )}
           </div>
 
+          {/* Botão de receita */}
+          <div className="p-4 border-b border-[#2A4A3C]">
+            <button
+              onClick={toggleReceita}
+              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                showReceita
+                  ? 'bg-purple-500 text-white'
+                  : 'bg-[#0F1F33] text-purple-300 hover:bg-purple-500 hover:text-white'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <Pill className="w-4 h-4" />
+                {receitaEmitida ? 'Receita emitida ✓' : 'Emitir Receita'}
+              </span>
+              {showReceita ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+
+            {showReceita && paciente && (
+              <div className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
+                <ReceitaForm
+                  atendimentoId={atendimento.id}
+                  pacienteId={paciente.id}
+                  paciente={{
+                    nome: paciente.nome,
+                    cpf: paciente.cpf,
+                    data_nascimento: paciente.data_nascimento,
+                    sexo: paciente.sexo,
+                  }}
+                  medico={{
+                    nome: medico.nome,
+                    crm: medico.crm,
+                    crm_uf: medico.crm_uf,
+                    especialidade: medico.especialidade,
+                  }}
+                  onFechar={() => setShowReceita(false)}
+                  onSalvo={() => {
+                    setReceitaEmitida(true)
+                    setShowReceita(false)
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
           {/* Notas médicas */}
           <div className="p-4 flex-1 flex flex-col">
             <div className="flex items-center gap-2 mb-3">
@@ -199,7 +255,7 @@ export default function AtendimentoMedico() {
               value={notas}
               onChange={e => setNotas(e.target.value)}
               placeholder="Anamnese, diagnóstico, prescrições, orientações..."
-              className="flex-1 bg-[#0F1F33] text-blue-100 text-sm rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] placeholder-blue-700 min-h-[180px]"
+              className="flex-1 bg-[#0F1F33] text-blue-100 text-sm rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] placeholder-blue-700 min-h-[160px]"
             />
             <button
               onClick={finalizarConsulta}
