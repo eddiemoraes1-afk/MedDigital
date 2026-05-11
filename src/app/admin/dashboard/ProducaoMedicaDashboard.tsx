@@ -653,7 +653,7 @@ export default function ProducaoMedicaDashboard() {
           icon={Receipt} color="#F97316"
         />
         <KpiCard
-          label="Rx em Consultas"
+          label="Receitas em Consulta"
           value={String(totais.receitas_em_consulta)}
           sub="emitidas durante atendimento"
           icon={ClipboardList} color="#8B5CF6"
@@ -755,7 +755,7 @@ export default function ProducaoMedicaDashboard() {
         </div>
       )}
 
-      {/* ---- Renovações por médico + Rx em consultas por mês ---- */}
+      {/* ---- Renovações por médico + Receitas em Consulta por mês ---- */}
       {(data.producao.some(r => r.renovacoes > 0) || data.porMes.some(m => m.receitas_em_consulta > 0)) && (
         <div className="grid lg:grid-cols-2 gap-6">
           {data.producao.some(r => r.renovacoes > 0) && (
@@ -779,7 +779,7 @@ export default function ProducaoMedicaDashboard() {
             </ChartCard>
           )}
           {data.porMes.some(m => m.receitas_em_consulta > 0) && (
-            <ChartCard title="Rx em Consultas por Mês" subtitle="Receitas emitidas durante atendimento — sem custo adicional">
+            <ChartCard title="Receitas em Consulta por Mês" subtitle="Receitas emitidas durante atendimento — sem custo adicional">
               <BarChartSVG
                 data={data.porMes.map(d => ({ ...d, mes: formatMes(d.mes) }))}
                 labelKey="mes" valueKey="receitas_em_consulta"
@@ -816,7 +816,7 @@ export default function ProducaoMedicaDashboard() {
                   <ThSort label="Margem" k="margem" right />
                   <ThSort label="Atestados" k="atestados" right />
                   <ThSort label="Renovações" k="renovacoes" right />
-                  <ThSort label="Rx Consulta" k="receitas_em_consulta" right />
+                  <ThSort label="Receita em Consulta" k="receitas_em_consulta" right />
                   <ThSort label="Exames" k="exames" right />
                 </tr>
               </thead>

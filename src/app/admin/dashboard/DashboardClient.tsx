@@ -735,7 +735,7 @@ async function exportarExcel(data: DashboardData, setLoading: (v: boolean) => vo
       ['Mensalidades', formatBRL(data.kpis.totalMensalidades)],
       ['Renovações de Receita (qtd)', data.kpis.totalRenovacoes],
       ['Renovações de Receita (valor)', formatBRL(data.kpis.totalGastosRenovacoes)],
-      ['Rx emitidas em Consultas (sem custo)', data.kpis.totalReceitasEmConsulta],
+      ['Receitas em Consulta (sem custo)', data.kpis.totalReceitasEmConsulta],
       ['Consultas Realizadas', data.kpis.totalConsultas],
       ['Ticket Médio', formatBRL(data.kpis.ticketMedio)],
       ['Empresas Ativas', data.kpis.totalEmpresasAtivas],
@@ -817,7 +817,7 @@ async function exportarExcel(data: DashboardData, setLoading: (v: boolean) => vo
         ['Mês', 'Receitas em Consultas (qtd)'],
         ...(data.receitasConsultaPorMes ?? []).map(r => [formatMes(r.mes), r.count]),
       ]
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rxConsRows), 'Rx em Consultas')
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rxConsRows), 'Receitas em Consulta')
     }
 
     XLSX.writeFile(wb, `dashboard-admin-${new Date().toISOString().slice(0, 10)}.xlsx`)
@@ -891,7 +891,7 @@ function exportarPDF(data: DashboardData) {
     <div class="kpi-value">${k.totalRenovacoes}</div>
   </div>
   <div class="kpi">
-    <div class="kpi-label">Rx em Consultas</div>
+    <div class="kpi-label">Receitas em Consulta</div>
     <div class="kpi-value">${k.totalReceitasEmConsulta}</div>
   </div>
   <div class="kpi">
@@ -1112,7 +1112,7 @@ export default function DashboardClient() {
         <KpiCard label="Ticket Médio" value={formatBRL(kpis.ticketMedio)} sub="por consulta" icon={TrendingUp} color="#F59E0B" />
         <KpiCard label="Médicos Ativos" value={String(kpis.totalMedicos)} sub="com consultas no período" icon={UserCheck} color="#14B8A6" />
         <KpiCard label="Particular" value={formatBRL(kpis.valorParticular)} sub={`${kpis.consultasParticulares} consultas`} icon={Users} color="#EC4899" />
-        <KpiCard label="Rx em Consultas" value={String(kpis.totalReceitasEmConsulta)} sub="sem custo adicional" icon={Receipt} color="#14B8A6" />
+        <KpiCard label="Receitas em Consulta" value={String(kpis.totalReceitasEmConsulta)} sub="sem custo adicional" icon={Receipt} color="#14B8A6" />
       </div>
 
       {/* ---- Row 1: Faturamento por mês + Status ---- */}
@@ -1212,7 +1212,7 @@ export default function DashboardClient() {
                 />
               </ChartCard>
             </div>
-            <ChartCard title="Rx em Consultas por Mês" subtitle="Emitidas durante atendimento — sem custo adicional">
+            <ChartCard title="Receitas em Consulta por Mês" subtitle="Emitidas durante atendimento — sem custo adicional">
               <BarChartSVG
                 data={(data.receitasConsultaPorMes ?? []).map(d => ({ ...d, mes: formatMes(d.mes) }))}
                 labelKey="mes" valueKey="count" color="#14B8A6"

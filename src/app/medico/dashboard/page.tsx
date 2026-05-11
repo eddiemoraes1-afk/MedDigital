@@ -610,12 +610,12 @@ export default async function MedicoDashboard() {
                 <p className="text-2xl font-bold text-white mt-1">{consultasAgendadas}</p>
               </div>
               <div className="bg-white/10 rounded-xl p-4">
-                <p className="text-xs text-green-300 font-medium">Rx em consulta</p>
+                <p className="text-xs text-green-300 font-medium">Receita em Consulta</p>
                 <p className="text-2xl font-bold text-white mt-1">{receitasEmConsulta.length}</p>
                 <p className="text-xs text-green-400 mt-0.5">sem custo</p>
               </div>
               <div className="bg-white/10 rounded-xl p-4">
-                <p className="text-xs text-green-300 font-medium">Renovações de Rx</p>
+                <p className="text-xs text-green-300 font-medium">Renovações de Receita</p>
                 <p className="text-2xl font-bold text-white mt-1">{receitasRenovacao.length}</p>
                 {totalGanhoRenovacoes > 0 && <p className="text-xs text-green-400 mt-0.5">{formatBRL(totalGanhoRenovacoes)}</p>}
               </div>
