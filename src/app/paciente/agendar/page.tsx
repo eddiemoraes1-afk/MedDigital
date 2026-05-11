@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Calendar, Clock, User, ChevronRight, Loader2, CheckCircle2, User2 } from 'lucide-react'
 import PacienteHeader from '../PacienteHeader'
 
@@ -235,7 +234,8 @@ function AgendarConteudo() {
                   >
                     <div className="relative w-11 h-11 rounded-full overflow-hidden bg-green-100 shrink-0 flex items-center justify-center">
                       {m.foto_url ? (
-                        <Image src={m.foto_url} alt={m.nome} fill className="object-cover" sizes="44px" />
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={m.foto_url} alt={m.nome} className="w-full h-full object-cover" />
                       ) : (
                         <User2 className="w-6 h-6 text-[#5BBD9B]" />
                       )}
@@ -253,7 +253,8 @@ function AgendarConteudo() {
                 <div className="flex items-center gap-3">
                   <div className="relative w-9 h-9 rounded-full overflow-hidden bg-green-100 shrink-0 flex items-center justify-center">
                     {medicoSelecionado?.foto_url ? (
-                      <Image src={medicoSelecionado.foto_url} alt={medicoSelecionado.nome} fill className="object-cover" sizes="36px" />
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={medicoSelecionado.foto_url} alt={medicoSelecionado.nome} className="w-full h-full object-cover" />
                     ) : (
                       <User2 className="w-5 h-5 text-[#5BBD9B]" />
                     )}

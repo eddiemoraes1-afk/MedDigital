@@ -10,7 +10,7 @@ export async function PATCH(
   const { id } = await params
   const body = await req.json()
 
-  const allowed = ['nome', 'especialidade', 'crm', 'crm_uf', 'telefone', 'cidade', 'estado', 'bio']
+  const allowed = ['nome', 'especialidade', 'crm', 'crm_uf', 'rqe', 'telefone', 'cidade', 'estado', 'bio']
   const update: Record<string, string> = {}
   for (const key of allowed) {
     if (body[key] !== undefined) update[key] = String(body[key]).trim()

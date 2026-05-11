@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { email, senha, nome, tipo, cpf, telefone, data_nascimento, sexo, crm, crm_uf, especialidade } = body
+  const { email, senha, nome, tipo, cpf, telefone, data_nascimento, sexo, crm, crm_uf, rqe, especialidade } = body
 
   const adminSupabase = createAdminClient()
 
@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
       nome,
       crm,
       crm_uf,
+      rqe: rqe || null,
       especialidade,
       telefone: telefone?.replace(/\D/g, '') || null,
       status: 'em_analise',

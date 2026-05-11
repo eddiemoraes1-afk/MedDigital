@@ -1,7 +1,6 @@
 import { requireAdmin } from '@/lib/auth-sistema'
 import { createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Image from 'next/image'
 import {
   Stethoscope, CheckCircle2, XCircle, Clock, Calendar,
   CreditCard, MapPin, User, Mail, Phone, User2,
@@ -221,7 +220,8 @@ export default async function FichaMedicoPage({
           <div className="flex items-start gap-5">
             <div className={`relative w-16 h-16 rounded-2xl overflow-hidden shrink-0 flex items-center justify-center ${ativo ? 'bg-green-100' : 'bg-gray-100'}`}>
               {medico.foto_url ? (
-                <Image src={medico.foto_url} alt={medico.nome} fill className="object-cover" sizes="64px" />
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={medico.foto_url} alt={medico.nome} className="w-full h-full object-cover" />
               ) : (
                 <User2 className={`w-8 h-8 ${ativo ? 'text-[#5BBD9B]' : 'text-gray-400'}`} />
               )}
@@ -237,6 +237,7 @@ export default async function FichaMedicoPage({
                 {medico.crm && (
                   <span className="flex items-center gap-1.5 text-sm text-gray-500">
                     <CreditCard className="w-3.5 h-3.5 text-gray-400" />CRM {medico.crm}/{medico.crm_uf}
+                    {medico.rqe && <span className="text-gray-400">· RQE {medico.rqe}</span>}
                   </span>
                 )}
                 {medico.email && (
@@ -311,6 +312,7 @@ export default async function FichaMedicoPage({
                 especialidadeAtual={medico.especialidade ?? null}
                 crmAtual={medico.crm ?? null}
                 crmUfAtual={medico.crm_uf ?? null}
+                rqeAtual={medico.rqe ?? null}
                 telefoneAtual={medico.telefone ?? null}
                 cidadeAtual={medico.cidade ?? null}
                 estadoAtual={medico.estado ?? null}

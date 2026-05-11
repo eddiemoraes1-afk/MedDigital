@@ -1,8 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { Camera, CheckCircle2, Loader2, Pencil, Trash2, User2, X } from 'lucide-react'
-import Image from 'next/image'
+import { Camera, CheckCircle2, Loader2, Pencil, Trash2, User2 } from 'lucide-react'
 
 interface Props {
   medicoId: string
@@ -10,6 +9,7 @@ interface Props {
   especialidadeAtual: string | null
   crmAtual: string | null
   crmUfAtual: string | null
+  rqeAtual: string | null
   telefoneAtual: string | null
   cidadeAtual: string | null
   estadoAtual: string | null
@@ -23,6 +23,7 @@ export default function EditarMedico({
   especialidadeAtual,
   crmAtual,
   crmUfAtual,
+  rqeAtual,
   telefoneAtual,
   cidadeAtual,
   estadoAtual,
@@ -69,6 +70,7 @@ export default function EditarMedico({
   const [especialidade, setEspecialidade] = useState(especialidadeAtual ?? '')
   const [crm, setCrm] = useState(crmAtual ?? '')
   const [crmUf, setCrmUf] = useState(crmUfAtual ?? '')
+  const [rqe, setRqe] = useState(rqeAtual ?? '')
   const [telefone, setTelefone] = useState(telefoneAtual ?? '')
   const [cidade, setCidade] = useState(cidadeAtual ?? '')
   const [estado, setEstado] = useState(estadoAtual ?? '')
@@ -86,7 +88,7 @@ export default function EditarMedico({
       const res = await fetch(`/api/admin/medico/${medicoId}/dados`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, especialidade, crm, crm_uf: crmUf, telefone, cidade, estado, bio }),
+        body: JSON.stringify({ nome, especialidade, crm, crm_uf: crmUf, rqe, telefone, cidade, estado, bio }),
       })
       const json = await res.json()
       if (!res.ok) { setErroDados(json.error ?? 'Erro ao salvar'); return }
@@ -121,7 +123,8 @@ export default function EditarMedico({
             <div className="flex items-center gap-3">
               <div className="relative w-16 h-16 rounded-2xl overflow-hidden bg-gray-100 shrink-0 flex items-center justify-center">
                 {fotoUrl ? (
-                  <Image src={fotoUrl} alt="Foto" fill className="object-cover" sizes="64px" />
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img src={fotoUrl} alt="Foto" className="w-full h-full object-cover" />
                 ) : (
                   <User2 className="w-8 h-8 text-gray-300" />
                 )}
@@ -164,6 +167,7 @@ export default function EditarMedico({
               <Field label="CRM" value={crm} onChange={setCrm} />
               <Field label="UF do CRM" value={crmUf} onChange={setCrmUf} placeholder="SP" maxLength={2} />
             </div>
+            <Field label="RQE (opcional)" value={rqe} onChange={setRqe} placeholder="Ex: 12345" />
             <Field label="Telefone" value={telefone} onChange={setTelefone} />
             <div className="grid grid-cols-2 gap-2">
               <Field label="Cidade" value={cidade} onChange={setCidade} />

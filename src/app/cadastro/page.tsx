@@ -22,6 +22,7 @@ function CadastroForm() {
   const [sexo, setSexo] = useState('')
   const [crm, setCrm] = useState('')
   const [crmUf, setCrmUf] = useState('SP')
+  const [rqe, setRqe] = useState('')
   const [especialidade, setEspecialidade] = useState('')
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
@@ -51,7 +52,7 @@ function CadastroForm() {
     const res = await fetch('/api/auth/cadastro', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, senha, nome, tipo, cpf, telefone, data_nascimento: dataNascimento || null, sexo: sexo || null, crm, crm_uf: crmUf, especialidade })
+      body: JSON.stringify({ email, senha, nome, tipo, cpf, telefone, data_nascimento: dataNascimento || null, sexo: sexo || null, crm, crm_uf: crmUf, rqe: rqe || null, especialidade })
     })
 
     const result = await res.json()
@@ -233,6 +234,14 @@ function CadastroForm() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Especialidade</label>
               <input type="text" value={especialidade} onChange={e => setEspecialidade(e.target.value)}
                 placeholder="Ex: Clínica Geral, Cardiologia..." required
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                RQE <span className="text-gray-400 font-normal">(opcional)</span>
+              </label>
+              <input type="text" value={rqe} onChange={e => setRqe(e.target.value)}
+                placeholder="Registro de Qualificação de Especialista"
                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm" />
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-700">
