@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Search, Stethoscope, CheckCircle2, XCircle, Clock, Video, Calendar, Wifi, WifiOff } from 'lucide-react'
+import { Search, Stethoscope, CheckCircle2, XCircle, Clock, User2 } from 'lucide-react'
 import BotoesAprovacao from '../components/BotoesAprovacao'
 import ToggleMedicoAtivo from './ToggleMedicoAtivo'
 
@@ -15,6 +15,7 @@ interface Medico {
   status: string
   criado_em: string
   ativo: boolean | null
+  foto_url: string | null
 }
 
 type PresencaStatus = 'online' | 'em_atendimento_virtual' | 'em_consulta_agendada' | 'offline'
@@ -210,8 +211,13 @@ export default function FiltraMedicos({ medicos }: Props) {
                     <tr key={m.id} className={`hover:bg-gray-50 transition-colors ${!ativo ? 'opacity-60' : ''}`}>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 relative ${ativo ? 'bg-green-100' : 'bg-gray-100'}`}>
-                            <Stethoscope className={`w-4 h-4 ${ativo ? 'text-[#5BBD9B]' : 'text-gray-400'}`} />
+                          <div className={`w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center shrink-0 relative ${ativo ? 'bg-green-100' : 'bg-gray-100'}`}>
+                            {m.foto_url ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={m.foto_url} alt={m.nome} className="w-full h-full object-cover" />
+                            ) : (
+                              <User2 className={`w-4 h-4 ${ativo ? 'text-[#5BBD9B]' : 'text-gray-400'}`} />
+                            )}
                             {/* Indicador de presença no avatar */}
                             <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
                               !p || p.status === 'offline' ? 'bg-gray-300' :

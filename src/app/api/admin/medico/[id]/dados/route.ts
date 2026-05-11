@@ -1,6 +1,7 @@
 import { requireAdmin } from '@/lib/auth-sistema'
 import { createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 
 export async function PATCH(
   req: NextRequest,
@@ -21,5 +22,7 @@ export async function PATCH(
   const admin = createAdminClient()
   const { error } = await admin.from('medicos').update(update).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  revalidatePath(`/admin/medicos/${id}`)
+  revalidatePath('/admin/medicos')
   return NextResponse.json({ ok: true })
 }

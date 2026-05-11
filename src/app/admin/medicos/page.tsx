@@ -16,7 +16,7 @@ export default async function AdminMedicosPage({ searchParams }: Props) {
 
   const { data: todosMedicos } = await adminSupabase
     .from('medicos')
-    .select('id, nome, especialidade, crm, crm_uf, status, criado_em, usuario_id, ativo')
+    .select('id, nome, especialidade, crm, crm_uf, status, criado_em, usuario_id, ativo, foto_url')
     .order('criado_em', { ascending: false })
 
   const total = todosMedicos?.length ?? 0
