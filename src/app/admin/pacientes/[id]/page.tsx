@@ -326,12 +326,22 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                               </span>
                             </td>
                             <td className="px-5 py-3 text-right text-sm font-semibold text-[#1A3A2C]">
-                              {a.valor_cobrado ? formatBRL(a.valor_cobrado) : '—'}
+                              {resolveValorConsulta(a.valor_cobrado) > 0 ? formatBRL(resolveValorConsulta(a.valor_cobrado)) : '—'}
                             </td>
                           </tr>
                         )
                       })}
                     </tbody>
+                    <tfoot className="bg-gray-50 border-t-2 border-gray-100">
+                      <tr>
+                        <td colSpan={3} className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                          Total ({totalAtendimentos} {totalAtendimentos === 1 ? 'consulta' : 'consultas'})
+                        </td>
+                        <td className="px-5 py-3 text-right text-sm font-bold text-[#1A3A2C]">
+                          {formatBRL(totalGastoConsultas)}
+                        </td>
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
               ) : (
