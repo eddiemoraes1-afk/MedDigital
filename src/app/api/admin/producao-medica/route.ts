@@ -92,11 +92,10 @@ export async function GET(req: NextRequest) {
   const empresaMap = new Map(((empresas ?? []) as any[]).map(e => [e.id, e]))
 
   function precoConsulta(pacienteId: string, valorCobrado: number | null): number {
-    // Prioridade: valor efetivamente cobrado → preco_consulta da empresa → 0
-    if (valorCobrado != null && valorCobrado > 0) return valorCobrado
+    // Mesma lógica do analytics financeiro: preco_consulta da empresa → valor_cobrado → 0
     const eId = pacienteEmpresa.get(pacienteId)
     const emp = eId ? (empresaMap.get(eId) as any) : null
-    return Number(emp?.preco_consulta ?? 0)
+    return Number(emp?.preco_consulta ?? valorCobrado ?? 0)
   }
 
   function calcValorRenovacao(r: any): number {

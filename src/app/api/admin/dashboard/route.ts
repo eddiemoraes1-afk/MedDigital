@@ -53,10 +53,10 @@ export async function GET(req: Request) {
   ] = await Promise.all([
     adminSupabase
       .from('atendimentos')
-      .select('id, valor_cobrado, criado_em, paciente_id, medico_id, agendamento_id')
+      .select('id, valor_cobrado, finalizado_em, criado_em, paciente_id, medico_id, agendamento_id')
       .eq('status', 'concluido')
-      .gte('criado_em', inicio)
-      .lte('criado_em', fim),
+      .gte('finalizado_em', inicio)
+      .lte('finalizado_em', fim),
     adminSupabase
       .from('pacientes')
       .select('id, nome, data_nascimento, sexo'),
