@@ -1265,7 +1265,12 @@ export default function DashboardClient() {
       {/* ---- Row 5: Por médico (consultas) ---- */}
       <ChartCard title="Consultas por Médico" subtitle="Volume de atendimentos concluídos por médico">
         <HBarChart
-          data={data.faturamentoPorMedico.map(d => ({ nome: d.nome, consultas: d.consultas }))}
+          data={[...data.faturamentoPorMedico]
+            .sort((a, b) => {
+              if (b.consultas !== a.consultas) return b.consultas - a.consultas
+              return a.nome.localeCompare(b.nome)
+            })
+            .map(d => ({ nome: d.nome, consultas: d.consultas }))}
           labelKey="nome" valueKey="consultas"
           formatValue={v => `${v} consulta${v !== 1 ? 's' : ''}`}
           color="#14B8A6"

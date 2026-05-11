@@ -106,7 +106,7 @@ export async function GET(req: Request) {
   const { data: todasReceitasData } = allPacienteIds.length > 0
     ? await adminSupabase
         .from('receitas')
-        .select('id, paciente_id, atendimento_id, valor_cobrado, criado_em')
+        .select('id, paciente_id, medico_id, atendimento_id, valor_cobrado, criado_em')
         .in('paciente_id', allPacienteIds)
         .eq('status', 'emitida')
         .gte('criado_em', inicio)
@@ -232,10 +232,24 @@ export async function GET(req: Request) {
     if (!m) continue
     const cur = medMap.get(a.medico_id) ?? { nome: m.nome, especialidade: m.especialidade || '', consultas: 0, valor: 0 }
     cur.consultas++
-    cur.valor += a.valor_cobrado ?? 0
+    // Mesma lógica do KPI: preco_consulta da empresa → valor_cobrado → 0
+    const eId = pacienteEmpresa.get(a.paciente_id)
+    const emp = eId ? (empresaMap.get(eId) as any) : null
+    cur.valor += Number(emp?.preco_consulta ?? a.valor_cobrado ?? 0)
     medMap.set(a.medico_id, cur)
   }
-  const faturamentoPorMedico = [...medMap.values()].sort((a, b) => b.valor - a.valor)
+  // Adiciona receita das renovações ao faturamento do médico
+  for (const r of renovacoes) {
+    if (!r.medico_id) continue
+    const cur = medMap.get(r.medico_id)
+    if (!cur) continue
+    cur.valor += calcValorRenovacao(r)
+  }
+  const faturamentoPorMedico = [...medMap.values()].sort((a, b) => {
+    if (b.valor !== a.valor) return b.valor - a.valor
+    if (b.consultas !== a.consultas) return b.consultas - a.consultas
+    return a.nome.localeCompare(b.nome)
+  })
 
   // ===== FAIXA ETÁRIA =====
   const faixaMap = new Map<string, { consultas: number; valor: number }>()
