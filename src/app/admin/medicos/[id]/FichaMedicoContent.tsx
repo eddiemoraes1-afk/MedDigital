@@ -444,7 +444,7 @@ export default function FichaMedicoContent({
                         </td>
                         <td className="px-5 py-3">
                           {a.pacienteId && a.pacienteNome ? (
-                            <Link href={`/admin/pacientes/${a.pacienteId}?back=${encodeURIComponent(`/admin/medicos/${medicoId}`)}`}
+                            <Link href={`/admin/pacientes/${a.pacienteId}?back=${encodeURIComponent(`/admin/medicos/${medicoId}`)}&medico_id=${medicoId}`}
                               className="text-sm text-[#5BBD9B] hover:underline font-medium">
                               {a.pacienteNome}
                             </Link>
@@ -541,7 +541,7 @@ export default function FichaMedicoContent({
                           <td className="px-5 py-3 text-xs text-gray-600">{a.data}</td>
                           <td className="px-5 py-3">
                             {a.pacienteId && a.pacienteNome ? (
-                              <Link href={`/admin/pacientes/${a.pacienteId}?back=${encodeURIComponent(`/admin/medicos/${medicoId}`)}`}
+                              <Link href={`/admin/pacientes/${a.pacienteId}?back=${encodeURIComponent(`/admin/medicos/${medicoId}`)}&medico_id=${medicoId}`}
                                 className="text-sm text-[#5BBD9B] hover:underline">{a.pacienteNome}</Link>
                             ) : <span className="text-gray-300 text-xs">—</span>}
                           </td>

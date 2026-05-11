@@ -18,12 +18,12 @@ import FichaPacienteExports, {
 
 interface Props {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ filtro?: string; back?: string }>
+  searchParams: Promise<{ filtro?: string; back?: string; medico_id?: string }>
 }
 
 export default async function FichaPacientePage({ params, searchParams }: Props) {
   const { id } = await params
-  const { filtro, back } = await searchParams
+  const { filtro, back, medico_id: medicoFiltroId } = await searchParams
   await requireAdmin()
 
   const admin = createAdminClient()
@@ -47,13 +47,18 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
     : { data: null }
 
   // ── Atendimentos concluídos ───────────────────────────────────────────────
-  const { data: atendimentosData } = await admin
+  let atendimentosQuery = admin
     .from('atendimentos')
     .select('id, criado_em, finalizado_em, medico_id, valor_cobrado, agendamento_id')
     .eq('paciente_id', id)
     .eq('status', 'concluido')
     .order('criado_em', { ascending: false })
 
+  if (medicoFiltroId) {
+    atendimentosQuery = atendimentosQuery.eq('medico_id', medicoFiltroId)
+  }
+
+  const { data: atendimentosData } = await atendimentosQuery
   const atendimentos = atendimentosData ?? []
 
   // ── Atestados ─────────────────────────────────────────────────────────────
@@ -87,6 +92,12 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
 
   const medicoMap: Record<string, string> = {}
   ;(medicos ?? []).forEach(m => { medicoMap[m.id] = m.nome })
+
+  // ── Se há filtro de médico e ele não está no medicoMap, busca o nome ──────
+  if (medicoFiltroId && !medicoMap[medicoFiltroId]) {
+    const { data: mExtra } = await admin.from('medicos').select('id, nome').eq('id', medicoFiltroId).single()
+    if (mExtra) medicoMap[mExtra.id] = mExtra.nome
+  }
 
   // ── Médicos aprovados (para atribuição) ───────────────────────────────────
   const { data: medicosAprovados } = await admin
@@ -292,12 +303,18 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
 
             {/* Histórico de Atendimentos Concluídos */}
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden" id="historico">
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
                 <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
                   <Activity className="w-4 h-4 text-[#5BBD9B]" />
                   Consultas Realizadas
                   <span className="text-xs text-gray-400 font-normal">({totalAtendimentos})</span>
                 </h2>
+                {medicoFiltroId && (
+                  <span className="flex items-center gap-1.5 text-xs bg-[#5BBD9B]/10 text-[#1A3A2C] px-3 py-1 rounded-full font-medium shrink-0">
+                    <Stethoscope className="w-3 h-3 text-[#5BBD9B]" />
+                    Apenas consultas com {medicoMap[medicoFiltroId] ?? 'este médico'}
+                  </span>
+                )}
               </div>
 
               {atendimentos.length > 0 ? (
