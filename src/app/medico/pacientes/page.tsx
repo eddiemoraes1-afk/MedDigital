@@ -13,7 +13,7 @@ export default async function MedicoPacientesPage() {
 
   const { data: medico } = await adminSupabase
     .from('medicos')
-    .select('id, nome, status')
+    .select('id, nome, status, sexo, foto_url')
     .eq('usuario_id', user.id)
     .single()
 
@@ -92,7 +92,7 @@ export default async function MedicoPacientesPage() {
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <MedicoHeader titulo="Prontuários" backHref="/medico/dashboard" medicoNome={medico.nome} />
+      <MedicoHeader titulo="Prontuários" backHref="/medico/dashboard" medicoNome={medico.nome} medicoSexo={medico.sexo} medicoFotoUrl={medico.foto_url} />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
         <div className="flex items-center gap-3 mb-6">

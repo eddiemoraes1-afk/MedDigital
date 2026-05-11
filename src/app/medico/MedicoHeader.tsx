@@ -1,16 +1,24 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, LogOut, LayoutDashboard, BarChart2 } from 'lucide-react'
+import { ArrowLeft, LogOut, LayoutDashboard, BarChart2, User2 } from 'lucide-react'
 
 interface Props {
   titulo: string
   backHref?: string
   medicoNome?: string
+  medicoSexo?: string | null
+  medicoFotoUrl?: string | null
 }
 
-export default function MedicoHeader({ titulo, backHref, medicoNome }: Props) {
-  const primeiroNome = medicoNome?.split(' ')[0] ?? ''
+export function drTitle(sexo: string | null | undefined): string {
+  if (sexo === 'masculino') return 'Dr.'
+  if (sexo === 'feminino') return 'Dra.'
+  return 'Dr(a).'
+}
+
+export default function MedicoHeader({ titulo, backHref, medicoNome, medicoSexo, medicoFotoUrl }: Props) {
+  const titulo_dr = medicoNome ? `${drTitle(medicoSexo)} ${medicoNome}` : ''
 
   return (
     <header className="bg-[#1A3A2C] text-white px-6 py-3.5 shrink-0">
@@ -34,7 +42,7 @@ export default function MedicoHeader({ titulo, backHref, medicoNome }: Props) {
           </span>
         </div>
 
-        {/* Direita: nav + nome + logout */}
+        {/* Direita: nav + avatar + nome + logout */}
         <div className="flex items-center gap-1 shrink-0">
           <Link
             href="/medico/dashboard"
@@ -50,11 +58,24 @@ export default function MedicoHeader({ titulo, backHref, medicoNome }: Props) {
             <BarChart2 className="w-3.5 h-3.5" />
             <span className="hidden md:inline">Minha Produção</span>
           </Link>
-          {primeiroNome && (
-            <span className="text-sm font-semibold text-white hidden lg:block px-2">
-              Dr(a). {primeiroNome}
-            </span>
+
+          {titulo_dr && (
+            <div className="hidden lg:flex items-center gap-2 px-2">
+              {/* Avatar */}
+              <div className="w-7 h-7 rounded-full overflow-hidden bg-white/20 flex items-center justify-center shrink-0">
+                {medicoFotoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={medicoFotoUrl} alt={medicoNome} className="w-full h-full object-cover" />
+                ) : (
+                  <User2 className="w-4 h-4 text-white/70" />
+                )}
+              </div>
+              <span className="text-sm font-semibold text-white">
+                {titulo_dr}
+              </span>
+            </div>
           )}
+
           <form action="/api/auth/signout" method="POST">
             <button
               type="submit"

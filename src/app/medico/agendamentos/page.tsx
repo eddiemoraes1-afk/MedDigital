@@ -18,7 +18,7 @@ export default async function MedicoAgendamentosPage({
 
   let { data: medico } = await adminSupabase
     .from('medicos')
-    .select('id, nome, especialidade')
+    .select('id, nome, especialidade, sexo, foto_url')
     .eq('usuario_id', user.id)
     .single()
 
@@ -33,7 +33,7 @@ export default async function MedicoAgendamentosPage({
     if (perfilAdmin?.role === 'admin') {
       const { data: primMedico } = await adminSupabase
         .from('medicos')
-        .select('id, nome, especialidade')
+        .select('id, nome, especialidade, sexo, foto_url')
         .order('criado_em', { ascending: true })
         .limit(1)
         .single()
@@ -103,8 +103,6 @@ export default async function MedicoAgendamentosPage({
   const labelMes = segunda.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
   const totalAtivos = (agendamentos || []).filter((a: any) => !['cancelado', 'reagendado'].includes(a.status)).length
   const totalCancelados = (agendamentos || []).filter((a: any) => a.status === 'cancelado').length
-  const primeiroNome = medico.nome.split(' ')[0]
-
   const corStatus: Record<string, string> = {
     confirmado: 'bg-green-100 text-green-700 border-green-200',
     pendente: 'bg-yellow-100 text-yellow-700 border-yellow-200',
@@ -123,7 +121,7 @@ export default async function MedicoAgendamentosPage({
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <MedicoHeader titulo="Minha Agenda" backHref="/medico/dashboard" medicoNome={medico.nome} />
+      <MedicoHeader titulo="Minha Agenda" backHref="/medico/dashboard" medicoNome={medico.nome} medicoSexo={medico.sexo} medicoFotoUrl={medico.foto_url} />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
 

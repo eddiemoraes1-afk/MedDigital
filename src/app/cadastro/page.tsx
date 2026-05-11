@@ -24,6 +24,7 @@ function CadastroForm() {
   const [crmUf, setCrmUf] = useState('SP')
   const [rqe, setRqe] = useState('')
   const [especialidade, setEspecialidade] = useState('')
+  const [sexoMedico, setSexoMedico] = useState('')
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState('')
   const [sucesso, setSucesso] = useState(false)
@@ -52,7 +53,7 @@ function CadastroForm() {
     const res = await fetch('/api/auth/cadastro', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, senha, nome, tipo, cpf, telefone, data_nascimento: dataNascimento || null, sexo: sexo || null, crm, crm_uf: crmUf, rqe: rqe || null, especialidade })
+      body: JSON.stringify({ email, senha, nome, tipo, cpf, telefone, data_nascimento: dataNascimento || null, sexo: tipo === 'paciente' ? (sexo || null) : (sexoMedico || null), crm, crm_uf: crmUf, rqe: rqe || null, especialidade })
     })
 
     const result = await res.json()
@@ -215,6 +216,33 @@ function CadastroForm() {
         {/* Campos extras para médico */}
         {tipo === 'medico' && (
           <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sexo</label>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSexoMedico('masculino')}
+                  className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all ${
+                    sexoMedico === 'masculino'
+                      ? 'bg-[#1A7340] border-[#1A7340] text-white'
+                      : 'bg-white border-gray-200 text-gray-500 hover:border-[#1A7340]'
+                  }`}
+                >
+                  Masculino (Dr.)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSexoMedico('feminino')}
+                  className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all ${
+                    sexoMedico === 'feminino'
+                      ? 'bg-[#1A7340] border-[#1A7340] text-white'
+                      : 'bg-white border-gray-200 text-gray-500 hover:border-[#1A7340]'
+                  }`}
+                >
+                  Feminino (Dra.)
+                </button>
+              </div>
+            </div>
             <div className="flex gap-3">
               <div className="flex-1">
                 <label className="block text-sm font-medium text-gray-700 mb-1">CRM</label>

@@ -313,6 +313,7 @@ export default async function FichaMedicoPage({
                 crmAtual={medico.crm ?? null}
                 crmUfAtual={medico.crm_uf ?? null}
                 rqeAtual={medico.rqe ?? null}
+                sexoAtual={medico.sexo ?? null}
                 telefoneAtual={medico.telefone ?? null}
                 cidadeAtual={medico.cidade ?? null}
                 estadoAtual={medico.estado ?? null}

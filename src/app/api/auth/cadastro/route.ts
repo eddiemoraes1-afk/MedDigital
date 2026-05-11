@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
       crm_uf,
       rqe: rqe || null,
       especialidade,
+      sexo: sexo || null,
       telefone: telefone?.replace(/\D/g, '') || null,
       status: 'em_analise',
     })

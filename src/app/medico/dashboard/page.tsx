@@ -7,7 +7,7 @@ import {
   ChevronRight, BarChart2, ScrollText,
 } from 'lucide-react'
 import PingMedico from '../PingMedico'
-import MedicoHeader from '../MedicoHeader'
+import MedicoHeader, { drTitle } from '../MedicoHeader'
 
 export default async function MedicoDashboard() {
   const supabase = await createClient()
@@ -104,9 +104,9 @@ export default async function MedicoDashboard() {
   const totalGanhoRenovacoes = receitasRenovacao.reduce((s: number, r: any) => s + Number(r.valor_medico), 0)
   const totalDia = totalGanhoConsultas + totalGanhoRenovacoes
 
-  const primeiroNome = medico.nome.split(' ')[0]
   const horaAtual = Number(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo', hour: 'numeric', hour12: false }))
   const saudacao = horaAtual < 12 ? 'Bom dia' : horaAtual < 18 ? 'Boa tarde' : 'Boa noite'
+  const titulo = drTitle(medico.sexo)
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const corRisco: Record<string, string> = {
@@ -173,14 +173,22 @@ export default async function MedicoDashboard() {
   return (
     <div className="min-h-screen bg-[#F3FAF7] scroll-smooth">
       <PingMedico />
-      <MedicoHeader titulo="Painel do Médico" medicoNome={medico.nome} />
+      <MedicoHeader titulo="Painel do Médico" medicoNome={medico.nome} medicoSexo={medico.sexo} medicoFotoUrl={medico.foto_url} />
 
       <main className="max-w-5xl mx-auto px-6 py-8 space-y-8">
 
         {/* Saudação */}
-        <div>
-          <h1 className="text-2xl font-bold text-[#1A3A2C]">{saudacao}, Dr(a). {primeiroNome}!</h1>
-          <p className="text-gray-500 mt-1">{medico.especialidade} — CRM {medico.crm}/{medico.crm_uf}</p>
+        <div className="flex items-center gap-4">
+          {medico.foto_url && (
+            <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0 shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={medico.foto_url} alt={medico.nome} className="w-full h-full object-cover" />
+            </div>
+          )}
+          <div>
+            <h1 className="text-2xl font-bold text-[#1A3A2C]">{saudacao}, {titulo} {medico.nome}!</h1>
+            <p className="text-gray-500 mt-1">{medico.especialidade} — CRM {medico.crm}/{medico.crm_uf}</p>
+          </div>
         </div>
 
         {/* ── KPI cards clicáveis ── */}

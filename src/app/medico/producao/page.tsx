@@ -285,7 +285,7 @@ export default async function ProducaoMedicoPage({
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <MedicoHeader titulo="Minha Produção" backHref="/medico/dashboard" medicoNome={medico.nome} />
+      <MedicoHeader titulo="Minha Produção" backHref="/medico/dashboard" medicoNome={medico.nome} medicoSexo={medico.sexo} medicoFotoUrl={medico.foto_url} />
 
       <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
 
@@ -293,7 +293,7 @@ export default async function ProducaoMedicoPage({
         <div>
           <h1 className="text-2xl font-bold text-[#1A3A2C]">Minha Produção</h1>
           <p className="text-gray-500 mt-1 text-sm">
-            Dr(a). {medico.nome} · {medico.especialidade} · CRM {medico.crm}/{medico.crm_uf}
+            {medico.sexo === 'feminino' ? 'Dra.' : medico.sexo === 'masculino' ? 'Dr.' : 'Dr(a).'} {medico.nome} · {medico.especialidade} · CRM {medico.crm}/{medico.crm_uf}
           </p>
         </div>
 

@@ -10,6 +10,7 @@ interface Props {
   crmAtual: string | null
   crmUfAtual: string | null
   rqeAtual: string | null
+  sexoAtual: string | null
   telefoneAtual: string | null
   cidadeAtual: string | null
   estadoAtual: string | null
@@ -24,6 +25,7 @@ export default function EditarMedico({
   crmAtual,
   crmUfAtual,
   rqeAtual,
+  sexoAtual,
   telefoneAtual,
   cidadeAtual,
   estadoAtual,
@@ -71,6 +73,7 @@ export default function EditarMedico({
   const [crm, setCrm] = useState(crmAtual ?? '')
   const [crmUf, setCrmUf] = useState(crmUfAtual ?? '')
   const [rqe, setRqe] = useState(rqeAtual ?? '')
+  const [sexo, setSexo] = useState(sexoAtual ?? '')
   const [telefone, setTelefone] = useState(telefoneAtual ?? '')
   const [cidade, setCidade] = useState(cidadeAtual ?? '')
   const [estado, setEstado] = useState(estadoAtual ?? '')
@@ -88,7 +91,7 @@ export default function EditarMedico({
       const res = await fetch(`/api/admin/medico/${medicoId}/dados`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, especialidade, crm, crm_uf: crmUf, rqe, telefone, cidade, estado, bio }),
+        body: JSON.stringify({ nome, especialidade, crm, crm_uf: crmUf, rqe, sexo, telefone, cidade, estado, bio }),
       })
       const json = await res.json()
       if (!res.ok) { setErroDados(json.error ?? 'Erro ao salvar'); return }
@@ -168,6 +171,25 @@ export default function EditarMedico({
               <Field label="UF do CRM" value={crmUf} onChange={setCrmUf} placeholder="SP" maxLength={2} />
             </div>
             <Field label="RQE (opcional)" value={rqe} onChange={setRqe} placeholder="Ex: 12345" />
+            <div>
+              <label className="text-xs text-gray-400 font-medium mb-1 block">Sexo</label>
+              <div className="flex gap-2">
+                {[['masculino', 'Masculino (Dr.)'], ['feminino', 'Feminino (Dra.)']].map(([val, label]) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => setSexo(val)}
+                    className={`flex-1 text-xs py-1.5 rounded-lg border-2 font-medium transition-all ${
+                      sexo === val
+                        ? 'bg-[#1A3A2C] border-[#1A3A2C] text-white'
+                        : 'bg-white border-gray-200 text-gray-500 hover:border-[#1A3A2C]'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <Field label="Telefone" value={telefone} onChange={setTelefone} />
             <div className="grid grid-cols-2 gap-2">
               <Field label="Cidade" value={cidade} onChange={setCidade} />

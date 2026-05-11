@@ -20,7 +20,7 @@ export default async function RenovacaoAtenderPage({
 
   const { data: medico } = await supabase
     .from('medicos')
-    .select('id, nome, crm, crm_uf, especialidade, status, custo_receita')
+    .select('id, nome, crm, crm_uf, especialidade, status, custo_receita, sexo, foto_url')
     .eq('usuario_id', user.id)
     .single()
 
@@ -80,7 +80,7 @@ export default async function RenovacaoAtenderPage({
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <MedicoHeader titulo="Renovação de Receita" backHref="/medico/dashboard" medicoNome={medico.nome} />
+      <MedicoHeader titulo="Renovação de Receita" backHref="/medico/dashboard" medicoNome={medico.nome} medicoSexo={medico.sexo} medicoFotoUrl={medico.foto_url} />
 
       <main className="max-w-2xl mx-auto px-6 py-8 space-y-5">
 
