@@ -60,7 +60,7 @@ export default async function FichaMedicoPage({
   // ── Receitas ──────────────────────────────────────────────────────────────
   const { data: receitas } = await admin
     .from('receitas')
-    .select('id, paciente_id, criado_em, status, valor_cobrado')
+    .select('id, paciente_id, criado_em, status, valor_cobrado, atendimento_id')
     .eq('medico_id', id)
     .order('criado_em', { ascending: false })
 
@@ -94,11 +94,11 @@ export default async function FichaMedicoPage({
 
   const empresaIds = [...new Set(Object.values(pacienteEmpresaId))]
   const { data: empresas } = empresaIds.length > 0
-    ? await admin.from('empresas').select('id, nome, preco_consulta').in('id', empresaIds)
+    ? await admin.from('empresas').select('id, nome, preco_consulta, preco_receita').in('id', empresaIds)
     : { data: [] }
 
-  const empresaMap: Record<string, { nome: string; preco_consulta: number }> = {}
-  ;(empresas ?? []).forEach(e => { empresaMap[e.id] = { nome: e.nome, preco_consulta: e.preco_consulta ?? 0 } })
+  const empresaMap: Record<string, { nome: string; preco_consulta: number; preco_receita: number }> = {}
+  ;(empresas ?? []).forEach(e => { empresaMap[e.id] = { nome: e.nome, preco_consulta: e.preco_consulta ?? 0, preco_receita: (e as any).preco_receita ?? 0 } })
 
   // ── Helper fns ────────────────────────────────────────────────────────────
   function origemPaciente(pacienteId: string): { label: string; tipo: 'empresa' | 'particular' } {
@@ -111,6 +111,13 @@ export default async function FichaMedicoPage({
     const eId = pacienteEmpresaId[pacienteId]
     const emp = eId ? empresaMap[eId] : null
     return emp?.preco_consulta ?? valorFallback ?? 0
+  }
+
+  function calcValorRenovacao(pacienteId: string, valorCobrado: number | null): number {
+    const eId = pacienteEmpresaId[pacienteId]
+    const emp = eId ? empresaMap[eId] : null
+    const precoReceita = emp?.preco_receita ?? 0
+    return (valorCobrado != null && valorCobrado > 0) ? valorCobrado : precoReceita
   }
 
   function formatDataHora(iso: string | null | undefined) {
@@ -169,6 +176,7 @@ export default async function FichaMedicoPage({
   const receitasEnriquecidas: ReceitaEnriquecida[] = recs.map(r => {
     const { data } = formatDataHora(r.criado_em)
     const orig = origemPaciente(r.paciente_id)
+    const isRenovacao = r.atendimento_id == null
     return {
       id: r.id,
       isoDate: r.criado_em ?? '',
@@ -179,7 +187,8 @@ export default async function FichaMedicoPage({
       origemTipo: orig.tipo,
       empresaId: pacienteEmpresaId[r.paciente_id] ?? null,
       status: r.status ?? null,
-      valor: r.valor_cobrado ?? 0,
+      valor: isRenovacao ? calcValorRenovacao(r.paciente_id, r.valor_cobrado) : 0,
+      isRenovacao,
     }
   })
 

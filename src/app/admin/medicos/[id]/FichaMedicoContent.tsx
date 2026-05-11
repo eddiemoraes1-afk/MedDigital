@@ -48,6 +48,7 @@ export interface ReceitaEnriquecida {
   empresaId: string | null
   status: string | null
   valor: number
+  isRenovacao: boolean
 }
 
 interface Empresa { id: string; nome: string }
@@ -121,14 +122,20 @@ export default function FichaMedicoContent({
   const filteredRecPacientes   = useMemo(() => new Set(filteredRecs.map(r => r.pacienteId)),   [filteredRecs])
 
   // Dynamic KPIs
-  const totalConsultas   = filteredAts.length
-  const faturamento      = filteredAts.reduce((s, a) => s + a.valor, 0)
-  const custoConsultas   = filteredAts.reduce((s, a) => s + a.custo, 0)
-  const custoReceitasVal = custoReceita > 0 ? filteredRecs.length * custoReceita : 0
-  const custoTotal       = custoConsultas + custoReceitasVal
-  const lucro            = faturamento - custoTotal
-  const totalAtestados   = filteredAtests.length
-  const totalReceitas    = filteredRecs.length
+  const totalConsultas       = filteredAts.length
+  const filteredRenovacoes   = useMemo(() => filteredRecs.filter(r => r.isRenovacao),  [filteredRecs])
+  const filteredRecConsulta  = useMemo(() => filteredRecs.filter(r => !r.isRenovacao), [filteredRecs])
+  const totalRenovacoes      = filteredRenovacoes.length
+  const totalRecConsulta     = filteredRecConsulta.length
+  const totalReceitas        = filteredRecs.length
+  const faturamentoConsultas = filteredAts.reduce((s, a) => s + a.valor, 0)
+  const faturamentoRenovacoes = filteredRenovacoes.reduce((s, r) => s + r.valor, 0)
+  const faturamento          = faturamentoConsultas + faturamentoRenovacoes
+  const custoConsultas       = filteredAts.reduce((s, a) => s + a.custo, 0)
+  const custoReceitasVal     = custoReceita > 0 ? totalRenovacoes * custoReceita : 0
+  const custoTotal           = custoConsultas + custoReceitasVal
+  const lucro                = faturamento - custoTotal
+  const totalAtestados       = filteredAtests.length
 
   function clearFilters() {
     setDateFrom(''); setDateTo(''); setOrigem('all'); setBusca('')
@@ -151,8 +158,8 @@ export default function FichaMedicoContent({
         ['Gerado em:', new Date().toLocaleString('pt-BR')],
         [],
         ['RESUMO'],
-        ['Consultas', 'Faturamento', 'Custo', 'Margem Bruta', 'Atestados', 'Receitas'],
-        [totalConsultas, faturamento, custoTotal, lucro, totalAtestados, totalReceitas],
+        ['Consultas', 'Fat. Consultas', 'Renovações', 'Fat. Renovações', 'Faturamento Total', 'Custo', 'Margem Bruta', 'Atestados', 'Receitas', 'Renovações'],
+        [totalConsultas, faturamentoConsultas, totalRenovacoes, faturamentoRenovacoes, faturamento, custoTotal, lucro, totalAtestados, totalReceitas, totalRenovacoes],
         [],
         ['CONSULTAS'],
         ['Data', 'Hora', 'Paciente', 'Origem', 'Faturado (R$)', ...(custoConsulta > 0 ? ['Custo (R$)'] : [])],
@@ -164,8 +171,8 @@ export default function FichaMedicoContent({
         filteredAtests.forEach(a => rows.push([a.data, a.pacienteNome, a.origemLabel, a.dias ?? '', a.cid ?? '']))
       }
       if (filteredRecs.length > 0) {
-        rows.push([], ['RECEITAS'], ['Data', 'Paciente', 'Origem', 'Status', 'Valor (R$)'])
-        filteredRecs.forEach(r => rows.push([r.data, r.pacienteNome, r.origemLabel, r.status ?? '—', r.valor]))
+        rows.push([], ['RECEITAS'], ['Data', 'Paciente', 'Origem', 'Tipo', 'Status', 'Valor (R$)'])
+        filteredRecs.forEach(r => rows.push([r.data, r.pacienteNome, r.origemLabel, r.isRenovacao ? 'Renovação' : 'Em consulta', r.status ?? '—', r.isRenovacao ? r.valor : '—']))
       }
       const ws = XLSX.utils.aoa_to_sheet(rows)
       const wb = XLSX.utils.book_new()
@@ -196,10 +203,10 @@ export default function FichaMedicoContent({
       </table>` : ''
 
     const recHTML = filteredRecs.length > 0 ? `
-      <h3>Receitas Emitidas (${filteredRecs.length})</h3>
+      <h3>Receitas Emitidas (${filteredRecs.length} — ${totalRenovacoes} renovação · ${totalRecConsulta} em consulta)</h3>
       <table>
-        <thead><tr><th>Data</th><th>Paciente</th><th>Origem</th><th>Status</th><th class="num">Valor</th></tr></thead>
-        <tbody>${filteredRecs.map(r => `<tr><td>${r.data}</td><td>${r.pacienteNome}</td><td>${r.origemLabel}</td><td>${r.status ?? '—'}</td><td class="num">${r.valor > 0 ? formatBRL(r.valor) : '—'}</td></tr>`).join('')}</tbody>
+        <thead><tr><th>Data</th><th>Paciente</th><th>Tipo</th><th>Status</th><th class="num">Valor</th></tr></thead>
+        <tbody>${filteredRecs.map(r => `<tr><td>${r.data}</td><td>${r.pacienteNome}</td><td>${r.isRenovacao ? '<span style="color:#ea580c;font-weight:600">Renovação</span>' : '<span style="color:#9333ea">Em consulta</span>'}</td><td>${r.status ?? '—'}</td><td class="num">${r.isRenovacao && r.valor > 0 ? formatBRL(r.valor) : '—'}</td></tr>`).join('')}</tbody>
       </table>` : ''
 
     const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
@@ -236,6 +243,7 @@ export default function FichaMedicoContent({
     <div class="kpi"><div class="kpi-label">Margem</div><div class="kpi-value ${lucro >= 0 ? 'green' : 'orange'}">${formatBRL(lucro)}</div></div>` : ''}
     <div class="kpi"><div class="kpi-label">Atestados</div><div class="kpi-value amber">${totalAtestados}</div></div>
     <div class="kpi"><div class="kpi-label">Receitas</div><div class="kpi-value purple">${totalReceitas}</div></div>
+    ${totalRenovacoes > 0 ? `<div class="kpi"><div class="kpi-label">Renovações</div><div class="kpi-value orange">${totalRenovacoes} · ${formatBRL(faturamentoRenovacoes)}</div></div>` : ''}
   </div>
   <h3>Consultas Realizadas (${totalConsultas})</h3>
   <table>
@@ -313,7 +321,11 @@ export default function FichaMedicoContent({
             <div>
               <p className="text-xs text-gray-400 font-medium">Faturamento</p>
               <p className="text-lg font-bold text-[#1A3A2C] mt-1 leading-tight">{formatBRL(faturamento)}</p>
-              <p className="text-xs text-gray-400 mt-0.5">receita gerada</p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {faturamentoRenovacoes > 0
+                  ? `consultas + ${formatBRL(faturamentoRenovacoes)} renov.`
+                  : 'receita gerada'}
+              </p>
             </div>
             <div className="p-2 rounded-xl bg-green-50"><DollarSign className="w-4 h-4 text-[#5BBD9B]" /></div>
           </div>
@@ -361,7 +373,9 @@ export default function FichaMedicoContent({
             <div>
               <p className="text-xs text-gray-400 font-medium">Receitas</p>
               <p className="text-2xl font-bold text-purple-600 mt-1">{totalReceitas}</p>
-              <p className="text-xs text-gray-400 mt-0.5">emitidas</p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {totalRenovacoes > 0 ? `${totalRenovacoes} renov. · ${totalRecConsulta} em consulta` : 'emitidas'}
+              </p>
             </div>
             <div className="p-2 rounded-xl bg-purple-50"><ClipboardList className="w-4 h-4 text-purple-500" /></div>
           </div>
@@ -537,7 +551,7 @@ export default function FichaMedicoContent({
           {/* Receitas */}
           {receitas.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
                 <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
                   <ClipboardList className="w-4 h-4 text-purple-500" />
                   Receitas Emitidas
@@ -545,6 +559,12 @@ export default function FichaMedicoContent({
                     ({isFiltered ? `${filteredRecs.length} de ${receitas.length}` : receitas.length})
                   </span>
                 </h2>
+                {totalRenovacoes > 0 && (
+                  <div className="flex items-center gap-2 text-xs text-gray-400 shrink-0">
+                    <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">{totalRenovacoes} renovação</span>
+                    <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">{totalRecConsulta} em consulta</span>
+                  </div>
+                )}
               </div>
               {filteredRecs.length > 0 ? (
                 <div className="overflow-x-auto">
@@ -553,6 +573,7 @@ export default function FichaMedicoContent({
                       <tr>
                         <th className="px-5 py-3 text-left">Data</th>
                         <th className="px-5 py-3 text-left">Paciente</th>
+                        <th className="px-5 py-3 text-center">Tipo</th>
                         <th className="px-5 py-3 text-center">Status</th>
                         <th className="px-5 py-3 text-right">Valor</th>
                       </tr>
@@ -568,12 +589,19 @@ export default function FichaMedicoContent({
                             ) : <span className="text-gray-300 text-xs">—</span>}
                           </td>
                           <td className="px-5 py-3 text-center">
+                            {r.isRenovacao ? (
+                              <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">Renovação</span>
+                            ) : (
+                              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">Em consulta</span>
+                            )}
+                          </td>
+                          <td className="px-5 py-3 text-center">
                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${r.status === 'emitida' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                               {r.status === 'emitida' ? 'Emitida' : r.status ?? '—'}
                             </span>
                           </td>
                           <td className="px-5 py-3 text-right text-sm font-semibold text-[#1A3A2C]">
-                            {r.valor > 0 ? formatBRL(r.valor) : '—'}
+                            {r.isRenovacao && r.valor > 0 ? formatBRL(r.valor) : '—'}
                           </td>
                         </tr>
                       ))}
@@ -603,16 +631,22 @@ export default function FichaMedicoContent({
               </h3>
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Faturamento</span>
-                  <span className="font-semibold text-[#1A3A2C]">{formatBRL(faturamento)}</span>
+                  <span className="text-gray-500">Faturamento consultas</span>
+                  <span className="font-semibold text-[#1A3A2C]">{formatBRL(faturamentoConsultas)}</span>
                 </div>
+                {faturamentoRenovacoes > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Faturamento renovações ({totalRenovacoes})</span>
+                    <span className="font-semibold text-[#1A3A2C]">{formatBRL(faturamentoRenovacoes)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-gray-500">Custo consultas ({totalConsultas} × {formatBRL(custoConsulta)})</span>
                   <span className="font-semibold text-orange-600">- {formatBRL(custoConsultas)}</span>
                 </div>
-                {custoReceita > 0 && totalReceitas > 0 && (
+                {custoReceita > 0 && totalRenovacoes > 0 && (
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Custo receitas ({totalReceitas} × {formatBRL(custoReceita)})</span>
+                    <span className="text-gray-500">Custo renovações ({totalRenovacoes} × {formatBRL(custoReceita)})</span>
                     <span className="font-semibold text-orange-600">- {formatBRL(custoReceitasVal)}</span>
                   </div>
                 )}
