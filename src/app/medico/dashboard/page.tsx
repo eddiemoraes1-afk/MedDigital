@@ -57,7 +57,7 @@ export default async function MedicoDashboard() {
     // Atendidos hoje
     adminSupabase
       .from('atendimentos')
-      .select('id, finalizado_em, pacientes(id, nome), triagens(classificacao_risco)')
+      .select('id, finalizado_em, agendamento_id, pacientes(id, nome), triagens(classificacao_risco)')
       .eq('medico_id', medico.id)
       .eq('status', 'concluido')
       .gte('finalizado_em', hojeInicio)
@@ -93,6 +93,16 @@ export default async function MedicoDashboard() {
   const receitas    = receitasRes.data   ?? []
   const renovacoes = renovacoesRes.data ?? []
   const exames: any[] = [] // tabela ainda não criada
+
+  // ── Cálculos do resumo do dia ─────────────────────────────────────────────
+  const custoConsulta     = Number(medico.custo_consulta ?? 0)
+  const consultasVirtual  = atendidos.filter((a: any) => !a.agendamento_id).length
+  const consultasAgendadas = atendidos.filter((a: any) => !!a.agendamento_id).length
+  const receitasRenovacao = receitas.filter((r: any) => Number(r.valor_medico) > 0)
+  const receitasEmConsulta = receitas.filter((r: any) => !(Number(r.valor_medico) > 0))
+  const totalGanhoConsultas  = atendidos.length * custoConsulta
+  const totalGanhoRenovacoes = receitasRenovacao.reduce((s: number, r: any) => s + Number(r.valor_medico), 0)
+  const totalDia = totalGanhoConsultas + totalGanhoRenovacoes
 
   const primeiroNome = medico.nome.split(' ')[0]
   const horaAtual = Number(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo', hour: 'numeric', hour12: false }))
@@ -376,41 +386,76 @@ export default async function MedicoDashboard() {
           )}
         </div>
 
-        {/* ── Atendidos hoje ── */}
+        {/* ── Atendidos hoje — Consultas ── */}
         <div id="atendidos" className="bg-white rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
             <CheckCircle2 className="w-4 h-4 text-[#5BBD9B]" />
             <h2 className="font-bold text-[#1A3A2C] text-sm">
-              Atendidos hoje
+              Atendidos Hoje — Consultas
               <span className="ml-2 text-xs text-gray-400 font-normal">({atendidos.length})</span>
             </h2>
           </div>
           {atendidos.length > 0 ? (
-            <div className="divide-y divide-gray-50">
-              {atendidos.map((a: any) => {
-                const risco = a.triagens?.classificacao_risco
-                return (
-                  <div key={a.id} className="px-6 py-3.5 flex items-center gap-4 hover:bg-gray-50 transition-colors">
-                    <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center shrink-0">
-                      <CheckCircle2 className="w-4 h-4 text-[#5BBD9B]" />
-                    </div>
-                    <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
-                      <Link
-                        href={`/medico/pacientes/${a.pacientes?.id}`}
-                        className="font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors text-sm"
-                      >
-                        {a.pacientes?.nome || 'Paciente'}
-                      </Link>
-                      {risco && (
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${corRisco[risco] || corRisco.default}`}>
-                          {labelRisco[risco] || risco}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-xs text-gray-400 shrink-0">{formatarHora(a.finalizado_em)}</span>
-                  </div>
-                )
-              })}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 text-xs text-gray-400 font-medium uppercase tracking-wide">
+                  <tr>
+                    <th className="px-5 py-3 text-left">Horário</th>
+                    <th className="px-5 py-3 text-left">Paciente</th>
+                    <th className="px-5 py-3 text-center">Tipo</th>
+                    <th className="px-5 py-3 text-center">Risco</th>
+                    <th className="px-5 py-3 text-right">Ganho</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {atendidos.map((a: any) => {
+                    const risco = a.triagens?.classificacao_risco
+                    const isAgendada = !!a.agendamento_id
+                    return (
+                      <tr key={a.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-5 py-3 text-xs text-gray-500 whitespace-nowrap">{formatarHora(a.finalizado_em)}</td>
+                        <td className="px-5 py-3">
+                          <Link
+                            href={`/medico/pacientes/${a.pacientes?.id}`}
+                            className="font-medium text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
+                          >
+                            {a.pacientes?.nome || '—'}
+                          </Link>
+                        </td>
+                        <td className="px-5 py-3 text-center">
+                          <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${isAgendada ? 'bg-blue-50 text-blue-700' : 'bg-green-50 text-green-700'}`}>
+                            {isAgendada ? 'Agendada' : 'Virtual'}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 text-center">
+                          {risco ? (
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${corRisco[risco] || corRisco.default}`}>
+                              {labelRisco[risco] || risco}
+                            </span>
+                          ) : <span className="text-gray-200 text-xs">—</span>}
+                        </td>
+                        <td className="px-5 py-3 text-right text-sm font-semibold">
+                          {custoConsulta > 0
+                            ? <span className="text-green-600">{formatBRL(custoConsulta)}</span>
+                            : <span className="text-gray-300">—</span>}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+                {custoConsulta > 0 && (
+                  <tfoot className="bg-gray-50 border-t-2 border-gray-100">
+                    <tr>
+                      <td colSpan={4} className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        Total ({atendidos.length} {atendidos.length === 1 ? 'consulta' : 'consultas'})
+                      </td>
+                      <td className="px-5 py-3 text-right text-sm font-bold text-green-600">
+                        {formatBRL(totalGanhoConsultas)}
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
             </div>
           ) : (
             <div className="py-10 text-center">
@@ -526,6 +571,18 @@ export default async function MedicoDashboard() {
                     )
                   })}
                 </tbody>
+                {totalGanhoRenovacoes > 0 && (
+                  <tfoot className="bg-gray-50 border-t-2 border-gray-100">
+                    <tr>
+                      <td colSpan={3} className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        Total renovações ({receitasRenovacao.length})
+                      </td>
+                      <td className="px-5 py-3 text-right text-sm font-bold text-green-600">
+                        {formatBRL(totalGanhoRenovacoes)}
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
               </table>
             </div>
           ) : (
@@ -535,6 +592,55 @@ export default async function MedicoDashboard() {
             </div>
           )}
         </div>
+
+        {/* ── Resumo do Dia ── */}
+        {(atendidos.length > 0 || receitas.length > 0 || atestados.length > 0) && (
+          <div className="bg-[#1A3A2C] rounded-2xl shadow-sm p-6">
+            <h2 className="font-bold text-white text-sm mb-5 flex items-center gap-2">
+              <BarChart2 className="w-4 h-4 text-[#5BBD9B]" />
+              Resumo do Dia
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+              <div className="bg-white/10 rounded-xl p-4">
+                <p className="text-xs text-green-300 font-medium">Consultas virtuais</p>
+                <p className="text-2xl font-bold text-white mt-1">{consultasVirtual}</p>
+              </div>
+              <div className="bg-white/10 rounded-xl p-4">
+                <p className="text-xs text-green-300 font-medium">Consultas agendadas</p>
+                <p className="text-2xl font-bold text-white mt-1">{consultasAgendadas}</p>
+              </div>
+              <div className="bg-white/10 rounded-xl p-4">
+                <p className="text-xs text-green-300 font-medium">Rx em consulta</p>
+                <p className="text-2xl font-bold text-white mt-1">{receitasEmConsulta.length}</p>
+                <p className="text-xs text-green-400 mt-0.5">sem custo</p>
+              </div>
+              <div className="bg-white/10 rounded-xl p-4">
+                <p className="text-xs text-green-300 font-medium">Renovações de Rx</p>
+                <p className="text-2xl font-bold text-white mt-1">{receitasRenovacao.length}</p>
+                {totalGanhoRenovacoes > 0 && <p className="text-xs text-green-400 mt-0.5">{formatBRL(totalGanhoRenovacoes)}</p>}
+              </div>
+              <div className="bg-white/10 rounded-xl p-4">
+                <p className="text-xs text-green-300 font-medium">Atestados</p>
+                <p className="text-2xl font-bold text-white mt-1">{atestados.length}</p>
+              </div>
+              <div className="bg-white/10 rounded-xl p-4">
+                <p className="text-xs text-green-300 font-medium">Exames pedidos</p>
+                <p className="text-2xl font-bold text-white mt-1">{exames.length}</p>
+              </div>
+            </div>
+            <div className="border-t border-white/20 pt-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-green-300 font-medium uppercase tracking-wide">Total a receber hoje</p>
+                <p className="text-xs text-green-400 mt-0.5">
+                  {atendidos.length} consulta{atendidos.length !== 1 ? 's' : ''}
+                  {receitasRenovacao.length > 0 ? ` + ${receitasRenovacao.length} renovação` : ''}
+                  {custoConsulta > 0 ? ` · ${formatBRL(custoConsulta)}/consulta` : ''}
+                </p>
+              </div>
+              <p className="text-3xl font-bold text-[#5BBD9B]">{formatBRL(totalDia)}</p>
+            </div>
+          </div>
+        )}
 
         {/* ── Exames pedidos hoje ── */}
         <div id="exames" className="bg-white rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
