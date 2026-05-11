@@ -1,14 +1,16 @@
 import { requireAdmin } from '@/lib/auth-sistema'
 import { createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import Image from 'next/image'
 import {
   Stethoscope, CheckCircle2, XCircle, Clock, Calendar,
-  CreditCard, MapPin, User, Mail, Phone,
+  CreditCard, MapPin, User, Mail, Phone, User2,
 } from 'lucide-react'
 import AdminHeader from '../../components/AdminHeader'
 import BotoesAprovacao from '../../components/BotoesAprovacao'
 import ToggleMedicoAtivo from '../ToggleMedicoAtivo'
 import ConfigMedico from './ConfigMedico'
+import EditarMedico from './EditarMedico'
 import FichaMedicoContent, {
   type AtendimentoEnriquecido,
   type AtestadoEnriquecido,
@@ -217,8 +219,12 @@ export default async function FichaMedicoPage({
         {/* ── Doctor header card (static) ── */}
         <div className="bg-white rounded-2xl p-6 shadow-sm">
           <div className="flex items-start gap-5">
-            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shrink-0 ${ativo ? 'bg-green-100' : 'bg-gray-100'}`}>
-              <Stethoscope className={`w-8 h-8 ${ativo ? 'text-[#5BBD9B]' : 'text-gray-400'}`} />
+            <div className={`relative w-16 h-16 rounded-2xl overflow-hidden shrink-0 flex items-center justify-center ${ativo ? 'bg-green-100' : 'bg-gray-100'}`}>
+              {medico.foto_url ? (
+                <Image src={medico.foto_url} alt={medico.nome} fill className="object-cover" sizes="64px" />
+              ) : (
+                <User2 className={`w-8 h-8 ${ativo ? 'text-[#5BBD9B]' : 'text-gray-400'}`} />
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-bold text-[#1A3A2C]">{medico.nome}</h1>
@@ -297,6 +303,20 @@ export default async function FichaMedicoPage({
                   )}
                 </div>
               </div>
+
+              {/* Editar dados + foto */}
+              <EditarMedico
+                medicoId={medico.id}
+                nomeatual={medico.nome}
+                especialidadeAtual={medico.especialidade ?? null}
+                crmAtual={medico.crm ?? null}
+                crmUfAtual={medico.crm_uf ?? null}
+                telefoneAtual={medico.telefone ?? null}
+                cidadeAtual={medico.cidade ?? null}
+                estadoAtual={medico.estado ?? null}
+                bioAtual={medico.bio ?? null}
+                fotoAtual={medico.foto_url ?? null}
+              />
 
               {/* Remuneração */}
               <ConfigMedico

@@ -4,7 +4,8 @@ import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Calendar, Clock, User, ChevronRight, Loader2, CheckCircle2 } from 'lucide-react'
+import Image from 'next/image'
+import { Calendar, Clock, User, ChevronRight, Loader2, CheckCircle2, User2 } from 'lucide-react'
 import PacienteHeader from '../PacienteHeader'
 
 interface Medico {
@@ -13,6 +14,7 @@ interface Medico {
   especialidade: string
   crm: string
   crm_uf: string
+  foto_url: string | null
 }
 
 const DIAS_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -57,7 +59,7 @@ function AgendarConteudo() {
     async function carregarMedicos() {
       const { data } = await supabase
         .from('medicos')
-        .select('id, nome, especialidade, crm, crm_uf')
+        .select('id, nome, especialidade, crm, crm_uf, foto_url')
         .eq('status', 'aprovado')
         .order('nome')
       setMedicos(data || [])
@@ -229,24 +231,40 @@ function AgendarConteudo() {
                     key={m.id}
                     onClick={() => selecionarMedico(m)}
                     disabled={carregando}
-                    className="w-full flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:border-[#5BBD9B] hover:bg-green-50 text-left transition-all"
+                    className="w-full flex items-center gap-3 p-4 border border-gray-100 rounded-xl hover:border-[#5BBD9B] hover:bg-green-50 text-left transition-all"
                   >
-                    <div>
+                    <div className="relative w-11 h-11 rounded-full overflow-hidden bg-green-100 shrink-0 flex items-center justify-center">
+                      {m.foto_url ? (
+                        <Image src={m.foto_url} alt={m.nome} fill className="object-cover" sizes="44px" />
+                      ) : (
+                        <User2 className="w-6 h-6 text-[#5BBD9B]" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
                       <p className="font-semibold text-[#1A3A2C]">Dr(a). {m.nome}</p>
                       <p className="text-sm text-gray-400">{m.especialidade} • CRM {m.crm}/{m.crm_uf}</p>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-300" />
+                    <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
                   </button>
                 ))}
               </div>
             ) : (
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-[#1A3A2C]">Dr(a). {medicoSelecionado?.nome}</p>
-                  <p className="text-sm text-gray-400">{medicoSelecionado?.especialidade}</p>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="relative w-9 h-9 rounded-full overflow-hidden bg-green-100 shrink-0 flex items-center justify-center">
+                    {medicoSelecionado?.foto_url ? (
+                      <Image src={medicoSelecionado.foto_url} alt={medicoSelecionado.nome} fill className="object-cover" sizes="36px" />
+                    ) : (
+                      <User2 className="w-5 h-5 text-[#5BBD9B]" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[#1A3A2C]">Dr(a). {medicoSelecionado?.nome}</p>
+                    <p className="text-sm text-gray-400">{medicoSelecionado?.especialidade}</p>
+                  </div>
                 </div>
                 <button onClick={() => { setPasso(1); setDataSelecionada(null); setSlotSelecionado(null) }}
-                  className="text-xs text-[#5BBD9B] hover:underline">Alterar</button>
+                  className="text-xs text-[#5BBD9B] hover:underline shrink-0">Alterar</button>
               </div>
             )}
           </div>
