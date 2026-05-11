@@ -8,6 +8,12 @@ import {
   Stethoscope, ClipboardList, DollarSign,
 } from 'lucide-react'
 import AdminHeader from '../../components/AdminHeader'
+import FichaPacienteExports, {
+  type AtendimentoExport,
+  type AtestadoExport,
+  type ReceitaExport,
+  type TotaisExport,
+} from './FichaPacienteExports'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -148,6 +154,51 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
     return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
   }
 
+  // ── Export data (serialisable arrays for client component) ───────────────
+  const atendimentosExport: AtendimentoExport[] = atendimentos.map(a => {
+    const { data, hora } = formatDataHora(a.finalizado_em ?? a.criado_em)
+    return {
+      data,
+      hora,
+      medicoNome: a.medico_id ? (medicoMap[a.medico_id] ?? '—') : '—',
+      tipo: a.agendamento_id ? 'Agendada' : 'Virtual',
+      valor: resolveValorConsulta(a.valor_cobrado),
+    }
+  })
+
+  const atestadosExport: AtestadoExport[] = atestados.map(a => {
+    const { data } = formatDataHora(a.criado_em)
+    return {
+      data,
+      medicoNome: a.medico_id ? (medicoMap[a.medico_id] ?? '—') : '—',
+      dias: a.dias ?? null,
+      cid: a.cid ?? null,
+    }
+  })
+
+  const receitasExport: ReceitaExport[] = receitas.map(r => {
+    const { data } = formatDataHora(r.criado_em)
+    const isRenovacao = (r as any).atendimento_id == null
+    return {
+      data,
+      medicoNome: r.medico_id ? (medicoMap[r.medico_id] ?? '—') : '—',
+      isRenovacao,
+      status: r.status ?? null,
+      valor: isRenovacao ? resolveValorRenovacao((r as any).valor_cobrado) : 0,
+    }
+  })
+
+  const totaisExport: TotaisExport = {
+    totalAtendimentos,
+    totalAtestados,
+    totalReceitas,
+    totalRenovacoes,
+    totalRecConsulta,
+    totalGastoConsultas,
+    totalGastoRenovacoes,
+    totalGasto,
+  }
+
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
       <AdminHeader titulo="Ficha do Paciente" backHref={backHref} />
@@ -190,20 +241,30 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
               </p>
             </div>
 
-            {/* KPIs */}
-            <div className="flex gap-3 shrink-0">
-              <div className="text-center bg-[#F3FAF7] rounded-xl px-4 py-3">
-                <p className="text-2xl font-bold text-[#1A3A2C]">{totalAtendimentos}</p>
-                <p className="text-xs text-gray-400">consultas</p>
+            {/* KPIs + export buttons */}
+            <div className="flex flex-col items-end gap-3 shrink-0">
+              <div className="flex gap-3">
+                <div className="text-center bg-[#F3FAF7] rounded-xl px-4 py-3">
+                  <p className="text-2xl font-bold text-[#1A3A2C]">{totalAtendimentos}</p>
+                  <p className="text-xs text-gray-400">consultas</p>
+                </div>
+                <div className="text-center bg-amber-50 rounded-xl px-4 py-3">
+                  <p className="text-2xl font-bold text-amber-600">{totalAtestados}</p>
+                  <p className="text-xs text-gray-400">atestados</p>
+                </div>
+                <div className="text-center bg-purple-50 rounded-xl px-4 py-3">
+                  <p className="text-2xl font-bold text-purple-600">{totalReceitas}</p>
+                  <p className="text-xs text-gray-400">receitas</p>
+                </div>
               </div>
-              <div className="text-center bg-amber-50 rounded-xl px-4 py-3">
-                <p className="text-2xl font-bold text-amber-600">{totalAtestados}</p>
-                <p className="text-xs text-gray-400">atestados</p>
-              </div>
-              <div className="text-center bg-purple-50 rounded-xl px-4 py-3">
-                <p className="text-2xl font-bold text-purple-600">{totalReceitas}</p>
-                <p className="text-xs text-gray-400">receitas</p>
-              </div>
+              <FichaPacienteExports
+                pacienteNome={paciente.nome}
+                empresaNome={empresa?.nome ?? ''}
+                atendimentos={atendimentosExport}
+                atestados={atestadosExport}
+                receitas={receitasExport}
+                totais={totaisExport}
+              />
             </div>
           </div>
         </div>
