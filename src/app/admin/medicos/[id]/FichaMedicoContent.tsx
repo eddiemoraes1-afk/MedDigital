@@ -480,6 +480,22 @@ export default function FichaMedicoContent({
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot className="bg-gray-50 border-t-2 border-gray-100">
+                    <tr>
+                      <td colSpan={3} className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                        Total ({filteredAts.length} {filteredAts.length === 1 ? 'consulta' : 'consultas'})
+                      </td>
+                      <td className="px-5 py-3 text-right text-sm font-bold text-[#1A3A2C]">
+                        {formatBRL(faturamentoConsultas)}
+                      </td>
+                      {custoConsulta > 0 && (
+                        <td className="px-5 py-3 text-right text-sm font-bold text-orange-600">
+                          {formatBRL(custoConsultas)}
+                        </td>
+                      )}
+                      <td colSpan={3} />
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
             ) : isFiltered ? (
@@ -606,6 +622,22 @@ export default function FichaMedicoContent({
                         </tr>
                       ))}
                     </tbody>
+                    <tfoot className="bg-gray-50 border-t-2 border-gray-100">
+                      <tr>
+                        <td className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                          Total
+                        </td>
+                        <td colSpan={2} className="px-5 py-3 text-xs text-gray-400">
+                          {totalRenovacoes > 0
+                            ? `${totalRenovacoes} renovação · ${totalRecConsulta} em consulta`
+                            : `${filteredRecs.length} ${filteredRecs.length === 1 ? 'receita' : 'receitas'}`}
+                        </td>
+                        <td className="px-5 py-3" />
+                        <td className="px-5 py-3 text-right text-sm font-bold text-[#1A3A2C]">
+                          {faturamentoRenovacoes > 0 ? formatBRL(faturamentoRenovacoes) : '—'}
+                        </td>
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
               ) : (
