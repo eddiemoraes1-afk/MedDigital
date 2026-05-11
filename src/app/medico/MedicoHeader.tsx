@@ -2,6 +2,10 @@
 
 import Link from 'next/link'
 import { ArrowLeft, LogOut, LayoutDashboard, BarChart2, User2 } from 'lucide-react'
+import { drTitle } from '@/lib/medico-utils'
+
+// Re-exporta para quem já importava daqui
+export { drTitle }
 
 interface Props {
   titulo: string
@@ -9,12 +13,6 @@ interface Props {
   medicoNome?: string
   medicoSexo?: string | null
   medicoFotoUrl?: string | null
-}
-
-export function drTitle(sexo: string | null | undefined): string {
-  if (sexo === 'masculino') return 'Dr.'
-  if (sexo === 'feminino') return 'Dra.'
-  return 'Dr(a).'
 }
 
 export default function MedicoHeader({ titulo, backHref, medicoNome, medicoSexo, medicoFotoUrl }: Props) {

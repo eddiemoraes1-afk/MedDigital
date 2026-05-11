@@ -7,7 +7,8 @@ import {
   ChevronRight, BarChart2, ScrollText,
 } from 'lucide-react'
 import PingMedico from '../PingMedico'
-import MedicoHeader, { drTitle } from '../MedicoHeader'
+import MedicoHeader from '../MedicoHeader'
+import { drTitle } from '@/lib/medico-utils'
 
 export default async function MedicoDashboard() {
   const supabase = await createClient()
