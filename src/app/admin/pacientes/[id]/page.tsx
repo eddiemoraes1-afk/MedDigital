@@ -34,7 +34,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
   const { data: vinculo } = paciente.cpf
     ? await admin
         .from('vinculos_empresa')
-        .select('*, empresas(id, nome, cnpj)')
+        .select('*, empresas(id, nome, cnpj, preco_consulta, preco_receita)')
         .eq('cpf', paciente.cpf)
         .maybeSingle()
     : { data: null }
@@ -61,7 +61,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
   // ── Receitas ──────────────────────────────────────────────────────────────
   const { data: receitasData } = await admin
     .from('receitas')
-    .select('id, medico_id, criado_em, status, valor_cobrado')
+    .select('id, medico_id, criado_em, status, valor_cobrado, atendimento_id')
     .eq('paciente_id', id)
     .order('criado_em', { ascending: false })
 
@@ -105,6 +105,25 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const empresa = vinculo?.empresas as any
+  const precoConsultaEmpresa: number = empresa?.preco_consulta ?? 0
+  const precoReceitaEmpresa: number  = empresa?.preco_receita  ?? 0
+
+  // Renovações = receitas sem atendimento_id (cobrança avulsa)
+  const renovacoes       = receitas.filter(r => (r as any).atendimento_id == null)
+  const receitasEmConsulta = receitas.filter(r => (r as any).atendimento_id != null)
+  const totalRenovacoes    = renovacoes.length
+  const totalRecConsulta   = receitasEmConsulta.length
+
+  function resolveValorConsulta(valorCobrado: number | null): number {
+    return precoConsultaEmpresa > 0 ? precoConsultaEmpresa : (valorCobrado ?? 0)
+  }
+  function resolveValorRenovacao(valorCobrado: number | null): number {
+    return (valorCobrado != null && valorCobrado > 0) ? valorCobrado : precoReceitaEmpresa
+  }
+
+  const totalGastoConsultas  = atendimentos.reduce((s, a) => s + resolveValorConsulta(a.valor_cobrado), 0)
+  const totalGastoRenovacoes = renovacoes.reduce((s, r) => s + resolveValorRenovacao((r as any).valor_cobrado), 0)
+  const totalGasto           = totalGastoConsultas + totalGastoRenovacoes
 
   const temDadosCadastrais = paciente.data_nascimento || paciente.sexo ||
     paciente.convenio || paciente.numero_convenio || paciente.email
@@ -316,12 +335,18 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
             {/* Receitas */}
             {receitas.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100">
+                <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
                   <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
                     <ClipboardList className="w-4 h-4 text-purple-500" />
                     Receitas Emitidas
                     <span className="text-xs text-gray-400 font-normal">({receitas.length})</span>
                   </h2>
+                  {totalRenovacoes > 0 && (
+                    <div className="flex items-center gap-2 text-xs shrink-0">
+                      <span className="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">{totalRenovacoes} renovação</span>
+                      <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">{totalRecConsulta} em consulta</span>
+                    </div>
+                  )}
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -329,6 +354,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                       <tr>
                         <th className="px-5 py-3 text-left">Data</th>
                         <th className="px-5 py-3 text-left">Médico</th>
+                        <th className="px-5 py-3 text-center">Tipo</th>
                         <th className="px-5 py-3 text-center">Status</th>
                         <th className="px-5 py-3 text-right">Valor</th>
                       </tr>
@@ -336,6 +362,8 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                     <tbody className="divide-y divide-gray-50">
                       {receitas.map(r => {
                         const { data } = formatDataHora(r.criado_em)
+                        const isRenovacao = (r as any).atendimento_id == null
+                        const valorRenovacao = isRenovacao ? resolveValorRenovacao((r as any).valor_cobrado) : 0
                         return (
                           <tr key={r.id} className="hover:bg-gray-50">
                             <td className="px-5 py-3 text-xs text-gray-600">{data}</td>
@@ -350,6 +378,13 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                               ) : <span className="text-gray-300 text-xs">—</span>}
                             </td>
                             <td className="px-5 py-3 text-center">
+                              {isRenovacao ? (
+                                <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium">Renovação</span>
+                              ) : (
+                                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">Em consulta</span>
+                              )}
+                            </td>
+                            <td className="px-5 py-3 text-center">
                               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                                 r.status === 'emitida' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
                               }`}>
@@ -357,12 +392,25 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                               </span>
                             </td>
                             <td className="px-5 py-3 text-right text-sm font-semibold text-[#1A3A2C]">
-                              {r.valor_cobrado ? formatBRL(r.valor_cobrado) : '—'}
+                              {isRenovacao && valorRenovacao > 0 ? formatBRL(valorRenovacao) : '—'}
                             </td>
                           </tr>
                         )
                       })}
                     </tbody>
+                    {totalRenovacoes > 0 && (
+                      <tfoot className="bg-gray-50 border-t-2 border-gray-100">
+                        <tr>
+                          <td colSpan={3} className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                            Total renovações
+                          </td>
+                          <td className="px-5 py-3" />
+                          <td className="px-5 py-3 text-right text-sm font-bold text-[#1A3A2C]">
+                            {formatBRL(totalGastoRenovacoes)}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    )}
                   </table>
                 </div>
               </div>
@@ -519,15 +567,31 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                     </span>
                     <span className="font-bold text-purple-600">{totalReceitas}</span>
                   </div>
-                  {totalAtendimentos > 0 && (
-                    <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                      <span className="flex items-center gap-1.5 text-gray-500">
-                        <DollarSign className="w-3.5 h-3.5 text-[#5BBD9B]" /> Total gasto
-                      </span>
-                      <span className="font-bold text-[#1A3A2C]">
-                        {formatBRL(atendimentos.reduce((s, a) => s + (a.valor_cobrado ?? 0), 0))}
-                      </span>
-                    </div>
+
+                  {/* Detalhamento financeiro */}
+                  {(totalAtendimentos > 0 || totalRenovacoes > 0) && (
+                    <>
+                      <div className="pt-2 border-t border-gray-200 space-y-1.5">
+                        {totalAtendimentos > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Consultas ({totalAtendimentos})</span>
+                            <span className="font-semibold text-[#1A3A2C]">{formatBRL(totalGastoConsultas)}</span>
+                          </div>
+                        )}
+                        {totalRenovacoes > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Renovações ({totalRenovacoes})</span>
+                            <span className="font-semibold text-orange-600">{formatBRL(totalGastoRenovacoes)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between items-center pt-1.5 border-t border-gray-200">
+                          <span className="flex items-center gap-1.5 text-gray-500 font-semibold">
+                            <DollarSign className="w-3.5 h-3.5 text-[#5BBD9B]" /> Total gasto
+                          </span>
+                          <span className="font-bold text-[#1A3A2C]">{formatBRL(totalGasto)}</span>
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
