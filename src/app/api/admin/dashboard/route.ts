@@ -321,11 +321,21 @@ export async function GET(req: Request) {
   for (const a of ats) {
     const p = pacienteMap.get(a.paciente_id) as any
     const empId = pacienteEmpresa.get(a.paciente_id)
-    const emp = empId ? (empresaMap.get(empId) as any)?.nome ?? '—' : 'Particular'
-    const cur = pacienteGasto.get(a.paciente_id) ?? { nome: p?.nome ?? '—', consultas: 0, valor: 0, empresa: emp }
+    const empNome = empId ? (empresaMap.get(empId) as any)?.nome ?? '—' : 'Particular'
+    const empObj = empId ? (empresaMap.get(empId) as any) : null
+    const cur = pacienteGasto.get(a.paciente_id) ?? { nome: p?.nome ?? '—', consultas: 0, valor: 0, empresa: empNome }
     cur.consultas++
-    cur.valor += a.valor_cobrado ?? 0
+    cur.valor += Number(empObj?.preco_consulta ?? a.valor_cobrado ?? 0)
     pacienteGasto.set(a.paciente_id, cur)
+  }
+  // Adiciona renovações ao gasto do paciente
+  for (const r of renovacoes) {
+    const p = pacienteMap.get(r.paciente_id) as any
+    const empId = pacienteEmpresa.get(r.paciente_id)
+    const empNome = empId ? (empresaMap.get(empId) as any)?.nome ?? '—' : 'Particular'
+    const cur = pacienteGasto.get(r.paciente_id) ?? { nome: p?.nome ?? '—', consultas: 0, valor: 0, empresa: empNome }
+    cur.valor += calcValorRenovacao(r)
+    pacienteGasto.set(r.paciente_id, cur)
   }
   const topPacientes = [...pacienteGasto.values()]
     .sort((a, b) => b.valor - a.valor)
@@ -477,7 +487,9 @@ export async function GET(req: Request) {
       dependentes: new Map(),
     }
 
-    const valor = a.valor_cobrado ?? 0
+    const empIdAt = pacienteEmpresa.get(a.paciente_id)
+    const empObjAt = empIdAt ? (empresaMap.get(empIdAt) as any) : null
+    const valor = Number(empObjAt?.preco_consulta ?? a.valor_cobrado ?? 0)
     if (isDependente) {
       cur.consultasDependentes++
       cur.valorDependentes += valor
@@ -495,6 +507,27 @@ export async function GET(req: Request) {
       cur.valorProprio += valor
     }
 
+    titularMapGlobal.set(titularKey, cur)
+  }
+
+  // Adiciona renovações ao custo por titular
+  for (const r of renovacoes) {
+    const vinculo = vinculoMapGlobal.get(r.paciente_id)
+    if (!vinculo) continue
+    const isDependente = classRelacao(vinculo.relacao) === 'Dependente'
+    const titularVinculo = isDependente ? (resolverTitularVinculoGlobal(vinculo) ?? vinculo) : vinculo
+    const titularKey = titularVinculo?.id ?? vinculo.id ?? r.paciente_id
+    if (!titularKey) continue
+    const cur = titularMapGlobal.get(titularKey)
+    if (!cur) continue
+    const valor = calcValorRenovacao(r)
+    if (isDependente) {
+      cur.valorDependentes += valor
+      const depCur = cur.dependentes.get(r.paciente_id)
+      if (depCur) depCur.valor += valor
+    } else {
+      cur.valorProprio += valor
+    }
     titularMapGlobal.set(titularKey, cur)
   }
 
