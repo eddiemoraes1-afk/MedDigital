@@ -14,8 +14,11 @@ export async function GET(req: NextRequest) {
   const medicoFiltro = searchParams.get('medico_id') || ''
   const espFiltro = searchParams.get('especialidade') || ''
 
-  const deISO = `${inicio}T00:00:00.000Z`
-  const ateISO = `${fim}T23:59:59.999Z`
+  // Brasil = UTC-3: meia-noite local = 03:00 UTC; final do dia local = 03:00 UTC do dia seguinte
+  const deISO = `${inicio}T03:00:00.000Z`
+  const fimNextDay = new Date(fim)
+  fimNextDay.setDate(fimNextDay.getDate() + 1)
+  const ateISO = `${fimNextDay.toISOString().split('T')[0]}T02:59:59.999Z`
 
   // ── Medicos (todos aprovados) ─────────────────────────────────────────────
   const { data: medicosData } = await admin
@@ -44,12 +47,12 @@ export async function GET(req: NextRequest) {
   ] = await Promise.all([
     medicoIds.length > 0
       ? admin.from('atendimentos')
-          .select('id, medico_id, paciente_id, criado_em, valor_cobrado, agendamento_id')
+          .select('id, medico_id, paciente_id, criado_em, finalizado_em, valor_cobrado, agendamento_id')
           .eq('status', 'concluido')
           .in('medico_id', medicoIds)
-          .gte('criado_em', deISO)
-          .lte('criado_em', ateISO)
-          .order('criado_em', { ascending: false })
+          .gte('finalizado_em', deISO)
+          .lte('finalizado_em', ateISO)
+          .order('finalizado_em', { ascending: false })
       : ({ data: [] } as any),
 
     medicoIds.length > 0
@@ -88,10 +91,12 @@ export async function GET(req: NextRequest) {
   }
   const empresaMap = new Map(((empresas ?? []) as any[]).map(e => [e.id, e]))
 
-  function precoConsulta(pacienteId: string, valorFallback: number): number {
+  function precoConsulta(pacienteId: string, valorCobrado: number | null): number {
+    // Prioridade: valor efetivamente cobrado → preco_consulta da empresa → 0
+    if (valorCobrado != null && valorCobrado > 0) return valorCobrado
     const eId = pacienteEmpresa.get(pacienteId)
     const emp = eId ? (empresaMap.get(eId) as any) : null
-    return emp?.preco_consulta ?? valorFallback ?? 0
+    return Number(emp?.preco_consulta ?? 0)
   }
 
   function calcValorRenovacao(r: any): number {
@@ -164,7 +169,11 @@ export async function GET(req: NextRequest) {
     row.margem = row.faturamento - row.custo
   }
 
-  const producao = [...prodMap.values()].sort((a, b) => b.faturamento - a.faturamento)
+  const producao = [...prodMap.values()].sort((a, b) => {
+    if (b.faturamento !== a.faturamento) return b.faturamento - a.faturamento
+    if (b.consultas !== a.consultas) return b.consultas - a.consultas
+    return a.nome.localeCompare(b.nome)
+  })
 
   // ── Por especialidade ─────────────────────────────────────────────────────
   const espMap = new Map<string, { especialidade: string; consultas: number; faturamento: number; medicos: Set<string> }>()
