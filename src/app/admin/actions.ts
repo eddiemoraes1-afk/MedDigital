@@ -35,3 +35,23 @@ export async function toggleMedicoAtivo(medicoId: string, ativo: boolean) {
   revalidatePath('/admin/medicos')
   revalidatePath(`/admin/medicos/${medicoId}`)
 }
+
+export async function excluirAtendimento(atendimentoId: string, pacienteId: string) {
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('atendimentos')
+    .delete()
+    .eq('id', atendimentoId)
+  if (error) throw new Error(error.message)
+  revalidatePath(`/admin/pacientes/${pacienteId}`)
+}
+
+export async function atribuirMedicoAtendimento(atendimentoId: string, medicoId: string, pacienteId: string) {
+  const supabase = createAdminClient()
+  const { error } = await supabase
+    .from('atendimentos')
+    .update({ medico_id: medicoId })
+    .eq('id', atendimentoId)
+  if (error) throw new Error(error.message)
+  revalidatePath(`/admin/pacientes/${pacienteId}`)
+}

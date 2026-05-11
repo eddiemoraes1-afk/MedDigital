@@ -8,6 +8,7 @@ import {
   Stethoscope, ClipboardList, DollarSign,
 } from 'lucide-react'
 import AdminHeader from '../../components/AdminHeader'
+import AcoesAtendimento from './AcoesAtendimento'
 import FichaPacienteExports, {
   type AtendimentoExport,
   type AtestadoExport,
@@ -86,6 +87,20 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
 
   const medicoMap: Record<string, string> = {}
   ;(medicos ?? []).forEach(m => { medicoMap[m.id] = m.nome })
+
+  // ── Médicos aprovados (para atribuição) ───────────────────────────────────
+  const { data: medicosAprovados } = await admin
+    .from('medicos')
+    .select('id, nome, especialidade')
+    .eq('status', 'aprovado')
+    .eq('ativo', true)
+    .order('nome')
+
+  const listaMedicos = (medicosAprovados ?? []).map(m => ({
+    id: m.id,
+    nome: m.nome,
+    especialidade: m.especialidade ?? null,
+  }))
 
   // ── Agendamentos futuros (próxima consulta) ───────────────────────────────
   const { data: agendamentos } = await admin
@@ -294,6 +309,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                         <th className="px-5 py-3 text-left">Médico</th>
                         <th className="px-5 py-3 text-left">Tipo</th>
                         <th className="px-5 py-3 text-right">Valor</th>
+                        <th className="px-5 py-3 text-left">Ações</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
@@ -328,6 +344,15 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                             <td className="px-5 py-3 text-right text-sm font-semibold text-[#1A3A2C]">
                               {resolveValorConsulta(a.valor_cobrado) > 0 ? formatBRL(resolveValorConsulta(a.valor_cobrado)) : '—'}
                             </td>
+                            <td className="px-5 py-3">
+                              {!a.medico_id && (
+                                <AcoesAtendimento
+                                  atendimentoId={a.id}
+                                  pacienteId={id}
+                                  medicos={listaMedicos}
+                                />
+                              )}
+                            </td>
                           </tr>
                         )
                       })}
@@ -340,6 +365,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                         <td className="px-5 py-3 text-right text-sm font-bold text-[#1A3A2C]">
                           {formatBRL(totalGastoConsultas)}
                         </td>
+                        <td />
                       </tr>
                     </tfoot>
                   </table>
