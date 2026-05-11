@@ -131,8 +131,10 @@ export default function ConsultaPaciente() {
               <div className="w-20 h-20 bg-[#1A3A2C] rounded-full flex items-center justify-center mx-auto mb-6">
                 <Clock className="w-10 h-10 text-green-300" />
               </div>
-              <h2 className="text-xl font-bold mb-2">Aguardando médico</h2>
-              <p className="text-green-300 text-sm">Um médico entrará na sala em instantes.</p>
+              <h2 className="text-xl font-bold mb-3">Aguardando Médico</h2>
+              <p className="text-green-300 text-sm leading-relaxed">
+                Um Médico está analisando a sua triagem, seu histórico de consultas e seu prontuário, e entrará na sala em instantes.
+              </p>
               <p className="text-blue-400 text-xs mt-4">A câmera vai abrir assim que o médico entrar.</p>
             </div>
           </div>
@@ -145,20 +147,27 @@ export default function ConsultaPaciente() {
               <div className="w-24 h-24 bg-[#1A3A2C] rounded-full flex items-center justify-center mx-auto mb-6">
                 <Video className="w-12 h-12 text-[#5BBD9B]" />
               </div>
-              <h2 className="text-2xl font-bold mb-2">Pronto(a) para começar a consulta?</h2>
               {atendimento.medicos && (
-                <p className="text-green-300 text-sm mb-6">
-                  Dr(a). {atendimento.medicos.nome} está na sala.
+                <p className="text-green-300 text-sm mb-4">
+                  Dr(a). {atendimento.medicos.nome} está na sala aguardando você.
                 </p>
               )}
-              <p className="text-blue-300 text-xs mb-8">
-                Verifique se sua câmera e microfone estão funcionando antes de entrar.
+              <h2 className="text-3xl font-extrabold mb-2 tracking-tight">Entrar AGORA</h2>
+              <p className="text-blue-300 text-xs mb-4">
+                Clique no botão abaixo para entrar na consulta.
               </p>
+              {/* Seta animada apontando para o botão */}
+              <div className="flex flex-col items-center mb-4">
+                <div className="flex flex-col items-center gap-0.5 animate-bounce">
+                  <div className="w-0.5 h-6 bg-[#5BBD9B]" />
+                  <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[12px] border-t-[#5BBD9B]" />
+                </div>
+              </div>
               <button
                 onClick={() => setEntrou(true)}
-                className="w-full bg-[#5BBD9B] hover:bg-green-400 text-white font-bold py-3.5 px-8 rounded-2xl text-base transition-colors"
+                className="w-full bg-[#5BBD9B] hover:bg-green-400 text-white font-extrabold py-4 px-8 rounded-2xl text-lg tracking-wide transition-colors shadow-lg shadow-green-900/40"
               >
-                Entrar na Consulta
+                Clique AQUI
               </button>
             </div>
           </div>

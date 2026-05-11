@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
         exp: Math.floor(Date.now() / 1000) + 7200,
         enable_chat: true,
         enable_screenshare: true,
+        enable_prejoin_ui: false,
       }
     })
   })
