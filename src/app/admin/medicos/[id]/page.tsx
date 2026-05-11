@@ -10,6 +10,7 @@ import BotoesAprovacao from '../../components/BotoesAprovacao'
 import ToggleMedicoAtivo from '../ToggleMedicoAtivo'
 import ConfigMedico from './ConfigMedico'
 import EditarMedico from './EditarMedico'
+import EditarAcessoMedico from './EditarAcessoMedico'
 import FichaMedicoContent, {
   type AtendimentoEnriquecido,
   type AtestadoEnriquecido,
@@ -37,6 +38,10 @@ export default async function FichaMedicoPage({
     .single()
 
   if (!medico) redirect('/admin/medicos')
+
+  // ── E-mail real do auth ───────────────────────────────────────────────────
+  const { data: { user: authUser } } = await admin.auth.admin.getUserById(medico.usuario_id)
+  const emailAuth = authUser?.email ?? medico.email ?? null
 
   // ── Atendimentos concluídos ───────────────────────────────────────────────
   const { data: atendimentos } = await admin
@@ -319,6 +324,12 @@ export default async function FichaMedicoPage({
                 estadoAtual={medico.estado ?? null}
                 bioAtual={medico.bio ?? null}
                 fotoAtual={medico.foto_url ?? null}
+              />
+
+              {/* Acesso (e-mail e senha) */}
+              <EditarAcessoMedico
+                medicoId={medico.id}
+                emailAtual={emailAuth}
               />
 
               {/* Remuneração */}
