@@ -292,7 +292,7 @@ export default async function MedicoDashboard() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Link
-                          href={`/medico/pacientes/${pacienteId}`}
+                          href={`/medico/pacientes/${pacienteId}?back=${encodeURIComponent('/medico/dashboard')}`}
                           className="font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
                         >
                           {atendimento.pacientes?.nome || 'Paciente'}
@@ -304,7 +304,7 @@ export default async function MedicoDashboard() {
                         )}
                       </div>
                       {resumo ? (
-                        <Link href={`/medico/pacientes/${pacienteId}`} className="flex items-start gap-1.5 mt-1 group">
+                        <Link href={`/medico/pacientes/${pacienteId}?back=${encodeURIComponent('/medico/dashboard')}`} className="flex items-start gap-1.5 mt-1 group">
                           <FileText className="w-3.5 h-3.5 text-[#5BBD9B] shrink-0 mt-0.5" />
                           <p className="text-sm text-gray-500 group-hover:text-[#1A3A2C] transition-colors line-clamp-2">
                             {resumo}
@@ -425,7 +425,7 @@ export default async function MedicoDashboard() {
                         <td className="px-5 py-3 text-xs text-gray-500 whitespace-nowrap">{formatarHora(a.finalizado_em)}</td>
                         <td className="px-5 py-3">
                           <Link
-                            href={`/medico/pacientes/${a.pacientes?.id}`}
+                            href={`/medico/pacientes/${a.pacientes?.id}?back=${encodeURIComponent('/medico/dashboard')}`}
                             className="font-medium text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
                           >
                             {a.pacientes?.nome || '—'}
@@ -500,7 +500,7 @@ export default async function MedicoDashboard() {
                       <td className="px-5 py-3 text-xs text-gray-500">{formatarHora(a.criado_em)}</td>
                       <td className="px-5 py-3">
                         <Link
-                          href={`/medico/pacientes/${a.pacientes?.id}`}
+                          href={`/medico/pacientes/${a.pacientes?.id}?back=${encodeURIComponent('/medico/dashboard')}`}
                           className="font-medium text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
                         >
                           {a.pacientes?.nome || '—'}
@@ -553,7 +553,7 @@ export default async function MedicoDashboard() {
                         <td className="px-5 py-3 text-xs text-gray-500">{formatarHora(r.criado_em)}</td>
                         <td className="px-5 py-3">
                           <Link
-                            href={`/medico/pacientes/${r.pacientes?.id}`}
+                            href={`/medico/pacientes/${r.pacientes?.id}?back=${encodeURIComponent('/medico/dashboard')}`}
                             className="font-medium text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
                           >
                             {r.pacientes?.nome || '—'}
