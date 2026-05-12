@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import {
   BarChart2, TrendingUp, Building2, DollarSign, Download,
-  Printer, Loader2, Activity, UserCheck, Users, RefreshCw, Receipt,
+  Printer, Loader2, Activity, UserCheck, Users, RefreshCw, Receipt, Filter, X,
 } from 'lucide-react'
 
 // ============================================================
@@ -965,61 +965,43 @@ function exportarPDF(data: DashboardData) {
 // ============================================================
 // MAIN COMPONENT
 // ============================================================
-const PERIODOS = [
-  { v: '7d', l: '7 dias' },
-  { v: '30d', l: '30 dias' },
-  { v: '3m', l: '3 meses' },
-  { v: '6m', l: '6 meses' },
-  { v: '12m', l: '12 meses' },
-  { v: 'custom', l: 'Personalizado' },
-]
-
 const STATUS_COLORS: Record<string, string> = {
   confirmado: '#5BBD9B', concluido: '#1A3A2C',
   cancelado: '#EF4444', reagendado: '#F59E0B',
   pendente: '#9CA3AF', agendado: '#3B82F6',
 }
 
+function fmtDate(d: string) {
+  if (!d) return '—'
+  const [y, m, day] = d.split('-')
+  return `${day}/${m}/${y}`
+}
+
 export default function DashboardClient() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [exportandoExcel, setExportandoExcel] = useState(false)
-  const [periodo, setPeriodo] = useState('30d')
-  const [inicio, setInicio] = useState('')
-  const [fim, setFim] = useState('')
 
-  const calcRange = useCallback((p: string): [string, string] => {
-    const now = new Date()
-    const start = new Date(now)
-    if (p === '7d') start.setDate(start.getDate() - 7)
-    else if (p === '30d') start.setDate(start.getDate() - 30)
-    else if (p === '3m') start.setMonth(start.getMonth() - 3)
-    else if (p === '6m') start.setMonth(start.getMonth() - 6)
-    else if (p === '12m') start.setFullYear(start.getFullYear() - 1)
-    return [start.toISOString(), now.toISOString()]
-  }, [])
+  // Filtros — padrão: 1º do mês corrente até hoje
+  const [inicio, setInicio] = useState(() => {
+    const hoje = new Date()
+    return new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split('T')[0]
+  })
+  const [fim, setFim] = useState(() => new Date().toISOString().split('T')[0])
 
-  const carregar = useCallback(async (p: string, ini?: string, fi?: string) => {
+  const carregar = useCallback(async (ini: string, fi: string) => {
     setLoading(true)
     try {
-      const [i, f] = p === 'custom' ? [ini!, fi!] : calcRange(p)
+      const i = `${ini}T00:00:00Z`
+      const f = `${fi}T23:59:59Z`
       const res = await fetch(`/api/admin/dashboard?inicio=${encodeURIComponent(i)}&fim=${encodeURIComponent(f)}`)
       if (res.ok) setData(await res.json())
     } finally {
       setLoading(false)
     }
-  }, [calcRange])
+  }, [])
 
-  useEffect(() => { carregar('30d') }, [carregar])
-
-  function handlePeriodo(p: string) {
-    setPeriodo(p)
-    if (p !== 'custom') carregar(p)
-  }
-
-  function handleCustomApply() {
-    if (inicio && fim) carregar('custom', `${inicio}T00:00:00Z`, `${fim}T23:59:59Z`)
-  }
+  useEffect(() => { carregar(inicio, fim) }, [inicio, fim, carregar])
 
   // ---- Loading state ----
   if (loading) {
@@ -1036,7 +1018,7 @@ export default function DashboardClient() {
       <div className="flex flex-col items-center justify-center py-32 gap-3 text-gray-400">
         <BarChart2 className="w-10 h-10 opacity-30" />
         <p className="text-sm">Erro ao carregar dados.</p>
-        <button onClick={() => carregar(periodo)} className="text-[#5BBD9B] text-sm flex items-center gap-1.5 hover:underline">
+        <button onClick={() => carregar(inicio, fim)} className="text-[#5BBD9B] text-sm flex items-center gap-1.5 hover:underline">
           <RefreshCw className="w-3.5 h-3.5" /> Tentar novamente
         </button>
       </div>
@@ -1049,57 +1031,55 @@ export default function DashboardClient() {
     <div className="space-y-6">
 
       {/* ---- Filter bar ---- */}
-      <div className="bg-white rounded-2xl px-5 py-3.5 shadow-sm flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
-          {PERIODOS.map(p => (
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Filter className="w-3.5 h-3.5 text-[#5BBD9B]" />
+          <span className="text-xs font-semibold text-[#1A3A2C] uppercase tracking-wide">Filtros</span>
+          <div className="ml-auto flex gap-2">
             <button
-              key={p.v}
-              onClick={() => handlePeriodo(p.v)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                periodo === p.v ? 'bg-[#1A3A2C] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'
-              }`}
+              onClick={() => exportarExcel(data, setExportandoExcel)}
+              disabled={exportandoExcel}
+              className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
             >
-              {p.l}
+              {exportandoExcel ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+              Excel
             </button>
-          ))}
-        </div>
-
-        {periodo === 'custom' && (
-          <div className="flex items-center gap-2 flex-wrap">
-            <input
-              type="date" value={inicio} onChange={e => setInicio(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40"
-            />
-            <span className="text-gray-400 text-xs">até</span>
-            <input
-              type="date" value={fim} onChange={e => setFim(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40"
-            />
             <button
-              onClick={handleCustomApply}
-              className="bg-[#5BBD9B] text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-[#4aab8a] transition-colors"
+              onClick={() => exportarPDF(data)}
+              className="flex items-center gap-1.5 text-xs text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-lg transition-colors"
             >
-              Aplicar
+              <Printer className="w-3.5 h-3.5" />
+              PDF
+            </button>
+            <button
+              onClick={() => carregar(inicio, fim)}
+              disabled={loading}
+              className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#1A3A2C] border border-gray-200 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              Atualizar
             </button>
           </div>
-        )}
-
-        <div className="ml-auto flex gap-2">
-          <button
-            onClick={() => exportarExcel(data, setExportandoExcel)}
-            disabled={exportandoExcel}
-            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-medium disabled:opacity-60 transition-colors"
-          >
-            {exportandoExcel ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-            Excel
-          </button>
-          <button
-            onClick={() => exportarPDF(data)}
-            className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors"
-          >
-            <Printer className="w-3.5 h-3.5" />
-            PDF
-          </button>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Data início</label>
+            <input
+              type="date" value={inicio} onChange={e => setInicio(e.target.value)}
+              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Data fim</label>
+            <input
+              type="date" value={fim} onChange={e => setFim(e.target.value)}
+              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700"
+            />
+          </div>
+        </div>
+        <div className="mt-2 pt-2 border-t border-gray-100 flex items-center gap-2">
+          <span className="text-xs text-[#5BBD9B] font-semibold">Período:</span>
+          <span className="text-xs text-gray-500">{fmtDate(inicio)} – {fmtDate(fim)}</span>
         </div>
       </div>
 

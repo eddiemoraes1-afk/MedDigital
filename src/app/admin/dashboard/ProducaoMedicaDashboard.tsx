@@ -3,9 +3,10 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import {
   BarChart2, Stethoscope, DollarSign, FileText, ClipboardList,
-  FlaskConical, Loader2, RefreshCw, Search, ChevronDown, ChevronUp,
-  TrendingDown, TrendingUp, Receipt,
+  FlaskConical, Loader2, RefreshCw, ChevronDown, ChevronUp,
+  TrendingDown, TrendingUp, Receipt, Filter, X, Download, Printer,
 } from 'lucide-react'
+import * as XLSX from 'xlsx'
 
 // ============================================================
 // TYPES
@@ -447,17 +448,137 @@ type SortKey = keyof ProdRow
 type SortDir = 'asc' | 'desc'
 
 // ============================================================
+// EXPORT HELPERS
+// ============================================================
+function exportarExcelProd(data: ProducaoData, inicio: string, fim: string) {
+  const wb = XLSX.utils.book_new()
+  const fmtD = (d: string) => { const [y,m,day] = d.split('-'); return `${day}/${m}/${y}` }
+
+  const ws1 = XLSX.utils.aoa_to_sheet([
+    ['Médico','Especialidade','CRM','Consultas','Faturamento (R$)','Custo (R$)','Margem (R$)','Atestados','Renovações','Receitas em Consulta'],
+    ...data.producao.map(r => [r.nome, r.especialidade, r.crm, r.consultas, r.faturamento, r.custo, r.margem, r.atestados, r.renovacoes, r.receitas_em_consulta]),
+  ])
+  ws1['!cols'] = [22,18,10,10,14,14,14,10,10,16].map(w => ({ wch: w }))
+  XLSX.utils.book_append_sheet(wb, ws1, 'Por Médico')
+
+  const ws2 = XLSX.utils.aoa_to_sheet([
+    ['Especialidade','Médicos Ativos','Consultas','Faturamento (R$)'],
+    ...data.porEspecialidade.map(r => [r.especialidade, r.medicos, r.consultas, r.faturamento]),
+    ['TOTAL', '', data.porEspecialidade.reduce((s,r) => s+r.consultas,0), data.porEspecialidade.reduce((s,r) => s+r.faturamento,0)],
+  ])
+  ws2['!cols'] = [20,14,10,14].map(w => ({ wch: w }))
+  XLSX.utils.book_append_sheet(wb, ws2, 'Por Especialidade')
+
+  const ws3 = XLSX.utils.aoa_to_sheet([
+    ['Mês','Consultas','Faturamento (R$)','Atestados','Renovações','Receitas em Consulta'],
+    ...data.porMes.map(r => {
+      const [y,m] = r.mes.split('-')
+      const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
+      return [`${meses[parseInt(m)-1]}/${y.slice(2)}`, r.consultas, r.faturamento, r.atestados, r.renovacoes, r.receitas_em_consulta]
+    }),
+  ])
+  ws3['!cols'] = [10,10,14,10,10,16].map(w => ({ wch: w }))
+  XLSX.utils.book_append_sheet(wb, ws3, 'Por Mês')
+
+  const ws4 = XLSX.utils.aoa_to_sheet([
+    ['KPI','Valor'],
+    ['Faturamento Total', data.totais.faturamento],
+    ['Consultas', data.totais.consultas],
+    ['Custo Total', data.totais.custo],
+    ['Margem Bruta', data.totais.margem],
+    ['Atestados', data.totais.atestados],
+    ['Renovações', data.totais.renovacoes],
+    ['Receitas em Consulta', data.totais.receitas_em_consulta],
+    ['',''],
+    ['Período:', `${fmtD(inicio)} – ${fmtD(fim)}`],
+    ['Gerado em:', new Date().toLocaleString('pt-BR')],
+  ])
+  ws4['!cols'] = [24,16].map(w => ({ wch: w }))
+  XLSX.utils.book_append_sheet(wb, ws4, 'Resumo')
+
+  XLSX.writeFile(wb, `producao-medica_${inicio}_${fim}.xlsx`)
+}
+
+function exportarPDFProd(data: ProducaoData, inicio: string, fim: string) {
+  const fmtBRL = (v: number) => v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' })
+  const fmtD = (d: string) => { const [y,m,day] = d.split('-'); return `${day}/${m}/${y}` }
+  const { totais } = data
+
+  const rows = data.producao.map((r,i) => `
+    <tr class="${i%2===0?'bg-white':'bg-gray-50'}">
+      <td>${i+1}</td><td><strong>${r.nome}</strong></td><td>${r.especialidade}</td>
+      <td class="center">${r.consultas}</td>
+      <td class="right">${fmtBRL(r.faturamento)}</td>
+      <td class="right">${r.custo>0?fmtBRL(r.custo):'—'}</td>
+      <td class="right">${r.custo>0?fmtBRL(r.margem):'—'}</td>
+      <td class="center">${r.atestados||'—'}</td>
+      <td class="center">${r.renovacoes||'—'}</td>
+    </tr>`).join('')
+
+  const espRows = data.porEspecialidade.map((e,i) => `
+    <tr class="${i%2===0?'bg-white':'bg-gray-50'}">
+      <td>${e.especialidade}</td><td class="center">${e.medicos}</td>
+      <td class="center">${e.consultas}</td><td class="right">${fmtBRL(e.faturamento)}</td>
+    </tr>`).join('')
+
+  const win = window.open('', '_blank')
+  if (!win) return
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+  <title>Produção Médica — RovarisMed</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;font-size:11px;color:#222;padding:24px}
+    h1{font-size:16px;color:#1A3A2C;margin-bottom:4px}
+    .sub{font-size:10px;color:#666;margin-bottom:16px}
+    .kpis{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+    .kpi{flex:1;min-width:120px;border:1px solid #e5e7eb;border-radius:8px;padding:10px;text-align:center}
+    .kpi-val{font-size:16px;font-weight:bold;color:#1A3A2C}
+    .kpi-lab{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+    h2{font-size:12px;color:#1A3A2C;margin:20px 0 8px;border-bottom:1px solid #e5e7eb;padding-bottom:4px}
+    table{width:100%;border-collapse:collapse;margin-bottom:4px;font-size:10px}
+    th{background:#1A3A2C;color:white;padding:5px 6px;text-align:left;font-size:9px;text-transform:uppercase}
+    td{padding:4px 6px;border-bottom:1px solid #f0f0f0}
+    .center{text-align:center}.right{text-align:right}
+    .bg-white{background:#fff}.bg-gray-50{background:#f9fafb}
+    footer{margin-top:24px;font-size:9px;color:#aaa;border-top:1px solid #e5e7eb;padding-top:8px}
+    @media print{body{padding:12px}@page{margin:1.5cm;size:A4 landscape}}
+  </style></head><body>
+  <h1>Produção Médica</h1>
+  <p class="sub">Período: ${fmtD(inicio)} – ${fmtD(fim)} · Gerado em ${new Date().toLocaleString('pt-BR')}</p>
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-val">${fmtBRL(totais.faturamento)}</div><div class="kpi-lab">Faturamento</div></div>
+    <div class="kpi"><div class="kpi-val">${totais.consultas}</div><div class="kpi-lab">Consultas</div></div>
+    <div class="kpi"><div class="kpi-val">${totais.custo>0?fmtBRL(totais.custo):'—'}</div><div class="kpi-lab">Custo</div></div>
+    <div class="kpi"><div class="kpi-val">${totais.custo>0?fmtBRL(totais.margem):'—'}</div><div class="kpi-lab">Margem</div></div>
+    <div class="kpi"><div class="kpi-val">${totais.atestados}</div><div class="kpi-lab">Atestados</div></div>
+    <div class="kpi"><div class="kpi-val">${totais.renovacoes}</div><div class="kpi-lab">Renovações</div></div>
+    <div class="kpi"><div class="kpi-val">${totais.receitas_em_consulta}</div><div class="kpi-lab">Receitas em consulta</div></div>
+  </div>
+  <h2>Produção por Médico</h2>
+  <table><thead><tr><th>#</th><th>Médico</th><th>Especialidade</th><th class="center">Consultas</th><th class="right">Faturamento</th><th class="right">Custo</th><th class="right">Margem</th><th class="center">Atestados</th><th class="center">Renov.</th></tr></thead>
+  <tbody>${rows||'<tr><td colspan="9" style="text-align:center;color:#aaa;padding:12px">Sem dados</td></tr>'}</tbody></table>
+  <h2>Por Especialidade</h2>
+  <table><thead><tr><th>Especialidade</th><th class="center">Médicos</th><th class="center">Consultas</th><th class="right">Faturamento</th></tr></thead>
+  <tbody>${espRows||'<tr><td colspan="4" style="text-align:center;color:#aaa;padding:12px">Sem dados</td></tr>'}</tbody></table>
+  <footer>Documento gerado automaticamente pelo sistema RovarisMed · ${new Date().toLocaleDateString('pt-BR')}</footer>
+  <script>window.onload=()=>window.print()</script>
+  </body></html>`)
+  win.document.close()
+}
+
+// ============================================================
 // MAIN COMPONENT
 // ============================================================
 export default function ProducaoMedicaDashboard() {
   const [data, setData] = useState<ProducaoData | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Filters
-  const today = new Date()
-  const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-  const [inicio, setInicio] = useState(firstOfMonth.toISOString().split('T')[0])
-  const [fim, setFim] = useState(today.toISOString().split('T')[0])
+  // Filtros — padrão: 1º do mês corrente até hoje
+  const [inicio, setInicio] = useState(() => {
+    const hoje = new Date()
+    return new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split('T')[0]
+  })
+  const [fim, setFim] = useState(() => new Date().toISOString().split('T')[0])
   const [medicoId, setMedicoId] = useState('')
   const [especialidade, setEspecialidade] = useState('')
 
@@ -478,11 +599,7 @@ export default function ProducaoMedicaDashboard() {
     }
   }, [])
 
-  useEffect(() => { carregar(inicio, fim, medicoId, especialidade) }, []) // eslint-disable-line
-
-  function handleAplicar() {
-    carregar(inicio, fim, medicoId, especialidade)
-  }
+  useEffect(() => { carregar(inicio, fim, medicoId, especialidade) }, [inicio, fim, medicoId, especialidade, carregar])
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) setSortDir(d => d === 'desc' ? 'asc' : 'desc')
@@ -551,65 +668,66 @@ export default function ProducaoMedicaDashboard() {
     <div className="space-y-6">
 
       {/* ---- Filter bar ---- */}
-      <div className="bg-white rounded-2xl px-5 py-4 shadow-sm border border-gray-50">
-        <div className="flex flex-wrap items-end gap-4">
-          {/* Date range */}
-          <div className="flex items-center gap-2">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-gray-400 font-medium">De</label>
-              <input
-                type="date" value={inicio} onChange={e => setInicio(e.target.value)}
-                className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className="text-xs text-gray-400 font-medium">Até</label>
-              <input
-                type="date" value={fim} onChange={e => setFim(e.target.value)}
-                className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40"
-              />
-            </div>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Filter className="w-3.5 h-3.5 text-[#5BBD9B]" />
+          <span className="text-xs font-semibold text-[#1A3A2C] uppercase tracking-wide">Filtros</span>
+          {(medicoId || especialidade) && (
+            <button onClick={() => { setMedicoId(''); setEspecialidade('') }}
+              className="ml-auto flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition-colors">
+              <X className="w-3 h-3" /> Limpar filtros
+            </button>
+          )}
+          <div className={`${medicoId || especialidade ? '' : 'ml-auto'} flex gap-2`}>
+            <button onClick={() => exportarExcelProd(data, inicio, fim)}
+              className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 px-3 py-1.5 rounded-lg transition-colors">
+              <Download className="w-3.5 h-3.5" /> Excel
+            </button>
+            <button onClick={() => exportarPDFProd(data, inicio, fim)}
+              className="flex items-center gap-1.5 text-xs text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-lg transition-colors">
+              <Printer className="w-3.5 h-3.5" /> PDF
+            </button>
+            <button onClick={() => carregar(inicio, fim, medicoId, especialidade)} disabled={loading}
+              className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#1A3A2C] border border-gray-200 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> Atualizar
+            </button>
           </div>
-
-          {/* Doctor selector */}
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-400 font-medium">Médico</label>
-            <select
-              value={medicoId}
-              onChange={e => setMedicoId(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 min-w-[160px]"
-            >
-              <option value="">Todos os médicos</option>
-              {data.medicos.map(m => (
-                <option key={m.id} value={m.id}>{m.nome}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Specialty selector */}
-          <div className="flex flex-col gap-1">
-            <label className="text-xs text-gray-400 font-medium">Especialidade</label>
-            <select
-              value={especialidade}
-              onChange={e => setEspecialidade(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 min-w-[160px]"
-            >
-              <option value="">Todas as especialidades</option>
-              {data.especialidades.map(e => (
-                <option key={e} value={e}>{e}</option>
-              ))}
-            </select>
-          </div>
-
-          <button
-            onClick={handleAplicar}
-            className="flex items-center gap-1.5 bg-[#1A3A2C] hover:bg-[#15302400] text-white px-4 py-[7px] rounded-lg text-xs font-semibold transition-colors self-end"
-            style={{ backgroundColor: '#1A3A2C' }}
-          >
-            <Search className="w-3.5 h-3.5" />
-            Aplicar filtros
-          </button>
         </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Data início</label>
+            <input type="date" value={inicio} onChange={e => setInicio(e.target.value)}
+              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Data fim</label>
+            <input type="date" value={fim} onChange={e => setFim(e.target.value)}
+              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700" />
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Médico</label>
+            <select value={medicoId} onChange={e => setMedicoId(e.target.value)}
+              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700 bg-white">
+              <option value="">Todos os médicos</option>
+              {data.medicos.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs text-gray-400 mb-1">Especialidade</label>
+            <select value={especialidade} onChange={e => setEspecialidade(e.target.value)}
+              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700 bg-white">
+              <option value="">Todas</option>
+              {data.especialidades.map(e => <option key={e} value={e}>{e}</option>)}
+            </select>
+          </div>
+        </div>
+        {(medicoId || especialidade) && (
+          <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2">
+            <span className="text-xs text-[#5BBD9B] font-semibold">Filtros ativos:</span>
+            {medicoId && <span className="text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">{data.medicos.find(m=>m.id===medicoId)?.nome}</span>}
+            {especialidade && <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full">{especialidade}</span>}
+          </div>
+        )}
       </div>
 
       {/* ---- KPIs ---- */}

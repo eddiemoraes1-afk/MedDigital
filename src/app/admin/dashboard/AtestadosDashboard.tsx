@@ -302,9 +302,12 @@ export default function AdminAtestadosDashboard() {
   const [erro, setErro] = useState('')
   const [exportando, setExportando] = useState(false)
 
-  // Filtros
-  const [dataInicio, setDataInicio] = useState('')
-  const [dataFim, setDataFim] = useState('')
+  // Filtros — padrão: 1º do mês corrente até hoje
+  const [dataInicio, setDataInicio] = useState(() => {
+    const hoje = new Date()
+    return new Date(hoje.getFullYear(), hoje.getMonth(), 1).toISOString().split('T')[0]
+  })
+  const [dataFim, setDataFim] = useState(() => new Date().toISOString().split('T')[0])
   const [empresaId, setEmpresaId] = useState('')
   const [nomeInput, setNomeInput] = useState('')
   const [cidInput, setCidInput] = useState('')
