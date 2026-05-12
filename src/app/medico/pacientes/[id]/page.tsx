@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import {
-  User, Phone, FileText, Building2, Calendar, Activity,
+  User, Phone, FileText, Building2, Calendar,
   Clock, CheckCircle2, Mail, Briefcase, MapPin, XCircle,
   ArrowLeft, Brain, AlertTriangle, AlertCircle,
   Pill, Stethoscope,
@@ -28,13 +28,12 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
 
   const { data: medico } = await adminSupabase
     .from('medicos')
-    .select('id, status, custo_consulta, custo_receita')
+    .select('id, status')
     .eq('usuario_id', user.id)
     .single()
 
   if (!medico || medico.status !== 'aprovado') redirect('/medico/dashboard')
 
-  const custoConsulta: number = medico.custo_consulta ?? 0
   const backHref = back ? decodeURIComponent(back) : '/medico/pacientes'
 
   // Buscar paciente
@@ -88,14 +87,12 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
   const triagens = [...(triagensDirectas ?? []), ...triagemViaAtend]
     .sort((a, b) => new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime())
 
-  // Atendimentos concluídos — histórico de consultas + gasto total
+  // Contagem de atendimentos concluídos
   const { data: atendimentosConcluidos } = await adminSupabase
     .from('atendimentos')
-    .select('id, valor_cobrado, criado_em, notas_medico, medico_id, medicos(nome)')
+    .select('id')
     .eq('paciente_id', id)
     .eq('status', 'concluido')
-    .order('criado_em', { ascending: false })
-    .limit(20)
 
   // Atestados do paciente
   const { data: atestados } = await adminSupabase
@@ -112,8 +109,6 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
     .order('criado_em', { ascending: false })
 
   const totalConsultasPaciente = atendimentosConcluidos?.length ?? 0
-  const consultasMedico = (atendimentosConcluidos ?? []).filter((a: any) => a.medico_id === medico.id)
-  const totalProducaoMedico = consultasMedico.length * custoConsulta
 
   // Helpers
   function calcularIdade(dataNasc: string | null): number | null {
@@ -252,14 +247,6 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                 </p>
                 <p className="text-xs text-gray-400">receitas</p>
               </div>
-              {totalProducaoMedico > 0 && (
-                <div className="text-center bg-amber-50 rounded-xl px-4 py-3">
-                  <p className="text-lg font-bold text-amber-700">
-                    {totalProducaoMedico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                  </p>
-                  <p className="text-xs text-gray-400">minha produção</p>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -518,70 +505,6 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
               )}
             </div>
 
-            {/* Histórico de consultas */}
-            <div className="mt-6">
-              <div className="flex items-center gap-2 mb-3">
-                <Activity className="w-5 h-5 text-[#5BBD9B]" />
-                <h2 className="font-bold text-[#1A3A2C] text-lg">Histórico de Consultas</h2>
-                <span className="text-sm text-gray-400">({totalConsultasPaciente})</span>
-              </div>
-
-              {atendimentosConcluidos && atendimentosConcluidos.length > 0 ? (
-                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
-                      <tr>
-                        <th className="px-5 py-3 text-left">Data</th>
-                        <th className="px-5 py-3 text-left">Médico</th>
-                        <th className="px-5 py-3 text-left hidden md:table-cell">Notas</th>
-                        <th className="px-5 py-3 text-right">Valor</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-50">
-                      {atendimentosConcluidos.map((a: any) => {
-                        const { data, hora } = formatDataHora(a.criado_em)
-                        const medicoNome = a.medicos?.nome
-                        return (
-                          <tr key={a.id} className="hover:bg-gray-50">
-                            <td className="px-5 py-3">
-                              <p className="font-medium text-gray-800">{data}</p>
-                              <p className="text-xs text-gray-400 flex items-center gap-1">
-                                <Clock className="w-3 h-3" /> {hora}
-                              </p>
-                            </td>
-                            <td className="px-5 py-3 text-gray-600">
-                              {medicoNome
-                                ? <span className="text-sm">{medicoNome}</span>
-                                : <span className="text-gray-300">—</span>
-                              }
-                            </td>
-                            <td className="px-5 py-3 text-gray-400 text-xs hidden md:table-cell max-w-[200px]">
-                              {a.notas_medico
-                                ? <span className="line-clamp-2">{a.notas_medico}</span>
-                                : <span className="italic">Sem notas</span>
-                              }
-                            </td>
-                            <td className="px-5 py-3 text-right">
-                              {a.medico_id === medico.id && custoConsulta > 0
-                                ? <span className="text-sm font-medium text-amber-700">
-                                    {custoConsulta.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                                  </span>
-                                : <span className="text-gray-300 text-xs">—</span>
-                              }
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
-                  <Activity className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                  <p className="text-sm text-gray-400">Nenhuma consulta registrada</p>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Painel lateral */}
