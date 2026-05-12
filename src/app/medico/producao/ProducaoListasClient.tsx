@@ -13,6 +13,7 @@ export interface ConsultaRow {
   paciente_nome: string
   tem_atestado: boolean
   tem_receita: boolean
+  tem_exame: boolean
   custo: number
 }
 
@@ -90,7 +91,7 @@ function gerarCSV(
   linhas.push('')
 
   linhas.push('CONSULTAS CONCLUÍDAS')
-  linhas.push('Data,Hora,Paciente,Atestado,Receita,Valor')
+  linhas.push('Data,Hora,Paciente,Atestado,Receita,Exame,Valor')
   consultas.forEach(c => {
     linhas.push([
       fmtData(c.finalizado_em),
@@ -98,11 +99,12 @@ function gerarCSV(
       `"${c.paciente_nome}"`,
       c.tem_atestado ? 'Sim' : 'Não',
       c.tem_receita  ? 'Sim' : 'Não',
+      c.tem_exame    ? 'Sim' : 'Não',
       custoConsulta > 0 ? formatBRL(custoConsulta) : '—',
     ].join(','))
   })
   if (custoConsulta > 0) {
-    linhas.push(`,,,,Total,${formatBRL(consultas.length * custoConsulta)}`)
+    linhas.push(`,,,,,Total,${formatBRL(consultas.length * custoConsulta)}`)
   }
   linhas.push('')
 
@@ -191,7 +193,7 @@ function imprimirRelatorio(
     <thead>
       <tr>
         <th>Data</th><th>Hora</th><th>Paciente</th>
-        <th>Atestado</th><th>Receita</th>
+        <th>Atestado</th><th>Receita</th><th>Exame</th>
         ${custoConsulta > 0 ? '<th>Valor</th>' : ''}
       </tr>
     </thead>
@@ -203,11 +205,12 @@ function imprimirRelatorio(
         <td>${c.paciente_nome}</td>
         <td>${c.tem_atestado ? '<span class="badge bg-amber">Sim</span>' : '—'}</td>
         <td>${c.tem_receita  ? '<span class="badge bg-purple">Sim</span>' : '—'}</td>
+        <td>${c.tem_exame    ? '<span class="badge bg-green">Sim</span>' : '—'}</td>
         ${custoConsulta > 0 ? `<td class="val">${formatBRL(custoConsulta)}</td>` : ''}
       </tr>`).join('')}
       ${custoConsulta > 0 ? `
       <tr class="total-row">
-        <td colspan="${custoConsulta > 0 ? 5 : 4}">Total</td>
+        <td colspan="${custoConsulta > 0 ? 6 : 5}">Total</td>
         <td class="val">${formatBRL(totalConsultas)}</td>
       </tr>` : ''}
     </tbody>
@@ -398,6 +401,9 @@ export default function ProducaoListasClient({
                   )}
                   {c.tem_receita && (
                     <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-medium">Receita</span>
+                  )}
+                  {c.tem_exame && (
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Exame</span>
                   )}
                 </div>
                 {custoConsulta > 0 && (

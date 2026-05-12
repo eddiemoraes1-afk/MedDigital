@@ -244,6 +244,12 @@ export default async function ProducaoMedicoPage({
     if (!recPorDia[d]) recPorDia[d] = new Set()
     if (r.paciente_id) recPorDia[d].add(r.paciente_id)
   })
+  const examPorDia: Record<string, Set<string>> = {}
+  exams.forEach((e: any) => {
+    const d = e.data_solicitacao ?? ''
+    if (!examPorDia[d]) examPorDia[d] = new Set()
+    if (e.paciente_id) examPorDia[d].add(e.paciente_id)
+  })
 
   // ── Chart data ────────────────────────────────────────────────────────────
   const atsChartDates   = ats.map(a => toLocalDate(a.finalizado_em)).filter(Boolean)
@@ -264,6 +270,7 @@ export default async function ProducaoMedicoPage({
     paciente_nome: (a.pacientes as any)?.nome ?? 'Paciente',
     tem_atestado: !!(atestPorDia[toLocalDate(a.finalizado_em)]?.has(a.paciente_id ?? '')),
     tem_receita:  !!(recPorDia[toLocalDate(a.finalizado_em)]?.has(a.paciente_id ?? '')),
+    tem_exame:    !!(examPorDia[toLocalDate(a.finalizado_em)]?.has(a.paciente_id ?? '')),
     custo:        custoConsulta,
   }))
 
