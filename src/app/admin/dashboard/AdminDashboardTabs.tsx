@@ -1,14 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import { BarChart2, FileText, Stethoscope, Pill, FlaskConical } from 'lucide-react'
+import { BarChart2, FileText, Stethoscope, Pill, FlaskConical, Timer } from 'lucide-react'
 import DashboardClient from './DashboardClient'
 import AdminAtestadosDashboard from './AtestadosDashboard'
 import ProducaoMedicaDashboard from './ProducaoMedicaDashboard'
 import AdminReceitasDashboard from './ReceitasDashboard'
 import ExamesDashboard from './ExamesDashboard'
+import TempoDashboard from './TempoDashboard'
 
-type Aba = 'financeiro' | 'atestados' | 'producao' | 'receitas' | 'exames'
+type Aba = 'financeiro' | 'atestados' | 'producao' | 'receitas' | 'exames' | 'tempo'
 
 export default function AdminDashboardTabs() {
   const [aba, setAba] = useState<Aba>('financeiro')
@@ -48,6 +49,11 @@ export default function AdminDashboardTabs() {
           <FlaskConical className="w-4 h-4" />
           Exames
         </button>
+
+        <button onClick={() => setAba('tempo')} className={tabClass(aba === 'tempo')}>
+          <Timer className="w-4 h-4" />
+          Tempo
+        </button>
       </div>
 
       {aba === 'financeiro' && <DashboardClient />}
@@ -55,6 +61,7 @@ export default function AdminDashboardTabs() {
       {aba === 'receitas'  && <AdminReceitasDashboard />}
       {aba === 'producao'  && <ProducaoMedicaDashboard />}
       {aba === 'exames'    && <ExamesDashboard />}
+      {aba === 'tempo'     && <TempoDashboard />}
     </div>
   )
 }
