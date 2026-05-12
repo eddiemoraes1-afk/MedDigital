@@ -205,6 +205,7 @@ export default function AtendimentoMedico() {
                     crm: medico.crm,
                     crm_uf: medico.crm_uf,
                     especialidade: medico.especialidade,
+                    sexo: medico.sexo,
                   }}
                   onFechar={() => setShowAtestado(false)}
                   onSalvo={() => {
@@ -249,6 +250,7 @@ export default function AtendimentoMedico() {
                     crm: medico.crm,
                     crm_uf: medico.crm_uf,
                     especialidade: medico.especialidade,
+                    sexo: medico.sexo,
                   }}
                   onFechar={() => setShowReceita(false)}
                   onSalvo={() => {
@@ -293,6 +295,7 @@ export default function AtendimentoMedico() {
                     crm: medico.crm,
                     crm_uf: medico.crm_uf,
                     especialidade: medico.especialidade,
+                    sexo: medico.sexo,
                   }}
                   onFechar={() => setShowExames(false)}
                   onSalvo={() => {

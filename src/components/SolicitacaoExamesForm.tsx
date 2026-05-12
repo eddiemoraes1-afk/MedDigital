@@ -18,6 +18,7 @@ interface SolicitacaoExamesFormProps {
     crm?: string | null
     crm_uf?: string | null
     especialidade?: string | null
+    sexo?: string | null
   }
   onFechar?: () => void
   onSalvo?: (solicitacao: any) => void

@@ -1,5 +1,6 @@
 // Utilitário compartilhado de geração de HTML da receita médica
 // Espelha atestadoHTML.ts
+import { drTitle } from '@/lib/medico-utils'
 
 export interface ReceitaHTMLParams {
   paciente: {
@@ -13,6 +14,7 @@ export interface ReceitaHTMLParams {
     crm?: string | null
     crm_uf?: string | null
     especialidade?: string | null
+    sexo?: string | null
   }
   tipo: 'simples' | 'especial' | 'antimicrobiano'
   medicamentos: string
@@ -173,7 +175,7 @@ export function gerarHTMLReceita(p: ReceitaHTMLParams, comAutoprint = false): st
     </div>
     <div class="sig-block">
       <div class="sig-line"></div>
-      <div class="sig-name">Dr(a). ${medico.nome}</div>
+      <div class="sig-name">${drTitle(medico.sexo)} ${medico.nome}</div>
       ${medico.crm ? `<div class="sig-crm">CRM-${medico.crm_uf ?? 'BR'} ${medico.crm}</div>` : ''}
       ${medico.especialidade ? `<div class="sig-spec">${medico.especialidade}</div>` : ''}
     </div>
@@ -224,7 +226,7 @@ export function textoResumidoReceita(params: ReceitaHTMLParams): string {
   return [
     `${badge} — RovarisMed`,
     `Paciente: ${paciente.nome}`,
-    `Médico: Dr(a). ${medico.nome}${medico.crm ? ` (CRM-${medico.crm_uf ?? 'BR'} ${medico.crm})` : ''}`,
+    `Médico: ${drTitle(medico.sexo)} ${medico.nome}${medico.crm ? ` (CRM-${medico.crm_uf ?? 'BR'} ${medico.crm})` : ''}`,
     '',
     'Medicamentos:',
     medicamentos,

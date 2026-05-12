@@ -22,7 +22,7 @@ export default async function PacienteExamesPage() {
 
   const { data: exames } = await admin
     .from('solicitacoes_exames')
-    .select('id, data_solicitacao, exames, indicacao_clinica, observacoes, urgencia, status, medicos(nome, crm, crm_uf, especialidade)')
+    .select('id, data_solicitacao, exames, indicacao_clinica, observacoes, urgencia, status, medicos(nome, crm, crm_uf, especialidade, sexo)')
     .eq('paciente_id', paciente.id)
     .order('data_solicitacao', { ascending: false })
 

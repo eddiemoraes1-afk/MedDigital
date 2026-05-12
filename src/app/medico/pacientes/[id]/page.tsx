@@ -97,14 +97,14 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
   // Atestados do paciente
   const { data: atestados } = await adminSupabase
     .from('atestados')
-    .select('id, data_emissao, data_inicio, data_fim, dias, cid, texto_complementar, medico_id, medicos(nome, crm, crm_uf, especialidade)')
+    .select('id, data_emissao, data_inicio, data_fim, dias, cid, texto_complementar, medico_id, medicos(nome, crm, crm_uf, especialidade, sexo)')
     .eq('paciente_id', id)
     .order('data_emissao', { ascending: false })
 
   // Receitas do paciente
   const { data: receitas } = await adminSupabase
     .from('receitas')
-    .select('id, criado_em, tipo, medicamentos, instrucoes, observacoes, validade, data_emissao, medico_id, medicos(id, nome, crm, crm_uf, especialidade)')
+    .select('id, criado_em, tipo, medicamentos, instrucoes, observacoes, validade, data_emissao, medico_id, medicos(id, nome, crm, crm_uf, especialidade, sexo)')
     .eq('paciente_id', id)
     .order('criado_em', { ascending: false })
 

@@ -1,5 +1,6 @@
 // ── examesHTML.ts ────────────────────────────────────────────────────────────
 // Gerador de HTML/PDF para Solicitações de Exames
+import { drTitle } from '@/lib/medico-utils'
 
 export interface ExamesHTMLParams {
   paciente: {
@@ -13,6 +14,7 @@ export interface ExamesHTMLParams {
     crm?: string | null
     crm_uf?: string | null
     especialidade?: string | null
+    sexo?: string | null
   }
   exames: string              // lista de exames (um por linha)
   indicacaoClinica?: string | null
@@ -171,7 +173,7 @@ export function gerarHTMLExames(params: ExamesHTMLParams, inline = true): string
     </div>
     <div class="signature-block">
       <div class="sig-line"></div>
-      <div class="sig-name">Dr(a). ${medico.nome}</div>
+      <div class="sig-name">${drTitle(medico.sexo)} ${medico.nome}</div>
       ${medico.crm ? `<div class="sig-crm">CRM-${medico.crm_uf ?? 'BR'} ${medico.crm}</div>` : ''}
       ${medico.especialidade ? `<div class="sig-spec">${medico.especialidade}</div>` : ''}
     </div>

@@ -5,6 +5,7 @@ import { Printer, Download, Share2, Eye, Lock, Pill, Loader2 } from 'lucide-reac
 import { imprimirReceita, gerarHTMLReceita, nomeArquivoReceita, type ReceitaHTMLParams } from '@/lib/receitaHTML'
 import { baixarComoPDF } from '@/lib/gerarPDF'
 import ReceitaShareModal from '@/components/ReceitaShareModal'
+import { drTitle } from '@/lib/medico-utils'
 
 interface ReceitaItem {
   id: string
@@ -21,6 +22,7 @@ interface ReceitaItem {
     crm?: string | null
     crm_uf?: string | null
     especialidade?: string | null
+    sexo?: string | null
   } | null
 }
 
@@ -170,7 +172,7 @@ export default function ReceitasListaClient({
                     {r.medicos && (
                       <p className="text-xs text-gray-500 mt-1.5">
                         <span className="text-gray-400">Médico: </span>
-                        Dr(a). {r.medicos.nome}
+                        {drTitle(r.medicos.sexo)} {r.medicos.nome}
                         {r.medicos.especialidade && <span className="text-gray-400"> · {r.medicos.especialidade}</span>}
                         {r.medicos.crm && <span className="text-gray-400"> · CRM-{r.medicos.crm_uf ?? 'BR'} {r.medicos.crm}</span>}
                       </p>

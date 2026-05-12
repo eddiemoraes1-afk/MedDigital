@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
   const admin = createAdminClient()
   const { data } = await admin
     .from('solicitacoes_exames')
-    .select('*, medicos(nome, crm, crm_uf, especialidade)')
+    .select('*, medicos(nome, crm, crm_uf, especialidade, sexo)')
     .eq('paciente_id', paciente_id)
     .order('criado_em', { ascending: false })
 

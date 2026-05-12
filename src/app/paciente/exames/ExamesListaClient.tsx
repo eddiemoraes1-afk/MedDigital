@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Printer, Download, Share2, FlaskConical, AlertTriangle, Loader2 } from 'lucide-react'
 import { imprimirExames, gerarHTMLExames, nomeArquivoExames, type ExamesHTMLParams } from '@/lib/examesHTML'
 import { baixarComoPDF } from '@/lib/gerarPDF'
+import { drTitle } from '@/lib/medico-utils'
 
 interface ExameItem {
   id: string
@@ -18,6 +19,7 @@ interface ExameItem {
     crm?: string | null
     crm_uf?: string | null
     especialidade?: string | null
+    sexo?: string | null
   } | null
 }
 
@@ -174,7 +176,7 @@ export default function ExamesListaClient({
                     {medico && (
                       <p className="text-xs text-gray-500 mt-1.5">
                         <span className="text-gray-400">Médico: </span>
-                        Dr(a). {medico.nome}
+                        {drTitle(medico.sexo)} {medico.nome}
                         {medico.especialidade && <span className="text-gray-400"> · {medico.especialidade}</span>}
                         {medico.crm && <span className="text-gray-400"> · CRM-{medico.crm_uf ?? 'BR'} {medico.crm}</span>}
                       </p>

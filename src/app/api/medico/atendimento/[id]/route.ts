@@ -14,7 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // Verificar se o usuário é médico aprovado
   const { data: medico } = await admin
     .from('medicos')
-    .select('id, nome, especialidade, crm, crm_uf, status')
+    .select('id, nome, especialidade, crm, crm_uf, status, sexo')
     .eq('usuario_id', user.id)
     .single()
 

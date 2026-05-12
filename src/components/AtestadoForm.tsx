@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Loader2, FileText, Download, CheckCircle2, X, AlertCircle } from 'lucide-react'
+import { drTitle } from '@/lib/medico-utils'
 
 interface AtestadoFormProps {
   atendimentoId: string
@@ -17,6 +18,7 @@ interface AtestadoFormProps {
     crm?: string | null
     crm_uf?: string | null
     especialidade?: string | null
+    sexo?: string | null
   }
   onFechar?: () => void
   onSalvo?: (atestado: any) => void
@@ -144,7 +146,7 @@ function gerarPDF(params: {
     </div>
     <div class="signature-block">
       <div class="sig-line"></div>
-      <div class="sig-name">Dr(a). ${medico.nome}</div>
+      <div class="sig-name">${drTitle(medico.sexo)} ${medico.nome}</div>
       ${medico.crm ? `<div class="sig-crm">CRM-${medico.crm_uf ?? 'BR'} ${medico.crm}</div>` : ''}
       ${medico.especialidade ? `<div class="sig-spec">${medico.especialidade}</div>` : ''}
     </div>

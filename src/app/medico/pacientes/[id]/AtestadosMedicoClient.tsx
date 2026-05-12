@@ -5,6 +5,7 @@ import { Printer, Download, Share2, Eye, Loader2 } from 'lucide-react'
 import { imprimirAtestado, gerarHTMLAtestado, nomeArquivo, type AtestadoHTMLParams } from '@/lib/atestadoHTML'
 import { baixarComoPDF } from '@/lib/gerarPDF'
 import AtestadoShareModal from '@/components/AtestadoShareModal'
+import { drTitle } from '@/lib/medico-utils'
 
 interface AtestadoDetalhe {
   id: string
@@ -15,7 +16,7 @@ interface AtestadoDetalhe {
   cid?: string | null
   texto_complementar?: string | null
   medico_id: string
-  medicos: { nome: string; crm?: string | null; crm_uf?: string | null; especialidade?: string | null } | null
+  medicos: { nome: string; crm?: string | null; crm_uf?: string | null; especialidade?: string | null; sexo?: string | null } | null
 }
 
 interface Paciente {
@@ -103,7 +104,7 @@ export default function AtestadosMedicoClient({
                   {/* Doctor (apenas se não for o próprio médico) */}
                   {at.medicos && !ehMeu && (
                     <p className="text-xs text-gray-500 mt-1">
-                      Médico: Dr(a). {at.medicos.nome}
+                      Médico: {drTitle(at.medicos.sexo)} {at.medicos.nome}
                       {at.medicos.crm && <span className="text-gray-400"> · CRM-{at.medicos.crm_uf ?? 'BR'} {at.medicos.crm}</span>}
                     </p>
                   )}

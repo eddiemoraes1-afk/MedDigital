@@ -18,6 +18,7 @@ interface ReceitaFormProps {
     crm?: string | null
     crm_uf?: string | null
     especialidade?: string | null
+    sexo?: string | null
   }
   onFechar?: () => void
   onSalvo?: (receita: any) => void

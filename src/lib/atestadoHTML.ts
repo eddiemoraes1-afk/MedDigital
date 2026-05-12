@@ -1,5 +1,6 @@
 // Utilitário compartilhado de geração de HTML do atestado médico
 // Usado por AtestadosListaClient (paciente) e AtestadosMedicoClient (médico)
+import { drTitle } from '@/lib/medico-utils'
 
 export interface AtestadoHTMLParams {
   paciente: {
@@ -13,6 +14,7 @@ export interface AtestadoHTMLParams {
     crm?: string | null
     crm_uf?: string | null
     especialidade?: string | null
+    sexo?: string | null
   }
   dias: number
   dataInicio: string
@@ -121,7 +123,7 @@ export function gerarHTMLAtestado(p: AtestadoHTMLParams, comAutoprint = false): 
     <div class="city-date">Local e data da emissão:<br/><strong>${fmtData(dataEmissao)}</strong></div>
     <div class="sig-block">
       <div class="sig-line"></div>
-      <div class="sig-name">Dr(a). ${medico.nome}</div>
+      <div class="sig-name">${drTitle(medico.sexo)} ${medico.nome}</div>
       ${medico.crm ? `<div class="sig-crm">CRM-${medico.crm_uf ?? 'BR'} ${medico.crm}</div>` : ''}
       ${medico.especialidade ? `<div class="sig-spec">${medico.especialidade}</div>` : ''}
     </div>
@@ -173,7 +175,7 @@ export function textoResumido(params: AtestadoHTMLParams): string {
     `Atestado Médico — RovarisMed`,
     `Paciente: ${paciente.nome}`,
     `Afastamento: ${dias} dia(s) — de ${di} a ${df}`,
-    `Médico: Dr(a). ${medico.nome}${medico.crm ? ` (CRM-${medico.crm_uf ?? 'BR'} ${medico.crm})` : ''}`,
+    `Médico: ${drTitle(medico.sexo)} ${medico.nome}${medico.crm ? ` (CRM-${medico.crm_uf ?? 'BR'} ${medico.crm})` : ''}`,
     cid ? `CID-10: ${cid}` : '',
     textoComplementar ? textoComplementar : '',
   ].filter(Boolean).join('\n')

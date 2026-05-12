@@ -22,7 +22,7 @@ export default async function PacienteAtestadosPage() {
 
   const { data: atestados } = await admin
     .from('atestados')
-    .select('id, data_emissao, data_inicio, data_fim, dias, cid, texto_complementar, observacoes, medicos(nome, crm, crm_uf, especialidade)')
+    .select('id, data_emissao, data_inicio, data_fim, dias, cid, texto_complementar, observacoes, medicos(nome, crm, crm_uf, especialidade, sexo)')
     .eq('paciente_id', paciente.id)
     .order('data_emissao', { ascending: false })
 

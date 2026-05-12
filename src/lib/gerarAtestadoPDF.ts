@@ -1,4 +1,5 @@
 // Geração de PDF de atestado médico (usado em múltiplos painéis)
+import { drTitle } from '@/lib/medico-utils'
 
 export interface AtestadoPDFParams {
   paciente: {
@@ -12,6 +13,7 @@ export interface AtestadoPDFParams {
     crm?: string | null
     crm_uf?: string | null
     especialidade?: string | null
+    sexo?: string | null
   }
   dias: number
   dataInicio: string
@@ -129,7 +131,7 @@ export function gerarAtestadoPDF(params: AtestadoPDFParams) {
     </div>
     <div class="signature-block">
       <div class="sig-line"></div>
-      <div class="sig-name">Dr(a). ${medico.nome}</div>
+      <div class="sig-name">${drTitle(medico.sexo)} ${medico.nome}</div>
       ${medico.crm ? `<div class="sig-crm">CRM-${medico.crm_uf ?? 'BR'} ${medico.crm}</div>` : ''}
       ${medico.especialidade ? `<div class="sig-spec">${medico.especialidade}</div>` : ''}
     </div>

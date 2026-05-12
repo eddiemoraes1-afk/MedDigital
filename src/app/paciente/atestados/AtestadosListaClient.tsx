@@ -5,6 +5,7 @@ import { Printer, Download, Share2, Eye, Lock, CheckCircle2, Clock, FileText, Lo
 import { imprimirAtestado, gerarHTMLAtestado, nomeArquivo, type AtestadoHTMLParams } from '@/lib/atestadoHTML'
 import { baixarComoPDF } from '@/lib/gerarPDF'
 import AtestadoShareModal from '@/components/AtestadoShareModal'
+import { drTitle } from '@/lib/medico-utils'
 
 interface AtestadoItem {
   id: string
@@ -21,6 +22,7 @@ interface AtestadoItem {
     crm?: string | null
     crm_uf?: string | null
     especialidade?: string | null
+    sexo?: string | null
   } | null
 }
 
@@ -138,7 +140,7 @@ export default function AtestadosListaClient({
                     {medico && (
                       <p className="text-xs text-gray-500 mt-1.5">
                         <span className="text-gray-400">Médico: </span>
-                        Dr(a). {medico.nome}
+                        {drTitle(medico.sexo)} {medico.nome}
                         {medico.especialidade && <span className="text-gray-400"> · {medico.especialidade}</span>}
                         {medico.crm && <span className="text-gray-400"> · CRM-{medico.crm_uf ?? 'BR'} {medico.crm}</span>}
                       </p>
