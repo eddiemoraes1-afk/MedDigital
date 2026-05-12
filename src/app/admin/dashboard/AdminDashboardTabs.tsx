@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { BarChart2, FileText, Stethoscope } from 'lucide-react'
+import { BarChart2, FileText, Stethoscope, Pill } from 'lucide-react'
 import DashboardClient from './DashboardClient'
 import AdminAtestadosDashboard from './AtestadosDashboard'
 import ProducaoMedicaDashboard from './ProducaoMedicaDashboard'
+import AdminReceitasDashboard from './ReceitasDashboard'
 
-type Aba = 'financeiro' | 'atestados' | 'producao'
+type Aba = 'financeiro' | 'atestados' | 'producao' | 'receitas'
 
 export default function AdminDashboardTabs() {
   const [aba, setAba] = useState<Aba>('financeiro')
@@ -32,6 +33,11 @@ export default function AdminDashboardTabs() {
           Atestados Médicos
         </button>
 
+        <button onClick={() => setAba('receitas')} className={tabClass(aba === 'receitas')}>
+          <Pill className="w-4 h-4" />
+          Receitas
+        </button>
+
         <button onClick={() => setAba('producao')} className={tabClass(aba === 'producao')}>
           <Stethoscope className="w-4 h-4" />
           Produção Médica
@@ -40,7 +46,8 @@ export default function AdminDashboardTabs() {
 
       {aba === 'financeiro' && <DashboardClient />}
       {aba === 'atestados' && <AdminAtestadosDashboard />}
-      {aba === 'producao' && <ProducaoMedicaDashboard />}
+      {aba === 'receitas'  && <AdminReceitasDashboard />}
+      {aba === 'producao'  && <ProducaoMedicaDashboard />}
     </div>
   )
 }
