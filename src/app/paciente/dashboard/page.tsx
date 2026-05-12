@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { ScrollText, Clock, FileText, Calendar, Video, ChevronRight, User, Pill } from 'lucide-react'
+import { ScrollText, Clock, FileText, Calendar, Video, ChevronRight, User, Pill, FlaskConical } from 'lucide-react'
 import { gerarTema } from '@/lib/tema'
 import { getEmpresaPaciente } from '@/lib/getEmpresaPaciente'
 import PacienteHeader from '../PacienteHeader'
@@ -43,9 +43,9 @@ export default async function PacienteDashboard() {
     .order('criado_em', { ascending: false })
     .limit(3)
 
-  // Atestados e receitas do paciente
+  // Atestados, receitas e exames do paciente
   const hoje = new Date().toISOString().slice(0, 10)
-  const [atestadosRes, receitasRes] = await Promise.all([
+  const [atestadosRes, receitasRes, examesRes] = await Promise.all([
     adminSupabase
       .from('atestados')
       .select('id, data_fim')
@@ -54,13 +54,20 @@ export default async function PacienteDashboard() {
       .from('receitas')
       .select('id, validade, valor_coparticipacao')
       .eq('paciente_id', paciente?.id),
+    adminSupabase
+      .from('solicitacoes_exames')
+      .select('id, urgencia')
+      .eq('paciente_id', paciente?.id),
   ])
   const atestadosPaciente = atestadosRes.data
   const receitasPaciente = receitasRes.data
+  const examesPaciente = examesRes.data
   const totalAtestados = atestadosPaciente?.length ?? 0
   const atestadosValidos = (atestadosPaciente ?? []).filter((a: any) => a.data_fim >= hoje).length
   const totalReceitas = receitasPaciente?.length ?? 0
   const receitasValidas = (receitasPaciente ?? []).filter((r: any) => !r.validade || r.validade >= hoje).length
+  const totalExames = examesPaciente?.length ?? 0
+  const examesUrgentes = (examesPaciente ?? []).filter((e: any) => e.urgencia === 'urgente' || e.urgencia === 'emergencia').length
   // Co-participação acumulada do paciente em receitas
   const copartReceitas = (receitasPaciente ?? []).reduce((s: number, r: any) => s + (Number(r.valor_coparticipacao) || 0), 0)
 
@@ -212,13 +219,14 @@ export default async function PacienteDashboard() {
         </div>
 
         {/* Cards de acesso rápido */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           {[
             { icon: Video, label: 'Consulta Agora', href: '/paciente/triagem' },
             { icon: ScrollText, label: 'Renovação de Receita', href: '/paciente/renovacao-receita' },
             { icon: Calendar, label: 'Meus agendamentos', href: '/paciente/agendamentos', badge: totalConsultas > 0 ? totalConsultas : undefined },
             { icon: FileText, label: 'Atestados', href: '/paciente/atestados', badge: atestadosValidos > 0 ? atestadosValidos : (totalAtestados > 0 ? totalAtestados : undefined), badgeValido: atestadosValidos > 0 },
             { icon: Pill, label: 'Receitas', href: '/paciente/receitas', badge: receitasValidas > 0 ? receitasValidas : (totalReceitas > 0 ? totalReceitas : undefined), badgeValido: receitasValidas > 0 },
+            { icon: FlaskConical, label: 'Exames', href: '/paciente/exames', badge: examesUrgentes > 0 ? examesUrgentes : (totalExames > 0 ? totalExames : undefined), badgeValido: examesUrgentes > 0 },
           ].map((item) => (
             <Link key={item.label} href={item.href}
               className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md text-center group relative transition-shadow">

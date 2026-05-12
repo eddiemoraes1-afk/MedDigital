@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Loader2, Phone, FileText, CheckCircle2, ClipboardList, ChevronDown, ChevronUp, Video, Pill } from 'lucide-react'
+import { Loader2, Phone, FileText, CheckCircle2, ClipboardList, ChevronDown, ChevronUp, Video, Pill, FlaskConical } from 'lucide-react'
 import AtestadoForm from '@/components/AtestadoForm'
 import ReceitaForm from '@/components/ReceitaForm'
+import SolicitacaoExamesForm from '@/components/SolicitacaoExamesForm'
 
 export default function AtendimentoMedico() {
   const { id } = useParams()
@@ -17,6 +18,8 @@ export default function AtendimentoMedico() {
   const [atestadoEmitido, setAtestadoEmitido] = useState(false)
   const [showReceita, setShowReceita] = useState(false)
   const [receitaEmitida, setReceitaEmitida] = useState(false)
+  const [showExames, setShowExames] = useState(false)
+  const [examesEmitidos, setExamesEmitidos] = useState(false)
   const [entrou, setEntrou] = useState(false)
 
   useEffect(() => {
@@ -74,13 +77,18 @@ export default function AtendimentoMedico() {
   })()
 
   function toggleAtestado() {
-    if (!showAtestado) setShowReceita(false)
+    if (!showAtestado) { setShowReceita(false); setShowExames(false) }
     setShowAtestado(v => !v)
   }
 
   function toggleReceita() {
-    if (!showReceita) setShowAtestado(false)
+    if (!showReceita) { setShowAtestado(false); setShowExames(false) }
     setShowReceita(v => !v)
+  }
+
+  function toggleExames() {
+    if (!showExames) { setShowAtestado(false); setShowReceita(false) }
+    setShowExames(v => !v)
   }
 
   return (
@@ -246,6 +254,50 @@ export default function AtendimentoMedico() {
                   onSalvo={() => {
                     setReceitaEmitida(true)
                     setShowReceita(false)
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Botão de solicitação de exames */}
+          <div className="p-4 border-b border-[#2A4A3C]">
+            <button
+              onClick={toggleExames}
+              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                showExames
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-[#0F1F33] text-blue-300 hover:bg-blue-500 hover:text-white'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <FlaskConical className="w-4 h-4" />
+                {examesEmitidos ? 'Exames solicitados ✓' : 'Solicitar Exames'}
+              </span>
+              {showExames ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+
+            {showExames && paciente && (
+              <div className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
+                <SolicitacaoExamesForm
+                  atendimentoId={atendimento.id}
+                  pacienteId={paciente.id}
+                  paciente={{
+                    nome: paciente.nome,
+                    cpf: paciente.cpf,
+                    data_nascimento: paciente.data_nascimento,
+                    sexo: paciente.sexo,
+                  }}
+                  medico={{
+                    nome: medico.nome,
+                    crm: medico.crm,
+                    crm_uf: medico.crm_uf,
+                    especialidade: medico.especialidade,
+                  }}
+                  onFechar={() => setShowExames(false)}
+                  onSalvo={() => {
+                    setExamesEmitidos(true)
+                    setShowExames(false)
                   }}
                 />
               </div>

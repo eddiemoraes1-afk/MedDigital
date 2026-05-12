@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { User, Phone, FileText, Calendar, Stethoscope, Brain, Clock, CheckCircle2 } from 'lucide-react'
+import { User, Phone, FileText, Calendar, Stethoscope, Brain, Clock, CheckCircle2, FlaskConical } from 'lucide-react'
 import PacienteHeader from '../PacienteHeader'
 
 export default async function ProntuarioPage() {
@@ -32,6 +32,13 @@ export default async function ProntuarioPage() {
   const { data: atendimentos } = await adminSupabase
     .from('atendimentos')
     .select('*')
+    .eq('paciente_id', paciente.id)
+    .order('criado_em', { ascending: false })
+
+  // Solicitações de exames
+  const { data: exames } = await adminSupabase
+    .from('solicitacoes_exames')
+    .select('id, data_solicitacao, exames, urgencia, criado_em, medico_id')
     .eq('paciente_id', paciente.id)
     .order('criado_em', { ascending: false })
 
@@ -76,6 +83,7 @@ export default async function ProntuarioPage() {
   const timeline: any[] = [
     ...(triagens || []).map((t: any) => ({ ...t, _tipo: 'triagem' })),
     ...(atendimentos || []).map((a: any) => ({ ...a, _tipo: 'atendimento' })),
+    ...(exames || []).map((e: any) => ({ ...e, _tipo: 'exames' })),
   ].sort((a, b) => new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime())
 
   return (
@@ -178,10 +186,14 @@ export default async function ProntuarioPage() {
                     <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                       item._tipo === 'triagem'
                         ? 'bg-green-100'
+                        : item._tipo === 'exames'
+                        ? 'bg-blue-100'
                         : item.status === 'concluido' ? 'bg-green-100' : 'bg-purple-100'
                     }`}>
                       {item._tipo === 'triagem'
                         ? <Brain className="w-5 h-5 text-green-600" />
+                        : item._tipo === 'exames'
+                        ? <FlaskConical className="w-5 h-5 text-blue-600" />
                         : <Stethoscope className={`w-5 h-5 ${item.status === 'concluido' ? 'text-green-600' : 'text-purple-600'}`} />
                       }
                     </div>
@@ -192,7 +204,7 @@ export default async function ProntuarioPage() {
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <p className="font-semibold text-[#1A3A2C] text-sm">
-                            {item._tipo === 'triagem' ? '🧠 Triagem por IA' : '📹 Consulta virtual'}
+                            {item._tipo === 'triagem' ? '🧠 Triagem por IA' : item._tipo === 'exames' ? '🔬 Solicitação de Exames' : '📹 Consulta virtual'}
                           </p>
                           <p className="text-xs text-gray-400 mt-0.5">
                             {new Date(item.criado_em).toLocaleDateString('pt-BR', {
@@ -202,7 +214,16 @@ export default async function ProntuarioPage() {
                           </p>
                         </div>
 
-                        {/* Badge de status/risco */}
+                        {/* Badge urgência exames */}
+                        {item._tipo === 'exames' && item.urgencia && item.urgencia !== 'normal' && (
+                          <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                            item.urgencia === 'emergencia' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                          }`}>
+                            {item.urgencia === 'emergencia' ? '🚨 Emergência' : '⚠ Urgente'}
+                          </span>
+                        )}
+
+                      {/* Badge de status/risco */}
                         {item._tipo === 'triagem' && item.classificacao_risco && (
                           <span className={`text-xs font-medium px-2 py-1 rounded-full border ${corRisco[item.classificacao_risco] || 'bg-gray-100 text-gray-600'}`}>
                             {iconRisco[item.classificacao_risco]} {labelRisco[item.classificacao_risco] || item.classificacao_risco}
@@ -249,6 +270,24 @@ export default async function ProntuarioPage() {
                             Anotações do médico:
                           </p>
                           <p className="text-sm text-gray-700 whitespace-pre-line">{item.notas_medico}</p>
+                        </div>
+                      )}
+
+                      {/* Exames solicitados */}
+                      {item._tipo === 'exames' && item.exames && (
+                        <div className="mt-2">
+                          <p className="text-xs text-gray-500 font-medium mb-1 flex items-center gap-1">
+                            <FlaskConical className="w-3 h-3" />
+                            Exames solicitados:
+                          </p>
+                          <ul className="space-y-0.5">
+                            {String(item.exames).split('\n').filter(Boolean).map((e: string, i: number) => (
+                              <li key={i} className="text-sm text-gray-700 flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
+                                {e}
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                       )}
                     </div>
