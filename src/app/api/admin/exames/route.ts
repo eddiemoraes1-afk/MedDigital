@@ -7,7 +7,7 @@ async function isAdmin() {
   if (!user) return false
   const admin = createAdminClient()
   const { data: perfil } = await admin
-    .from('perfis')
+    .from('perfis_sistema')
     .select('role')
     .eq('usuario_id', user.id)
     .single()

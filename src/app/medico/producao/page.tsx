@@ -2,12 +2,12 @@ import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import {
   CheckCircle2, FileText, ClipboardList,
-  DollarSign, TrendingUp, AlertCircle,
+  DollarSign, TrendingUp, AlertCircle, FlaskConical,
 } from 'lucide-react'
 import MedicoHeader from '../MedicoHeader'
 import ProducaoFiltroClient from './ProducaoFiltroClient'
 import ProducaoListasClient, {
-  type ConsultaRow, type AtestadoRow, type ReceitaRow,
+  type ConsultaRow, type AtestadoRow, type ReceitaRow, type ExameRow,
 } from './ProducaoListasClient'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -180,7 +180,7 @@ export default async function ProducaoMedicoPage({
   const fimISO    = new Date(dataFim + 'T23:59:59-03:00').toISOString()
 
   // ── Busca paralela ────────────────────────────────────────────────────────
-  const [atsRes, atestRes, recRes] = await Promise.all([
+  const [atsRes, atestRes, recRes, examRes] = await Promise.all([
     admin
       .from('atendimentos')
       .select('id, finalizado_em, paciente_id, pacientes(id, nome)')
@@ -205,11 +205,20 @@ export default async function ProducaoMedicoPage({
       .gte('criado_em', inicioISO)
       .lte('criado_em', fimISO)
       .order('criado_em', { ascending: false }),
+
+    admin
+      .from('solicitacoes_exames')
+      .select('id, data_solicitacao, exames, urgencia, paciente_id, pacientes(id, nome)')
+      .eq('medico_id', medico.id)
+      .gte('data_solicitacao', dataIni)
+      .lte('data_solicitacao', dataFim)
+      .order('data_solicitacao', { ascending: false }),
   ])
 
-  const ats    = atsRes.data   ?? []
-  const atests = atestRes.data ?? []
-  const recs   = recRes.data   ?? []
+  const ats    = atsRes.data    ?? []
+  const atests = atestRes.data  ?? []
+  const recs   = recRes.data    ?? []
+  const exams  = examRes.data   ?? []
 
   // ── Valores configurados pelo admin ──────────────────────────────────────
   const custoConsulta = Number(medico.custo_consulta ?? 0)
@@ -240,10 +249,12 @@ export default async function ProducaoMedicoPage({
   const atsChartDates   = ats.map(a => toLocalDate(a.finalizado_em)).filter(Boolean)
   const atestChartDates = atests.map(a => toLocalDate(a.criado_em)).filter(Boolean)
   const recChartDates   = recs.map(r => toLocalDate(r.criado_em)).filter(Boolean)
+  const examChartDates  = exams.map((e: any) => e.data_solicitacao ?? '').filter(Boolean)
 
   const atsChart   = buildChartData(atsChartDates,   dataIni, dataFim)
   const atestChart = buildChartData(atestChartDates, dataIni, dataFim)
   const recChart   = buildChartData(recChartDates,   dataIni, dataFim)
+  const examChart  = buildChartData(examChartDates,  dataIni, dataFim)
 
   // ── Dados serializáveis para os clientes ──────────────────────────────────
   const consultaRows: ConsultaRow[] = ats.map(a => ({
@@ -274,6 +285,15 @@ export default async function ProducaoMedicoPage({
     valor_medico: r.valor_medico != null ? Number(r.valor_medico) : null,
   }))
 
+  const exameRows: ExameRow[] = exams.map((e: any) => ({
+    id:               e.id,
+    data_solicitacao: e.data_solicitacao ?? '',
+    paciente_id:      e.paciente_id ?? '',
+    paciente_nome:    (e.pacientes as any)?.nome ?? 'Paciente',
+    exames:           e.exames ?? '',
+    urgencia:         e.urgencia ?? 'normal',
+  }))
+
   // ── Label de período ──────────────────────────────────────────────────────
   const labelPeriodo = [
     new Date(dataIni + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
@@ -301,7 +321,7 @@ export default async function ProducaoMedicoPage({
         <ProducaoFiltroClient dataIni={dataIni} dataFim={dataFim} label={labelPeriodo} />
 
         {/* ── KPIs ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           <div className="bg-[#1A3A2C] rounded-2xl p-5 shadow-sm">
             <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center mb-3">
               <CheckCircle2 className="w-5 h-5 text-[#5BBD9B]" />
@@ -324,6 +344,14 @@ export default async function ProducaoMedicoPage({
             </div>
             <div className="text-3xl font-bold text-[#1A3A2C]">{recs.length}</div>
             <div className="text-sm text-gray-400 mt-1">Receitas</div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50">
+            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center mb-3">
+              <FlaskConical className="w-5 h-5 text-blue-500" />
+            </div>
+            <div className="text-3xl font-bold text-[#1A3A2C]">{exams.length}</div>
+            <div className="text-sm text-gray-400 mt-1">Exames pedidos</div>
           </div>
 
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50">
@@ -413,11 +441,22 @@ export default async function ProducaoMedicoPage({
           todayColor="#4c1d95"
         />
 
+        <ChartCard
+          icon={<FlaskConical className="w-4 h-4 text-blue-500" />}
+          title="Exames por dia"
+          count={exams.length}
+          avg={calcMedia(exams.length, examChart)}
+          data={examChart}
+          barColor="#3b82f6"
+          todayColor="#1d4ed8"
+        />
+
         {/* ── Histórico detalhado (client — com filtro e download) ── */}
         <ProducaoListasClient
           consultas={consultaRows}
           atestados={atestadoRows}
           receitas={receitaRows}
+          exames={exameRows}
           custoConsulta={custoConsulta}
           periodo={periodoTexto}
           medicoNome={medico.nome}

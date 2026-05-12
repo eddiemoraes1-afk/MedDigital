@@ -46,7 +46,7 @@ export default async function MedicoDashboard() {
   const hojeInicio = new Date(hojeStr + 'T00:00:00-03:00').toISOString()
 
   // ── Dados em paralelo ─────────────────────────────────────────────────────
-  const [filaRes, atendidosRes, atestadosRes, receitasRes, renovacoesRes] = await Promise.all([
+  const [filaRes, atendidosRes, atestadosRes, receitasRes, renovacoesRes, examesRes] = await Promise.all([
     // Fila virtual
     adminSupabase
       .from('atendimentos')
@@ -86,14 +86,22 @@ export default async function MedicoDashboard() {
       .select('id, tipo_receita, medicamentos, criado_em, pacientes(id, nome)')
       .eq('status', 'pendente')
       .order('criado_em', { ascending: true }),
+
+    // Exames pedidos hoje
+    adminSupabase
+      .from('solicitacoes_exames')
+      .select('id, criado_em, exames, urgencia, pacientes(id, nome)')
+      .eq('medico_id', medico.id)
+      .gte('criado_em', hojeInicio)
+      .order('criado_em', { ascending: false }),
   ])
 
   const fila        = filaRes.data        ?? []
   const atendidos   = atendidosRes.data   ?? []
   const atestados   = atestadosRes.data   ?? []
-  const receitas    = receitasRes.data   ?? []
-  const renovacoes = renovacoesRes.data ?? []
-  const exames: any[] = [] // tabela ainda não criada
+  const receitas    = receitasRes.data    ?? []
+  const renovacoes  = renovacoesRes.data  ?? []
+  const exames      = examesRes.data      ?? []
 
   // ── Cálculos do resumo do dia ─────────────────────────────────────────────
   const custoConsulta     = Number(medico.custo_consulta ?? 0)
@@ -657,13 +665,41 @@ export default async function MedicoDashboard() {
             <FlaskConical className="w-4 h-4 text-blue-500" />
             <h2 className="font-bold text-[#1A3A2C] text-sm">
               Exames pedidos hoje
-              <span className="ml-2 text-xs text-gray-400 font-normal">(0)</span>
+              <span className="ml-2 text-xs text-gray-400 font-normal">({exames.length})</span>
             </h2>
           </div>
-          <div className="py-10 text-center">
-            <FlaskConical className="w-9 h-9 text-gray-200 mx-auto mb-2" />
-            <p className="text-sm text-gray-400">Nenhum exame pedido hoje</p>
-          </div>
+          {exames.length === 0 ? (
+            <div className="py-10 text-center">
+              <FlaskConical className="w-9 h-9 text-gray-200 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">Nenhum exame pedido hoje</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {(exames as any[]).map((ex: any) => {
+                const lista = ex.exames?.split('\n').map((l: string) => l.trim()).filter(Boolean) ?? []
+                const isUrgente = ex.urgencia === 'urgente' || ex.urgencia === 'emergencia'
+                return (
+                  <div key={ex.id} className="px-6 py-3 flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-[#1A3A2C]">
+                        {(ex.pacientes as any)?.nome ?? 'Paciente'}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">{lista.join(' · ')}</p>
+                    </div>
+                    {isUrgente && (
+                      <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${
+                        ex.urgencia === 'emergencia'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {ex.urgencia === 'emergencia' ? 'Emergência' : 'Urgente'}
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
         </div>
 
 

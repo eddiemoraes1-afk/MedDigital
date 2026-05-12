@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, FileText, ClipboardList, CheckCircle2, FileSpreadsheet, Printer } from 'lucide-react'
+import { Search, FileText, ClipboardList, CheckCircle2, FileSpreadsheet, Printer, FlaskConical } from 'lucide-react'
 import Link from 'next/link'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -34,10 +34,20 @@ export interface ReceitaRow {
   valor_medico: number | null   // null = receita de consulta (sem ganho); > 0 = renovação com ganho
 }
 
+export interface ExameRow {
+  id: string
+  data_solicitacao: string
+  paciente_id: string
+  paciente_nome: string
+  exames: string
+  urgencia: string
+}
+
 interface Props {
   consultas:  ConsultaRow[]
   atestados:  AtestadoRow[]
   receitas:   ReceitaRow[]
+  exames:     ExameRow[]
   custoConsulta: number
   periodo:    string
   medicoNome: string
@@ -72,7 +82,7 @@ const LABEL_TIPO: Record<string, string> = {
 // ── CSV download ───────────────────────────────────────────────────────────────
 
 function gerarCSV(
-  consultas: ConsultaRow[], atestados: AtestadoRow[], receitas: ReceitaRow[],
+  consultas: ConsultaRow[], atestados: AtestadoRow[], receitas: ReceitaRow[], exames: ExameRow[],
   periodo: string, medicoNome: string, custoConsulta: number,
 ) {
   const linhas: string[] = []
@@ -124,6 +134,19 @@ function gerarCSV(
   if (totalGanhoRec > 0) {
     linhas.push(`,,,,Total renovações,${formatBRL(totalGanhoRec)}`)
   }
+  linhas.push('')
+
+  linhas.push('SOLICITAÇÕES DE EXAMES')
+  linhas.push('Data,Paciente,Exames,Urgência')
+  exames.forEach(e => {
+    const lista = e.exames.split('\n').map(l => l.trim()).filter(Boolean).join('; ')
+    linhas.push([
+      fmtData(e.data_solicitacao + 'T12:00:00'),
+      `"${e.paciente_nome}"`,
+      `"${lista}"`,
+      e.urgencia || 'normal',
+    ].join(','))
+  })
 
   return '﻿' + linhas.join('\r\n')
 }
@@ -131,7 +154,7 @@ function gerarCSV(
 // ── PDF print ─────────────────────────────────────────────────────────────────
 
 function imprimirRelatorio(
-  consultas: ConsultaRow[], atestados: AtestadoRow[], receitas: ReceitaRow[],
+  consultas: ConsultaRow[], atestados: AtestadoRow[], receitas: ReceitaRow[], exames: ExameRow[],
   periodo: string, medicoNome: string, custoConsulta: number,
 ) {
   const totalConsultas = consultas.length * custoConsulta
@@ -226,6 +249,28 @@ function imprimirRelatorio(
       </tr>` : ''}
     </tbody>
   </table>
+
+  <h2>Solicitações de Exames (${exames.length})</h2>
+  <table>
+    <thead><tr><th>Data</th><th>Paciente</th><th>Exames</th><th>Urgência</th></tr></thead>
+    <tbody>
+      ${exames.map(e => {
+        const lista = e.exames.split('\n').map((l: string) => l.trim()).filter(Boolean).join(', ')
+        const urgBadge = e.urgencia === 'emergencia'
+          ? '<span class="badge" style="background:#fee2e2;color:#991b1b">Emergência</span>'
+          : e.urgencia === 'urgente'
+          ? '<span class="badge" style="background:#fef9c3;color:#854d0e">Urgente</span>'
+          : '<span class="badge" style="background:#f3f4f6;color:#6b7280">Normal</span>'
+        return `
+      <tr>
+        <td>${e.data_solicitacao.slice(8, 10)}/${e.data_solicitacao.slice(5, 7)}/${e.data_solicitacao.slice(0, 4)}</td>
+        <td>${e.paciente_nome}</td>
+        <td>${lista}</td>
+        <td>${urgBadge}</td>
+      </tr>`
+      }).join('')}
+    </tbody>
+  </table>
 </body>
 </html>`
 
@@ -240,11 +285,12 @@ function imprimirRelatorio(
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function ProducaoListasClient({
-  consultas, atestados, receitas, custoConsulta, periodo, medicoNome,
+  consultas, atestados, receitas, exames, custoConsulta, periodo, medicoNome,
 }: Props) {
   const [buscaC, setBuscaC] = useState('')
   const [buscaA, setBuscaA] = useState('')
   const [buscaR, setBuscaR] = useState('')
+  const [buscaE, setBuscaE] = useState('')
 
   const consultasFiltradas = useMemo(
     () => consultas.filter(c => c.paciente_nome.toLowerCase().includes(buscaC.toLowerCase())),
@@ -258,9 +304,13 @@ export default function ProducaoListasClient({
     () => receitas.filter(r => r.paciente_nome.toLowerCase().includes(buscaR.toLowerCase())),
     [receitas, buscaR],
   )
+  const examesFiltrados = useMemo(
+    () => exames.filter(e => e.paciente_nome.toLowerCase().includes(buscaE.toLowerCase())),
+    [exames, buscaE],
+  )
 
   function baixarCSV() {
-    const csv = gerarCSV(consultas, atestados, receitas, periodo, medicoNome, custoConsulta)
+    const csv = gerarCSV(consultas, atestados, receitas, exames, periodo, medicoNome, custoConsulta)
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
@@ -271,7 +321,7 @@ export default function ProducaoListasClient({
   }
 
   function imprimir() {
-    imprimirRelatorio(consultas, atestados, receitas, periodo, medicoNome, custoConsulta)
+    imprimirRelatorio(consultas, atestados, receitas, exames, periodo, medicoNome, custoConsulta)
   }
 
   // ── Search input ──────────────────────────────────────────────────────────────
@@ -486,6 +536,56 @@ export default function ProducaoListasClient({
             </div>
           )
         })()}
+      </div>
+
+      {/* ── Exames ── */}
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <FlaskConical className="w-4 h-4 text-blue-500" />
+            <h3 className="font-bold text-[#1A3A2C] text-sm">
+              Exames ({examesFiltrados.length}{buscaE ? ` de ${exames.length}` : ''})
+            </h3>
+          </div>
+          <SearchInput value={buscaE} onChange={setBuscaE} />
+        </div>
+
+        {examesFiltrados.length === 0 ? (
+          <div className="py-10 text-center text-gray-400 text-sm">
+            {buscaE ? 'Nenhum paciente encontrado com esse nome' : 'Nenhuma solicitação de exames no período'}
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-50">
+            {examesFiltrados.map((e, idx) => {
+              const lista = e.exames.split('\n').map((l: string) => l.trim()).filter(Boolean)
+              const isUrgente = e.urgencia === 'urgente' || e.urgencia === 'emergencia'
+              return (
+                <div key={e.id} className="px-6 py-3 flex items-start gap-3 hover:bg-gray-50 transition-colors">
+                  <span className="text-xs text-gray-300 font-mono w-5 text-right shrink-0 mt-0.5">{idx + 1}</span>
+                  <span className="text-xs text-gray-400 shrink-0 mt-0.5">
+                    {e.data_solicitacao.slice(8, 10)}/{e.data_solicitacao.slice(5, 7)}
+                  </span>
+                  <Link
+                    href={`/medico/pacientes/${e.paciente_id}?back=${encodeURIComponent('/medico/producao')}`}
+                    className="text-sm font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors shrink-0"
+                  >
+                    {e.paciente_nome}
+                  </Link>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-gray-500 truncate">{lista.join(' · ')}</p>
+                  </div>
+                  {isUrgente && (
+                    <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${
+                      e.urgencia === 'emergencia' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {e.urgencia === 'emergencia' ? 'Emergência' : 'Urgente'}
+                    </span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
     </div>
