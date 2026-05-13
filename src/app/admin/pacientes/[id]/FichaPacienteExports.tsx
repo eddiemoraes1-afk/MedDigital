@@ -25,10 +25,18 @@ export interface ReceitaExport {
   valor: number
 }
 
+export interface ExameExport {
+  data: string
+  medicoNome: string
+  exames: string
+  urgencia: string
+}
+
 export interface TotaisExport {
   totalAtendimentos: number
   totalAtestados: number
   totalReceitas: number
+  totalExames: number
   totalRenovacoes: number
   totalRecConsulta: number
   totalGastoConsultas: number
@@ -42,6 +50,7 @@ interface Props {
   atendimentos: AtendimentoExport[]
   atestados: AtestadoExport[]
   receitas: ReceitaExport[]
+  exames: ExameExport[]
   totais: TotaisExport
 }
 
@@ -50,7 +59,7 @@ function formatBRL(v: number) {
 }
 
 export default function FichaPacienteExports({
-  pacienteNome, empresaNome, atendimentos, atestados, receitas, totais,
+  pacienteNome, empresaNome, atendimentos, atestados, receitas, exames, totais,
 }: Props) {
 
   // ── Excel ─────────────────────────────────────────────────────────────────
@@ -72,6 +81,7 @@ export default function FichaPacienteExports({
         ['Receitas emitidas',    totais.totalReceitas],
         ['  ↳ Renovações',       totais.totalRenovacoes],
         ['  ↳ Em consulta',      totais.totalRecConsulta],
+        ['Exames solicitados',   totais.totalExames],
         [],
         ['RESUMO FINANCEIRO'],
         ['Total consultas (R$)',   totais.totalGastoConsultas],
@@ -117,6 +127,15 @@ export default function FichaPacienteExports({
         XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Receitas')
       }
 
+      // ── Aba: Exames ──────────────────────────────────────────────────────
+      if (exames.length > 0) {
+        const rows: (string | number)[][] = [
+          ['Data', 'Médico', 'Exames Solicitados', 'Urgência'],
+          ...exames.map(e => [e.data, e.medicoNome || '—', e.exames, e.urgencia]),
+        ]
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Exames')
+      }
+
       const fileName = `ficha-${pacienteNome.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().slice(0, 10)}.xlsx`
       XLSX.writeFile(wb, fileName)
     } catch (e) {
@@ -145,6 +164,22 @@ export default function FichaPacienteExports({
             <td>${a.medicoNome || '—'}</td>
             <td class="num">${a.dias ?? '—'}</td>
             <td>${a.cid ?? '—'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>` : ''
+
+    const examHTML = exames.length > 0 ? `
+      <h3>Exames Solicitados (${exames.length})</h3>
+      <table>
+        <thead><tr><th>Data</th><th>Médico</th><th>Exames</th><th>Urgência</th></tr></thead>
+        <tbody>${exames.map(e => `
+          <tr>
+            <td>${e.data}</td>
+            <td>${e.medicoNome || '—'}</td>
+            <td>${e.exames.replace(/\n/g, '<br>')}</td>
+            <td>${e.urgencia === 'emergencia' ? '<span style="color:#dc2626;font-weight:600">Emergência</span>'
+              : e.urgencia === 'urgente' ? '<span style="color:#d97706;font-weight:600">Urgente</span>'
+              : 'Normal'}</td>
           </tr>`).join('')}
         </tbody>
       </table>` : ''
@@ -206,6 +241,7 @@ export default function FichaPacienteExports({
     <div class="kpi"><div class="kpi-label">Consultas</div><div class="kpi-value">${totais.totalAtendimentos}</div></div>
     <div class="kpi"><div class="kpi-label">Atestados</div><div class="kpi-value amber">${totais.totalAtestados}</div></div>
     <div class="kpi"><div class="kpi-label">Receitas</div><div class="kpi-value purple">${totais.totalReceitas}</div></div>
+    ${totais.totalExames > 0 ? `<div class="kpi"><div class="kpi-label">Exames</div><div class="kpi-value" style="color:#2563eb">${totais.totalExames}</div></div>` : ''}
     ${totais.totalRenovacoes > 0 ? `<div class="kpi"><div class="kpi-label">Renovações</div><div class="kpi-value orange">${totais.totalRenovacoes}</div></div>` : ''}
   </div>
 
@@ -224,6 +260,7 @@ export default function FichaPacienteExports({
   </table>
   ${atestHTML}
   ${recHTML}
+  ${examHTML}
   <script>window.onload=function(){setTimeout(function(){window.print()},300)}<\/script>
 </body></html>`
 

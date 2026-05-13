@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {
   User, Phone, FileText, Building2, Calendar, Activity,
   Clock, CheckCircle2, Mail, Briefcase, MapPin, XCircle,
-  Stethoscope, ClipboardList, DollarSign,
+  Stethoscope, ClipboardList, DollarSign, FlaskConical,
 } from 'lucide-react'
 import AdminHeader from '../../components/AdminHeader'
 import AcoesAtendimento from './AcoesAtendimento'
@@ -13,6 +13,7 @@ import FichaPacienteExports, {
   type AtendimentoExport,
   type AtestadoExport,
   type ReceitaExport,
+  type ExameExport,
   type TotaisExport,
 } from './FichaPacienteExports'
 
@@ -79,11 +80,21 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
 
   const receitas = receitasData ?? []
 
+  // ── Exames solicitados ────────────────────────────────────────────────────
+  const { data: examesData } = await admin
+    .from('solicitacoes_exames')
+    .select('id, medico_id, criado_em, data_solicitacao, exames, urgencia')
+    .eq('paciente_id', id)
+    .order('criado_em', { ascending: false })
+
+  const exames = examesData ?? []
+
   // ── Médicos (para nomes) ──────────────────────────────────────────────────
   const medicoIds = [...new Set([
     ...atendimentos.map(a => a.medico_id),
     ...atestados.map(a => a.medico_id),
     ...receitas.map(r => r.medico_id),
+    ...exames.map(e => e.medico_id),
   ].filter(Boolean))]
 
   const { data: medicos } = medicoIds.length > 0
@@ -134,6 +145,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
   const totalAtendimentos = atendimentos.length
   const totalAtestados = atestados.length
   const totalReceitas = receitas.length
+  const totalExames = exames.length
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const empresa = vinculo?.empresas as any
@@ -214,10 +226,23 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
     }
   })
 
+  const examesExport: ExameExport[] = exames.map(e => {
+    const { data } = formatDataHora(e.criado_em)
+    return {
+      data,
+      medicoNome: e.medico_id ? (medicoMap[e.medico_id] ?? '—') : '—',
+      exames: e.exames ?? '',
+      urgencia: e.urgencia === 'emergencia' ? 'Emergência'
+              : e.urgencia === 'urgente' ? 'Urgente'
+              : 'Normal',
+    }
+  })
+
   const totaisExport: TotaisExport = {
     totalAtendimentos,
     totalAtestados,
     totalReceitas,
+    totalExames,
     totalRenovacoes,
     totalRecConsulta,
     totalGastoConsultas,
@@ -282,6 +307,10 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                   <p className="text-2xl font-bold text-purple-600">{totalReceitas}</p>
                   <p className="text-xs text-gray-400">receitas</p>
                 </div>
+                <div className="text-center bg-blue-50 rounded-xl px-4 py-3">
+                  <p className="text-2xl font-bold text-blue-600">{totalExames}</p>
+                  <p className="text-xs text-gray-400">exames</p>
+                </div>
               </div>
               <FichaPacienteExports
                 pacienteNome={paciente.nome}
@@ -289,6 +318,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                 atendimentos={atendimentosExport}
                 atestados={atestadosExport}
                 receitas={receitasExport}
+                exames={examesExport}
                 totais={totaisExport}
               />
             </div>
@@ -530,8 +560,68 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
               </div>
             )}
 
+            {/* Exames */}
+            {exames.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100">
+                  <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
+                    <FlaskConical className="w-4 h-4 text-blue-500" />
+                    Exames Solicitados
+                    <span className="text-xs text-gray-400 font-normal">({exames.length})</span>
+                  </h2>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 text-xs text-gray-400 font-medium uppercase tracking-wide">
+                      <tr>
+                        <th className="px-5 py-3 text-left">Data</th>
+                        <th className="px-5 py-3 text-left">Médico</th>
+                        <th className="px-5 py-3 text-left">Exames</th>
+                        <th className="px-5 py-3 text-center">Urgência</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {exames.map(e => {
+                        const { data } = formatDataHora(e.criado_em)
+                        const urgCor = e.urgencia === 'emergencia'
+                          ? 'bg-red-100 text-red-700'
+                          : e.urgencia === 'urgente'
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-green-100 text-green-700'
+                        const urgLabel = e.urgencia === 'emergencia' ? 'Emergência'
+                          : e.urgencia === 'urgente' ? 'Urgente' : 'Normal'
+                        return (
+                          <tr key={e.id} className="hover:bg-gray-50">
+                            <td className="px-5 py-3 text-xs text-gray-600">{data}</td>
+                            <td className="px-5 py-3">
+                              {e.medico_id && medicoMap[e.medico_id] ? (
+                                <Link
+                                  href={`/admin/medicos/${e.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
+                                  className="text-sm text-[#5BBD9B] hover:underline"
+                                >
+                                  {medicoMap[e.medico_id]}
+                                </Link>
+                              ) : <span className="text-gray-300 text-xs">—</span>}
+                            </td>
+                            <td className="px-5 py-3 text-xs text-gray-700 whitespace-pre-line max-w-xs">
+                              {e.exames}
+                            </td>
+                            <td className="px-5 py-3 text-center">
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${urgCor}`}>
+                                {urgLabel}
+                              </span>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             {/* Se não há nenhuma atividade */}
-            {atendimentos.length === 0 && atestados.length === 0 && receitas.length === 0 && (
+            {atendimentos.length === 0 && atestados.length === 0 && receitas.length === 0 && exames.length === 0 && (
               <div className="bg-white rounded-2xl shadow-sm py-14 text-center">
                 <Activity className="w-10 h-10 text-gray-200 mx-auto mb-3" />
                 <p className="text-sm text-gray-400">Nenhuma atividade registrada para este paciente</p>
@@ -659,7 +749,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
             </div>
 
             {/* Resumo de atividade */}
-            {(totalAtendimentos > 0 || totalAtestados > 0 || totalReceitas > 0) && (
+            {(totalAtendimentos > 0 || totalAtestados > 0 || totalReceitas > 0 || totalExames > 0) && (
               <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
                 <h3 className="font-semibold text-[#1A3A2C] text-xs uppercase tracking-wide mb-3">Resumo de Atividade</h3>
                 <div className="space-y-2 text-xs">
@@ -681,6 +771,14 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                     </span>
                     <span className="font-bold text-purple-600">{totalReceitas}</span>
                   </div>
+                  {totalExames > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="flex items-center gap-1.5 text-gray-500">
+                        <FlaskConical className="w-3.5 h-3.5 text-blue-500" /> Exames
+                      </span>
+                      <span className="font-bold text-blue-600">{totalExames}</span>
+                    </div>
+                  )}
 
                   {/* Detalhamento financeiro */}
                   {(totalAtendimentos > 0 || totalRenovacoes > 0) && (
