@@ -332,6 +332,54 @@ export default function AtestadosDashboard() {
               </table>
             </div>
           </Card>
+
+          {/* Lista completa de atestados */}
+          {data.lista && data.lista.length > 0 && (
+            <Card title={`Lista Completa de Atestados (${data.lista.length})`} sub="Todos os atestados do período com detalhes completos">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 text-xs text-gray-500 font-semibold uppercase tracking-wide">
+                    <tr>
+                      <th className="px-4 py-3 text-left">Data</th>
+                      <th className="px-4 py-3 text-left">Paciente</th>
+                      <th className="px-4 py-3 text-left">Médico</th>
+                      <th className="px-4 py-3 text-left">CID</th>
+                      <th className="px-4 py-3 text-center">Dias</th>
+                      <th className="px-4 py-3 text-left">Início</th>
+                      <th className="px-4 py-3 text-left">Fim</th>
+                      <th className="px-4 py-3 text-left">Empresa</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {data.lista.map((a: any) => (
+                      <tr key={a.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{a.data}</td>
+                        <td className="px-4 py-3 font-semibold text-[#1A3A2C] text-xs whitespace-nowrap">{a.paciente}</td>
+                        <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">{a.medico}</td>
+                        <td className="px-4 py-3">
+                          {a.cid ? (
+                            <span className="font-mono text-xs bg-gray-100 text-gray-700 border border-gray-200 px-2 py-0.5 rounded-md font-semibold">{a.cid}</span>
+                          ) : <span className="text-gray-300 text-xs">—</span>}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {a.dias != null ? (
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                              a.dias >= 3 ? 'bg-orange-100 text-orange-700'
+                              : a.dias === 2 ? 'bg-yellow-100 text-yellow-700'
+                              : 'bg-blue-50 text-blue-600'
+                            }`}>{a.dias}d</span>
+                          ) : <span className="text-gray-300 text-xs">—</span>}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{a.inicio}</td>
+                        <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{a.fim}</td>
+                        <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{a.empresa}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
         </>
       )}
     </div>

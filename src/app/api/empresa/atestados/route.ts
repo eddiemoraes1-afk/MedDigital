@@ -11,7 +11,7 @@ export async function GET() {
     .from('atestados')
     .select('id, paciente_id, medico_id, data_emissao, data_inicio, data_fim, dias, cid, criado_em')
     .eq('empresa_id', empresaId)
-    .order('criado_em', { ascending: false })
+    .order('data_emissao', { ascending: false })
 
   const ats = (atestados ?? []) as any[]
 
@@ -33,10 +33,44 @@ export async function GET() {
     : { data: [] }
   const pacMap = new Map((pacientes ?? []).map((p: any) => [p.id, p]))
 
+  // Buscar médicos
+  const medIds = [...new Set(ats.map(a => a.medico_id).filter(Boolean))]
+  const { data: medicosData } = medIds.length > 0
+    ? await admin.from('medicos').select('id, nome').in('id', medIds)
+    : { data: [] }
+  const medMap = new Map((medicosData ?? []).map((m: any) => [m.id, m.nome]))
+
+  // Buscar nome da empresa
+  const { data: empresaData } = await admin.from('empresas').select('nome').eq('id', empresaId).single()
+  const empresaNome = (empresaData as any)?.nome ?? ''
+
+  // Lista detalhada (usada na tabela completa)
+  function fmtDate(iso: string | null | undefined): string {
+    if (!iso) return '—'
+    const [y, m, d] = iso.split('-')
+    return `${d}/${m}/${y}`
+  }
+
+  const lista = ats.map((a: any) => {
+    const pac = pacMap.get(a.paciente_id) as any
+    const vinc = vinculoByPaciente.get(a.paciente_id)
+    return {
+      id: a.id,
+      data: fmtDate(a.data_emissao),
+      paciente: vinc?.nome_completo ?? pac?.nome ?? '—',
+      medico: medMap.get(a.medico_id) ?? '—',
+      cid: a.cid ?? null,
+      dias: a.dias ?? null,
+      inicio: fmtDate(a.data_inicio),
+      fim: fmtDate(a.data_fim),
+      empresa: empresaNome,
+    }
+  })
+
   if (ats.length === 0) {
     return NextResponse.json({
       kpis: { total: 0, totalDias: 0, mediaDias: 0, funcionariosComAtestado: 0 },
-      porMes: [], porSexo: [], porSecretaria: [], porCargo: [], porRelacao: [], topFuncionarios: [],
+      porMes: [], porSexo: [], porSecretaria: [], porCargo: [], porRelacao: [], topFuncionarios: [], lista: [],
     })
   }
 
@@ -137,5 +171,5 @@ export async function GET() {
       cidPrincipal: [...f.cids.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—',
     }))
 
-  return NextResponse.json({ kpis: { total, totalDias, mediaDias, funcionariosComAtestado }, porMes, porSexo, porSecretaria, porCargo, porRelacao, porCID, cidPorSecretaria, topFuncionarios })
+  return NextResponse.json({ kpis: { total, totalDias, mediaDias, funcionariosComAtestado }, porMes, porSexo, porSecretaria, porCargo, porRelacao, porCID, cidPorSecretaria, topFuncionarios, lista })
 }
