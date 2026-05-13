@@ -29,7 +29,7 @@ export default async function AdminAgendamentosPage({
   // Todos os médicos aprovados
   const { data: medicos } = await adminSupabase
     .from('medicos')
-    .select('id, nome, especialidade')
+    .select('id, nome, especialidade, sexo')
     .eq('status', 'aprovado')
     .order('nome', { ascending: true })
 
@@ -45,11 +45,15 @@ export default async function AdminAgendamentosPage({
     )
   }
 
-  // Mapa médico id → { nome, cor }
-  const medicoMap: Record<string, { nome: string; cor: typeof PALETA[0] }> = {}
+  // Mapa médico id → { nome, cor, sexo }
+  const medicoMap: Record<string, { nome: string; cor: typeof PALETA[0]; sexo?: string | null }> = {}
   medicos.forEach((m, i) => {
-    medicoMap[m.id] = { nome: m.nome, cor: PALETA[i % PALETA.length] }
+    medicoMap[m.id] = { nome: m.nome, cor: PALETA[i % PALETA.length], sexo: m.sexo }
   })
+
+  function drTitle(sexo?: string | null) {
+    return sexo === 'F' ? 'Dra.' : 'Dr.'
+  }
 
   const params = await searchParams
   const offset     = parseInt(params.semana || '0')
@@ -218,7 +222,7 @@ export default async function AdminAgendamentosPage({
     return nome.split(' ').slice(0, palavras).join(' ')
   }
 
-  const tituloHeader = modoTodos ? 'Todos os Médicos' : `Dr(a). ${medico.nome}`
+  const tituloHeader = modoTodos ? 'Todos os Médicos' : `${drTitle(medico.sexo)} ${medico.nome}`
 
   // URL desta página para o botão "Voltar" nas fichas de paciente
   const medicoParam = modoTodos ? 'todos' : medico.id
@@ -271,7 +275,7 @@ export default async function AdminAgendamentosPage({
                   {modoTodos && (
                     <span className={`w-2 h-2 rounded-full shrink-0 ${cor.dot}`} />
                   )}
-                  Dr(a). {nomeAbrev(m.nome)}
+                  {drTitle(m.sexo)} {nomeAbrev(m.nome)}
                 </Link>
               )
             })}
@@ -407,11 +411,11 @@ export default async function AdminAgendamentosPage({
                             {modoTodos && medInfo ? (
                               <p className="text-[10px] opacity-80 truncate mt-0.5 flex items-center gap-1">
                                 <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${medInfo.cor.dot}`} />
-                                Dr(a). {nomeAbrev(medInfo.nome)}
+                                {drTitle(medInfo.sexo)} {nomeAbrev(medInfo.nome)}
                               </p>
                             ) : (
                               <p className="text-[10px] text-gray-400 truncate mt-0.5">
-                                Dr(a). {nomeAbrev(modoTodos ? (medInfo?.nome || '') : medico.nome)}
+                                {drTitle(medico.sexo)} {nomeAbrev(modoTodos ? (medInfo?.nome || '') : medico.nome)}
                               </p>
                             )}
                             <div className={`flex items-center gap-1 mt-0.5 truncate ${isCancelado ? 'opacity-60 text-gray-400' : 'text-gray-600'}`}>
@@ -443,7 +447,7 @@ export default async function AdminAgendamentosPage({
                         return (
                           <span key={m.id} className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${cor.bg} ${cor.text} ${cor.border}`}>
                             <span className={`w-2 h-2 rounded-full ${cor.dot}`} />
-                            Dr(a). {nomeAbrev(m.nome)} · {count}
+                            {drTitle(m.sexo)} {nomeAbrev(m.nome)} · {count}
                           </span>
                         )
                       })}
@@ -480,7 +484,7 @@ export default async function AdminAgendamentosPage({
                             </Link>
                             <p className={`text-xs font-medium mt-0.5 flex items-center gap-1 ${modoTodos && medInfo ? medInfo.cor.text : 'text-[#5BBD9B]'}`}>
                               {modoTodos && medInfo && <span className={`w-2 h-2 rounded-full ${medInfo.cor.dot}`} />}
-                              Dr(a). {medInfo?.nome || medico.nome}
+                              {drTitle(medInfo?.sexo ?? medico.sexo)} {medInfo?.nome || medico.nome}
                             </p>
                             <div className="flex items-center gap-3 mt-0.5">
                               <span className="flex items-center gap-1 text-xs text-gray-400">
@@ -554,7 +558,7 @@ export default async function AdminAgendamentosPage({
                   return (
                     <span key={m.id} className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${cor.bg} ${cor.text} ${cor.border}`}>
                       <span className={`w-2 h-2 rounded-full ${cor.dot}`} />
-                      Dr(a). {nomeAbrev(m.nome)} · {count}
+                      {drTitle(m.sexo)} {nomeAbrev(m.nome)} · {count}
                     </span>
                   )
                 })}
@@ -704,7 +708,7 @@ export default async function AdminAgendamentosPage({
                             </Link>
                             <p className={`text-xs font-medium mt-0.5 flex items-center gap-1 ${modoTodos && medInfo ? medInfo.cor.text : 'text-[#5BBD9B]'}`}>
                               {modoTodos && medInfo && <span className={`w-2 h-2 rounded-full ${medInfo.cor.dot}`} />}
-                              Dr(a). {medInfo?.nome || medico.nome}
+                              {drTitle(medInfo?.sexo ?? medico.sexo)} {medInfo?.nome || medico.nome}
                             </p>
                             <div className="flex items-center gap-3 mt-0.5">
                               <span className="flex items-center gap-1 text-xs text-gray-400">

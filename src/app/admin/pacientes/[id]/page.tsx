@@ -98,16 +98,18 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
   ].filter(Boolean))]
 
   const { data: medicos } = medicoIds.length > 0
-    ? await admin.from('medicos').select('id, nome').in('id', medicoIds)
+    ? await admin.from('medicos').select('id, nome, sexo').in('id', medicoIds)
     : { data: [] }
 
-  const medicoMap: Record<string, string> = {}
-  ;(medicos ?? []).forEach(m => { medicoMap[m.id] = m.nome })
+  const medicoMap: Record<string, { nome: string; sexo?: string | null }> = {}
+  ;(medicos ?? []).forEach(m => { medicoMap[m.id] = { nome: m.nome, sexo: m.sexo } })
+
+  function drTitleP(sexo?: string | null) { return sexo === 'F' ? 'Dra.' : 'Dr.' }
 
   // ── Se há filtro de médico e ele não está no medicoMap, busca o nome ──────
   if (medicoFiltroId && !medicoMap[medicoFiltroId]) {
-    const { data: mExtra } = await admin.from('medicos').select('id, nome').eq('id', medicoFiltroId).single()
-    if (mExtra) medicoMap[mExtra.id] = mExtra.nome
+    const { data: mExtra } = await admin.from('medicos').select('id, nome, sexo').eq('id', medicoFiltroId).single()
+    if (mExtra) medicoMap[mExtra.id] = { nome: mExtra.nome, sexo: mExtra.sexo }
   }
 
   // ── Médicos aprovados (para atribuição) ───────────────────────────────────
@@ -213,7 +215,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
     return {
       data,
       hora,
-      medicoNome: a.medico_id ? (medicoMap[a.medico_id] ?? '—') : '—',
+      medicoNome: a.medico_id ? (medicoMap[a.medico_id]?.nome ?? "—") : '—',
       tipo: detectarTipoAtendimento(a),
       valor: resolveValorConsulta(a.valor_cobrado),
     }
@@ -223,7 +225,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
     const { data } = formatDataHora(a.criado_em)
     return {
       data,
-      medicoNome: a.medico_id ? (medicoMap[a.medico_id] ?? '—') : '—',
+      medicoNome: a.medico_id ? (medicoMap[a.medico_id]?.nome ?? "—") : '—',
       dias: a.dias ?? null,
       cid: a.cid ?? null,
     }
@@ -234,7 +236,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
     const isRenovacao = (r as any).atendimento_id == null
     return {
       data,
-      medicoNome: r.medico_id ? (medicoMap[r.medico_id] ?? '—') : '—',
+      medicoNome: r.medico_id ? (medicoMap[r.medico_id]?.nome ?? "—") : '—',
       isRenovacao,
       status: r.status ?? null,
       valor: isRenovacao ? resolveValorRenovacao((r as any).valor_cobrado) : 0,
@@ -245,7 +247,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
     const { data } = formatDataHora(e.criado_em)
     return {
       data,
-      medicoNome: e.medico_id ? (medicoMap[e.medico_id] ?? '—') : '—',
+      medicoNome: e.medico_id ? (medicoMap[e.medico_id]?.nome ?? "—") : '—',
       exames: e.exames ?? '',
       urgencia: e.urgencia === 'emergencia' ? 'Emergência'
               : e.urgencia === 'urgente' ? 'Urgente'
@@ -357,7 +359,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                 {medicoFiltroId && (
                   <span className="flex items-center gap-1.5 text-xs bg-[#5BBD9B]/10 text-[#1A3A2C] px-3 py-1 rounded-full font-medium shrink-0">
                     <Stethoscope className="w-3 h-3 text-[#5BBD9B]" />
-                    Apenas consultas com {medicoMap[medicoFiltroId] ?? 'este médico'}
+                    Apenas consultas com {medicoMap[medicoFiltroId]?.nome ?? 'este médico'}
                   </span>
                 )}
               </div>
@@ -377,7 +379,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                     <tbody className="divide-y divide-gray-50">
                       {atendimentos.map(a => {
                         const { data, hora } = formatDataHora(a.finalizado_em ?? a.criado_em)
-                        const medicoNome = a.medico_id ? medicoMap[a.medico_id] : null
+                        const medicoNome = a.medico_id ? medicoMap[a.medico_id]?.nome : null
                         return (
                           <tr key={a.id} className="hover:bg-gray-50 transition-colors">
                             <td className="px-5 py-3">
@@ -486,7 +488,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                                   href={`/admin/medicos/${a.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
                                   className="text-sm text-[#5BBD9B] hover:underline"
                                 >
-                                  {medicoMap[a.medico_id]}
+                                  {medicoMap[a.medico_id]?.nome}
                                 </Link>
                               ) : <span className="text-gray-300 text-xs">—</span>}
                             </td>
@@ -546,7 +548,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                                   href={`/admin/medicos/${r.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
                                   className="text-sm text-[#5BBD9B] hover:underline"
                                 >
-                                  {medicoMap[r.medico_id]}
+                                  {medicoMap[r.medico_id]?.nome}
                                 </Link>
                               ) : <span className="text-gray-300 text-xs">—</span>}
                             </td>
@@ -628,7 +630,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                                   href={`/admin/medicos/${e.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
                                   className="text-sm text-[#5BBD9B] hover:underline"
                                 >
-                                  {medicoMap[e.medico_id]}
+                                  {medicoMap[e.medico_id]?.nome}
                                 </Link>
                               ) : <span className="text-gray-300 text-xs">—</span>}
                             </td>
@@ -677,7 +679,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                 </p>
                 {proximaConsulta.medico_id && medicoMap[proximaConsulta.medico_id] && (
                   <p className="text-xs text-green-600 mt-1">
-                    Dr(a). {medicoMap[proximaConsulta.medico_id]}
+                    {medicoMap[proximaConsulta.medico_id]?.sexo === 'F' ? 'Dra.' : 'Dr.'} {medicoMap[proximaConsulta.medico_id]?.nome}
                   </p>
                 )}
               </div>
