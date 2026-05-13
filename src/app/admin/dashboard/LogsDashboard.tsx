@@ -364,125 +364,110 @@ ${rows.map(l => `<tr>
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="flex gap-5 items-start">
+    <div className="space-y-5">
 
-      {/* ── Sidebar de filtros ── */}
-      <aside className="w-64 shrink-0 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-4 sticky top-4">
-        <div className="flex items-center justify-between">
+      {/* ── Barra de filtros horizontal ── */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+        <div className="flex items-center justify-between mb-3">
           <span className="flex items-center gap-2 text-sm font-semibold text-[#1A3A2C]">
             <SlidersHorizontal className="w-4 h-4" /> Filtros
           </span>
-          {temFiltroAtivo && (
-            <button onClick={limparFiltros} className="text-xs text-red-500 hover:text-red-700 flex items-center gap-0.5 transition">
-              <X className="w-3 h-3" /> Limpar
+          <div className="flex gap-2">
+            {temFiltroAtivo && (
+              <button onClick={limparFiltros} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs text-red-500 border border-red-200 hover:bg-red-50 transition">
+                <X className="w-3 h-3" /> Limpar
+              </button>
+            )}
+            <button onClick={fetchData} disabled={loading} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white bg-[#1A3A2C] hover:bg-[#2a5040] transition disabled:opacity-60">
+              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Atualizar
             </button>
-          )}
-        </div>
-
-        {/* Empresa */}
-        <div>
-          <FLabel>Empresa</FLabel>
-          <FSelect value={empresaId} onChange={e => setEmpresaId(e.target.value)}>
-            <option value="">Todas</option>
-            <option value="__particular__">Particular</option>
-            {(data?.empresas ?? []).map(e => <option key={e.id} value={e.id}>{e.nome}</option>)}
-          </FSelect>
-        </div>
-
-        {/* Médico */}
-        <div>
-          <FLabel>Médico</FLabel>
-          <FSelect value={medicoId} onChange={e => setMedicoId(e.target.value)}>
-            <option value="">Todos</option>
-            {(data?.medicos ?? []).map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
-          </FSelect>
-        </div>
-
-        {/* Paciente */}
-        <div>
-          <FLabel>Paciente</FLabel>
-          <FSelect value={pacienteFiltro} onChange={e => { setPacienteFiltro(e.target.value); setPagina(1) }}>
-            <option value="">Todos</option>
-            {(data?.pacientes ?? [])
-              .slice()
-              .sort((a, b) => a.nome.localeCompare(b.nome))
-              .map(p => <option key={p.id} value={p.nome}>{p.nome}</option>)}
-          </FSelect>
-        </div>
-
-        {/* Data */}
-        <div>
-          <FLabel>Data início</FLabel>
-          <FInput type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
-        </div>
-        <div>
-          <FLabel>Data fim</FLabel>
-          <FInput type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
-        </div>
-
-        {/* Hora */}
-        <div>
-          <FLabel>Hora início</FLabel>
-          <FInput type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} />
-        </div>
-        <div>
-          <FLabel>Hora fim</FLabel>
-          <FInput type="time" value={horaFim} onChange={e => setHoraFim(e.target.value)} />
-        </div>
-
-        {/* Tipo de evento */}
-        <div>
-          <FLabel>Tipo de evento</FLabel>
-          <FSelect value={tipoFiltro} onChange={e => { setTipoFiltro(e.target.value as TipoEvento | ''); setPagina(1) }}>
-            <option value="">Todos</option>
-            {TODOS_TIPOS.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
-          </FSelect>
-        </div>
-
-        {/* Busca livre */}
-        <div>
-          <FLabel>Busca livre</FLabel>
-          <div className="relative">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-            <input
-              type="text"
-              value={busca}
-              onChange={e => { setBusca(e.target.value); setPagina(1) }}
-              placeholder="Nome, descrição..."
-              className="w-full border border-gray-200 rounded-lg pl-7 pr-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white"
-            />
+            <button onClick={exportarExcel} disabled={!logsFiltrados.length} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white bg-emerald-600 hover:bg-emerald-700 transition disabled:opacity-40">
+              <Download className="w-3.5 h-3.5" /> Excel
+            </button>
+            <button onClick={exportarPDF} disabled={!logsFiltrados.length} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-40">
+              <Printer className="w-3.5 h-3.5" /> PDF
+            </button>
           </div>
         </div>
 
-        {/* Botões */}
-        <div className="pt-1 space-y-2">
-          <button
-            onClick={fetchData}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm text-white bg-[#1A3A2C] hover:bg-[#2a5040] transition disabled:opacity-60"
-          >
-            {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-            Atualizar
-          </button>
-          <button
-            onClick={exportarExcel}
-            disabled={!logsFiltrados.length}
-            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm text-white bg-emerald-600 hover:bg-emerald-700 transition disabled:opacity-40"
-          >
-            <Download className="w-3.5 h-3.5" /> Baixar Excel
-          </button>
-          <button
-            onClick={exportarPDF}
-            disabled={!logsFiltrados.length}
-            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-sm text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-40"
-          >
-            <Printer className="w-3.5 h-3.5" /> Baixar PDF
-          </button>
+        {/* Grid de campos */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-9 gap-3 items-end">
+          {/* Empresa */}
+          <div className="lg:col-span-2">
+            <FLabel>Empresa</FLabel>
+            <FSelect value={empresaId} onChange={e => setEmpresaId(e.target.value)}>
+              <option value="">Todas</option>
+              <option value="__particular__">Particular</option>
+              {(data?.empresas ?? []).map(e => <option key={e.id} value={e.id}>{e.nome}</option>)}
+            </FSelect>
+          </div>
+
+          {/* Médico */}
+          <div className="lg:col-span-2">
+            <FLabel>Médico</FLabel>
+            <FSelect value={medicoId} onChange={e => setMedicoId(e.target.value)}>
+              <option value="">Todos</option>
+              {(data?.medicos ?? []).map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
+            </FSelect>
+          </div>
+
+          {/* Paciente */}
+          <div className="lg:col-span-2">
+            <FLabel>Paciente</FLabel>
+            <FSelect value={pacienteFiltro} onChange={e => { setPacienteFiltro(e.target.value); setPagina(1) }}>
+              <option value="">Todos</option>
+              {(data?.pacientes ?? []).slice().sort((a, b) => a.nome.localeCompare(b.nome)).map(p => <option key={p.id} value={p.nome}>{p.nome}</option>)}
+            </FSelect>
+          </div>
+
+          {/* Data início */}
+          <div>
+            <FLabel>Data início</FLabel>
+            <FInput type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} />
+          </div>
+
+          {/* Data fim */}
+          <div>
+            <FLabel>Data fim</FLabel>
+            <FInput type="date" value={dataFim} onChange={e => setDataFim(e.target.value)} />
+          </div>
         </div>
-      </aside>
+
+        {/* Segunda linha: hora + tipo + busca */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-9 gap-3 items-end mt-3">
+          <div>
+            <FLabel>Hora início</FLabel>
+            <FInput type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} />
+          </div>
+          <div>
+            <FLabel>Hora fim</FLabel>
+            <FInput type="time" value={horaFim} onChange={e => setHoraFim(e.target.value)} />
+          </div>
+          <div className="lg:col-span-2">
+            <FLabel>Tipo de evento</FLabel>
+            <FSelect value={tipoFiltro} onChange={e => { setTipoFiltro(e.target.value as TipoEvento | ''); setPagina(1) }}>
+              <option value="">Todos</option>
+              {TODOS_TIPOS.map(t => <option key={t.key} value={t.key}>{t.label}</option>)}
+            </FSelect>
+          </div>
+          <div className="lg:col-span-4">
+            <FLabel>Busca livre</FLabel>
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <input
+                type="text"
+                value={busca}
+                onChange={e => { setBusca(e.target.value); setPagina(1) }}
+                placeholder="Nome de paciente, médico, descrição..."
+                className="w-full border border-gray-200 rounded-lg pl-7 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* ── Conteúdo principal ── */}
-      <div className="flex-1 min-w-0 space-y-5">
+      <div className="space-y-5">
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">{error}</div>
