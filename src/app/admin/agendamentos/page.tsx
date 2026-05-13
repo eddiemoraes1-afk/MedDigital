@@ -220,6 +220,13 @@ export default async function AdminAgendamentosPage({
 
   const tituloHeader = modoTodos ? 'Todos os Médicos' : `Dr(a). ${medico.nome}`
 
+  // URL desta página para o botão "Voltar" nas fichas de paciente
+  const medicoParam = modoTodos ? 'todos' : medico.id
+  const backUrl = view === 'mes'
+    ? `/admin/agendamentos?medico_id=${medicoParam}&mes=${mesOffset}&view=mes`
+    : `/admin/agendamentos?medico_id=${medicoParam}&semana=${offset}&view=semana`
+  const backEncoded = encodeURIComponent(backUrl)
+
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
       <AdminHeader ativo="agendamentos" />
@@ -389,7 +396,7 @@ export default async function AdminAgendamentosPage({
                           : corStatus[a.status] || 'bg-green-50 text-green-700 border-green-100'
                         return (
                           <Link
-                            href={pac ? `/admin/pacientes/${a.paciente_id}` : '#'}
+                            href={pac ? `/admin/pacientes/${a.paciente_id}?back=${backEncoded}` : '#'}
                             key={a.id}
                             className={`block rounded-lg p-2 border text-xs hover:opacity-80 transition-opacity ${cardClass}`}
                           >
@@ -466,7 +473,7 @@ export default async function AdminAgendamentosPage({
                           </div>
                           <div>
                             <Link
-                              href={pac ? `/admin/pacientes/${a.paciente_id}` : '#'}
+                              href={pac ? `/admin/pacientes/${a.paciente_id}?back=${backEncoded}` : '#'}
                               className={`font-medium hover:text-[#5BBD9B] hover:underline ${isCancelado ? 'line-through text-gray-400' : 'text-gray-800'}`}
                             >
                               {pac?.nome || 'Paciente'}
@@ -503,7 +510,7 @@ export default async function AdminAgendamentosPage({
                               )
                             })()}
                             {pac && (
-                              <Link href={`/admin/pacientes/${a.paciente_id}`} className="inline-flex items-center gap-1 mt-2 text-xs text-[#5BBD9B] hover:underline font-medium">
+                              <Link href={`/admin/pacientes/${a.paciente_id}?back=${backEncoded}`} className="inline-flex items-center gap-1 mt-2 text-xs text-[#5BBD9B] hover:underline font-medium">
                                 <ExternalLink className="w-3 h-3" /> Ver detalhes do paciente
                               </Link>
                             )}
@@ -690,7 +697,7 @@ export default async function AdminAgendamentosPage({
                           </div>
                           <div>
                             <Link
-                              href={pac ? `/admin/pacientes/${a.paciente_id}` : '#'}
+                              href={pac ? `/admin/pacientes/${a.paciente_id}?back=${backEncoded}` : '#'}
                               className={`font-medium hover:text-[#5BBD9B] hover:underline ${isCancelado ? 'line-through text-gray-400' : 'text-gray-800'}`}
                             >
                               {pac?.nome || 'Paciente'}
@@ -716,7 +723,7 @@ export default async function AdminAgendamentosPage({
                               </p>
                             )}
                             {pac && (
-                              <Link href={`/admin/pacientes/${a.paciente_id}`} className="inline-flex items-center gap-1 mt-2 text-xs text-[#5BBD9B] hover:underline font-medium">
+                              <Link href={`/admin/pacientes/${a.paciente_id}?back=${backEncoded}`} className="inline-flex items-center gap-1 mt-2 text-xs text-[#5BBD9B] hover:underline font-medium">
                                 <ExternalLink className="w-3 h-3" /> Ver detalhes do paciente
                               </Link>
                             )}
