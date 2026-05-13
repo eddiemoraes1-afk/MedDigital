@@ -1,7 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -13,39 +13,56 @@ export async function GET() {
 
   const adminSupabase = createAdminClient()
 
-  // Verificar perfis_sistema primeiro (admin, empresa, médico aprovado via sistema B2B)
+  // Determinar perfil
+  let perfil = 'paciente'
+
   const { data: perfilSistema } = await adminSupabase
     .from('perfis_sistema')
     .select('role')
     .eq('usuario_id', user.id)
     .single()
 
-  if (perfilSistema?.role === 'admin') {
-    return NextResponse.redirect(new URL('/admin', baseUrl))
-  }
-  if (perfilSistema?.role === 'empresa') {
-    return NextResponse.redirect(new URL('/empresa/dashboard', baseUrl))
+  if (perfilSistema?.role === 'admin')   perfil = 'admin'
+  if (perfilSistema?.role === 'empresa') perfil = 'empresa'
+
+  if (perfil === 'paciente') {
+    const { data: medico } = await adminSupabase
+      .from('medicos')
+      .select('id')
+      .eq('usuario_id', user.id)
+      .single()
+    if (medico) perfil = 'medico'
   }
 
-  // Fallback: verificar tabela perfis (médicos e pacientes)
-  const { data: perfil } = await adminSupabase
+  // Registrar login (fire-and-forget — não bloqueia o redirect)
+  const ip =
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    req.headers.get('x-real-ip') ||
+    null
+
+  adminSupabase
+    .from('sessoes_sistema')
+    .insert({
+      usuario_id: user.id,
+      email:      user.email ?? '',
+      perfil,
+      login_em:   new Date().toISOString(),
+      ip,
+    })
+    .then()  // async, não esperamos
+
+  // Redirecionar conforme perfil
+  if (perfil === 'admin')   return NextResponse.redirect(new URL('/admin', baseUrl))
+  if (perfil === 'empresa') return NextResponse.redirect(new URL('/empresa/dashboard', baseUrl))
+
+  // Médicos e pacientes: checar perfis antigos se necessário
+  const { data: perfilAntigo } = await adminSupabase
     .from('perfis')
     .select('tipo')
     .eq('id', user.id)
     .single()
 
-  if (perfil?.tipo === 'medico') {
-    return NextResponse.redirect(new URL('/medico/dashboard', baseUrl))
-  }
-
-  // Verificar se é médico aprovado
-  const { data: medico } = await adminSupabase
-    .from('medicos')
-    .select('id, status')
-    .eq('usuario_id', user.id)
-    .single()
-
-  if (medico) {
+  if (perfilAntigo?.tipo === 'medico' || perfil === 'medico') {
     return NextResponse.redirect(new URL('/medico/dashboard', baseUrl))
   }
 

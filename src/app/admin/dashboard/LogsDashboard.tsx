@@ -8,6 +8,7 @@ import {
   ChevronLeft, ChevronRight, UserPlus, SlidersHorizontal,
 } from 'lucide-react'
 import * as XLSX from 'xlsx'
+import SessoesDashboard from './SessoesDashboard'
 
 // ── Debounce ──────────────────────────────────────────────────────────────────
 function useDebounce<T>(value: T, delay: number): T {
@@ -616,6 +617,9 @@ ${rows.map(l => `<tr>
           </>
         )}
       </div>
+
+      {/* ── Relatório de Sessões ── */}
+      <SessoesDashboard />
     </div>
   )
 }
