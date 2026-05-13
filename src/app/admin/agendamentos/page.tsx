@@ -52,7 +52,7 @@ export default async function AdminAgendamentosPage({
   })
 
   function drTitle(sexo?: string | null) {
-    return sexo === 'F' ? 'Dra.' : 'Dr.'
+    return sexo === 'feminino' ? 'Dra.' : 'Dr.'
   }
 
   const params = await searchParams

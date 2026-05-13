@@ -104,7 +104,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
   const medicoMap: Record<string, { nome: string; sexo?: string | null }> = {}
   ;(medicos ?? []).forEach(m => { medicoMap[m.id] = { nome: m.nome, sexo: m.sexo } })
 
-  function drTitleP(sexo?: string | null) { return sexo === 'F' ? 'Dra.' : 'Dr.' }
+  function drTitleP(sexo?: string | null) { return sexo === 'feminino' ? 'Dra.' : 'Dr.' }
 
   // ── Se há filtro de médico e ele não está no medicoMap, busca o nome ──────
   if (medicoFiltroId && !medicoMap[medicoFiltroId]) {
@@ -679,7 +679,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                 </p>
                 {proximaConsulta.medico_id && medicoMap[proximaConsulta.medico_id] && (
                   <p className="text-xs text-green-600 mt-1">
-                    {medicoMap[proximaConsulta.medico_id]?.sexo === 'F' ? 'Dra.' : 'Dr.'} {medicoMap[proximaConsulta.medico_id]?.nome}
+                    {medicoMap[proximaConsulta.medico_id]?.sexo === 'feminino' ? 'Dra.' : 'Dr.'} {medicoMap[proximaConsulta.medico_id]?.nome}
                   </p>
                 )}
               </div>
