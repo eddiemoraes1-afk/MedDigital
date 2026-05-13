@@ -6,6 +6,7 @@ import {
   Activity, Building2, Users, Clock, CheckCircle2,
   Search, X, SlidersHorizontal, DollarSign, TrendingDown,
   TrendingUp, FileText, ClipboardList, FileSpreadsheet, Printer,
+  FlaskConical,
 } from 'lucide-react'
 
 // ── Types (exported so page.tsx can build them) ───────────────────────────────
@@ -51,12 +52,26 @@ export interface ReceitaEnriquecida {
   isRenovacao: boolean
 }
 
+export interface ExameEnriquecido {
+  id: string
+  isoDate: string
+  data: string
+  pacienteId: string
+  pacienteNome: string
+  origemLabel: string
+  origemTipo: 'empresa' | 'particular'
+  empresaId: string | null
+  exames: string
+  urgencia: string
+}
+
 interface Empresa { id: string; nome: string }
 
 interface Props {
   atendimentos: AtendimentoEnriquecido[]
   atestados: AtestadoEnriquecido[]
   receitas: ReceitaEnriquecida[]
+  exames: ExameEnriquecido[]
   empresas: Empresa[]
   custoConsulta: number
   custoReceita: number
@@ -103,7 +118,7 @@ function applyFilters<T extends Filterable>(
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function FichaMedicoContent({
-  atendimentos, atestados, receitas, empresas,
+  atendimentos, atestados, receitas, exames, empresas,
   custoConsulta, custoReceita, medicoId, medicoNome, sidebar,
 }: Props) {
   const [dateFrom, setDateFrom] = useState('')
@@ -116,10 +131,12 @@ export default function FichaMedicoContent({
   const filteredAts    = useMemo(() => applyFilters(atendimentos, dateFrom, dateTo, origem, busca), [atendimentos, dateFrom, dateTo, origem, busca])
   const filteredAtests = useMemo(() => applyFilters(atestados,    dateFrom, dateTo, origem, busca), [atestados,    dateFrom, dateTo, origem, busca])
   const filteredRecs   = useMemo(() => applyFilters(receitas,     dateFrom, dateTo, origem, busca), [receitas,     dateFrom, dateTo, origem, busca])
+  const filteredExames = useMemo(() => applyFilters(exames,       dateFrom, dateTo, origem, busca), [exames,       dateFrom, dateTo, origem, busca])
 
   // Sets for per-row indicators (within filtered period)
   const filteredAtestPacientes = useMemo(() => new Set(filteredAtests.map(a => a.pacienteId)), [filteredAtests])
   const filteredRecPacientes   = useMemo(() => new Set(filteredRecs.map(r => r.pacienteId)),   [filteredRecs])
+  const filteredExamPacientes  = useMemo(() => new Set(filteredExames.map(e => e.pacienteId)), [filteredExames])
 
   // Dynamic KPIs
   const totalConsultas       = filteredAts.length
@@ -136,6 +153,7 @@ export default function FichaMedicoContent({
   const custoTotal           = custoConsultas + custoReceitasVal
   const lucro                = faturamento - custoTotal
   const totalAtestados       = filteredAtests.length
+  const totalExames          = filteredExames.length
 
   function clearFilters() {
     setDateFrom(''); setDateTo(''); setOrigem('all'); setBusca('')
@@ -174,6 +192,10 @@ export default function FichaMedicoContent({
         rows.push([], ['RECEITAS'], ['Data', 'Paciente', 'Origem', 'Tipo', 'Status', 'Valor (R$)'])
         filteredRecs.forEach(r => rows.push([r.data, r.pacienteNome, r.origemLabel, r.isRenovacao ? 'Renovação' : 'Em consulta', r.status ?? '—', r.isRenovacao ? r.valor : '—']))
       }
+      if (filteredExames.length > 0) {
+        rows.push([], ['EXAMES SOLICITADOS'], ['Data', 'Paciente', 'Origem', 'Exames', 'Urgência'])
+        filteredExames.forEach(e => rows.push([e.data, e.pacienteNome, e.origemLabel, e.exames, e.urgencia === 'emergencia' ? 'Emergência' : e.urgencia === 'urgente' ? 'Urgente' : 'Normal']))
+      }
       const ws = XLSX.utils.aoa_to_sheet(rows)
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Produção')
@@ -207,6 +229,13 @@ export default function FichaMedicoContent({
       <table>
         <thead><tr><th>Data</th><th>Paciente</th><th>Tipo</th><th>Status</th><th class="num">Valor</th></tr></thead>
         <tbody>${filteredRecs.map(r => `<tr><td>${r.data}</td><td>${r.pacienteNome}</td><td>${r.isRenovacao ? '<span style="color:#ea580c;font-weight:600">Renovação</span>' : '<span style="color:#9333ea">Em consulta</span>'}</td><td>${r.status ?? '—'}</td><td class="num">${r.isRenovacao && r.valor > 0 ? formatBRL(r.valor) : '—'}</td></tr>`).join('')}</tbody>
+      </table>` : ''
+
+    const examHTMLPdf = filteredExames.length > 0 ? `
+      <h3>Exames Solicitados (${filteredExames.length})</h3>
+      <table>
+        <thead><tr><th>Data</th><th>Paciente</th><th>Origem</th><th>Exames</th><th>Urgência</th></tr></thead>
+        <tbody>${filteredExames.map(e => `<tr><td>${e.data}</td><td>${e.pacienteNome}</td><td>${e.origemLabel}</td><td>${e.exames.replace(/\n/g, '<br>')}</td><td>${e.urgencia === 'emergencia' ? '<span style="color:#dc2626;font-weight:600">Emergência</span>' : e.urgencia === 'urgente' ? '<span style="color:#d97706;font-weight:600">Urgente</span>' : 'Normal'}</td></tr>`).join('')}</tbody>
       </table>` : ''
 
     const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
@@ -243,6 +272,7 @@ export default function FichaMedicoContent({
     <div class="kpi"><div class="kpi-label">Margem</div><div class="kpi-value ${lucro >= 0 ? 'green' : 'orange'}">${formatBRL(lucro)}</div></div>` : ''}
     <div class="kpi"><div class="kpi-label">Atestados</div><div class="kpi-value amber">${totalAtestados}</div></div>
     <div class="kpi"><div class="kpi-label">Receitas</div><div class="kpi-value purple">${totalReceitas}</div></div>
+    ${totalExames > 0 ? `<div class="kpi"><div class="kpi-label">Exames</div><div class="kpi-value" style="color:#2563eb">${totalExames}</div></div>` : ''}
     ${totalRenovacoes > 0 ? `<div class="kpi"><div class="kpi-label">Renovações</div><div class="kpi-value orange">${totalRenovacoes} · ${formatBRL(faturamentoRenovacoes)}</div></div>` : ''}
   </div>
   <h3>Consultas Realizadas (${totalConsultas})</h3>
@@ -251,7 +281,7 @@ export default function FichaMedicoContent({
     <tbody>${consultaRows || `<tr><td colspan="${custoConsulta > 0 ? 5 : 4}" style="text-align:center;color:#9ca3af;padding:12px">Nenhuma consulta</td></tr>`}</tbody>
     <tfoot><tr><td colspan="3">Total</td><td class="num">${formatBRL(faturamento)}</td>${custoConsulta > 0 ? `<td class="num">${formatBRL(custoConsultas)}</td>` : ''}</tr></tfoot>
   </table>
-  ${atestHTML}${recHTML}
+  ${atestHTML}${recHTML}${examHTMLPdf}
   <script>window.onload=function(){setTimeout(function(){window.print()},300)}<\/script>
 </body></html>`
     const w = window.open('', '_blank')
@@ -305,7 +335,7 @@ export default function FichaMedicoContent({
   return (
     <>
       {/* Dynamic KPI cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
         <div className="bg-[#1A3A2C] rounded-2xl p-4 shadow-sm">
           <div className="flex items-start justify-between">
             <div>
@@ -378,6 +408,16 @@ export default function FichaMedicoContent({
               </p>
             </div>
             <div className="p-2 rounded-xl bg-purple-50"><ClipboardList className="w-4 h-4 text-purple-500" /></div>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-50">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs text-gray-400 font-medium">Exames</p>
+              <p className="text-2xl font-bold text-blue-600 mt-1">{totalExames}</p>
+              <p className="text-xs text-gray-400 mt-0.5">solicitados</p>
+            </div>
+            <div className="p-2 rounded-xl bg-blue-50"><FlaskConical className="w-4 h-4 text-blue-500" /></div>
           </div>
         </div>
       </div>
@@ -475,7 +515,9 @@ export default function FichaMedicoContent({
                             : <span className="text-gray-200 text-xs">—</span>}
                         </td>
                         <td className="px-5 py-3 text-center">
-                          <span className="text-gray-200 text-xs">—</span>
+                          {filteredExamPacientes.has(a.pacienteId)
+                            ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-100"><CheckCircle2 className="w-3 h-3 text-blue-600" /></span>
+                            : <span className="text-gray-200 text-xs">—</span>}
                         </td>
                       </tr>
                     ))}
@@ -643,6 +685,69 @@ export default function FichaMedicoContent({
               ) : (
                 <div className="py-10 text-center">
                   <p className="text-sm text-gray-400">Nenhuma receita no período selecionado</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Exames */}
+          {exames.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
+                  <FlaskConical className="w-4 h-4 text-blue-500" />
+                  Exames Solicitados
+                  <span className="text-xs text-gray-400 font-normal">
+                    ({isFiltered ? `${filteredExames.length} de ${exames.length}` : exames.length})
+                  </span>
+                </h2>
+              </div>
+              {filteredExames.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 text-xs text-gray-400 font-medium uppercase tracking-wide">
+                      <tr>
+                        <th className="px-5 py-3 text-left">Data</th>
+                        <th className="px-5 py-3 text-left">Paciente</th>
+                        <th className="px-5 py-3 text-left">Exames</th>
+                        <th className="px-5 py-3 text-center">Urgência</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {filteredExames.map(e => {
+                        const urgCor = e.urgencia === 'emergencia'
+                          ? 'bg-red-100 text-red-700'
+                          : e.urgencia === 'urgente'
+                          ? 'bg-amber-100 text-amber-700'
+                          : 'bg-green-100 text-green-700'
+                        const urgLabel = e.urgencia === 'emergencia' ? 'Emergência'
+                          : e.urgencia === 'urgente' ? 'Urgente' : 'Normal'
+                        return (
+                          <tr key={e.id} className="hover:bg-gray-50">
+                            <td className="px-5 py-3 text-xs text-gray-600">{e.data}</td>
+                            <td className="px-5 py-3">
+                              {e.pacienteId && e.pacienteNome ? (
+                                <Link href={`/admin/pacientes/${e.pacienteId}?back=${encodeURIComponent(`/admin/medicos/${medicoId}`)}`}
+                                  className="text-sm text-[#5BBD9B] hover:underline">{e.pacienteNome}</Link>
+                              ) : <span className="text-gray-300 text-xs">—</span>}
+                            </td>
+                            <td className="px-5 py-3 text-xs text-gray-700 whitespace-pre-line max-w-xs">
+                              {e.exames}
+                            </td>
+                            <td className="px-5 py-3 text-center">
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${urgCor}`}>
+                                {urgLabel}
+                              </span>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="py-10 text-center">
+                  <p className="text-sm text-gray-400">Nenhum exame no período selecionado</p>
                 </div>
               )}
             </div>

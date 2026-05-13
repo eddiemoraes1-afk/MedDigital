@@ -15,6 +15,7 @@ import FichaMedicoContent, {
   type AtendimentoEnriquecido,
   type AtestadoEnriquecido,
   type ReceitaEnriquecida,
+  type ExameEnriquecido,
 } from './FichaMedicoContent'
 
 export default async function FichaMedicoPage({
@@ -72,11 +73,22 @@ export default async function FichaMedicoPage({
 
   const recs = receitas ?? []
 
+  // ── Exames solicitados ────────────────────────────────────────────────────
+  const { data: examesData } = await admin
+    .from('solicitacoes_exames')
+    .select('id, paciente_id, criado_em, exames, urgencia')
+    .eq('medico_id', id)
+    .order('criado_em', { ascending: false })
+    .limit(500)
+
+  const exms = examesData ?? []
+
   // ── Pacientes (para nomes) ────────────────────────────────────────────────
   const pacienteIds = [...new Set([
     ...ats.map(a => a.paciente_id),
     ...atests.map(a => a.paciente_id),
     ...recs.map(r => r.paciente_id),
+    ...exms.map(e => e.paciente_id),
   ].filter(Boolean))]
 
   const { data: pacientes } = pacienteIds.length > 0
@@ -198,6 +210,23 @@ export default async function FichaMedicoPage({
     }
   })
 
+  const examesEnriquecidos: ExameEnriquecido[] = exms.map(e => {
+    const { data } = formatDataHora(e.criado_em)
+    const orig = origemPaciente(e.paciente_id)
+    return {
+      id: e.id,
+      isoDate: e.criado_em ?? '',
+      data,
+      pacienteId: e.paciente_id ?? '',
+      pacienteNome: pacienteMap[e.paciente_id] ?? '',
+      origemLabel: orig.label,
+      origemTipo: orig.tipo,
+      empresaId: pacienteEmpresaId[e.paciente_id] ?? null,
+      exames: e.exames ?? '',
+      urgencia: e.urgencia ?? 'normal',
+    }
+  })
+
   const empresasParaFiltro = empresaIds.map(eid => ({
     id: eid,
     nome: empresaMap[eid]?.nome ?? eid,
@@ -286,6 +315,7 @@ export default async function FichaMedicoPage({
           atendimentos={atendimentosEnriquecidos}
           atestados={atestadosEnriquecidos}
           receitas={receitasEnriquecidas}
+          exames={examesEnriquecidos}
           empresas={empresasParaFiltro}
           custoConsulta={custoConsulta}
           custoReceita={custoReceita}
