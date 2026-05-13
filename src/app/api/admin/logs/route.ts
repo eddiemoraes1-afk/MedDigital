@@ -9,6 +9,8 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const dataInicio = searchParams.get('dataInicio') || ''
   const dataFim    = searchParams.get('dataFim')    || ''
+  const horaInicio = searchParams.get('horaInicio') || ''   // HH:MM
+  const horaFim    = searchParams.get('horaFim')    || ''   // HH:MM
   const empresaId  = searchParams.get('empresa_id') || ''
   const medicoId   = searchParams.get('medico_id')  || ''
   const tipoBusca  = searchParams.get('tipo')       || ''
@@ -32,12 +34,13 @@ export async function GET(req: NextRequest) {
     { data: recRows },
     { data: examRows },
     { data: triagemRows },
+    { data: agendRows },
   ] = await Promise.all([
-    // Atendimentos: gera 3 eventos (entrada na fila, início, fim)
+    // Atendimentos: gera eventos (entrada fila, início, fim, encaminhamento)
     (() => {
       let q = admin
         .from('atendimentos')
-        .select('id, paciente_id, medico_id, criado_em, iniciado_em, finalizado_em, status')
+        .select('id, paciente_id, medico_id, criado_em, iniciado_em, finalizado_em, status, notas_medico, agendamento_id')
         .order('criado_em', { ascending: false })
         .limit(3000)
       if (tsInicio) q = q.gte('criado_em', tsInicio)
@@ -99,16 +102,31 @@ export async function GET(req: NextRequest) {
       if (tsFim)    q = q.lte('criado_em', tsFim)
       return q
     })(),
+
+    // Agendamentos com marcador de encaminhamento
+    (() => {
+      let q = admin
+        .from('agendamentos')
+        .select('id, paciente_id, medico_id, criado_em, data_hora, observacoes, status')
+        .not('observacoes', 'is', null)
+        .order('criado_em', { ascending: false })
+        .limit(2000)
+      if (tsInicio) q = q.gte('criado_em', tsInicio)
+      if (tsFim)    q = q.lte('criado_em', tsFim)
+      if (medicoId) q = q.eq('medico_id', medicoId)
+      return q
+    })(),
   ])
 
   // ── Lookup de pacientes ───────────────────────────────────────────────────
   const allPacIds = [
     ...new Set([
-      ...(atendRows ?? []).map((r: any) => r.paciente_id),
-      ...(atestRows ?? []).map((r: any) => r.paciente_id),
-      ...(recRows   ?? []).map((r: any) => r.paciente_id),
-      ...(examRows  ?? []).map((r: any) => r.paciente_id),
+      ...(atendRows   ?? []).map((r: any) => r.paciente_id),
+      ...(atestRows   ?? []).map((r: any) => r.paciente_id),
+      ...(recRows     ?? []).map((r: any) => r.paciente_id),
+      ...(examRows    ?? []).map((r: any) => r.paciente_id),
       ...(triagemRows ?? []).map((r: any) => r.paciente_id),
+      ...(agendRows   ?? []).map((r: any) => r.paciente_id),
     ].filter(Boolean)),
   ]
 
@@ -117,14 +135,14 @@ export async function GET(req: NextRequest) {
     : { data: [] }
   const pacMap = new Map((pacientes ?? []).map((p: any) => [p.id, p]))
 
-  // Lookup empresa por CPF (para atendimentos que não têm empresa_id direto)
+  // Lookup empresa por CPF
   const cpfs = (pacientes ?? []).map((p: any) => p.cpf).filter(Boolean)
   const { data: vinculos } = cpfs.length
     ? await admin.from('vinculos_empresa').select('cpf, empresa_id').in('cpf', cpfs)
     : { data: [] }
   const cpfEmpMap = new Map((vinculos ?? []).map((v: any) => [v.cpf, v.empresa_id]))
 
-  // ── Helper: empresa de um paciente ────────────────────────────────────────
+  // ── Helpers ───────────────────────────────────────────────────────────────
   function pacEmpresaId(pacienteId: string | null): string | null {
     if (!pacienteId) return null
     const pac = pacMap.get(pacienteId) as any
@@ -133,6 +151,11 @@ export async function GET(req: NextRequest) {
   function pacEmpresaNome(pacienteId: string | null): string {
     const eid = pacEmpresaId(pacienteId)
     return eid ? (empMap.get(eid) ?? 'Particular') : 'Particular'
+  }
+  function extractReferrer(text: string | null): string | null {
+    if (!text) return null
+    const m = text.match(/\[Encaminhado por (.+?)\]/)
+    return m ? m[1] : null
   }
 
   // ── Montar log entries ────────────────────────────────────────────────────
@@ -152,25 +175,27 @@ export async function GET(req: NextRequest) {
 
   const logs: LogEntry[] = []
 
-  // Atendimentos → até 3 eventos por registro
+  // ── Atendimentos ──────────────────────────────────────────────────────────
   for (const r of atendRows ?? []) {
     const pac = pacMap.get(r.paciente_id) as any
     const med = medMap.get(r.medico_id)  as any
     const empId = pacEmpresaId(r.paciente_id)
     const empNome = pacEmpresaNome(r.paciente_id)
     const pacNome = pac?.nome ?? 'Desconhecido'
-    const medNome = med?.nome ?? '—'
+    const medNome = (med as any)?.nome ?? '—'
     const medEsp  = (med as any)?.especialidade ?? ''
 
-    // Filtro empresa para atendimentos
+    // Filtro empresa
     if (empresaId) {
       if (empresaId === '__particular__' && empId) continue
       if (empresaId !== '__particular__' && empId !== empresaId) continue
     }
 
+    const referrerNotas = extractReferrer(r.notas_medico)
+    const isEncVirtual = !!referrerNotas
+
     // Evento 1: Entrada na fila
     if (r.criado_em) {
-      // Data filter already applied server-side for criado_em
       logs.push({
         id: `atend-entrada-${r.id}`,
         criado_em: r.criado_em,
@@ -220,16 +245,72 @@ export async function GET(req: NextRequest) {
         detalhe: '',
       })
     }
+
+    // Evento 4: Encaminhamento virtual (detectado por notas_medico)
+    if (isEncVirtual && r.finalizado_em &&
+        (!tsInicio || r.finalizado_em >= tsInicio) && (!tsFim || r.finalizado_em <= tsFim)) {
+      logs.push({
+        id: `atend-enc-${r.id}`,
+        criado_em: r.finalizado_em,
+        tipo: 'encaminhamento_virtual',
+        tipo_label: 'Encaminhamento Virtual',
+        descricao: `${referrerNotas} encaminhou ${pacNome} para ${medNome} (imediato)`,
+        paciente_nome: pacNome,
+        medico_nome: medNome,
+        medico_esp: medEsp,
+        empresa_nome: empNome,
+        referencia_id: r.id,
+        detalhe: `Por: ${referrerNotas}`,
+      })
+    }
   }
 
-  // Atestados
+  // ── Agendamentos com encaminhamento ───────────────────────────────────────
+  for (const r of agendRows ?? []) {
+    const referrer = extractReferrer(r.observacoes)
+    if (!referrer) continue // pula agendamentos sem marcador de encaminhamento
+
+    const pac = pacMap.get(r.paciente_id) as any
+    const med = medMap.get(r.medico_id)  as any
+    const empId = pacEmpresaId(r.paciente_id)
+    const empNome = pacEmpresaNome(r.paciente_id)
+    const pacNome = pac?.nome ?? 'Desconhecido'
+    const medNome = (med as any)?.nome ?? '—'
+    const medEsp  = (med as any)?.especialidade ?? ''
+
+    if (empresaId) {
+      if (empresaId === '__particular__' && empId) continue
+      if (empresaId !== '__particular__' && empId !== empresaId) continue
+    }
+    if (medicoId && r.medico_id !== medicoId) continue
+
+    const dtAgend = r.data_hora
+      ? new Date(r.data_hora).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: 'numeric' })
+      : '—'
+
+    logs.push({
+      id: `agend-enc-${r.id}`,
+      criado_em: r.criado_em,
+      tipo: 'encaminhamento_agendado',
+      tipo_label: 'Encaminhamento Agendado',
+      descricao: `${referrer} encaminhou ${pacNome} para ${medNome} — consulta em ${dtAgend}`,
+      paciente_nome: pacNome,
+      medico_nome: medNome,
+      medico_esp: medEsp,
+      empresa_nome: empNome,
+      referencia_id: r.id,
+      detalhe: `Por: ${referrer} · Agendado: ${dtAgend}`,
+    })
+  }
+
+  // ── Atestados ──────────────────────────────────────────────────────────────
   for (const r of atestRows ?? []) {
     const pac = pacMap.get(r.paciente_id) as any
     const med = medMap.get(r.medico_id)  as any
     const empId = r.empresa_id ?? pacEmpresaId(r.paciente_id)
     const empNome = empId ? (empMap.get(empId) ?? 'Particular') : 'Particular'
     const pacNome = pac?.nome ?? 'Desconhecido'
-    const medNome = med?.nome ?? '—'
+    const medNome = (med as any)?.nome ?? '—'
     const medEsp  = (med as any)?.especialidade ?? ''
 
     if (empresaId) {
@@ -252,14 +333,14 @@ export async function GET(req: NextRequest) {
     })
   }
 
-  // Receitas
+  // ── Receitas ──────────────────────────────────────────────────────────────
   for (const r of recRows ?? []) {
     const pac = pacMap.get(r.paciente_id) as any
     const med = medMap.get(r.medico_id)  as any
     const empId = r.empresa_id ?? pacEmpresaId(r.paciente_id)
     const empNome = empId ? (empMap.get(empId) ?? 'Particular') : 'Particular'
     const pacNome = pac?.nome ?? 'Desconhecido'
-    const medNome = med?.nome ?? '—'
+    const medNome = (med as any)?.nome ?? '—'
     const medEsp  = (med as any)?.especialidade ?? ''
     const medShort = r.medicamentos?.split('\n')[0]?.slice(0, 40) ?? ''
 
@@ -283,14 +364,14 @@ export async function GET(req: NextRequest) {
     })
   }
 
-  // Exames
+  // ── Exames ────────────────────────────────────────────────────────────────
   for (const r of examRows ?? []) {
     const pac = pacMap.get(r.paciente_id) as any
     const med = medMap.get(r.medico_id)  as any
     const empId = r.empresa_id ?? pacEmpresaId(r.paciente_id)
     const empNome = empId ? (empMap.get(empId) ?? 'Particular') : 'Particular'
     const pacNome = pac?.nome ?? 'Desconhecido'
-    const medNome = med?.nome ?? '—'
+    const medNome = (med as any)?.nome ?? '—'
     const medEsp  = (med as any)?.especialidade ?? ''
 
     if (empresaId) {
@@ -313,14 +394,14 @@ export async function GET(req: NextRequest) {
     })
   }
 
-  // Triagens
+  // ── Triagens ──────────────────────────────────────────────────────────────
   for (const r of triagemRows ?? []) {
     const pac = pacMap.get(r.paciente_id) as any
     const pacNome = pac?.nome ?? 'Desconhecido'
     const empId = pacEmpresaId(r.paciente_id)
     const empNome = pacEmpresaNome(r.paciente_id)
 
-    if (medicoId) continue // triagem não tem médico — pula se filtro por médico ativo
+    if (medicoId) continue
     if (empresaId) {
       if (empresaId === '__particular__' && empId) continue
       if (empresaId !== '__particular__' && empId !== empresaId) continue
@@ -344,13 +425,25 @@ export async function GET(req: NextRequest) {
   // ── Ordenar por data desc ─────────────────────────────────────────────────
   logs.sort((a, b) => b.criado_em.localeCompare(a.criado_em))
 
-  // ── Filtros client-side: tipo e nome ──────────────────────────────────────
+  // ── Filtros: tipo, nome (busca), hora ─────────────────────────────────────
   let resultado = logs
   if (tipoBusca) resultado = resultado.filter(l => l.tipo === tipoBusca)
   if (nomeBusca) resultado = resultado.filter(l =>
     l.paciente_nome.toLowerCase().includes(nomeBusca) ||
     l.medico_nome.toLowerCase().includes(nomeBusca)
   )
+  // Filtro hora (aplicado sobre hora local BRT)
+  if (horaInicio || horaFim) {
+    resultado = resultado.filter(l => {
+      if (!l.criado_em) return true
+      const h = new Date(l.criado_em).toLocaleTimeString('pt-BR', {
+        timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit',
+      }) // "HH:MM"
+      if (horaInicio && h < horaInicio) return false
+      if (horaFim    && h > horaFim)    return false
+      return true
+    })
+  }
 
   // ── Contagem por tipo ─────────────────────────────────────────────────────
   const contagem: Record<string, number> = {}
@@ -364,5 +457,6 @@ export async function GET(req: NextRequest) {
     contagem,
     empresas: empresasList ?? [],
     medicos: (medicosList ?? []).map((m: any) => ({ id: m.id, nome: m.nome })),
+    pacientes: (pacientes ?? []).map((p: any) => ({ id: p.id, nome: p.nome })),
   })
 }
