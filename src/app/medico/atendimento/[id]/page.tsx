@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Loader2, Phone, FileText, CheckCircle2, ClipboardList, ChevronDown, ChevronUp, Video, Pill, FlaskConical } from 'lucide-react'
+import { Loader2, Phone, FileText, CheckCircle2, ClipboardList, ChevronDown, ChevronUp, Video, Pill, FlaskConical, UserPlus } from 'lucide-react'
 import AtestadoForm from '@/components/AtestadoForm'
 import ReceitaForm from '@/components/ReceitaForm'
 import SolicitacaoExamesForm from '@/components/SolicitacaoExamesForm'
+import EncaminhamentoForm from '@/components/EncaminhamentoForm'
 
 export default function AtendimentoMedico() {
   const { id } = useParams()
@@ -20,6 +21,8 @@ export default function AtendimentoMedico() {
   const [receitaEmitida, setReceitaEmitida] = useState(false)
   const [showExames, setShowExames] = useState(false)
   const [examesEmitidos, setExamesEmitidos] = useState(false)
+  const [showEncaminhamento, setShowEncaminhamento] = useState(false)
+  const [encaminhado, setEncaminhado] = useState(false)
   const [entrou, setEntrou] = useState(false)
 
   useEffect(() => {
@@ -77,18 +80,23 @@ export default function AtendimentoMedico() {
   })()
 
   function toggleAtestado() {
-    if (!showAtestado) { setShowReceita(false); setShowExames(false) }
+    if (!showAtestado) { setShowReceita(false); setShowExames(false); setShowEncaminhamento(false) }
     setShowAtestado(v => !v)
   }
 
   function toggleReceita() {
-    if (!showReceita) { setShowAtestado(false); setShowExames(false) }
+    if (!showReceita) { setShowAtestado(false); setShowExames(false); setShowEncaminhamento(false) }
     setShowReceita(v => !v)
   }
 
   function toggleExames() {
-    if (!showExames) { setShowAtestado(false); setShowReceita(false) }
+    if (!showExames) { setShowAtestado(false); setShowReceita(false); setShowEncaminhamento(false) }
     setShowExames(v => !v)
+  }
+
+  function toggleEncaminhamento() {
+    if (!showEncaminhamento) { setShowAtestado(false); setShowReceita(false); setShowExames(false) }
+    setShowEncaminhamento(v => !v)
   }
 
   return (
@@ -301,6 +309,38 @@ export default function AtendimentoMedico() {
                   onSalvo={() => {
                     setExamesEmitidos(true)
                     setShowExames(false)
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Botão de encaminhamento */}
+          <div className="p-4 border-b border-[#2A4A3C]">
+            <button
+              onClick={toggleEncaminhamento}
+              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                showEncaminhamento
+                  ? 'bg-orange-500 text-white'
+                  : 'bg-[#0F1F33] text-orange-300 hover:bg-orange-500 hover:text-white'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <UserPlus className="w-4 h-4" />
+                {encaminhado ? 'Encaminhamento realizado ✓' : 'Encaminhar Paciente'}
+              </span>
+              {showEncaminhamento ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+
+            {showEncaminhamento && paciente && (
+              <div className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
+                <EncaminhamentoForm
+                  pacienteId={paciente.id}
+                  salaVideo={atendimento.sala_video ?? null}
+                  onFechar={() => setShowEncaminhamento(false)}
+                  onEncaminhado={() => {
+                    setEncaminhado(true)
+                    setShowEncaminhamento(false)
                   }}
                 />
               </div>

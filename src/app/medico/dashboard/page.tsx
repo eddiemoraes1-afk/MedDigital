@@ -47,12 +47,13 @@ export default async function MedicoDashboard() {
 
   // ── Dados em paralelo ─────────────────────────────────────────────────────
   const [filaRes, atendidosRes, atestadosRes, receitasRes, renovacoesRes, examesRes] = await Promise.all([
-    // Fila virtual
+    // Fila virtual: atendimentos sem médico pré-definido (geral) + encaminhados para este médico
     adminSupabase
       .from('atendimentos')
-      .select('id, criado_em, paciente_id, pacientes(id, nome, cpf), triagens(id, classificacao_risco, resumo_ia)')
+      .select('id, criado_em, medico_id, paciente_id, notas_medico, pacientes(id, nome, cpf), triagens(id, classificacao_risco, resumo_ia)')
       .eq('status', 'aguardando')
       .eq('tipo', 'virtual')
+      .or(`medico_id.is.null,medico_id.eq.${medico.id}`)
       .order('criado_em', { ascending: true }),
 
     // Atendidos hoje
@@ -292,9 +293,24 @@ export default async function MedicoDashboard() {
                 const risco = atendimento.triagens?.classificacao_risco || null
                 const pacienteId = atendimento.pacientes?.id || atendimento.paciente_id
                 const resumo = atendimento.triagens?.resumo_ia
+                const isEncaminhado = atendimento.medico_id === medico.id
+                // Extract referrer name from notas_medico marker: [Encaminhado por Dr(a). Nome]
+                const encaminhadoPorMatch = isEncaminhado && atendimento.notas_medico
+                  ? atendimento.notas_medico.match(/\[Encaminhado por (.+?)\]/)
+                  : null
+                const encaminhadoPor = encaminhadoPorMatch ? encaminhadoPorMatch[1] : null
                 return (
-                  <div key={atendimento.id} className="px-6 py-5 flex items-center gap-4 hover:bg-gray-50">
-                    <div className="w-10 h-10 bg-[#1A3A2C]/10 rounded-full flex items-center justify-center font-bold text-[#1A3A2C] text-sm shrink-0">
+                  <div
+                    key={atendimento.id}
+                    className={`px-6 py-5 flex items-center gap-4 transition-colors ${
+                      isEncaminhado
+                        ? 'bg-orange-50 hover:bg-orange-100 border-l-4 border-orange-400'
+                        : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
+                      isEncaminhado ? 'bg-orange-100 text-orange-700' : 'bg-[#1A3A2C]/10 text-[#1A3A2C]'
+                    }`}>
                       {index + 1}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -305,12 +321,22 @@ export default async function MedicoDashboard() {
                         >
                           {atendimento.pacientes?.nome || 'Paciente'}
                         </Link>
+                        {isEncaminhado && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-orange-200 text-orange-800 shrink-0">
+                            Encaminhado para você
+                          </span>
+                        )}
                         {risco && (
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${corRisco[risco] || corRisco.default}`}>
                             {labelRisco[risco] || risco}
                           </span>
                         )}
                       </div>
+                      {encaminhadoPor && (
+                        <p className="text-xs text-orange-600 font-medium mt-0.5">
+                          Encaminhado por {encaminhadoPor}
+                        </p>
+                      )}
                       {resumo ? (
                         <Link href={`/medico/pacientes/${pacienteId}?back=${encodeURIComponent('/medico/dashboard')}`} className="flex items-start gap-1.5 mt-1 group">
                           <FileText className="w-3.5 h-3.5 text-[#5BBD9B] shrink-0 mt-0.5" />
@@ -327,7 +353,11 @@ export default async function MedicoDashboard() {
                     </div>
                     <Link
                       href={`/medico/atendimento/${atendimento.id}`}
-                      className="bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 shrink-0 transition-colors"
+                      className={`text-white px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 shrink-0 transition-colors ${
+                        isEncaminhado
+                          ? 'bg-orange-500 hover:bg-orange-600'
+                          : 'bg-[#1A3A2C] hover:bg-[#5BBD9B]'
+                      }`}
                     >
                       <Video className="w-4 h-4" />
                       Atender
