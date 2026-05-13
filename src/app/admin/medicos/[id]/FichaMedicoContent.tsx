@@ -34,6 +34,7 @@ export interface AtestadoEnriquecido {
   origemLabel: string
   origemTipo: 'empresa' | 'particular'
   empresaId: string | null
+  atendimentoId: string | null
   dias: number | null
   cid: string | null
 }
@@ -47,6 +48,7 @@ export interface ReceitaEnriquecida {
   origemLabel: string
   origemTipo: 'empresa' | 'particular'
   empresaId: string | null
+  atendimentoId: string | null
   status: string | null
   valor: number
   isRenovacao: boolean
@@ -61,6 +63,7 @@ export interface ExameEnriquecido {
   origemLabel: string
   origemTipo: 'empresa' | 'particular'
   empresaId: string | null
+  atendimentoId: string | null
   exames: string
   urgencia: string
 }
@@ -133,10 +136,19 @@ export default function FichaMedicoContent({
   const filteredRecs   = useMemo(() => applyFilters(receitas,     dateFrom, dateTo, origem, busca), [receitas,     dateFrom, dateTo, origem, busca])
   const filteredExames = useMemo(() => applyFilters(exames,       dateFrom, dateTo, origem, busca), [exames,       dateFrom, dateTo, origem, busca])
 
-  // Sets for per-row indicators (within filtered period)
-  const filteredAtestPacientes = useMemo(() => new Set(filteredAtests.map(a => a.pacienteId)), [filteredAtests])
-  const filteredRecPacientes   = useMemo(() => new Set(filteredRecs.map(r => r.pacienteId)),   [filteredRecs])
-  const filteredExamPacientes  = useMemo(() => new Set(filteredExames.map(e => e.pacienteId)), [filteredExames])
+  // Sets para indicadores por linha — compara pelo atendimento_id (não por paciente)
+  const filteredAtestAts = useMemo(
+    () => new Set(filteredAtests.filter(a => a.atendimentoId).map(a => a.atendimentoId!)),
+    [filteredAtests],
+  )
+  const filteredRecAts = useMemo(
+    () => new Set(filteredRecs.filter(r => r.atendimentoId).map(r => r.atendimentoId!)),
+    [filteredRecs],
+  )
+  const filteredExamAts = useMemo(
+    () => new Set(filteredExames.filter(e => e.atendimentoId).map(e => e.atendimentoId!)),
+    [filteredExames],
+  )
 
   // Dynamic KPIs
   const totalConsultas       = filteredAts.length
@@ -505,17 +517,17 @@ export default function FichaMedicoContent({
                           </td>
                         )}
                         <td className="px-5 py-3 text-center">
-                          {filteredAtestPacientes.has(a.pacienteId)
+                          {filteredAtestAts.has(a.id)
                             ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100"><CheckCircle2 className="w-3 h-3 text-amber-600" /></span>
                             : <span className="text-gray-200 text-xs">—</span>}
                         </td>
                         <td className="px-5 py-3 text-center">
-                          {filteredRecPacientes.has(a.pacienteId)
+                          {filteredRecAts.has(a.id)
                             ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-purple-100"><CheckCircle2 className="w-3 h-3 text-purple-600" /></span>
                             : <span className="text-gray-200 text-xs">—</span>}
                         </td>
                         <td className="px-5 py-3 text-center">
-                          {filteredExamPacientes.has(a.pacienteId)
+                          {filteredExamAts.has(a.id)
                             ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-100"><CheckCircle2 className="w-3 h-3 text-blue-600" /></span>
                             : <span className="text-gray-200 text-xs">—</span>}
                         </td>

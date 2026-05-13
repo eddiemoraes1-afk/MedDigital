@@ -58,7 +58,7 @@ export default async function FichaMedicoPage({
   // ── Atestados ─────────────────────────────────────────────────────────────
   const { data: atestados } = await admin
     .from('atestados')
-    .select('id, paciente_id, criado_em, dias, cid')
+    .select('id, paciente_id, criado_em, dias, cid, atendimento_id')
     .eq('medico_id', id)
     .order('criado_em', { ascending: false })
 
@@ -76,7 +76,7 @@ export default async function FichaMedicoPage({
   // ── Exames solicitados ────────────────────────────────────────────────────
   const { data: examesData } = await admin
     .from('solicitacoes_exames')
-    .select('id, paciente_id, criado_em, exames, urgencia')
+    .select('id, paciente_id, criado_em, exames, urgencia, atendimento_id')
     .eq('medico_id', id)
     .order('criado_em', { ascending: false })
     .limit(500)
@@ -186,6 +186,7 @@ export default async function FichaMedicoPage({
       origemLabel: orig.label,
       origemTipo: orig.tipo,
       empresaId: pacienteEmpresaId[a.paciente_id] ?? null,
+      atendimentoId: (a as any).atendimento_id ?? null,
       dias: a.dias ?? null,
       cid: a.cid ?? null,
     }
@@ -204,6 +205,7 @@ export default async function FichaMedicoPage({
       origemLabel: orig.label,
       origemTipo: orig.tipo,
       empresaId: pacienteEmpresaId[r.paciente_id] ?? null,
+      atendimentoId: r.atendimento_id ?? null,
       status: r.status ?? null,
       valor: isRenovacao ? calcValorRenovacao(r.paciente_id, r.valor_cobrado) : 0,
       isRenovacao,
@@ -222,6 +224,7 @@ export default async function FichaMedicoPage({
       origemLabel: orig.label,
       origemTipo: orig.tipo,
       empresaId: pacienteEmpresaId[e.paciente_id] ?? null,
+      atendimentoId: (e as any).atendimento_id ?? null,
       exames: e.exames ?? '',
       urgencia: e.urgencia ?? 'normal',
     }
