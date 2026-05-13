@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { ArrowLeft, Video, Calendar, CheckCircle2, Clock, Stethoscope, FileText } from 'lucide-react'
+import { ArrowLeft, Video, Calendar, Clock, Stethoscope, FileText, UserPlus } from 'lucide-react'
 import PacienteHeader from '../PacienteHeader'
 
 export default async function PacienteAtendimentosPage() {
@@ -34,6 +34,16 @@ export default async function PacienteAtendimentosPage() {
     : { data: [] }
   const medicoMap: Record<string, any> = {}
   ;(medicos ?? []).forEach((m: any) => { medicoMap[m.id] = m })
+
+  // Busca observacoes dos agendamentos para detectar encaminhamentos agendados
+  const agendamentoIds = lista
+    .filter((a: any) => a.agendamento_id)
+    .map((a: any) => a.agendamento_id as string)
+  const { data: agendamentosData } = agendamentoIds.length > 0
+    ? await admin.from('agendamentos').select('id, observacoes').in('id', agendamentoIds)
+    : { data: [] }
+  const agendamentoObs: Record<string, string | null> = {}
+  ;(agendamentosData ?? []).forEach((ag: any) => { agendamentoObs[ag.id] = ag.observacoes ?? null })
 
   // ── Helpers ────────────────────────────────────────────────────────────────
   function formatarData(iso: string | null) {
@@ -68,9 +78,27 @@ export default async function PacienteAtendimentosPage() {
     return sexo === 'F' ? 'Dra.' : 'Dr.'
   }
 
-  const totalConcluidos = lista.filter((a: any) => a.status === 'concluido').length
-  const totalVirtuais   = lista.filter((a: any) => a.tipo === 'virtual').length
-  const totalAgendados  = lista.filter((a: any) => a.tipo === 'agendado' || !!a.agendamento_id).length
+  // Detecta o tipo real da consulta, incluindo encaminhamentos
+  function detectarTipo(a: any): {
+    tipo: 'virtual' | 'agendada' | 'encaminhamento_virtual' | 'encaminhamento_agendado'
+    encaminhadoPor: string | null
+  } {
+    const notas = a.notas_medico ?? ''
+    const matchNotas = notas.match(/\[Encaminhado por (.+?)\]/)
+    if (matchNotas) return { tipo: 'encaminhamento_virtual', encaminhadoPor: matchNotas[1] }
+
+    const obs = a.agendamento_id ? (agendamentoObs[a.agendamento_id] ?? '') : ''
+    const matchObs = obs.match(/\[Encaminhado por (.+?)\]/)
+    if (matchObs) return { tipo: 'encaminhamento_agendado', encaminhadoPor: matchObs[1] }
+
+    if (a.agendamento_id) return { tipo: 'agendada', encaminhadoPor: null }
+    return { tipo: 'virtual', encaminhadoPor: null }
+  }
+
+  const totalConcluidos      = lista.filter((a: any) => a.status === 'concluido').length
+  const totalVirtuais        = lista.filter((a: any) => !a.agendamento_id && !(a.notas_medico ?? '').includes('[Encaminhado por')).length
+  const totalAgendados       = lista.filter((a: any) => !!a.agendamento_id).length
+  const totalEncaminhamentos = lista.filter((a: any) => (a.notas_medico ?? '').includes('[Encaminhado por') || (a.agendamento_id && (agendamentoObs[a.agendamento_id] ?? '').includes('[Encaminhado por'))).length
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
@@ -105,19 +133,25 @@ export default async function PacienteAtendimentosPage() {
 
         {/* KPI strip */}
         {lista.length > 0 && (
-          <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className={`grid gap-3 mb-6 ${totalEncaminhamentos > 0 ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <div className="bg-white rounded-xl border border-gray-100 p-3 text-center shadow-sm">
               <p className="text-2xl font-bold text-[#1A3A2C]">{lista.length}</p>
               <p className="text-xs text-gray-400 mt-0.5">Total</p>
             </div>
             <div className="bg-white rounded-xl border border-gray-100 p-3 text-center shadow-sm">
-              <p className="text-2xl font-bold text-blue-600">{totalVirtuais}</p>
+              <p className="text-2xl font-bold text-[#5BBD9B]">{totalVirtuais}</p>
               <p className="text-xs text-gray-400 mt-0.5">Virtuais</p>
             </div>
             <div className="bg-white rounded-xl border border-gray-100 p-3 text-center shadow-sm">
               <p className="text-2xl font-bold text-purple-600">{totalAgendados}</p>
               <p className="text-xs text-gray-400 mt-0.5">Agendadas</p>
             </div>
+            {totalEncaminhamentos > 0 && (
+              <div className="bg-orange-50 rounded-xl border border-orange-100 p-3 text-center shadow-sm">
+                <p className="text-2xl font-bold text-orange-600">{totalEncaminhamentos}</p>
+                <p className="text-xs text-orange-500 mt-0.5">Encaminham.</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -136,33 +170,45 @@ export default async function PacienteAtendimentosPage() {
         ) : (
           <div className="space-y-3">
             {lista.map((a: any) => {
-              const medico   = medicoMap[a.medico_id]
+              const medico    = medicoMap[a.medico_id]
               const statusCfg = STATUS_CONFIG[a.status] ?? { label: a.status, cor: 'text-gray-600', bg: 'bg-gray-100' }
-              const isVirtual = a.tipo === 'virtual' && !a.agendamento_id
               const duracao   = duracaoMinutos(a.iniciado_em, a.finalizado_em)
+              const { tipo, encaminhadoPor } = detectarTipo(a)
 
-              // Strip referral markers from notes before showing to patient
+              // Strip referral marker from notes shown to patient
               const notas = a.notas_medico
                 ? a.notas_medico.replace(/\[Encaminhado por .+?\]\n?/g, '').trim()
                 : null
 
+              const TIPO_LABEL: Record<string, string> = {
+                virtual:                'Consulta Virtual',
+                agendada:               'Consulta Agendada',
+                encaminhamento_virtual: 'Encaminhamento Virtual',
+                encaminhamento_agendado:'Encaminhamento Agendado',
+              }
+              const isEncaminhamento = tipo.startsWith('encaminhamento')
+
               return (
                 <div
                   key={a.id}
-                  className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden"
+                  className={`bg-white rounded-2xl shadow-sm overflow-hidden ${isEncaminhamento ? 'border border-orange-100' : 'border border-gray-50'}`}
                 >
                   {/* Header row */}
-                  <div className="px-5 py-3 flex items-center justify-between border-b border-gray-50 bg-gray-50/60">
-                    <div className="flex items-center gap-2">
-                      {isVirtual
-                        ? <Video className="w-4 h-4 text-[#5BBD9B]" />
-                        : <Calendar className="w-4 h-4 text-purple-500" />
-                      }
-                      <span className="text-sm font-semibold text-[#1A3A2C]">
-                        {isVirtual ? 'Consulta Virtual' : 'Consulta Agendada'}
-                      </span>
+                  <div className={`px-5 py-3 flex items-center justify-between border-b ${isEncaminhamento ? 'bg-orange-50/60 border-orange-100' : 'bg-gray-50/60 border-gray-50'}`}>
+                    <div className="flex items-center gap-2 min-w-0">
+                      {tipo === 'virtual'   && <Video    className="w-4 h-4 text-[#5BBD9B] shrink-0" />}
+                      {tipo === 'agendada'  && <Calendar className="w-4 h-4 text-purple-500 shrink-0" />}
+                      {isEncaminhamento     && <UserPlus className="w-4 h-4 text-orange-500 shrink-0" />}
+                      <div className="min-w-0">
+                        <span className="text-sm font-semibold text-[#1A3A2C]">{TIPO_LABEL[tipo]}</span>
+                        {encaminhadoPor && (
+                          <p className="text-xs text-orange-600 font-medium truncate">
+                            Por {encaminhadoPor}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusCfg.bg} ${statusCfg.cor}`}>
+                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ml-2 ${statusCfg.bg} ${statusCfg.cor}`}>
                       {statusCfg.label}
                     </span>
                   </div>

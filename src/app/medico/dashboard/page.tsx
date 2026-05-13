@@ -51,7 +51,7 @@ export default async function MedicoDashboard() {
     // Atendidos hoje
     adminSupabase
       .from('atendimentos')
-      .select('id, finalizado_em, agendamento_id, pacientes(id, nome), triagens(classificacao_risco)')
+      .select('id, finalizado_em, agendamento_id, notas_medico, pacientes(id, nome), triagens(classificacao_risco)')
       .eq('medico_id', medico.id)
       .eq('status', 'concluido')
       .gte('finalizado_em', hojeInicio)
@@ -349,7 +349,14 @@ export default async function MedicoDashboard() {
                 <tbody className="divide-y divide-gray-50">
                   {atendidos.map((a: any) => {
                     const risco = a.triagens?.classificacao_risco
-                    const isAgendada = !!a.agendamento_id
+                    const enc = (a.notas_medico ?? '').match(/\[Encaminhado por (.+?)\]/)
+                    const isEncaminhamento = !!enc
+                    const isAgendada = !!a.agendamento_id && !isEncaminhamento
+                    const tipoBadge = isEncaminhamento
+                      ? { label: 'Encaminh.', cls: 'bg-orange-50 text-orange-700' }
+                      : isAgendada
+                        ? { label: 'Agendada',  cls: 'bg-purple-50 text-purple-700' }
+                        : { label: 'Virtual',   cls: 'bg-green-50 text-green-700' }
                     return (
                       <tr key={a.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-5 py-3 text-xs text-gray-500 whitespace-nowrap">{formatarHora(a.finalizado_em)}</td>
@@ -360,10 +367,13 @@ export default async function MedicoDashboard() {
                           >
                             {a.pacientes?.nome || '—'}
                           </Link>
+                          {isEncaminhamento && enc && (
+                            <p className="text-[10px] text-orange-500 mt-0.5">Enc. por {enc[1]}</p>
+                          )}
                         </td>
                         <td className="px-5 py-3 text-center">
-                          <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${isAgendada ? 'bg-blue-50 text-blue-700' : 'bg-green-50 text-green-700'}`}>
-                            {isAgendada ? 'Agendada' : 'Virtual'}
+                          <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${tipoBadge.cls}`}>
+                            {tipoBadge.label}
                           </span>
                         </td>
                         <td className="px-5 py-3 text-center">

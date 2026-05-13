@@ -313,7 +313,12 @@ export default async function PacienteDashboard() {
                   <div key={a.id} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
                     <div>
                       <p className="text-sm font-medium text-gray-700">
-                        {a.tipo === 'virtual' ? '📹 Consulta virtual' : '🏥 Presencial'}
+                        {(() => {
+                          const enc = (a.notas_medico ?? '').match(/\[Encaminhado por (.+?)\]/)
+                          if (enc) return `↗ Encaminhamento · Por ${enc[1]}`
+                          if (a.agendamento_id) return '📅 Consulta agendada'
+                          return '📹 Consulta virtual'
+                        })()}
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">{new Date(a.criado_em).toLocaleDateString('pt-BR')}</p>
                     </div>

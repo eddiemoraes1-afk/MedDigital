@@ -50,7 +50,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
   // ── Atendimentos concluídos ───────────────────────────────────────────────
   let atendimentosQuery = admin
     .from('atendimentos')
-    .select('id, criado_em, finalizado_em, medico_id, valor_cobrado, agendamento_id')
+    .select('id, criado_em, finalizado_em, medico_id, valor_cobrado, agendamento_id, notas_medico')
     .eq('paciente_id', id)
     .eq('status', 'concluido')
     .order('criado_em', { ascending: false })
@@ -127,7 +127,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
   // ── Agendamentos futuros (próxima consulta) ───────────────────────────────
   const { data: agendamentos } = await admin
     .from('agendamentos')
-    .select('id, data_hora, status, medico_id')
+    .select('id, data_hora, status, medico_id, observacoes')
     .eq('paciente_id', id)
     .order('data_hora', { ascending: false })
 
@@ -140,6 +140,21 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
   const consultasAgendadas = filtro === 'concluido'
     ? allAgendamentos.filter(a => a.status === 'concluido')
     : allAgendamentos
+
+  // ── Mapa de observações de agendamentos (para detectar encaminhamentos) ───
+  const agendamentoObs: Record<string, string | null> = {}
+  allAgendamentos.forEach((ag: any) => { agendamentoObs[ag.id] = ag.observacoes ?? null })
+
+  function detectarTipoAtendimento(a: any): string {
+    const notas = a.notas_medico ?? ''
+    const matchNotas = notas.match(/\[Encaminhado por (.+?)\]/)
+    if (matchNotas) return `Encaminhamento Virtual · Por ${matchNotas[1]}`
+    const obs = a.agendamento_id ? (agendamentoObs[a.agendamento_id] ?? '') : ''
+    const matchObs = obs.match(/\[Encaminhado por (.+?)\]/)
+    if (matchObs) return `Encaminhamento Agendado · Por ${matchObs[1]}`
+    if (a.agendamento_id) return 'Agendada'
+    return 'Virtual'
+  }
 
   // ── KPIs ──────────────────────────────────────────────────────────────────
   const totalAtendimentos = atendimentos.length
@@ -199,7 +214,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
       data,
       hora,
       medicoNome: a.medico_id ? (medicoMap[a.medico_id] ?? '—') : '—',
-      tipo: a.agendamento_id ? 'Agendada' : 'Virtual',
+      tipo: detectarTipoAtendimento(a),
       valor: resolveValorConsulta(a.valor_cobrado),
     }
   })
@@ -384,9 +399,23 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                               )}
                             </td>
                             <td className="px-5 py-3">
-                              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-                                {a.agendamento_id ? 'Agendada' : 'Virtual'}
-                              </span>
+                              {(() => {
+                                const tipoStr = detectarTipoAtendimento(a)
+                                const isEnc = tipoStr.startsWith('Encaminhamento')
+                                const [label, referrer] = tipoStr.includes(' · Por ')
+                                  ? tipoStr.split(' · Por ')
+                                  : [tipoStr, null]
+                                return (
+                                  <div>
+                                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${isEnc ? 'bg-orange-100 text-orange-700' : 'bg-blue-50 text-blue-700'}`}>
+                                      {label}
+                                    </span>
+                                    {referrer && (
+                                      <p className="text-[10px] text-orange-500 mt-0.5">Por {referrer}</p>
+                                    )}
+                                  </div>
+                                )
+                              })()}
                             </td>
                             <td className="px-5 py-3 text-right text-sm font-semibold text-[#1A3A2C]">
                               {resolveValorConsulta(a.valor_cobrado) > 0 ? formatBRL(resolveValorConsulta(a.valor_cobrado)) : '—'}
