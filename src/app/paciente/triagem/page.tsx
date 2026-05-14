@@ -164,8 +164,20 @@ function EtapaValidacao({
   const [telefone, setTelefone] = useState(telefoneInicial ? formatarTelefone(telefoneInicial) : '')
   const [recusou, setRecusou] = useState(false)
   const [aceito, setAceito] = useState(false)
+  const [aceitoTelemedicina, setAceitoTelemedicina] = useState(false)
+  const [aceitoGravacao, setAceitoGravacao] = useState(false)
+  const [tsLgpd, setTsLgpd] = useState('')
+  const [tsTelemedicina, setTsTelemedicina] = useState('')
+  const [tsGravacao, setTsGravacao] = useState('')
   const [confirmandoPular, setConfirmandoPular] = useState(false)
   const [erro, setErro] = useState('')
+
+  const todosAceitos = aceito && aceitoTelemedicina && aceitoGravacao
+
+  function agora() {
+    const d = new Date()
+    return `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+  }
 
   function dadosValidacao(): DadosValidacao {
     return { cpf: cpf.replace(/\D/g, ''), telefone: telefone.replace(/\D/g, ''), consentimentoEm: new Date().toISOString() }
@@ -175,7 +187,31 @@ function EtapaValidacao({
     if (!cpf.trim()) { setErro('Por favor, confirme seu CPF.'); return }
     if (!telefone.trim()) { setErro('Por favor, informe um telefone para contato.'); return }
     setErro('')
+    setTsLgpd(agora())
     setAceito(true)
+  }
+
+  function handleAceitarTelemedicina() {
+    setTsTelemedicina(agora())
+    setAceitoTelemedicina(true)
+  }
+
+  function handleAceitarGravacao() {
+    setTsGravacao(agora())
+    setAceitoGravacao(true)
+  }
+
+  // Link PDF helper
+  function PdfLink({ href, label }: { href: string; label: string }) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 text-xs text-[#5BBD9B] hover:text-[#1A3A2C] hover:underline mt-2 font-medium transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+        </svg>
+        {label}
+      </a>
+    )
   }
 
   if (recusou) {
@@ -255,7 +291,7 @@ function EtapaValidacao({
           <p className="text-xs text-gray-400 mt-1">Utilizado apenas se a conexão cair durante o atendimento.</p>
         </div>
 
-        {/* Consentimento LGPD */}
+        {/* ── ETAPA A: Consentimento LGPD ── */}
         {!aceito && (
           <>
             <div className="bg-[#F3FAF7] border border-green-100 rounded-2xl p-4 mb-5">
@@ -272,17 +308,7 @@ function EtapaValidacao({
                 necessárias à gestão do benefício e dados estatísticos agregados ou anonimizados,
                 conforme a <strong>Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018)</strong>.
               </p>
-              <a
-                href="/termo-lgpd.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-[#5BBD9B] hover:text-[#1A3A2C] hover:underline mt-2 font-medium transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                </svg>
-                Ler os Termos de Tratamento de Dados
-              </a>
+              <PdfLink href="/termo-lgpd.pdf" label="Ler os Termos de Tratamento de Dados" />
             </div>
 
             {erro && (
@@ -303,17 +329,125 @@ function EtapaValidacao({
             </div>
             <p className="text-xs text-gray-400 text-center mt-3">
               Ao clicar em "Sim, autorizo", você declara que leu e concorda com os termos acima.
-              Registro em: {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}.
+              Registro em: {agora()}.
             </p>
           </>
         )}
 
-        {/* Após consentimento: Fazer Triagem / Pular */}
-        {aceito && !confirmandoPular && (
-          <div className="space-y-3">
+        {/* ── ETAPA B: Consentimento Telemedicina ── */}
+        {aceito && !aceitoTelemedicina && (
+          <>
             <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 mb-4">
               <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
-              <p className="text-sm text-green-700 font-medium">Consentimento registrado com sucesso.</p>
+              <div>
+                <p className="text-sm text-green-700 font-medium">Consentimento LGPD registrado.</p>
+                <p className="text-xs text-green-600">{tsLgpd}</p>
+              </div>
+            </div>
+
+            <div className="bg-[#F3FAF7] border border-green-100 rounded-2xl p-4 mb-5">
+              <p className="text-sm font-semibold text-[#1A3A2C] mb-2 flex items-center gap-1.5">
+                <Video className="w-4 h-4 text-[#5BBD9B]" /> Termo de Consentimento para Atendimento por Telemedicina
+              </p>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Declaro que compreendo as <strong>características, benefícios e limitações</strong> do atendimento
+                por telemedicina. Estou ciente de que o médico pode não conseguir realizar exame físico completo
+                e que, em situações graves ou urgentes, serei orientado(a) a buscar atendimento presencial ou
+                emergência. Autorizo a realização da consulta médica online por meio da <strong>MedDigital</strong>,
+                nos termos da Resolução CFM nº 2.314/2022.
+              </p>
+              <PdfLink href="/termo-telemedicina.pdf" label="Ler o Termo de Consentimento para Telemedicina" />
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={handleAceitarTelemedicina}
+                className="flex-1 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-4 h-4" /> Sim, autorizo
+              </button>
+              <button onClick={() => setRecusou(true)}
+                className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-500 py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                <XCircle className="w-4 h-4" /> Não autorizo
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 text-center mt-3">
+              Ao clicar em "Sim, autorizo", você declara que leu e concorda com os termos acima.
+              Registro em: {agora()}.
+            </p>
+          </>
+        )}
+
+        {/* ── ETAPA C: Consentimento Gravação ── */}
+        {aceito && aceitoTelemedicina && !aceitoGravacao && (
+          <>
+            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 mb-2">
+              <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+              <div>
+                <p className="text-sm text-green-700 font-medium">Consentimento LGPD registrado.</p>
+                <p className="text-xs text-green-600">{tsLgpd}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 mb-4">
+              <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+              <div>
+                <p className="text-sm text-green-700 font-medium">Termo de Telemedicina registrado.</p>
+                <p className="text-xs text-green-600">{tsTelemedicina}</p>
+              </div>
+            </div>
+
+            <div className="bg-[#F3FAF7] border border-green-100 rounded-2xl p-4 mb-5">
+              <p className="text-sm font-semibold text-[#1A3A2C] mb-2 flex items-center gap-1.5">
+                <Video className="w-4 h-4 text-[#5BBD9B]" /> Termo de Consentimento para Gravação de Áudio e Vídeo
+              </p>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Durante o atendimento online, poderão ser registrados sua <strong>imagem, voz, áudio e vídeo</strong>,
+                bem como dados relacionados à consulta. Essas gravações são utilizadas exclusivamente para fins de
+                <strong> segurança, auditoria médica e qualidade assistencial</strong>, com acesso restrito a
+                pessoas autorizadas. As gravações <strong>não serão usadas para publicidade</strong> e a empresa
+                contratante não terá acesso ao conteúdo clínico detalhado.
+              </p>
+              <PdfLink href="/termo-gravacao.pdf" label="Ler o Termo de Consentimento para Gravação" />
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={handleAceitarGravacao}
+                className="flex-1 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                <CheckCircle2 className="w-4 h-4" /> Sim, autorizo
+              </button>
+              <button onClick={() => setRecusou(true)}
+                className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-500 py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                <XCircle className="w-4 h-4" /> Não autorizo
+              </button>
+            </div>
+            <p className="text-xs text-gray-400 text-center mt-3">
+              Ao clicar em "Sim, autorizo", você declara que leu e concorda com os termos acima.
+              Registro em: {agora()}.
+            </p>
+          </>
+        )}
+
+        {/* ── ETAPA D: Todos aceitos → Fazer Triagem / Pular ── */}
+        {todosAceitos && !confirmandoPular && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 mb-1">
+              <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+              <div>
+                <p className="text-sm text-green-700 font-medium">Consentimento LGPD registrado.</p>
+                <p className="text-xs text-green-600">{tsLgpd}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 mb-1">
+              <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+              <div>
+                <p className="text-sm text-green-700 font-medium">Termo de Telemedicina registrado.</p>
+                <p className="text-xs text-green-600">{tsTelemedicina}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 mb-4">
+              <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+              <div>
+                <p className="text-sm text-green-700 font-medium">Termo de Gravação registrado.</p>
+                <p className="text-xs text-green-600">{tsGravacao}</p>
+              </div>
             </div>
             <button onClick={() => onFazerTriagem(dadosValidacao())}
               className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
@@ -327,7 +461,7 @@ function EtapaValidacao({
         )}
 
         {/* Confirmação de pular */}
-        {aceito && confirmandoPular && (
+        {todosAceitos && confirmandoPular && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
             <p className="text-sm font-semibold text-amber-800 mb-1">Confirma que vai pular a triagem?</p>
             <p className="text-xs text-amber-600 mb-4">
