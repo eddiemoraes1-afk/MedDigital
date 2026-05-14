@@ -47,7 +47,7 @@ export default async function MedicoDashboard() {
   const hojeInicio = new Date(hojeStr + 'T00:00:00-03:00').toISOString()
 
   // ── Dados em paralelo ─────────────────────────────────────────────────────
-  const [atendidosRes, atestadosRes, receitasRes, renovacoesRes, examesRes] = await Promise.all([
+  const [atendidosRes, atestadosRes, receitasRes, renovacoesRes, examesRes, agendamentosFuturosRes] = await Promise.all([
     // Atendidos hoje
     adminSupabase
       .from('atendimentos')
@@ -87,13 +87,22 @@ export default async function MedicoDashboard() {
       .eq('medico_id', medico.id)
       .gte('criado_em', hojeInicio)
       .order('criado_em', { ascending: false }),
+
+    // Consultas agendadas futuras (não canceladas/reagendadas)
+    adminSupabase
+      .from('agendamentos')
+      .select('id', { count: 'exact', head: true })
+      .eq('medico_id', medico.id)
+      .gte('data_hora', new Date().toISOString())
+      .not('status', 'in', '(cancelado,reagendado)'),
   ])
 
-  const atendidos   = atendidosRes.data   ?? []
-  const atestados   = atestadosRes.data   ?? []
-  const receitas    = receitasRes.data    ?? []
-  const renovacoes  = renovacoesRes.data  ?? []
-  const exames      = examesRes.data      ?? []
+  const atendidos          = atendidosRes.data   ?? []
+  const atestados          = atestadosRes.data   ?? []
+  const receitas           = receitasRes.data    ?? []
+  const renovacoes         = renovacoesRes.data  ?? []
+  const exames             = examesRes.data      ?? []
+  const totalAgendamentos  = agendamentosFuturosRes.count ?? 0
 
   // ── Cálculos do resumo do dia ─────────────────────────────────────────────
   const custoConsulta     = Number(medico.custo_consulta ?? 0)
@@ -247,13 +256,24 @@ export default async function MedicoDashboard() {
             </div>
           </Link>
           <Link href="/medico/agendamentos"
-            className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow">
+            className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow group">
             <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
               <Calendar className="w-5 h-5 text-green-600" />
             </div>
-            <div>
-              <p className="font-semibold text-[#1A3A2C] text-sm">Agenda</p>
-              <p className="text-xs text-gray-400">Ver consultas agendadas</p>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="font-semibold text-[#1A3A2C] text-sm">Agenda</p>
+                {totalAgendamentos > 0 && (
+                  <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full shrink-0">
+                    {totalAgendamentos}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-gray-400">
+                {totalAgendamentos === 0
+                  ? 'Nenhuma consulta agendada'
+                  : `${totalAgendamentos} consulta${totalAgendamentos !== 1 ? 's' : ''} futura${totalAgendamentos !== 1 ? 's' : ''}`}
+              </p>
             </div>
           </Link>
         </div>
