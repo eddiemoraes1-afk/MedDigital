@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { ArrowLeft, FileText } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import PacienteHeader from '../PacienteHeader'
 import AtestadosListaClient from './AtestadosListaClient'
 
@@ -30,24 +30,17 @@ export default async function PacienteAtestadosPage() {
 
   const atestadosComStatus = (atestados ?? []).map((a: any) => ({
     ...a,
-    valido: a.data_inicio <= hoje && hoje <= a.data_fim,
-  }))
+    valido: a.data_inicio <= hoje && hoje <= a.data_fim }))
 
   const totalValidos = atestadosComStatus.filter((a: any) => a.valido).length
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <PacienteHeader />
+      <PacienteHeader titulo="Meus Atestados" backHref="/paciente/dashboard" />
 
       <main className="max-w-3xl mx-auto px-6 py-8">
         {/* Cabeçalho */}
         <div className="flex items-center gap-3 mb-6">
-          <Link
-            href="/paciente/dashboard"
-            className="p-2 rounded-xl hover:bg-white transition-colors text-gray-400 hover:text-[#1A3A2C]"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-[#1A3A2C] rounded-xl">
               <FileText className="w-5 h-5 text-[#5BBD9B]" />
@@ -78,8 +71,7 @@ export default async function PacienteAtestadosPage() {
             nome: paciente.nome,
             cpf: paciente.cpf,
             data_nascimento: paciente.data_nascimento,
-            sexo: paciente.sexo,
-          }}
+            sexo: paciente.sexo }}
         />
       </main>
     </div>

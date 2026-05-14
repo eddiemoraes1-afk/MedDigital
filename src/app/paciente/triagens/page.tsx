@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { ArrowLeft, Clock, AlertTriangle, CheckCircle2, AlertCircle, Zap } from 'lucide-react'
+import { Clock, AlertTriangle, CheckCircle2, AlertCircle, Zap } from 'lucide-react'
 import PacienteHeader from '../PacienteHeader'
 
 export default async function PacienteTriagensPage() {
@@ -32,19 +32,16 @@ export default async function PacienteTriagensPage() {
     verde:    { label: 'Risco Baixo',     cor: 'text-green-700',  bg: 'bg-green-50 border-green-100',   Icon: CheckCircle2 },
     amarelo:  { label: 'Risco Moderado',  cor: 'text-yellow-700', bg: 'bg-yellow-50 border-yellow-100', Icon: AlertCircle },
     laranja:  { label: 'Risco Alto',      cor: 'text-orange-700', bg: 'bg-orange-50 border-orange-100', Icon: AlertTriangle },
-    vermelho: { label: 'Urgência',        cor: 'text-red-700',    bg: 'bg-red-50 border-red-100',       Icon: Zap },
-  }
+    vermelho: { label: 'Urgência',        cor: 'text-red-700',    bg: 'bg-red-50 border-red-100',       Icon: Zap } }
 
   function formatarData(iso: string) {
     const d = new Date(iso)
     const data = d.toLocaleDateString('pt-BR', {
       day: '2-digit', month: 'long', year: 'numeric',
-      timeZone: 'America/Sao_Paulo',
-    })
+      timeZone: 'America/Sao_Paulo' })
     const hora = d.toLocaleTimeString('pt-BR', {
       hour: '2-digit', minute: '2-digit',
-      timeZone: 'America/Sao_Paulo',
-    })
+      timeZone: 'America/Sao_Paulo' })
     return `${data} às ${hora}`
   }
 
@@ -52,22 +49,15 @@ export default async function PacienteTriagensPage() {
     verde:    lista.filter(t => t.classificacao_risco === 'verde').length,
     amarelo:  lista.filter(t => t.classificacao_risco === 'amarelo').length,
     laranja:  lista.filter(t => t.classificacao_risco === 'laranja').length,
-    vermelho: lista.filter(t => t.classificacao_risco === 'vermelho').length,
-  }
+    vermelho: lista.filter(t => t.classificacao_risco === 'vermelho').length }
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <PacienteHeader />
+      <PacienteHeader titulo="Histórico de Triagens" backHref="/paciente/dashboard" />
 
       <main className="max-w-3xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <Link
-            href="/paciente/dashboard"
-            className="p-2 rounded-xl hover:bg-white transition-colors text-gray-400 hover:text-[#1A3A2C]"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-[#1A3A2C] rounded-xl">
               <Clock className="w-5 h-5 text-[#5BBD9B]" />
@@ -114,8 +104,7 @@ export default async function PacienteTriagensPage() {
             {lista.map((t: any) => {
               const cfg = RISCO_CONFIG[t.classificacao_risco] ?? {
                 label: t.classificacao_risco, cor: 'text-gray-600',
-                bg: 'bg-gray-50 border-gray-100', Icon: AlertCircle,
-              }
+                bg: 'bg-gray-50 border-gray-100', Icon: AlertCircle }
               const { Icon } = cfg
               return (
                 <div

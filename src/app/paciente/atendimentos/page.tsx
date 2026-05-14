@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { ArrowLeft, Video, Calendar, Clock, Stethoscope, FileText, UserPlus } from 'lucide-react'
+import { Video, Calendar, Clock, Stethoscope, FileText, UserPlus } from 'lucide-react'
 import PacienteHeader from '../PacienteHeader'
 
 export default async function PacienteAtendimentosPage() {
@@ -50,16 +50,14 @@ export default async function PacienteAtendimentosPage() {
     if (!iso) return '—'
     return new Date(iso).toLocaleDateString('pt-BR', {
       day: '2-digit', month: 'long', year: 'numeric',
-      timeZone: 'America/Sao_Paulo',
-    })
+      timeZone: 'America/Sao_Paulo' })
   }
 
   function formatarHora(iso: string | null) {
     if (!iso) return null
     return new Date(iso).toLocaleTimeString('pt-BR', {
       hour: '2-digit', minute: '2-digit',
-      timeZone: 'America/Sao_Paulo',
-    })
+      timeZone: 'America/Sao_Paulo' })
   }
 
   function duracaoMinutos(inicio: string | null, fim: string | null): number | null {
@@ -71,8 +69,7 @@ export default async function PacienteAtendimentosPage() {
     concluido:    { label: 'Concluído',    cor: 'text-green-700',  bg: 'bg-green-100' },
     em_andamento: { label: 'Em andamento', cor: 'text-blue-700',   bg: 'bg-blue-100' },
     aguardando:   { label: 'Aguardando',   cor: 'text-yellow-700', bg: 'bg-yellow-100' },
-    cancelado:    { label: 'Cancelado',    cor: 'text-gray-500',   bg: 'bg-gray-100' },
-  }
+    cancelado:    { label: 'Cancelado',    cor: 'text-gray-500',   bg: 'bg-gray-100' } }
 
   function drTitle(sexo: string | undefined) {
     return sexo === 'F' ? 'Dra.' : 'Dr.'
@@ -102,17 +99,11 @@ export default async function PacienteAtendimentosPage() {
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <PacienteHeader />
+      <PacienteHeader titulo="Histórico de Consultas" backHref="/paciente/dashboard" />
 
       <main className="max-w-3xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <Link
-            href="/paciente/dashboard"
-            className="p-2 rounded-xl hover:bg-white transition-colors text-gray-400 hover:text-[#1A3A2C]"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </Link>
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-[#1A3A2C] rounded-xl">
               <Stethoscope className="w-5 h-5 text-[#5BBD9B]" />
@@ -184,8 +175,7 @@ export default async function PacienteAtendimentosPage() {
                 virtual:                'Consulta Virtual',
                 agendada:               'Consulta Agendada',
                 encaminhamento_virtual: 'Encaminhamento Virtual',
-                encaminhamento_agendado:'Encaminhamento Agendado',
-              }
+                encaminhamento_agendado:'Encaminhamento Agendado' }
               const isEncaminhamento = tipo.startsWith('encaminhamento')
 
               return (

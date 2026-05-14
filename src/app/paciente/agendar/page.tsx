@@ -175,6 +175,13 @@ function AgendarConteudo() {
 
   const diasParaExibir = medicoSelecionado ? gerarDias(diasDisponiveis) : []
 
+  function handleBack() {
+    if (passo === 1) router.back()
+    else if (passo === 2) { setPasso(1); setDataSelecionada(null); setSlotSelecionado(null) }
+    else if (passo === 3) { setPasso(2); setSlotSelecionado(null) }
+    else if (passo === 4) setPasso(3)
+  }
+
   if (confirmado) {
     return (
       <div className="min-h-screen bg-[#F3FAF7] flex items-center justify-center px-4">
@@ -203,16 +210,11 @@ function AgendarConteudo() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--cor-empresa-bg)' }}>
-      <PacienteHeader titulo="Agendar Consulta" />
+      <PacienteHeader titulo="Agendar Consulta" onBack={handleBack} />
 
       <main className="max-w-3xl mx-auto px-6 py-8">
 
-        {/* Voltar + título */}
         <div className="mb-8">
-          <button onClick={() => router.back()}
-            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#1A3A2C] mb-4 transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Voltar
-          </button>
           <h1 className="text-2xl font-bold text-[#1A3A2C]">
             {reagendarId ? 'Reagendar consulta' : 'Agendar consulta'}
           </h1>
@@ -343,17 +345,9 @@ function AgendarConteudo() {
         {/* Passo 2: Escolher data */}
         {passo >= 2 && (
           <div className={`bg-white rounded-2xl p-6 shadow-sm mb-4 ${passo !== 2 && 'opacity-60'}`}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
-                <Calendar className="w-4 h-4" /> Escolha a data
-              </h2>
-              {passo === 2 && (
-                <button onClick={() => setPasso(1)}
-                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#1A3A2C] transition-colors">
-                  <ArrowLeft className="w-3.5 h-3.5" /> Voltar
-                </button>
-              )}
-            </div>
+            <h2 className="font-bold text-[#1A3A2C] mb-4 flex items-center gap-2">
+              <Calendar className="w-4 h-4" /> Escolha a data
+            </h2>
             {passo === 2 ? (
               diasParaExibir.length === 0 ? (
                 <p className="text-gray-400 text-sm">Este médico ainda não configurou a disponibilidade.</p>
@@ -387,17 +381,9 @@ function AgendarConteudo() {
         {/* Passo 3: Escolher horário */}
         {passo >= 3 && (
           <div className={`bg-white rounded-2xl p-6 shadow-sm mb-4 ${passo !== 3 && 'opacity-60'}`}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
-                <Clock className="w-4 h-4" /> Escolha o horário
-              </h2>
-              {passo === 3 && (
-                <button onClick={() => setPasso(2)}
-                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#1A3A2C] transition-colors">
-                  <ArrowLeft className="w-3.5 h-3.5" /> Voltar
-                </button>
-              )}
-            </div>
+            <h2 className="font-bold text-[#1A3A2C] mb-4 flex items-center gap-2">
+              <Clock className="w-4 h-4" /> Escolha o horário
+            </h2>
             {passo === 3 ? (
               carregandoSlots ? (
                 <div className="flex justify-center py-6">
@@ -431,13 +417,7 @@ function AgendarConteudo() {
         {/* Passo 4: Confirmar */}
         {passo >= 4 && (
           <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-[#1A3A2C]">Confirmar agendamento</h2>
-              <button onClick={() => setPasso(3)}
-                className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#1A3A2C] transition-colors">
-                <ArrowLeft className="w-3.5 h-3.5" /> Voltar
-              </button>
-            </div>
+            <h2 className="font-bold text-[#1A3A2C] mb-4">Confirmar agendamento</h2>
             <div className="bg-green-50 border border-green-100 rounded-xl p-4 mb-4">
               <p className="text-sm text-gray-600"><span className="font-medium">Médico:</span> {drTitle(medicoSelecionado?.sexo)} {medicoSelecionado?.nome}</p>
               <p className="text-sm text-gray-600 mt-1"><span className="font-medium">Data:</span> {dataSelecionada?.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</p>

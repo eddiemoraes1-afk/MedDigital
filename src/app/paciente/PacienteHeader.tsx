@@ -7,15 +7,17 @@ import { useTema } from './TemaProvider'
 interface Props {
   /** Título exibido no header ao lado da logo (ex: "Agendamentos") */
   titulo?: string
-  /** Href do botão de voltar (ex: "/paciente/dashboard") */
+  /** Href estático do botão voltar — use para páginas simples */
   backHref?: string
+  /** Callback dinâmico do botão voltar — use para fluxos multi-step */
+  onBack?: () => void
 }
 
 /**
  * Header compartilhado para todas as páginas do paciente.
  * Lê logo, cor e nome da empresa via TemaContext (fornecido pelo layout).
  */
-export default function PacienteHeader({ titulo, backHref }: Props) {
+export default function PacienteHeader({ titulo, backHref, onBack }: Props) {
   const { tema, logoUrl, empresaNome, pacienteNome } = useTema()
   const primeiroNome = pacienteNome?.split(' ')[0] ?? ''
 
@@ -28,7 +30,16 @@ export default function PacienteHeader({ titulo, backHref }: Props) {
 
         {/* Esquerda: voltar + logo + separador + badge título */}
         <div className="flex items-center gap-3 min-w-0">
-          {backHref && (
+          {onBack ? (
+            <button
+              onClick={onBack}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-opacity hover:opacity-80 shrink-0"
+              style={{ backgroundColor: bgPill, color: tema.corTexto }}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Voltar</span>
+            </button>
+          ) : backHref ? (
             <Link
               href={backHref}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-opacity hover:opacity-80 shrink-0"
@@ -37,7 +48,7 @@ export default function PacienteHeader({ titulo, backHref }: Props) {
               <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Voltar</span>
             </Link>
-          )}
+          ) : null}
 
           {/* Logo da empresa em container branco */}
           {logoUrl ? (

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  Loader2, ArrowLeft, CheckCircle2, AlertCircle, XCircle,
+  Loader2, CheckCircle2, AlertCircle, XCircle,
   Shield, Phone, FileText, ChevronRight, ScrollText,
   Video, Clock, ClipboardList,
 } from 'lucide-react'
@@ -79,13 +79,12 @@ function Progresso({ atual }: { atual: 1 | 2 | 3 | 4 }) {
 // ── Etapa 1: Identificação / Consentimento ────────────────────────────────────
 
 function EtapaValidacao({
-  nomeInicial, cpfInicial, telefoneInicial, onAvancar, onVoltar,
+  nomeInicial, cpfInicial, telefoneInicial, onAvancar,
 }: {
   nomeInicial: string
   cpfInicial: string
   telefoneInicial: string
   onAvancar: (dados: DadosValidacao) => void
-  onVoltar: () => void
 }) {
   const [cpf, setCpf]           = useState(cpfInicial ? formatarCPF(cpfInicial) : '')
   const [telefone, setTelefone] = useState(telefoneInicial ? formatarTelefone(telefoneInicial) : '')
@@ -121,11 +120,6 @@ function EtapaValidacao({
   return (
     <div className="flex-1 flex items-center justify-center px-4 py-8">
       <div className="bg-white rounded-2xl shadow-sm p-8 max-w-md w-full">
-        <button onClick={onVoltar}
-          className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#1A3A2C] mb-4 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Voltar ao painel
-        </button>
-
         <Progresso atual={1} />
 
         <div className="flex items-center gap-3 mb-5">
@@ -248,10 +242,9 @@ const TIPOS_RECEITA: { value: TipoReceita; label: string; desc: string; cor: str
 ]
 
 function EtapaTipo({
-  onAvancar, onVoltar,
+  onAvancar,
 }: {
   onAvancar: (tipo: TipoReceita) => void
-  onVoltar: () => void
 }) {
   const [selecionado, setSelecionado] = useState<TipoReceita | null>(null)
   const [erro, setErro] = useState('')
@@ -264,11 +257,6 @@ function EtapaTipo({
   return (
     <div className="flex-1 flex items-center justify-center px-4 py-8">
       <div className="bg-white rounded-2xl shadow-sm p-8 max-w-md w-full">
-        <button onClick={onVoltar}
-          className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#1A3A2C] mb-4 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Voltar
-        </button>
-
         <Progresso atual={2} />
 
         <div className="flex items-center gap-3 mb-5">
@@ -343,12 +331,11 @@ function EtapaVerificando() {
 // ── Etapa Bloqueado ───────────────────────────────────────────────────────────
 
 function EtapaBloqueado({
-  motivo, tipoLabel, onIrParaTriagem, onVoltar,
+  motivo, tipoLabel, onIrParaTriagem,
 }: {
   motivo: 'sem_historico' | 'sem_receita_tipo'
   tipoLabel: string
   onIrParaTriagem: () => void
-  onVoltar: () => void
 }) {
   return (
     <div className="flex-1 flex items-center justify-center px-4 py-8">
@@ -380,20 +367,12 @@ function EtapaBloqueado({
           </p>
         </div>
 
-        <div className="space-y-3">
-          <button
-            onClick={onIrParaTriagem}
-            className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
-          >
-            <Video className="w-4 h-4" /> Fazer consulta online agora
-          </button>
-          <button
-            onClick={onVoltar}
-            className="w-full border border-gray-200 hover:bg-gray-50 text-gray-500 py-3 rounded-xl text-sm font-semibold transition-colors"
-          >
-            Voltar
-          </button>
-        </div>
+        <button
+          onClick={onIrParaTriagem}
+          className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+        >
+          <Video className="w-4 h-4" /> Fazer consulta online agora
+        </button>
       </div>
     </div>
   )
@@ -402,12 +381,11 @@ function EtapaBloqueado({
 // ── Etapa 4: Confirmação da receita ───────────────────────────────────────────
 
 function EtapaConfirmacao({
-  ultimaReceita, tipoLabel, onConfirmar, onVoltar,
+  ultimaReceita, tipoLabel, onConfirmar,
 }: {
   ultimaReceita: UltimaReceita
   tipoLabel: string
   onConfirmar: (medicamentos: string, instrucoes: string) => void
-  onVoltar: () => void
 }) {
   const [medicamentos, setMedicamentos] = useState(ultimaReceita.medicamentos)
   const [instrucoes,   setInstrucoes]   = useState(ultimaReceita.instrucoes)
@@ -422,11 +400,6 @@ function EtapaConfirmacao({
   return (
     <div className="flex-1 overflow-y-auto px-4 py-8">
       <div className="max-w-lg mx-auto">
-        <button onClick={onVoltar}
-          className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#1A3A2C] mb-4 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Voltar
-        </button>
-
         <Progresso atual={4} />
 
         <div className="flex items-center gap-3 mb-5">
@@ -504,16 +477,10 @@ function EtapaConfirmacao({
           </div>
         )}
 
-        <div className="flex gap-3">
-          <button onClick={onVoltar}
-            className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-500 py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-            <ArrowLeft className="w-4 h-4" /> Voltar
-          </button>
-          <button onClick={handleEnviar}
-            className="flex-[2] bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-            Enviar pedido <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
+        <button onClick={handleEnviar}
+          className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+          Enviar pedido <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
   )
@@ -672,11 +639,25 @@ export default function RenovacaoReceitaPage() {
     router.push('/paciente/triagem')
   }
 
+  function handleBack() {
+    if (etapa === 'validacao') router.push('/paciente/dashboard')
+    else if (etapa === 'tipo') setEtapa('validacao')
+    else if (etapa === 'verificando') setEtapa('tipo')
+    else if (etapa === 'bloqueado') setEtapa('tipo')
+    else if (etapa === 'confirmacao') setEtapa('tipo')
+    // sucesso e carregando: sem voltar
+  }
+
   const tipoLabel = TIPOS_RECEITA.find(t => t.value === tipo)?.label ?? 'Receita'
+
+  const showBack = !['carregando', 'sucesso'].includes(etapa)
 
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--cor-empresa-bg)' }}>
-      <PacienteHeader titulo="Renovação de Receita" />
+      <PacienteHeader
+        titulo="Renovação de Receita"
+        onBack={showBack ? handleBack : undefined}
+      />
 
       {etapa === 'carregando' && (
         <EtapaEnviando />
@@ -688,14 +669,12 @@ export default function RenovacaoReceitaPage() {
           cpfInicial={cpfInicial}
           telefoneInicial={telefoneInicial}
           onAvancar={handleValidacao}
-          onVoltar={() => router.push('/paciente/dashboard')}
         />
       )}
 
       {etapa === 'tipo' && (
         <EtapaTipo
           onAvancar={handleTipo}
-          onVoltar={() => setEtapa('validacao')}
         />
       )}
 
@@ -706,7 +685,6 @@ export default function RenovacaoReceitaPage() {
           motivo={motivoBloqueio}
           tipoLabel={tipoLabel}
           onIrParaTriagem={handleIrParaTriagem}
-          onVoltar={() => setEtapa('tipo')}
         />
       )}
 
@@ -723,7 +701,6 @@ export default function RenovacaoReceitaPage() {
             ultimaReceita={ultimaReceita}
             tipoLabel={tipoLabel}
             onConfirmar={handleConfirmacao}
-            onVoltar={() => setEtapa('tipo')}
           />
         </>
       )}

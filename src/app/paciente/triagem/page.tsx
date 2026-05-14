@@ -151,14 +151,13 @@ function SimNao({ valor, onChange }: { valor: boolean | null; onChange: (v: bool
 
 function EtapaValidacao({
   nomeInicial, cpfInicial, telefoneInicial,
-  onFazerTriagem, onPularTriagem, onVoltar,
+  onFazerTriagem, onPularTriagem,
 }: {
   nomeInicial: string
   cpfInicial: string
   telefoneInicial: string
   onFazerTriagem: (dados: DadosValidacao) => void
   onPularTriagem: (dados: DadosValidacao) => void
-  onVoltar: () => void
 }) {
   const [cpf, setCpf] = useState(cpfInicial ? formatarCPF(cpfInicial) : '')
   const [telefone, setTelefone] = useState(telefoneInicial ? formatarTelefone(telefoneInicial) : '')
@@ -236,11 +235,6 @@ function EtapaValidacao({
   return (
     <div className="flex-1 flex items-center justify-center px-4 py-8">
       <div className="bg-white rounded-2xl shadow-sm p-8 max-w-md w-full">
-        <button onClick={onVoltar}
-          className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#1A3A2C] mb-4 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Voltar ao painel
-        </button>
-
         <ProgressoTriagem atual={1} />
 
         <div className="flex items-center gap-3 mb-5">
@@ -512,10 +506,9 @@ const LOCAIS_DOR = [
 // ─── Etapa 2: Sintomas ────────────────────────────────────────────────────────
 
 function EtapaSintomas({
-  onEnviar, onVoltar, initialData,
+  onEnviar, initialData,
 }: {
   onEnviar: (dados: DadosSintomas) => void
-  onVoltar: () => void
   initialData?: DadosSintomas | null
 }) {
   const [motivosPrincipais, setMotivosPrincipais] = useState<string[]>(initialData?.motivosPrincipais ?? [])
@@ -566,11 +559,6 @@ function EtapaSintomas({
   return (
     <div className="flex-1 overflow-y-auto px-4 py-8">
       <div className="max-w-lg mx-auto">
-        <button onClick={onVoltar}
-          className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#1A3A2C] mb-4 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Voltar
-        </button>
-
         <ProgressoTriagem atual={2} />
 
         {/* Banner destacado */}
@@ -717,16 +705,10 @@ function EtapaSintomas({
           </div>
         )}
 
-        <div className="flex gap-3">
-          <button onClick={onVoltar}
-            className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-500 py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-            <ArrowLeft className="w-4 h-4" /> Voltar
-          </button>
-          <button onClick={handleEnviar}
-            className="flex-[2] bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-            Continuar <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
+        <button onClick={handleEnviar}
+          className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+          Continuar <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
   )
@@ -737,12 +719,10 @@ function EtapaSintomas({
 function EtapaUrgencia({
   sintomas,
   onEnviar,
-  onVoltar,
   initialData,
 }: {
   sintomas: DadosSintomas | null
   onEnviar: (dados: DadosUrgencia) => void
-  onVoltar: () => void
   initialData?: DadosUrgencia | null
 }) {
   const [dorNoPeito, setDorNoPeito] = useState<boolean | null>(initialData?.dorNoPeito ?? null)
@@ -786,11 +766,6 @@ function EtapaUrgencia({
   return (
     <div className="flex-1 overflow-y-auto px-4 py-8">
       <div className="max-w-lg mx-auto">
-        <button onClick={onVoltar}
-          className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#1A3A2C] mb-4 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Voltar
-        </button>
-
         <ProgressoTriagem atual={3} />
 
         {/* Banner destacado */}
@@ -818,16 +793,10 @@ function EtapaUrgencia({
           </div>
         )}
 
-        <div className="flex gap-3">
-          <button onClick={onVoltar}
-            className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-500 py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-            <ArrowLeft className="w-4 h-4" /> Voltar
-          </button>
-          <button onClick={handleEnviar}
-            className="flex-[2] bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-            Enviar <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
+        <button onClick={handleEnviar}
+          className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+          Enviar <ChevronRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
   )
@@ -845,7 +814,6 @@ function EtapaResultado({
   onSolicitarImediato,
   onConsultarAgora,
   onAgendar,
-  onVoltar,
 }: {
   resultado: ResultadoTriagem | null
   analisando: boolean
@@ -856,7 +824,6 @@ function EtapaResultado({
   onSolicitarImediato: () => void
   onConsultarAgora: () => void
   onAgendar: () => void
-  onVoltar: () => void
 }) {
   if (analisando) {
     return (
@@ -990,16 +957,10 @@ function EtapaResultado({
           )}
         </div>
 
-        <div className="flex gap-3 mt-2">
-          <button onClick={onVoltar}
-            className="flex-1 border border-gray-200 hover:bg-gray-50 text-gray-500 py-2.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-1.5">
-            <ArrowLeft className="w-4 h-4" /> Refazer triagem
-          </button>
-          <Link href="/paciente/dashboard"
-            className="flex-1 text-center text-sm text-gray-400 hover:text-gray-600 py-2.5 border border-gray-100 rounded-xl">
-            Ir ao painel
-          </Link>
-        </div>
+        <Link href="/paciente/dashboard"
+          className="block w-full text-center text-sm text-gray-400 hover:text-gray-600 py-2.5 border border-gray-100 rounded-xl mt-2">
+          Ir ao painel
+        </Link>
       </div>
     </div>
   )
@@ -1216,7 +1177,7 @@ function TriagemConteudo() {
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--cor-empresa-bg)' }}>
 
-      <PacienteHeader titulo="Triagem" />
+      <PacienteHeader titulo="Triagem" onBack={voltar} />
 
       {etapa === 'carregando' && (
         <div className="flex-1 flex items-center justify-center">
@@ -1231,14 +1192,12 @@ function TriagemConteudo() {
         <EtapaValidacao
           nomeInicial={nomeInicial} cpfInicial={cpfInicial} telefoneInicial={telefoneInicial}
           onFazerTriagem={handleFazerTriagem} onPularTriagem={handlePularTriagem}
-          onVoltar={voltar}
         />
       )}
 
       {etapa === 'sintomas' && (
         <EtapaSintomas
           onEnviar={handleSintomas}
-          onVoltar={voltar}
           initialData={sintomas}
         />
       )}
@@ -1247,7 +1206,6 @@ function TriagemConteudo() {
         <EtapaUrgencia
           sintomas={sintomas}
           onEnviar={handleUrgencia}
-          onVoltar={voltar}
           initialData={urgencia}
         />
       )}
@@ -1263,7 +1221,6 @@ function TriagemConteudo() {
           onSolicitarImediato={solicitarConsulta}
           onConsultarAgora={solicitarConsulta}
           onAgendar={handleAgendar}
-          onVoltar={voltar}
         />
       )}
     </div>
