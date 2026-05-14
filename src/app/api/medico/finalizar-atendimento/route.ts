@@ -11,7 +11,18 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Não autenticado' }, { status: 401 })
 
   const body = await req.json()
-  const { atendimento_id, notas_medico } = body
+  const {
+    atendimento_id,
+    notas_medico,
+    queixa_principal,
+    hda,
+    exame_fisico,
+    sinais_vitais,
+    hipotese_diag,
+    cid,
+    plano_terapeutico,
+    evolucao,
+  } = body
 
   if (!atendimento_id) return NextResponse.json({ error: 'atendimento_id obrigatório' }, { status: 400 })
 
@@ -59,7 +70,15 @@ export async function POST(req: NextRequest) {
   const updateData: any = {
     status: 'concluido',
     finalizado_em: new Date().toISOString(),
-    ...(notas_medico !== undefined && { notas_medico }),
+    ...(notas_medico         !== undefined && { notas_medico }),
+    ...(queixa_principal     !== undefined && { queixa_principal }),
+    ...(hda                  !== undefined && { hda }),
+    ...(exame_fisico         !== undefined && { exame_fisico }),
+    ...(sinais_vitais        !== undefined && { sinais_vitais }),
+    ...(hipotese_diag        !== undefined && { hipotese_diag }),
+    ...(cid                  !== undefined && { cid }),
+    ...(plano_terapeutico    !== undefined && { plano_terapeutico }),
+    ...(evolucao             !== undefined && { evolucao }),
     ...(valorCobrado !== null && { valor_cobrado: valorCobrado }),
   }
 

@@ -2,28 +2,114 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Loader2, Phone, FileText, CheckCircle2, ClipboardList, ChevronDown, ChevronUp, Video, Pill, FlaskConical, UserPlus } from 'lucide-react'
+import {
+  Loader2, Phone, FileText, CheckCircle2, ClipboardList,
+  ChevronDown, ChevronUp, Video, Pill, FlaskConical, UserPlus,
+  Stethoscope, Activity, Heart, Thermometer, AlertTriangle,
+} from 'lucide-react'
 import AtestadoForm from '@/components/AtestadoForm'
 import ReceitaForm from '@/components/ReceitaForm'
 import SolicitacaoExamesForm from '@/components/SolicitacaoExamesForm'
 import EncaminhamentoForm from '@/components/EncaminhamentoForm'
 
+// ── Tipos ──────────────────────────────────────────────────────────────────────
+
+interface SinaisVitais {
+  pa_sist:  string
+  pa_diast: string
+  fc:       string
+  temp:     string
+  spo2:     string
+  peso:     string
+  altura:   string
+}
+
+// ── Pequeno componente de seção do accordion ───────────────────────────────────
+
+function SecaoAnamnese({
+  titulo, icone, aberta, onToggle, children,
+}: {
+  titulo: string
+  icone: React.ReactNode
+  aberta: boolean
+  onToggle: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div className="border-b border-[#2A4A3C] last:border-0">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-white/5 transition-colors"
+      >
+        <span className="flex items-center gap-2 text-xs font-semibold text-green-200">
+          {icone}
+          {titulo}
+        </span>
+        {aberta
+          ? <ChevronUp className="w-3.5 h-3.5 text-green-400 shrink-0" />
+          : <ChevronDown className="w-3.5 h-3.5 text-green-400 shrink-0" />}
+      </button>
+      {aberta && <div className="px-3 pb-3">{children}</div>}
+    </div>
+  )
+}
+
+// ── Textarea padrão para o painel dark ─────────────────────────────────────────
+
+function DarkTextarea({
+  value, onChange, placeholder, rows = 3,
+}: {
+  value: string; onChange: (v: string) => void; placeholder: string; rows?: number
+}) {
+  return (
+    <textarea
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      rows={rows}
+      className="w-full bg-[#0F1F33] text-blue-100 text-xs rounded-lg p-2.5 resize-none focus:outline-none focus:ring-1 focus:ring-[#5BBD9B] placeholder-blue-800"
+    />
+  )
+}
+
+// ── Página principal ───────────────────────────────────────────────────────────
+
 export default function AtendimentoMedico() {
   const { id } = useParams()
-  const router = useRouter()
-  const [dados, setDados] = useState<any>(null)
-  const [notas, setNotas] = useState('')
+  const router  = useRouter()
+
+  // ── Estado básico ──
+  const [dados, setDados]     = useState<any>(null)
   const [carregando, setCarregando] = useState(true)
-  const [salvando, setSalvando] = useState(false)
-  const [showAtestado, setShowAtestado] = useState(false)
-  const [atestadoEmitido, setAtestadoEmitido] = useState(false)
-  const [showReceita, setShowReceita] = useState(false)
-  const [receitaEmitida, setReceitaEmitida] = useState(false)
-  const [showExames, setShowExames] = useState(false)
-  const [examesEmitidos, setExamesEmitidos] = useState(false)
+  const [salvando, setSalvando]     = useState(false)
+  const [entrou, setEntrou]         = useState(false)
+
+  // ── Ferramentas ──
+  const [showAtestado,      setShowAtestado]      = useState(false)
+  const [atestadoEmitido,   setAtestadoEmitido]   = useState(false)
+  const [showReceita,       setShowReceita]       = useState(false)
+  const [receitaEmitida,    setReceitaEmitida]    = useState(false)
+  const [showExames,        setShowExames]        = useState(false)
+  const [examesEmitidos,    setExamesEmitidos]    = useState(false)
   const [showEncaminhamento, setShowEncaminhamento] = useState(false)
-  const [encaminhado, setEncaminhado] = useState(false)
-  const [entrou, setEntrou] = useState(false)
+  const [encaminhado,       setEncaminhado]       = useState(false)
+
+  // ── Anamnese estruturada ──
+  const [showAnamnese,  setShowAnamnese]  = useState(true)
+  const [secaoAberta,   setSecaoAberta]  = useState<string>('qp')
+
+  const [qp,      setQp]      = useState('')
+  const [hda,     setHda]     = useState('')
+  const [sv, setSv] = useState<SinaisVitais>({
+    pa_sist: '', pa_diast: '', fc: '', temp: '', spo2: '', peso: '', altura: '',
+  })
+  const [exameFisico,  setExameFisico]  = useState('')
+  const [hipotese,     setHipotese]     = useState('')
+  const [cid,          setCid]          = useState('')
+  const [plano,        setPlano]        = useState('')
+  const [evolucao,     setEvolucao]     = useState('')
+  const [notasLegado,  setNotasLegado]  = useState('')
 
   useEffect(() => {
     fetch(`/api/medico/atendimento/${id}`)
@@ -31,7 +117,26 @@ export default function AtendimentoMedico() {
       .then(d => {
         if (d.error) { router.push('/medico/dashboard'); return }
         setDados(d)
-        setNotas(d.atendimento.notas_medico || '')
+        const a = d.atendimento
+        setNotasLegado(a.notas_medico   || '')
+        setQp(a.queixa_principal        || '')
+        setHda(a.hda                    || '')
+        setExameFisico(a.exame_fisico   || '')
+        setHipotese(a.hipotese_diag     || '')
+        setCid(a.cid                    || '')
+        setPlano(a.plano_terapeutico    || '')
+        setEvolucao(a.evolucao          || '')
+        if (a.sinais_vitais && typeof a.sinais_vitais === 'object') {
+          setSv({
+            pa_sist:  a.sinais_vitais.pa_sist  || '',
+            pa_diast: a.sinais_vitais.pa_diast || '',
+            fc:       a.sinais_vitais.fc       || '',
+            temp:     a.sinais_vitais.temp     || '',
+            spo2:     a.sinais_vitais.spo2     || '',
+            peso:     a.sinais_vitais.peso     || '',
+            altura:   a.sinais_vitais.altura   || '',
+          })
+        }
         setCarregando(false)
       })
       .catch(() => router.push('/medico/dashboard'))
@@ -39,10 +144,25 @@ export default function AtendimentoMedico() {
 
   async function finalizarConsulta() {
     setSalvando(true)
+    const sinaisVitaisPayload = Object.values(sv).some(v => v.trim())
+      ? { pa_sist: sv.pa_sist, pa_diast: sv.pa_diast, fc: sv.fc, temp: sv.temp, spo2: sv.spo2, peso: sv.peso, altura: sv.altura }
+      : null
+
     await fetch('/api/medico/finalizar-atendimento', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ atendimento_id: id, notas_medico: notas }),
+      body: JSON.stringify({
+        atendimento_id:    id,
+        notas_medico:      notasLegado,
+        queixa_principal:  qp,
+        hda,
+        exame_fisico:      exameFisico,
+        sinais_vitais:     sinaisVitaisPayload,
+        hipotese_diag:     hipotese,
+        cid,
+        plano_terapeutico: plano,
+        evolucao,
+      }),
     })
     setSalvando(false)
     router.push('/medico/dashboard')
@@ -62,9 +182,9 @@ export default function AtendimentoMedico() {
   const { atendimento, triagem, paciente, medico } = dados
 
   const corRisco: Record<string, string> = {
-    verde: 'bg-green-100 text-green-700',
-    amarelo: 'bg-yellow-100 text-yellow-700',
-    laranja: 'bg-orange-100 text-orange-700',
+    verde:    'bg-green-100 text-green-700',
+    amarelo:  'bg-yellow-100 text-yellow-700',
+    laranja:  'bg-orange-100 text-orange-700',
     vermelho: 'bg-red-100 text-red-700',
   }
 
@@ -79,29 +199,22 @@ export default function AtendimentoMedico() {
     }
   })()
 
-  function toggleAtestado() {
-    if (!showAtestado) { setShowReceita(false); setShowExames(false); setShowEncaminhamento(false) }
-    setShowAtestado(v => !v)
+  function fecharTodas() {
+    setShowAtestado(false); setShowReceita(false)
+    setShowExames(false); setShowEncaminhamento(false)
+  }
+  function toggleSecao(s: string) {
+    setSecaoAberta(prev => prev === s ? '' : s)
   }
 
-  function toggleReceita() {
-    if (!showReceita) { setShowAtestado(false); setShowExames(false); setShowEncaminhamento(false) }
-    setShowReceita(v => !v)
-  }
-
-  function toggleExames() {
-    if (!showExames) { setShowAtestado(false); setShowReceita(false); setShowEncaminhamento(false) }
-    setShowExames(v => !v)
-  }
-
-  function toggleEncaminhamento() {
-    if (!showEncaminhamento) { setShowAtestado(false); setShowReceita(false); setShowExames(false) }
-    setShowEncaminhamento(v => !v)
-  }
+  // Contagem de campos preenchidos
+  const camposPreenchidos = [qp, hda, exameFisico, hipotese, plano, evolucao]
+    .filter(v => v.trim()).length + (Object.values(sv).some(v => v.trim()) ? 1 : 0)
 
   return (
     <div className="min-h-screen bg-[#0F1F33] flex flex-col">
-      {/* Header */}
+
+      {/* ── Header ── */}
       <div className="bg-[#1A3A2C] px-6 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
@@ -127,8 +240,9 @@ export default function AtendimentoMedico() {
         </button>
       </div>
 
-      {/* Layout: vídeo + painel lateral */}
+      {/* ── Layout: vídeo + painel lateral ── */}
       <div className="flex-1 flex overflow-hidden" style={{ height: 'calc(100vh - 56px)' }}>
+
         {/* Vídeo */}
         <div className="flex-1 relative">
           {!entrou && (
@@ -143,10 +257,6 @@ export default function AtendimentoMedico() {
                   </p>
                 )}
                 <h2 className="text-3xl font-extrabold mb-2 tracking-tight">Entrar AGORA</h2>
-                <p className="text-blue-300 text-xs mb-4">
-                  Clique no botão abaixo para entrar na consulta.
-                </p>
-                {/* Seta animada apontando para o botão */}
                 <div className="flex flex-col items-center mb-4">
                   <div className="flex flex-col items-center gap-0.5 animate-bounce">
                     <div className="w-0.5 h-6 bg-[#5BBD9B]" />
@@ -169,8 +279,32 @@ export default function AtendimentoMedico() {
           />
         </div>
 
-        {/* Painel lateral */}
+        {/* ── Painel lateral ── */}
         <div className="w-80 bg-[#1A3A2C] flex flex-col shrink-0 overflow-y-auto">
+
+          {/* Alertas do paciente (alergias / HPP) */}
+          {(paciente?.alergias || paciente?.hpp || paciente?.medicamentos_em_uso) && (
+            <div className="p-3 bg-amber-900/30 border-b border-amber-700/30">
+              {paciente.alergias && (
+                <p className="text-xs text-amber-300 flex items-start gap-1.5 mb-1">
+                  <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
+                  <span><strong>Alergias:</strong> {paciente.alergias}</span>
+                </p>
+              )}
+              {paciente.hpp && (
+                <p className="text-xs text-amber-200 flex items-start gap-1.5 mb-1">
+                  <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0 opacity-60" />
+                  <span><strong>HPP:</strong> {paciente.hpp}</span>
+                </p>
+              )}
+              {paciente.medicamentos_em_uso && (
+                <p className="text-xs text-amber-200 flex items-start gap-1.5">
+                  <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0 opacity-60" />
+                  <span><strong>Uso contínuo:</strong> {paciente.medicamentos_em_uso}</span>
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Resumo da triagem */}
           {triagem?.resumo_ia && (
@@ -180,10 +314,170 @@ export default function AtendimentoMedico() {
             </div>
           )}
 
-          {/* Botão de atestado */}
+          {/* ── ANAMNESE ESTRUTURADA ── */}
+          <div className="border-b border-[#2A4A3C]">
+            <button
+              onClick={() => setShowAnamnese(v => !v)}
+              className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-semibold transition-colors ${
+                showAnamnese
+                  ? 'bg-[#5BBD9B] text-white'
+                  : 'bg-[#0F1F33] text-green-200 hover:bg-[#5BBD9B] hover:text-white'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <Stethoscope className="w-4 h-4" />
+                Anamnese / Prontuário
+                {camposPreenchidos > 0 && (
+                  <span className="bg-white/20 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
+                    {camposPreenchidos}
+                  </span>
+                )}
+              </span>
+              {showAnamnese ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+
+            {showAnamnese && (
+              <div className="bg-[#0F1F33]/60">
+                {/* QP */}
+                <SecaoAnamnese
+                  titulo="Queixa Principal (QP)"
+                  icone={<FileText className="w-3 h-3" />}
+                  aberta={secaoAberta === 'qp'}
+                  onToggle={() => toggleSecao('qp')}
+                >
+                  <DarkTextarea
+                    value={qp}
+                    onChange={setQp}
+                    placeholder="Motivo principal da consulta relatado pelo paciente..."
+                    rows={2}
+                  />
+                </SecaoAnamnese>
+
+                {/* HDA */}
+                <SecaoAnamnese
+                  titulo="HDA — História da Doença Atual"
+                  icone={<ClipboardList className="w-3 h-3" />}
+                  aberta={secaoAberta === 'hda'}
+                  onToggle={() => toggleSecao('hda')}
+                >
+                  <DarkTextarea
+                    value={hda}
+                    onChange={setHda}
+                    placeholder="Início, duração, localização, fatores de melhora/piora, sintomas associados..."
+                    rows={4}
+                  />
+                </SecaoAnamnese>
+
+                {/* Sinais vitais */}
+                <SecaoAnamnese
+                  titulo="Sinais Vitais"
+                  icone={<Activity className="w-3 h-3" />}
+                  aberta={secaoAberta === 'sv'}
+                  onToggle={() => toggleSecao('sv')}
+                >
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { label: 'PA Sistólica',  key: 'pa_sist',  unit: 'mmHg', placeholder: '120' },
+                      { label: 'PA Diastólica', key: 'pa_diast', unit: 'mmHg', placeholder: '80'  },
+                      { label: 'FC',            key: 'fc',       unit: 'bpm',  placeholder: '72'  },
+                      { label: 'Temperatura',   key: 'temp',     unit: '°C',   placeholder: '36.5'},
+                      { label: 'SpO₂',          key: 'spo2',     unit: '%',    placeholder: '98'  },
+                      { label: 'Peso',          key: 'peso',     unit: 'kg',   placeholder: '70'  },
+                      { label: 'Altura',        key: 'altura',   unit: 'cm',   placeholder: '170' },
+                    ].map(f => (
+                      <div key={f.key}>
+                        <label className="block text-[10px] text-green-400 mb-0.5">{f.label} ({f.unit})</label>
+                        <input
+                          type="text"
+                          value={sv[f.key as keyof SinaisVitais]}
+                          onChange={e => setSv(prev => ({ ...prev, [f.key]: e.target.value }))}
+                          placeholder={f.placeholder}
+                          className="w-full bg-[#0F1F33] border border-[#2A4A3C] text-blue-100 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#5BBD9B] placeholder-blue-900"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </SecaoAnamnese>
+
+                {/* Exame físico */}
+                <SecaoAnamnese
+                  titulo="Exame Físico"
+                  icone={<Heart className="w-3 h-3" />}
+                  aberta={secaoAberta === 'ef'}
+                  onToggle={() => toggleSecao('ef')}
+                >
+                  <DarkTextarea
+                    value={exameFisico}
+                    onChange={setExameFisico}
+                    placeholder="Geral, cardiovascular, pulmonar, abdome, neurológico..."
+                    rows={4}
+                  />
+                </SecaoAnamnese>
+
+                {/* Hipótese + CID */}
+                <SecaoAnamnese
+                  titulo="Hipótese Diagnóstica"
+                  icone={<Thermometer className="w-3 h-3" />}
+                  aberta={secaoAberta === 'hd'}
+                  onToggle={() => toggleSecao('hd')}
+                >
+                  <DarkTextarea
+                    value={hipotese}
+                    onChange={setHipotese}
+                    placeholder="Hipótese(s) diagnóstica(s)..."
+                    rows={2}
+                  />
+                  <div className="mt-2">
+                    <label className="block text-[10px] text-green-400 mb-0.5">CID-10</label>
+                    <input
+                      type="text"
+                      value={cid}
+                      onChange={e => setCid(e.target.value.toUpperCase())}
+                      placeholder="Ex: J06.9, M54.5"
+                      className="w-full bg-[#0F1F33] border border-[#2A4A3C] text-blue-100 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#5BBD9B] placeholder-blue-900 uppercase"
+                    />
+                  </div>
+                </SecaoAnamnese>
+
+                {/* Plano terapêutico */}
+                <SecaoAnamnese
+                  titulo="Plano Terapêutico"
+                  icone={<Pill className="w-3 h-3" />}
+                  aberta={secaoAberta === 'pt'}
+                  onToggle={() => toggleSecao('pt')}
+                >
+                  <DarkTextarea
+                    value={plano}
+                    onChange={setPlano}
+                    placeholder="Tratamento proposto, orientações, retorno..."
+                    rows={3}
+                  />
+                </SecaoAnamnese>
+
+                {/* Evolução */}
+                <SecaoAnamnese
+                  titulo="Evolução / Notas"
+                  icone={<Activity className="w-3 h-3" />}
+                  aberta={secaoAberta === 'ev'}
+                  onToggle={() => toggleSecao('ev')}
+                >
+                  <DarkTextarea
+                    value={evolucao}
+                    onChange={setEvolucao}
+                    placeholder="Evolução clínica, notas adicionais..."
+                    rows={3}
+                  />
+                </SecaoAnamnese>
+              </div>
+            )}
+          </div>
+
+          {/* ── Ferramentas ── */}
+
+          {/* Atestado */}
           <div className="p-4 border-b border-[#2A4A3C]">
             <button
-              onClick={toggleAtestado}
+              onClick={() => { fecharTodas(); setShowAtestado(v => !v) }}
               className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                 showAtestado
                   ? 'bg-[#5BBD9B] text-white'
@@ -196,39 +490,24 @@ export default function AtendimentoMedico() {
               </span>
               {showAtestado ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-
             {showAtestado && paciente && (
               <div className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
                 <AtestadoForm
                   atendimentoId={atendimento.id}
                   pacienteId={paciente.id}
-                  paciente={{
-                    nome: paciente.nome,
-                    cpf: paciente.cpf,
-                    data_nascimento: paciente.data_nascimento,
-                    sexo: paciente.sexo,
-                  }}
-                  medico={{
-                    nome: medico.nome,
-                    crm: medico.crm,
-                    crm_uf: medico.crm_uf,
-                    especialidade: medico.especialidade,
-                    sexo: medico.sexo,
-                  }}
+                  paciente={{ nome: paciente.nome, cpf: paciente.cpf, data_nascimento: paciente.data_nascimento, sexo: paciente.sexo }}
+                  medico={{ nome: medico.nome, crm: medico.crm, crm_uf: medico.crm_uf, especialidade: medico.especialidade, sexo: medico.sexo }}
                   onFechar={() => setShowAtestado(false)}
-                  onSalvo={() => {
-                    setAtestadoEmitido(true)
-                    setShowAtestado(false)
-                  }}
+                  onSalvo={() => { setAtestadoEmitido(true); setShowAtestado(false) }}
                 />
               </div>
             )}
           </div>
 
-          {/* Botão de receita */}
+          {/* Receita */}
           <div className="p-4 border-b border-[#2A4A3C]">
             <button
-              onClick={toggleReceita}
+              onClick={() => { fecharTodas(); setShowReceita(v => !v) }}
               className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                 showReceita
                   ? 'bg-purple-500 text-white'
@@ -241,39 +520,24 @@ export default function AtendimentoMedico() {
               </span>
               {showReceita ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-
             {showReceita && paciente && (
               <div className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
                 <ReceitaForm
                   atendimentoId={atendimento.id}
                   pacienteId={paciente.id}
-                  paciente={{
-                    nome: paciente.nome,
-                    cpf: paciente.cpf,
-                    data_nascimento: paciente.data_nascimento,
-                    sexo: paciente.sexo,
-                  }}
-                  medico={{
-                    nome: medico.nome,
-                    crm: medico.crm,
-                    crm_uf: medico.crm_uf,
-                    especialidade: medico.especialidade,
-                    sexo: medico.sexo,
-                  }}
+                  paciente={{ nome: paciente.nome, cpf: paciente.cpf, data_nascimento: paciente.data_nascimento, sexo: paciente.sexo }}
+                  medico={{ nome: medico.nome, crm: medico.crm, crm_uf: medico.crm_uf, especialidade: medico.especialidade, sexo: medico.sexo }}
                   onFechar={() => setShowReceita(false)}
-                  onSalvo={() => {
-                    setReceitaEmitida(true)
-                    setShowReceita(false)
-                  }}
+                  onSalvo={() => { setReceitaEmitida(true); setShowReceita(false) }}
                 />
               </div>
             )}
           </div>
 
-          {/* Botão de solicitação de exames */}
+          {/* Exames */}
           <div className="p-4 border-b border-[#2A4A3C]">
             <button
-              onClick={toggleExames}
+              onClick={() => { fecharTodas(); setShowExames(v => !v) }}
               className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                 showExames
                   ? 'bg-blue-500 text-white'
@@ -286,39 +550,24 @@ export default function AtendimentoMedico() {
               </span>
               {showExames ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-
             {showExames && paciente && (
               <div className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
                 <SolicitacaoExamesForm
                   atendimentoId={atendimento.id}
                   pacienteId={paciente.id}
-                  paciente={{
-                    nome: paciente.nome,
-                    cpf: paciente.cpf,
-                    data_nascimento: paciente.data_nascimento,
-                    sexo: paciente.sexo,
-                  }}
-                  medico={{
-                    nome: medico.nome,
-                    crm: medico.crm,
-                    crm_uf: medico.crm_uf,
-                    especialidade: medico.especialidade,
-                    sexo: medico.sexo,
-                  }}
+                  paciente={{ nome: paciente.nome, cpf: paciente.cpf, data_nascimento: paciente.data_nascimento, sexo: paciente.sexo }}
+                  medico={{ nome: medico.nome, crm: medico.crm, crm_uf: medico.crm_uf, especialidade: medico.especialidade, sexo: medico.sexo }}
                   onFechar={() => setShowExames(false)}
-                  onSalvo={() => {
-                    setExamesEmitidos(true)
-                    setShowExames(false)
-                  }}
+                  onSalvo={() => { setExamesEmitidos(true); setShowExames(false) }}
                 />
               </div>
             )}
           </div>
 
-          {/* Botão de encaminhamento */}
+          {/* Encaminhamento */}
           <div className="p-4 border-b border-[#2A4A3C]">
             <button
-              onClick={toggleEncaminhamento}
+              onClick={() => { fecharTodas(); setShowEncaminhamento(v => !v) }}
               className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                 showEncaminhamento
                   ? 'bg-orange-500 text-white'
@@ -331,41 +580,27 @@ export default function AtendimentoMedico() {
               </span>
               {showEncaminhamento ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-
             {showEncaminhamento && paciente && (
               <div className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
                 <EncaminhamentoForm
                   pacienteId={paciente.id}
                   salaVideo={atendimento.sala_video ?? null}
                   onFechar={() => setShowEncaminhamento(false)}
-                  onEncaminhado={() => {
-                    setEncaminhado(true)
-                    setShowEncaminhamento(false)
-                  }}
+                  onEncaminhado={() => { setEncaminhado(true); setShowEncaminhamento(false) }}
                 />
               </div>
             )}
           </div>
 
-          {/* Notas médicas */}
-          <div className="p-4 flex-1 flex flex-col">
-            <div className="flex items-center gap-2 mb-3">
-              <FileText className="w-4 h-4 text-green-300" />
-              <p className="text-green-300 text-xs font-medium uppercase tracking-wide">Notas do atendimento</p>
-            </div>
-            <textarea
-              value={notas}
-              onChange={e => setNotas(e.target.value)}
-              placeholder="Anamnese, diagnóstico, prescrições, orientações..."
-              className="flex-1 bg-[#0F1F33] text-blue-100 text-sm rounded-xl p-3 resize-none focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] placeholder-blue-700 min-h-[160px]"
-            />
+          {/* ── Salvar e encerrar ── */}
+          <div className="p-4 mt-auto">
             <button
               onClick={finalizarConsulta}
               disabled={salvando}
-              className="mt-3 w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white py-2.5 rounded-xl text-sm font-medium"
+              className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white py-3 rounded-xl text-sm font-semibold"
             >
               {salvando ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-              Salvar e encerrar
+              Salvar e encerrar consulta
             </button>
           </div>
         </div>

@@ -25,7 +25,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // Buscar atendimento com triagem
   const { data: atendimento } = await admin
     .from('atendimentos')
-    .select('id, sala_video, paciente_id, agendamento_id, medico_id, status, notas_medico, iniciado_em, criado_em')
+    .select('id, sala_video, paciente_id, agendamento_id, medico_id, status, notas_medico, iniciado_em, criado_em, queixa_principal, hda, exame_fisico, sinais_vitais, hipotese_diag, cid, plano_terapeutico, evolucao')
     .eq('id', id)
     .single()
 
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   // Buscar paciente com todos os campos necessários para o atestado
   const { data: paciente } = await admin
     .from('pacientes')
-    .select('id, nome, cpf, telefone, data_nascimento, sexo')
+    .select('id, nome, cpf, telefone, data_nascimento, sexo, alergias, hpp, medicamentos_em_uso')
     .eq('id', atendimento.paciente_id)
     .single()
 
