@@ -345,9 +345,9 @@ function EtapaValidacao({
               </div>
             </div>
 
-            <div className="bg-[#F3FAF7] border border-green-100 rounded-2xl p-4 mb-5">
-              <p className="text-sm font-semibold text-[#1A3A2C] mb-2 flex items-center gap-1.5">
-                <Video className="w-4 h-4 text-[#5BBD9B]" /> Termo de Consentimento para Atendimento por Telemedicina
+            <div className="bg-[#F0F6FA] border border-blue-100 rounded-2xl p-4 mb-5">
+              <p className="text-sm font-semibold text-[#1A2C3A] mb-2 flex items-center gap-1.5">
+                <Video className="w-4 h-4 text-[#3B82F6]" /> Termo de Consentimento para Atendimento por Telemedicina
               </p>
               <p className="text-sm text-gray-600 leading-relaxed">
                 Declaro que compreendo as <strong>características, benefícios e limitações</strong> do atendimento
@@ -356,12 +356,18 @@ function EtapaValidacao({
                 emergência. Autorizo a realização da consulta médica online por meio da <strong>MedDigital</strong>,
                 nos termos da Resolução CFM nº 2.314/2022.
               </p>
-              <PdfLink href="/termo-telemedicina.pdf" label="Ler o Termo de Consentimento para Telemedicina" />
+              <a href="/termo-telemedicina.pdf" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-[#3B82F6] hover:text-[#1A2C3A] hover:underline mt-2 font-medium transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                </svg>
+                Ler o Termo de Consentimento para Telemedicina
+              </a>
             </div>
 
             <div className="flex gap-3">
               <button onClick={handleAceitarTelemedicina}
-                className="flex-1 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                className="flex-1 bg-[#1E3A5F] hover:bg-[#3B82F6] text-white py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-4 h-4" /> Sim, autorizo
               </button>
               <button onClick={() => setRecusou(true)}
@@ -386,17 +392,17 @@ function EtapaValidacao({
                 <p className="text-xs text-green-600">{tsLgpd}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 mb-4">
-              <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+            <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5 mb-4">
+              <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
               <div>
-                <p className="text-sm text-green-700 font-medium">Termo de Telemedicina registrado.</p>
-                <p className="text-xs text-green-600">{tsTelemedicina}</p>
+                <p className="text-sm text-blue-700 font-medium">Termo de Telemedicina registrado.</p>
+                <p className="text-xs text-blue-500">{tsTelemedicina}</p>
               </div>
             </div>
 
-            <div className="bg-[#F3FAF7] border border-green-100 rounded-2xl p-4 mb-5">
-              <p className="text-sm font-semibold text-[#1A3A2C] mb-2 flex items-center gap-1.5">
-                <Video className="w-4 h-4 text-[#5BBD9B]" /> Termo de Consentimento para Gravação de Áudio e Vídeo
+            <div className="bg-[#F7F0FA] border border-purple-100 rounded-2xl p-4 mb-5">
+              <p className="text-sm font-semibold text-[#2A1A3A] mb-2 flex items-center gap-1.5">
+                <Video className="w-4 h-4 text-[#9333EA]" /> Termo de Consentimento para Gravação de Áudio e Vídeo
               </p>
               <p className="text-sm text-gray-600 leading-relaxed">
                 Durante o atendimento online, poderão ser registrados sua <strong>imagem, voz, áudio e vídeo</strong>,
@@ -405,12 +411,18 @@ function EtapaValidacao({
                 pessoas autorizadas. As gravações <strong>não serão usadas para publicidade</strong> e a empresa
                 contratante não terá acesso ao conteúdo clínico detalhado.
               </p>
-              <PdfLink href="/termo-gravacao.pdf" label="Ler o Termo de Consentimento para Gravação" />
+              <a href="/termo-gravacao.pdf" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-[#9333EA] hover:text-[#2A1A3A] hover:underline mt-2 font-medium transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                </svg>
+                Ler o Termo de Consentimento para Gravação
+              </a>
             </div>
 
             <div className="flex gap-3">
               <button onClick={handleAceitarGravacao}
-                className="flex-1 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                className="flex-1 bg-[#3B1F5E] hover:bg-[#9333EA] text-white py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-4 h-4" /> Sim, autorizo
               </button>
               <button onClick={() => setRecusou(true)}
@@ -435,18 +447,18 @@ function EtapaValidacao({
                 <p className="text-xs text-green-600">{tsLgpd}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 mb-1">
-              <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+            <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5 mb-1">
+              <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
               <div>
-                <p className="text-sm text-green-700 font-medium">Termo de Telemedicina registrado.</p>
-                <p className="text-xs text-green-600">{tsTelemedicina}</p>
+                <p className="text-sm text-blue-700 font-medium">Termo de Telemedicina registrado.</p>
+                <p className="text-xs text-blue-500">{tsTelemedicina}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 mb-4">
-              <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+            <div className="flex items-center gap-2 bg-purple-50 border border-purple-200 rounded-xl px-4 py-2.5 mb-4">
+              <CheckCircle2 className="w-4 h-4 text-purple-600 shrink-0" />
               <div>
-                <p className="text-sm text-green-700 font-medium">Termo de Gravação registrado.</p>
-                <p className="text-xs text-green-600">{tsGravacao}</p>
+                <p className="text-sm text-purple-700 font-medium">Termo de Gravação registrado.</p>
+                <p className="text-xs text-purple-500">{tsGravacao}</p>
               </div>
             </div>
             <button onClick={() => onFazerTriagem(dadosValidacao())}
