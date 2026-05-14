@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense, ElementType } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
-  Loader2, ArrowLeft, CheckCircle2, AlertTriangle, AlertCircle,
+  Loader2, CheckCircle2, AlertTriangle, AlertCircle,
   Video, Calendar, Shield, Phone, FileText, XCircle, ChevronRight,
-  SkipForward, Stethoscope, Clock,
+  SkipForward, Stethoscope,
 } from 'lucide-react'
 import PacienteHeader from '../PacienteHeader'
 
@@ -56,7 +56,7 @@ interface DadosUrgencia {
 // Protocolo de Manchester — 5 níveis
 const configRisco: Record<ClassificacaoManchester, {
   cor: string; badge: string; badgeBorder: string; label: string; emoji: string;
-  icon: any; iconColor: string; titulo: string; mensagem: string
+  icon: ElementType; iconColor: string; titulo: string; mensagem: string
 }> = {
   vermelho: {
     cor: 'bg-red-50 border-red-300',
@@ -159,6 +159,20 @@ function ProgressoTriagem({ atual }: { atual: 1 | 2 | 3 | 4 }) {
   )
 }
 
+// ─── Link PDF (fora do render para evitar "cannot create components during render") ──
+
+function PdfLink({ href, label, color = 'text-[#5BBD9B]' }: { href: string; label: string; color?: string }) {
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer"
+      className={`inline-flex items-center gap-1 text-xs ${color} hover:text-[#1A3A2C] hover:underline mt-2 font-medium transition-colors`}>
+      <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+      </svg>
+      {label}
+    </a>
+  )
+}
+
 // ─── Componente SimNao ────────────────────────────────────────────────────────
 
 function SimNao({ valor, onChange }: { valor: boolean | null; onChange: (v: boolean) => void }) {
@@ -187,7 +201,7 @@ function EtapaValidacao({
   onFazerTriagem: (dados: DadosValidacao) => void
   onPularTriagem: (dados: DadosValidacao) => void
 }) {
-  const [cpf, setCpf] = useState(cpfInicial ? formatarCPF(cpfInicial) : '')
+  const cpf = cpfInicial ? formatarCPF(cpfInicial) : ''
   const [telefone, setTelefone] = useState(telefoneInicial ? formatarTelefone(telefoneInicial) : '')
   const [recusou, setRecusou] = useState(false)
   const [aceito, setAceito] = useState(false)
@@ -225,19 +239,6 @@ function EtapaValidacao({
   function handleAceitarGravacao() {
     setTsGravacao(agora())
     setAceitoGravacao(true)
-  }
-
-  // Link PDF helper
-  function PdfLink({ href, label }: { href: string; label: string }) {
-    return (
-      <a href={href} target="_blank" rel="noopener noreferrer"
-        className="inline-flex items-center gap-1 text-xs text-[#5BBD9B] hover:text-[#1A3A2C] hover:underline mt-2 font-medium transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-        </svg>
-        {label}
-      </a>
-    )
   }
 
   if (recusou) {
@@ -348,7 +349,7 @@ function EtapaValidacao({
               </button>
             </div>
             <p className="text-xs text-gray-400 text-center mt-3">
-              Ao clicar em "Sim, autorizo", você declara que leu e concorda com os termos acima.
+              Ao clicar em &ldquo;Sim, autorizo&rdquo;, você declara que leu e concorda com os termos acima.
               Registro em: {agora()}.
             </p>
           </>
@@ -396,7 +397,7 @@ function EtapaValidacao({
               </button>
             </div>
             <p className="text-xs text-gray-400 text-center mt-3">
-              Ao clicar em "Sim, autorizo", você declara que leu e concorda com os termos acima.
+              Ao clicar em &ldquo;Sim, autorizo&rdquo;, você declara que leu e concorda com os termos acima.
               Registro em: {agora()}.
             </p>
           </>
@@ -451,7 +452,7 @@ function EtapaValidacao({
               </button>
             </div>
             <p className="text-xs text-gray-400 text-center mt-3">
-              Ao clicar em "Sim, autorizo", você declara que leu e concorda com os termos acima.
+              Ao clicar em &ldquo;Sim, autorizo&rdquo;, você declara que leu e concorda com os termos acima.
               Registro em: {agora()}.
             </p>
           </>
@@ -837,7 +838,6 @@ function EtapaResultado({
   solicitando,
   salvando,
   modoAgendamento,
-  onSolicitarImediato,
   onConsultarAgora,
   onAgendar,
 }: {
@@ -847,7 +847,6 @@ function EtapaResultado({
   solicitando: boolean
   salvando: boolean
   modoAgendamento: boolean
-  onSolicitarImediato: () => void
   onConsultarAgora: () => void
   onAgendar: () => void
 }) {
@@ -1326,7 +1325,6 @@ function TriagemConteudo() {
           solicitando={solicitando}
           salvando={salvando}
           modoAgendamento={modoAgendamento}
-          onSolicitarImediato={solicitarConsulta}
           onConsultarAgora={solicitarConsulta}
           onAgendar={handleAgendar}
         />
