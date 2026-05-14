@@ -10,12 +10,13 @@ export { drTitle }
 interface Props {
   titulo: string
   backHref?: string
+  onBack?: () => void
   medicoNome?: string
   medicoSexo?: string | null
   medicoFotoUrl?: string | null
 }
 
-export default function MedicoHeader({ titulo, backHref, medicoNome, medicoSexo, medicoFotoUrl }: Props) {
+export default function MedicoHeader({ titulo, backHref, onBack, medicoNome, medicoSexo, medicoFotoUrl }: Props) {
   const titulo_dr = medicoNome ? `${drTitle(medicoSexo)} ${medicoNome}` : ''
 
   return (
@@ -24,7 +25,15 @@ export default function MedicoHeader({ titulo, backHref, medicoNome, medicoSexo,
 
         {/* Esquerda: voltar + logo + badge */}
         <div className="flex items-center gap-3 min-w-0">
-          {backHref && (
+          {onBack ? (
+            <button
+              onClick={onBack}
+              className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-full text-sm font-medium transition-colors shrink-0"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Voltar</span>
+            </button>
+          ) : backHref ? (
             <Link
               href={backHref}
               className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-full text-sm font-medium transition-colors shrink-0"
@@ -32,7 +41,7 @@ export default function MedicoHeader({ titulo, backHref, medicoNome, medicoSexo,
               <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Voltar</span>
             </Link>
-          )}
+          ) : null}
           <img src="/logo-branca.svg" alt="RovarisMed" className="h-9 shrink-0" />
           <div className="h-5 w-px bg-white/20 shrink-0" />
           <span className="text-sm font-bold text-white bg-white/15 px-3 py-1 rounded-full whitespace-nowrap">

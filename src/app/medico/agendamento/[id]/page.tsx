@@ -2,10 +2,11 @@ import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import {
-  ArrowLeft, User, Calendar, Clock, Phone,
+  User, Calendar, Clock, Phone,
   Brain, FileText, Video, CheckCircle2, AlertTriangle,
   AlertCircle, Info, XCircle
 } from 'lucide-react'
+import MedicoHeader from '../../MedicoHeader'
 import BotaoEntrarConsultaMedico from '../../agendamentos/BotaoEntrarConsultaMedico'
 
 export default async function AgendamentoDetalhePage({
@@ -97,17 +98,7 @@ export default async function AgendamentoDetalhePage({
 
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
-      <header className="bg-[#1A3A2C] text-white px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
-            <span className="text-xs text-green-300 ml-1">Painel do Médico</span>
-          </div>
-          <Link href="/medico/agendamentos" className="text-sm text-green-200 hover:text-white flex items-center gap-1">
-            <ArrowLeft className="w-4 h-4" /> Agenda
-          </Link>
-        </div>
-      </header>
+      <MedicoHeader titulo="Detalhe do Agendamento" backHref="/medico/agendamentos" />
 
       <main className="max-w-4xl mx-auto px-6 py-8">
 

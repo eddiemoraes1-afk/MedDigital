@@ -4,7 +4,7 @@ import Link from 'next/link'
 import {
   User, Phone, FileText, Building2, Calendar,
   Clock, CheckCircle2, Mail, Briefcase, MapPin, XCircle,
-  ArrowLeft, Brain, AlertTriangle, AlertCircle,
+  Brain, AlertTriangle, AlertCircle,
   Pill, Stethoscope,
 } from 'lucide-react'
 import MedicoHeader from '../../MedicoHeader'
@@ -582,12 +582,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
               </div>
             </div>
 
-            <Link
-              href={backHref}
-              className="w-full flex items-center justify-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3 rounded-xl text-sm font-medium transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" /> Voltar
-            </Link>
+
           </div>
         </div>
       </main>

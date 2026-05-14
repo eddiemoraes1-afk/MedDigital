@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import Link from 'next/link'
-import { ArrowLeft, ScrollText, CheckCircle2, ClipboardList } from 'lucide-react'
+import { ScrollText, CheckCircle2, ClipboardList } from 'lucide-react'
 import MedicoHeader from '../../MedicoHeader'
 import RenovacaoAtenderClient from './RenovacaoAtenderClient'
 
@@ -85,10 +84,6 @@ export default async function RenovacaoAtenderPage({
       <main className="max-w-2xl mx-auto px-6 py-8 space-y-5">
 
         <div>
-          <Link href="/medico/dashboard"
-            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#1A3A2C] mb-4 transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Voltar ao painel
-          </Link>
           <h1 className="text-xl font-bold text-[#1A3A2C]">Solicitação de Renovação</h1>
           <p className="text-sm text-gray-500 mt-1">Recebida em {fmtData(solicitacao.criado_em)}</p>
         </div>
