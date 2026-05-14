@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
   Loader2, Phone, FileText, CheckCircle2, ClipboardList,
@@ -86,6 +86,10 @@ export default function AtendimentoMedico() {
   const [salvando, setSalvando]     = useState(false)
   const [entrou, setEntrou]         = useState(false)
 
+  // ── Contador de tempo da consulta ──
+  const [segundos, setSegundos] = useState(0)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
   // ── Ferramentas ──
   const [showAtestado,      setShowAtestado]      = useState(false)
   const [atestadoEmitido,   setAtestadoEmitido]   = useState(false)
@@ -157,6 +161,24 @@ export default function AtendimentoMedico() {
       })
       .catch(() => router.push('/medico/dashboard'))
   }, [id])
+
+  // Inicia/para o timer conforme o médico entra ou sai da sala
+  useEffect(() => {
+    if (entrou) {
+      timerRef.current = setInterval(() => setSegundos(s => s + 1), 1000)
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current) }
+  }, [entrou])
+
+  function formatarTempo(s: number): string {
+    const h = Math.floor(s / 3600)
+    const m = Math.floor((s % 3600) / 60)
+    const seg = s % 60
+    if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(seg).padStart(2, '0')}`
+    return `${String(m).padStart(2, '0')}:${String(seg).padStart(2, '0')}`
+  }
 
   async function salvarAntecedentes() {
     if (!dados?.paciente?.id) return
@@ -277,14 +299,25 @@ export default function AtendimentoMedico() {
             </a>
           </div>
         )}
-        <button
-          onClick={finalizarConsulta}
-          disabled={salvando}
-          className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white px-3 py-1.5 rounded-lg text-xs font-medium"
-        >
-          {salvando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Phone className="w-3.5 h-3.5 rotate-[135deg]" />}
-          Finalizar consulta
-        </button>
+        {/* Contador de tempo */}
+        <div className="flex items-center gap-2">
+          {entrou && (
+            <div className="flex items-center gap-1.5 bg-red-900/40 border border-red-700/50 px-3 py-1.5 rounded-lg">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
+              <span className="text-red-400 font-mono font-bold text-base tracking-wider tabular-nums">
+                {formatarTempo(segundos)}
+              </span>
+            </div>
+          )}
+          <button
+            onClick={finalizarConsulta}
+            disabled={salvando}
+            className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white px-3 py-1.5 rounded-lg text-xs font-medium"
+          >
+            {salvando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Phone className="w-3.5 h-3.5 rotate-[135deg]" />}
+            Finalizar consulta
+          </button>
+        </div>
       </div>
 
       {/* ── Layout: vídeo + painel lateral ── */}
