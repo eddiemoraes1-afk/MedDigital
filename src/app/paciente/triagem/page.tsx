@@ -12,8 +12,10 @@ import PacienteHeader from '../PacienteHeader'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+type ClassificacaoManchester = 'vermelho' | 'laranja' | 'amarelo' | 'verde' | 'azul'
+
 interface ResultadoTriagem {
-  classificacao: 'verde' | 'amarelo' | 'vermelho'
+  classificacao: ClassificacaoManchester
   resumo: string
   recomendacao: string
 }
@@ -51,39 +53,65 @@ interface DadosUrgencia {
 
 // ─── Config de risco ──────────────────────────────────────────────────────────
 
-const configRisco = {
-  verde: {
-    cor: 'bg-green-50 border-green-200',
-    badge: 'bg-green-100 text-green-700',
-    badgeBorder: 'border-green-300',
-    label: 'Risco Baixo',
-    emoji: '🟢',
-    icon: CheckCircle2,
-    iconColor: 'text-green-600',
-    titulo: 'Tudo sob controle',
-    mensagem: 'Seus sintomas indicam baixa urgência. Você pode agendar uma consulta ou falar com um médico agora mesmo.',
+// Protocolo de Manchester — 5 níveis
+const configRisco: Record<ClassificacaoManchester, {
+  cor: string; badge: string; badgeBorder: string; label: string; emoji: string;
+  icon: any; iconColor: string; titulo: string; mensagem: string
+}> = {
+  vermelho: {
+    cor: 'bg-red-50 border-red-300',
+    badge: 'bg-red-100 text-red-700',
+    badgeBorder: 'border-red-400',
+    label: 'Emergência',
+    emoji: '🔴',
+    icon: AlertCircle,
+    iconColor: 'text-red-600',
+    titulo: 'Emergência — Atendimento imediato',
+    mensagem: 'A triagem identificou sinais de emergência. Você não deve aguardar atendimento online. Busque uma Unidade de Emergência ou ligue para o SAMU agora.',
+  },
+  laranja: {
+    cor: 'bg-orange-50 border-orange-300',
+    badge: 'bg-orange-100 text-orange-700',
+    badgeBorder: 'border-orange-400',
+    label: 'Muito Urgente',
+    emoji: '🟠',
+    icon: AlertTriangle,
+    iconColor: 'text-orange-600',
+    titulo: 'Muito urgente — consulte agora',
+    mensagem: 'Seus sintomas indicam alta urgência. Você deve ser atendido por um médico o mais rápido possível — entre na fila virtual agora.',
   },
   amarelo: {
     cor: 'bg-yellow-50 border-yellow-200',
     badge: 'bg-yellow-100 text-yellow-700',
     badgeBorder: 'border-yellow-300',
-    label: 'Risco Moderado',
+    label: 'Urgente',
     emoji: '🟡',
     icon: AlertTriangle,
     iconColor: 'text-yellow-600',
     titulo: 'Atenção necessária',
-    mensagem: 'Recomendamos uma avaliação médica. Você pode consultar um médico agora ou agendar uma consulta.',
+    mensagem: 'Seus sintomas precisam de avaliação médica. Você pode consultar um médico agora ou agendar para breve.',
   },
-  vermelho: {
-    cor: 'bg-red-50 border-red-200',
-    badge: 'bg-red-100 text-red-700',
-    badgeBorder: 'border-red-300',
-    label: 'Risco Alto',
-    emoji: '🔴',
-    icon: AlertCircle,
-    iconColor: 'text-red-600',
-    titulo: 'Atendimento imediato necessário',
-    mensagem: 'Seus sintomas indicam urgência. Um médico disponível será acionado agora para te atender imediatamente.',
+  verde: {
+    cor: 'bg-green-50 border-green-200',
+    badge: 'bg-green-100 text-green-700',
+    badgeBorder: 'border-green-300',
+    label: 'Pouco Urgente',
+    emoji: '🟢',
+    icon: CheckCircle2,
+    iconColor: 'text-green-600',
+    titulo: 'Baixa urgência',
+    mensagem: 'Seus sintomas não indicam urgência imediata. Você pode agendar uma consulta ou, se preferir, entrar na fila virtual agora.',
+  },
+  azul: {
+    cor: 'bg-blue-50 border-blue-200',
+    badge: 'bg-blue-100 text-blue-700',
+    badgeBorder: 'border-blue-300',
+    label: 'Não Urgente',
+    emoji: '🔵',
+    icon: CheckCircle2,
+    iconColor: 'text-blue-600',
+    titulo: 'Sem urgência',
+    mensagem: 'Seus sintomas não indicam urgência. Recomendamos agendar uma consulta de rotina no horário que preferir.',
   },
 }
 
@@ -823,6 +851,7 @@ function EtapaResultado({
   onConsultarAgora: () => void
   onAgendar: () => void
 }) {
+  // ── Analisando ──────────────────────────────────────────────────────────────
   if (analisando) {
     return (
       <div className="flex-1 flex items-center justify-center px-4 py-8">
@@ -832,14 +861,15 @@ function EtapaResultado({
             <div className="w-16 h-16 bg-[#EAF7F2] rounded-2xl flex items-center justify-center mx-auto mb-5">
               <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
             </div>
-            <p className="text-lg font-bold text-[#1A3A2C] mb-2">Analisando seus dados...</p>
-            <p className="text-sm text-gray-400">Nossa IA está avaliando suas informações para determinar o melhor atendimento.</p>
+            <p className="text-lg font-bold text-[#1A3A2C] mb-2">Aplicando Protocolo de Manchester...</p>
+            <p className="text-sm text-gray-400">A IA está avaliando seus dados clínicos para determinar a classificação de risco.</p>
           </div>
         </div>
       </div>
     )
   }
 
+  // ── Erro ────────────────────────────────────────────────────────────────────
   if (erroAnalise) {
     return (
       <div className="flex-1 flex items-center justify-center px-4 py-8">
@@ -861,9 +891,76 @@ function EtapaResultado({
 
   if (!resultado) return null
 
+  // ── 🔴 VERMELHO — Tela de emergência (toma tudo, sem botões de consulta) ────
+  if (resultado.classificacao === 'vermelho') {
+    return (
+      <div className="flex-1 bg-red-700 flex flex-col items-center justify-center px-4 py-8 min-h-0 overflow-y-auto">
+        <div className="max-w-md w-full text-white text-center">
+
+          {/* Ícone pulsante */}
+          <div className="w-24 h-24 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-5 shadow-lg">
+            <AlertCircle className="w-14 h-14 text-white animate-pulse" />
+          </div>
+
+          {/* Título */}
+          <div className="mb-2">
+            <span className="bg-white text-red-700 font-extrabold text-sm px-3 py-1 rounded-full uppercase tracking-widest">
+              🔴 PROTOCOLO DE MANCHESTER — EMERGÊNCIA
+            </span>
+          </div>
+          <h1 className="text-3xl font-extrabold mt-3 mb-4 leading-tight">
+            Atendimento presencial imediato
+          </h1>
+
+          {/* Resumo da IA */}
+          <div className="bg-red-800/60 rounded-2xl p-5 mb-5 text-left">
+            <p className="text-xs font-semibold text-red-200 uppercase tracking-wide mb-2">
+              O que a triagem identificou
+            </p>
+            <p className="text-sm text-red-50 leading-relaxed">{resultado.resumo}</p>
+          </div>
+
+          {/* Instrução principal */}
+          <div className="bg-white/15 border border-white/30 rounded-2xl p-5 mb-6">
+            <p className="text-base font-bold mb-2">⚠️ Não aguarde na fila virtual</p>
+            <p className="text-sm text-red-100 leading-relaxed">
+              {resultado.recomendacao || 'Vá IMEDIATAMENTE à Unidade de Emergência / Pronto-Socorro mais próximo ou ligue para o SAMU.'}
+            </p>
+          </div>
+
+          {/* CTA — SAMU */}
+          <a
+            href="tel:192"
+            className="flex items-center justify-center gap-3 w-full bg-white text-red-700 font-extrabold py-5 rounded-2xl text-xl mb-4 hover:bg-red-50 transition-colors shadow-lg"
+          >
+            📞 Ligar para o SAMU — 192
+          </a>
+
+          {/* CTA secundário */}
+          <div className="bg-red-800/50 border border-red-500/40 rounded-xl px-4 py-3 mb-6 text-sm text-red-100">
+            Ou dirija-se imediatamente à <strong>Unidade de Emergência / Pronto-Socorro</strong> mais próximo.
+          </div>
+
+          {/* Link discreto para o painel */}
+          <Link
+            href="/paciente/dashboard"
+            className="text-xs text-red-300 hover:text-white transition-colors"
+          >
+            Ir ao painel (sair desta tela)
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  // ── 🟠🟡🟢🔵 Outros níveis do Manchester ───────────────────────────────────
   const config = configRisco[resultado.classificacao]
-  const Icon = config.icon
-  const isAlto = resultado.classificacao === 'vermelho'
+  const Icon   = config.icon
+
+  // Laranja: consultar agora obrigatório (não dá pra agendar — precisa ser visto rápido)
+  const isLaranja  = resultado.classificacao === 'laranja'
+  // Verde / Azul: agendar preferido
+  const preferirAgendar = resultado.classificacao === 'verde' || resultado.classificacao === 'azul'
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-8">
@@ -880,7 +977,7 @@ function EtapaResultado({
             </div>
             <div>
               <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${config.badge} ${config.badgeBorder}`}>
-                {config.emoji} {config.label}
+                {config.emoji} Protocolo de Manchester — {config.label}
               </span>
               <p className="text-base font-bold text-[#1A3A2C] mt-1">{config.titulo}</p>
             </div>
@@ -895,29 +992,25 @@ function EtapaResultado({
           {/* Recomendação */}
           <p className="text-sm text-gray-600 leading-relaxed mb-5">{resultado.recomendacao}</p>
 
-          {/* CTAs baseadas no risco */}
-          {isAlto ? (
-            /* Risco Alto: apenas atendimento imediato */
+          {/* ── CTAs por nível Manchester ── */}
+
+          {isLaranja ? (
+            /* 🟠 LARANJA — Muito Urgente: consultar agora APENAS (sem agendamento) */
             <div className="space-y-3">
-              <button onClick={onSolicitarImediato} disabled={solicitando}
-                className="w-full flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white py-4 rounded-xl text-sm font-bold transition-colors">
+              <button onClick={onConsultarAgora} disabled={solicitando}
+                className="w-full flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-60 text-white py-4 rounded-xl text-sm font-bold transition-colors">
                 {solicitando
-                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Conectando com médico...</>
-                  : <><Clock className="w-4 h-4" /> Atendimento imediato</>
+                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Entrando na fila...</>
+                  : <><Video className="w-4 h-4" /> Consultar agora — fila prioritária</>
                 }
               </button>
-              <p className="text-xs text-center text-gray-500">
-                Você entrará na fila de atendimento e será atendido pelo próximo médico disponível.
+              <p className="text-xs text-center text-orange-700 font-medium">
+                Você entrará na fila com prioridade alta. Não recomendamos agendar para depois.
               </p>
-              <div className="pt-2 border-t border-gray-200">
-                <a href="tel:192"
-                  className="w-full flex items-center justify-center gap-2 border border-red-300 text-red-600 hover:bg-red-50 py-2.5 rounded-xl text-sm font-semibold transition-colors">
-                  📞 Ligar para o SAMU (192)
-                </a>
-              </div>
             </div>
-          ) : modoAgendamento ? (
-            /* Modo agendamento: Agendar como CTA principal */
+
+          ) : preferirAgendar && !modoAgendamento ? (
+            /* 🟢🔵 VERDE/AZUL — Agendar preferido, consultar disponível */
             <div className="space-y-3">
               <button onClick={onAgendar}
                 className="w-full flex items-center justify-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-bold transition-colors">
@@ -931,8 +1024,25 @@ function EtapaResultado({
                 }
               </button>
             </div>
+
+          ) : modoAgendamento ? (
+            /* Modo agendamento: Agendar primário */
+            <div className="space-y-3">
+              <button onClick={onAgendar}
+                className="w-full flex items-center justify-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-bold transition-colors">
+                <Calendar className="w-4 h-4" /> Agendar consulta
+              </button>
+              <button onClick={onConsultarAgora} disabled={solicitando}
+                className="w-full flex items-center justify-center gap-2 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-[#EAF7F2] py-3 rounded-xl text-sm font-semibold transition-colors">
+                {solicitando
+                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Criando sala...</>
+                  : <><Video className="w-4 h-4" /> Consultar na hora</>
+                }
+              </button>
+            </div>
+
           ) : (
-            /* Modo normal: Consultar como CTA principal */
+            /* 🟡 AMARELO e demais — Consultar primário */
             <div className="space-y-3">
               <button onClick={onConsultarAgora} disabled={solicitando}
                 className="w-full flex items-center justify-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] disabled:opacity-60 text-white py-3.5 rounded-xl text-sm font-semibold transition-colors">

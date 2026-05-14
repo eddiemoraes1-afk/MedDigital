@@ -18,14 +18,20 @@ interface AtendimentoFila {
   triagens: { id: string; classificacao_risco: string | null; resumo_ia: string | null } | null
 }
 
+// Protocolo de Manchester
 const COR_RISCO: Record<string, string> = {
+  azul:     'bg-blue-100 text-blue-700',
   verde:    'bg-green-100 text-green-700',
   amarelo:  'bg-yellow-100 text-yellow-700',
   laranja:  'bg-orange-100 text-orange-700',
   vermelho: 'bg-red-100 text-red-700',
 }
 const LABEL_RISCO: Record<string, string> = {
-  verde: 'Baixo', amarelo: 'Moderado', laranja: 'Alto', vermelho: 'Urgência',
+  azul:     'Não Urgente',
+  verde:    'Pouco Urgente',
+  amarelo:  'Urgente',
+  laranja:  'Muito Urgente',
+  vermelho: 'Emergência',
 }
 
 function formatarHora(iso: string) {

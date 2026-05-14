@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 
+// Protocolo de Manchester — vermelho primeiro, azul por último
 const ORDEM_RISCO: Record<string, number> = {
-  vermelho: 0, laranja: 1, amarelo: 2, verde: 3,
+  vermelho: 0, laranja: 1, amarelo: 2, verde: 3, azul: 4,
 }
 
 /**
