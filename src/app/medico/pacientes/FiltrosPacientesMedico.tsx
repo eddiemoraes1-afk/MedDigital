@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Search, Brain, ChevronRight, User, FileText, Phone, ArrowUpDown, Calendar } from 'lucide-react'
+import { Search, ChevronRight, User, FileText, Phone, ArrowUpDown, Calendar, Clock } from 'lucide-react'
 
 interface Paciente {
   id: string
@@ -38,6 +38,26 @@ const labelRisco: Record<string, string> = {
 
 const ordemRisco: Record<string, number> = { vermelho: 0, laranja: 1, amarelo: 2, verde: 3 }
 
+function formatarDataTriagem(iso: string): string {
+  const d = new Date(iso)
+  const hoje = new Date()
+  const ontem = new Date(hoje)
+  ontem.setDate(ontem.getDate() - 1)
+
+  const mesmodia = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+
+  if (mesmodia(d, hoje)) {
+    return `Hoje às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}`
+  }
+  if (mesmodia(d, ontem)) {
+    return `Ontem às ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}`
+  }
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo' })
+}
+
 function calcularIdade(dataNasc: string | null): number | null {
   if (!dataNasc) return null
   const nasc = new Date(dataNasc)
@@ -51,7 +71,7 @@ function calcularIdade(dataNasc: string | null): number | null {
 export default function FiltrosPacientesMedico({ pacientes }: { pacientes: Paciente[] }) {
   const [busca, setBusca] = useState('')
   const [filtroRisco, setFiltroRisco] = useState<string>('todos')
-  const [ordenacao, setOrdenacao] = useState<'risco' | 'az' | 'za' | 'recentes'>('risco')
+  const [ordenacao, setOrdenacao] = useState<'risco' | 'az' | 'za' | 'recentes'>('recentes')
   const [dataInicio, setDataInicio] = useState('')
   const [dataFim, setDataFim] = useState('')
 
@@ -174,10 +194,10 @@ export default function FiltrosPacientesMedico({ pacientes }: { pacientes: Pacie
             onChange={e => setOrdenacao(e.target.value as any)}
             className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white"
           >
+            <option value="recentes">Triagem mais recente</option>
             <option value="risco">Por prioridade (risco)</option>
             <option value="az">A → Z</option>
             <option value="za">Z → A</option>
-            <option value="recentes">Triagem mais recente</option>
           </select>
         </div>
       </div>
@@ -240,6 +260,15 @@ export default function FiltrosPacientesMedico({ pacientes }: { pacientes: Pacie
                       )}
                     </div>
 
+                    {p.ultima_triagem?.criado_em && (
+                      <p className="flex items-center gap-1 text-xs text-gray-400 mt-0.5">
+                        <Clock className="w-3 h-3 shrink-0" />
+                        {formatarDataTriagem(p.ultima_triagem.criado_em)}
+                      </p>
+                    )}
+                    {!p.ultima_triagem && (
+                      <p className="text-xs text-gray-300 mt-0.5 italic">Sem triagem registrada</p>
+                    )}
                     {p.ultima_triagem?.resumo_ia && (
                       <p className="text-xs text-gray-400 mt-1 line-clamp-1 italic">
                         {p.ultima_triagem.resumo_ia}
