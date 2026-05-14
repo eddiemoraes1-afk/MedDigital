@@ -128,7 +128,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
   const totalReceitas = renovacoes.reduce((s, r) => s + (r.valor_cobrado || 0), 0)
   const totalCoparticipacaoReceitas = renovacoes.reduce((s, r) => s + (r.valor_coparticipacao || 0), 0)
   const totalCoparticipacaoGeral = totalCoparticipacao + totalCoparticipacaoReceitas
-  const totalGeral = totalConsultas + totalMensalidade + totalReceitas
+  const totalGeral = totalConsultas + totalReceitas
   const percentualCopart = dados?.empresa?.percentual_coparticipacao ?? 0
   const temCoparticipacao = percentualCopart > 0
 
@@ -266,21 +266,16 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
           ['Total co-participação funcionários (R$)', totalCoparticipacao],
         ] : []),
         [''],
-        ['─── MENSALIDADE ───', ''],
-        ['Funcionários ativos', dados.funcionariosAtivos || 0],
-        ['Mensalidade / funcionário / mês (R$)', dados.empresa?.preco_mensalidade || 0],
-        ['Meses no período', meses],
-        ['Total mensalidade (R$)', totalMensalidade],
-        [''],
-        ['─── RECEITAS ───', ''],
-        ['Receitas emitidas', receitas.length],
-        ['Preço por receita (R$)', dados.empresa?.preco_receita || 0],
-        ['Total receitas (R$)', totalReceitas],
+        ['─── RENOVAÇÕES DE RECEITA ───', ''],
+        ['Renovações cobradas', renovacoes.length],
+        ['Preço por renovação (R$)', dados.empresa?.preco_receita || 0],
+        ['Total renovações (R$)', totalReceitas],
         ...(temCoparticipacao && totalCoparticipacaoReceitas > 0 ? [
-          ['Co-participação funcionários em receitas (R$)', totalCoparticipacaoReceitas],
+          ['Co-participação funcionários em renovações (R$)', totalCoparticipacaoReceitas],
         ] : []),
         [''],
         ['TOTAL A PAGAR (R$)', totalGeral],
+        ['(consultas + renovações)', ''],
         ...(temCoparticipacao ? [
           [''],
           ['─── CO-PARTICIPAÇÃO TOTAL ───', ''],
@@ -407,11 +402,6 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
       <div class="val">${formatBRL(totalConsultas)}</div>
       <div style="font-size:10px;color:#555;margin-top:2px">${consultasFiltradas.length} consulta${consultasFiltradas.length !== 1 ? 's' : ''} × ${formatBRL(dados.empresa?.preco_consulta || 0)}</div>
     </div>
-    <div class="card mensalidade">
-      <div class="lbl">Total mensalidade</div>
-      <div class="val">${formatBRL(totalMensalidade)}</div>
-      <div style="font-size:10px;color:#555;margin-top:2px">${dados.funcionariosAtivos} func. × ${formatBRL(dados.empresa?.preco_mensalidade || 0)} × ${meses} ${meses === 1 ? 'mês' : 'meses'}</div>
-    </div>
     ${renovacoes.length > 0 ? `<div class="card receitas">
       <div class="lbl">Total renovações</div>
       <div class="val">${formatBRL(totalReceitas)}</div>
@@ -482,7 +472,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
   <div class="total-geral">
     <div>
       <div class="tg-lbl">Total a Pagar no período</div>
-      <div class="tg-sub">${formatBRL(totalConsultas)} consultas + ${formatBRL(totalMensalidade)} mensalidade${totalReceitas > 0 ? ` + ${formatBRL(totalReceitas)} receitas` : ''}</div>
+      <div class="tg-sub">${formatBRL(totalConsultas)} consultas${totalReceitas > 0 ? ` + ${formatBRL(totalReceitas)} renovações` : ''}</div>
     </div>
     <div class="tg-val">${formatBRL(totalGeral)}</div>
   </div>
@@ -590,7 +580,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
         <div className="space-y-6">
 
           {/* Cards de resumo */}
-          <div className={`grid gap-4 grid-cols-2 ${temCoparticipacao ? 'md:grid-cols-3 lg:grid-cols-6' : 'md:grid-cols-3 lg:grid-cols-5'}`}>
+          <div className={`grid gap-4 grid-cols-2 ${temCoparticipacao ? 'md:grid-cols-3 lg:grid-cols-5' : 'md:grid-cols-2 lg:grid-cols-4'}`}>
             <div className="bg-blue-50 rounded-2xl p-4">
               <p className="text-xs text-blue-500 font-medium mb-1">Consultas</p>
               <p className="text-2xl font-bold text-blue-700">{consultasFiltradas.length}</p>
@@ -601,13 +591,6 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
             <div className="bg-green-50 rounded-2xl p-4">
               <p className="text-xs text-green-500 font-medium mb-1">Total consultas</p>
               <p className="text-2xl font-bold text-green-700">{formatBRL(totalConsultas)}</p>
-            </div>
-            <div className="bg-purple-50 rounded-2xl p-4">
-              <p className="text-xs text-purple-500 font-medium mb-1">Total mensalidade</p>
-              <p className="text-2xl font-bold text-purple-700">{formatBRL(totalMensalidade)}</p>
-              <p className="text-xs text-purple-400 mt-1">
-                {dados?.funcionariosAtivos ?? 0} func. × {meses} {meses === 1 ? 'mês' : 'meses'}
-              </p>
             </div>
             <div className="bg-cyan-50 rounded-2xl p-4">
               <p className="text-xs text-cyan-600 font-medium mb-1">Renovações cobradas</p>
@@ -630,6 +613,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
             <div className="bg-[#1A3A2C] rounded-2xl p-4">
               <p className="text-xs text-green-300 font-medium mb-1">Total a Pagar</p>
               <p className="text-xl font-bold text-white leading-tight">{formatBRL(totalGeral)}</p>
+              <p className="text-xs text-green-400 mt-1">consultas + renovações</p>
             </div>
           </div>
 
