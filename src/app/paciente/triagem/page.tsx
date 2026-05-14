@@ -259,13 +259,18 @@ function EtapaValidacao({
         {!aceito && (
           <>
             <div className="bg-[#F3FAF7] border border-green-100 rounded-2xl p-4 mb-5">
-              <p className="text-sm font-semibold text-[#1A3A2C] mb-1 flex items-center gap-1.5">
+              <p className="text-sm font-semibold text-[#1A3A2C] mb-2 flex items-center gap-1.5">
                 <Shield className="w-4 h-4 text-[#5BBD9B]" /> Consentimento LGPD
               </p>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Você autoriza o atendimento por <strong>telemedicina</strong> e o registro das suas
-                informações de saúde no <strong>prontuário eletrônico</strong>, conforme a
-                Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018)?
+                Ao continuar, você autoriza a <strong>MedDigital</strong> a coletar e tratar seus{' '}
+                <strong>dados pessoais e dados de saúde</strong> para realizar seu cadastro, triagem,
+                atendimento médico online, emissão de documentos, manutenção de prontuário,
+                histórico clínico, segurança da plataforma e cumprimento de obrigações legais.{' '}
+                Seus dados clínicos <strong>não serão compartilhados livremente</strong> com sua empresa.
+                Quando houver empresa contratante, ela poderá receber informações administrativas
+                necessárias à gestão do benefício e dados estatísticos agregados ou anonimizados,
+                conforme a <strong>Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018)</strong>.
               </p>
               <a
                 href="/termo-lgpd.pdf"
