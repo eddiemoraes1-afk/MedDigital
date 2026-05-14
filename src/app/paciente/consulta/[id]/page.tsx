@@ -3,23 +3,92 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2, Clock, Phone, Video, CheckCircle2, ArrowRight } from 'lucide-react'
+import { Loader2, Clock, Phone, Video, CheckCircle2, ArrowRight, Users } from 'lucide-react'
+
+// ── Helpers de áudio ──────────────────────────────────────────────────────────
+
+function tocarBeep(frequencias: number[], duracaoMs = 220) {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+    frequencias.forEach((freq, i) => {
+      const osc  = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.frequency.value = freq
+      osc.type = 'sine'
+      const t0 = ctx.currentTime + i * (duracaoMs / 1000 + 0.06)
+      const t1 = t0 + duracaoMs / 1000
+      gain.gain.setValueAtTime(0.45, t0)
+      gain.gain.exponentialRampToValueAtTime(0.01, t1)
+      osc.start(t0)
+      osc.stop(t1)
+    })
+  } catch (_) {}
+}
+
+function falarPT(texto: string) {
+  try {
+    window.speechSynthesis.cancel()
+    const utter  = new SpeechSynthesisUtterance(texto)
+    utter.lang   = 'pt-BR'
+    utter.rate   = 0.88
+    utter.pitch  = 1
+    window.speechSynthesis.speak(utter)
+  } catch (_) {}
+}
+
+function alertaPosicao2() {
+  tocarBeep([880, 1100], 250)
+  setTimeout(() => falarPT('Atenção! Você é o segundo da fila. Prepare-se, você será atendido em breve!'), 750)
+}
+
+function alertaMedicoAssumiu() {
+  tocarBeep([523, 659, 784], 200)
+  setTimeout(() => falarPT('Um médico já está revisando o seu prontuário e entrará na sala em instantes!'), 900)
+}
+
+// ── Ordinal em português ──────────────────────────────────────────────────────
+
+function ordinalPT(n: number): string {
+  const map: Record<number, string> = {
+    1: 'primeiro', 2: 'segundo',  3: 'terceiro', 4: 'quarto',
+    5: 'quinto',   6: 'sexto',    7: 'sétimo',   8: 'oitavo',
+    9: 'nono',    10: 'décimo',
+  }
+  return map[n] ?? `${n}º`
+}
+
+// ── Tipos ─────────────────────────────────────────────────────────────────────
+
+interface PosicaoInfo {
+  posicao:       number | null
+  total:         number
+  medicoAssumiu: boolean
+  medicosAtivos: number
+  tempoEstimado: number | null
+}
+
+// ── Componente principal ──────────────────────────────────────────────────────
 
 export default function ConsultaPaciente() {
   const { id } = useParams()
   const router  = useRouter()
 
-  const [atendimento,       setAtendimento]       = useState<any>(null)
-  const [pacienteNome,      setPacienteNome]      = useState('')
-  const [carregando,        setCarregando]        = useState(true)
-  const [entrou,            setEntrou]            = useState(false)
-  const [encerrado,         setEncerrado]         = useState(false)
-  const [encaminhado,       setEncaminhado]       = useState(false) // encaminhado para próximo médico
+  const [atendimento,  setAtendimento]  = useState<any>(null)
+  const [pacienteNome, setPacienteNome] = useState('')
+  const [carregando,   setCarregando]   = useState(true)
+  const [entrou,       setEntrou]       = useState(false)
+  const [encerrado,    setEncerrado]    = useState(false)
+  const [encaminhado,  setEncaminhado]  = useState(false)
+  const [posicaoInfo,  setPosicaoInfo]  = useState<PosicaoInfo | null>(null)
 
-  // Refs: valores mutáveis que precisam ser acessados dentro do polling sem closure stale
+  // Refs: acessados dentro do polling sem stale closure
   const atendimentoIdRef = useRef<string>(id as string)
   const pacienteIdRef    = useRef<string>('')
   const encerradoRef     = useRef(false)
+  const prevPosicaoRef   = useRef<number | null>(null)
+  const prevAssumiuRef   = useRef(false)
 
   useEffect(() => {
     poll()
@@ -29,7 +98,7 @@ export default function ConsultaPaciente() {
   }, [])
 
   async function poll() {
-    if (encerradoRef.current) return // para de checar quando encerrado
+    if (encerradoRef.current) return
 
     const supabase = createClient()
 
@@ -61,7 +130,6 @@ export default function ConsultaPaciente() {
     if (data.status === 'concluido') {
       const pid = pacienteIdRef.current || data.paciente_id
 
-      // Verifica se existe um novo atendimento ativo para o paciente (encaminhamento)
       const { data: novoAtend } = await supabase
         .from('atendimentos')
         .select('id, status, sala_video, medicos(nome, especialidade)')
@@ -73,25 +141,57 @@ export default function ConsultaPaciente() {
         .maybeSingle()
 
       if (novoAtend?.id) {
-        // ── Encaminhamento imediato: manter sala aberta, trocar de atendimento ──
         atendimentoIdRef.current = novoAtend.id
         setEncaminhado(true)
-        setEntrou(false) // paciente precisará "entrar" de novo quando o novo médico chegar
+        setEntrou(false)
         setAtendimento(novoAtend)
+        setPosicaoInfo(null)
+        prevPosicaoRef.current = null
+        prevAssumiuRef.current = false
         setCarregando(false)
         return
       }
 
-      // ── Sem encaminhamento: encerrar e redirecionar ──
       encerradoRef.current = true
       setEncerrado(true)
       setTimeout(() => router.push('/paciente/dashboard'), 3500)
       return
     }
 
-    // Se o novo médico entrou, limpa o banner de encaminhamento
+    // Se novo médico entrou na sala, limpa banner de encaminhamento
     if (data.status === 'em_andamento') {
       setEncaminhado(false)
+      setPosicaoInfo(null)
+    }
+
+    // ── Posição na fila (só quando aguardando) ────────────────────────────────
+    if (data.status === 'aguardando') {
+      try {
+        const res = await fetch(
+          `/api/paciente/posicao-fila?atendimento_id=${atendimentoIdRef.current}`
+        )
+        if (res.ok) {
+          const info: PosicaoInfo = await res.json()
+          setPosicaoInfo(info)
+
+          // ── Detectar transições e disparar alertas ─────────────────────────
+          const prevPos    = prevPosicaoRef.current
+          const prevAssumi = prevAssumiuRef.current
+
+          // Entrou na posição 2
+          if (info.posicao === 2 && prevPos !== 2 && prevPos !== null) {
+            alertaPosicao2()
+          }
+
+          // Médico assumiu (transição de false → true)
+          if (info.medicoAssumiu && !prevAssumi) {
+            alertaMedicoAssumiu()
+          }
+
+          prevPosicaoRef.current  = info.posicao
+          prevAssumiuRef.current  = info.medicoAssumiu
+        }
+      } catch (_) {}
     }
 
     setAtendimento(data)
@@ -120,7 +220,7 @@ export default function ConsultaPaciente() {
     )
   }
 
-  // ── Tela de consulta encerrada (médico encerrou) ──────────────────────────
+  // ── Tela de consulta encerrada ────────────────────────────────────────────
   if (encerrado) {
     return (
       <div className="min-h-screen bg-[#1A3A2C] flex items-center justify-center">
@@ -169,9 +269,22 @@ export default function ConsultaPaciente() {
     }
   })()
 
+  const pos       = posicaoInfo?.posicao   ?? null
+  const assumiu   = posicaoInfo?.medicoAssumiu ?? false
+  const ehSegundo = pos === 2
+
   // ── Tela principal da consulta ────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#0F1F33] flex flex-col">
+
+      {/* CSS inline para animações */}
+      <style>{`
+        @keyframes fila-pisca {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.25; }
+        }
+        .fila-pisca { animation: fila-pisca 0.9s ease-in-out infinite; }
+      `}</style>
 
       {/* Header */}
       <div className="bg-[#1A3A2C] px-6 py-3 flex items-center justify-between shrink-0">
@@ -184,7 +297,13 @@ export default function ConsultaPaciente() {
           {atendimento.status === 'aguardando' && (
             <div className="flex items-center gap-2 bg-amber-500/20 text-amber-300 px-3 py-1.5 rounded-full text-xs">
               <Clock className="w-3.5 h-3.5" />
-              {encaminhado ? 'Aguardando próximo médico...' : 'Aguardando médico...'}
+              {assumiu
+                ? 'Médico revisando prontuário...'
+                : encaminhado
+                  ? 'Aguardando próximo médico...'
+                  : pos !== null
+                    ? `${pos}º da fila`
+                    : 'Aguardando médico...'}
             </div>
           )}
           {atendimento.status === 'em_andamento' && atendimento.medicos && (
@@ -205,7 +324,7 @@ export default function ConsultaPaciente() {
       {/* Área do vídeo */}
       <div className="flex-1 relative">
 
-        {/* Banner de encaminhamento (topo, sobre o iframe) */}
+        {/* Banner de encaminhamento */}
         {encaminhado && (
           <div className="absolute top-0 left-0 right-0 z-20 flex justify-center pt-4 px-4 pointer-events-none">
             <div className="bg-amber-600/95 backdrop-blur-sm text-white px-5 py-2.5 rounded-full text-sm font-medium flex items-center gap-2 shadow-lg">
@@ -215,27 +334,90 @@ export default function ConsultaPaciente() {
           </div>
         )}
 
-        {/* Tela de espera: aguardando médico */}
+        {/* Tela de espera */}
         {atendimento.status === 'aguardando' && (
           <div className="absolute inset-0 bg-[#0F1F33] flex items-center justify-center z-10 pointer-events-none">
             <div className="text-center text-white max-w-sm px-6">
+
+              {/* Ícone */}
               <div className="w-20 h-20 bg-[#1A3A2C] rounded-full flex items-center justify-center mx-auto mb-6">
                 <Clock className="w-10 h-10 text-green-300" />
               </div>
-              <h2 className="text-xl font-bold mb-3">
-                {encaminhado ? 'Aguardando Próximo Médico' : 'Aguardando Médico'}
-              </h2>
-              <p className="text-green-300 text-sm leading-relaxed">
-                {encaminhado
-                  ? 'Você foi encaminhado para outro especialista. Fique na sala — o médico entrará em breve.'
-                  : 'Um Médico está analisando a sua triagem, seu histórico de consultas e seu prontuário, e entrará na sala em instantes.'}
-              </p>
-              <p className="text-blue-400 text-xs mt-4">A câmera vai abrir assim que o médico entrar.</p>
+
+              {/* Estado: médico assumiu */}
+              {assumiu ? (
+                <>
+                  <h2 className="text-2xl font-bold mb-3 text-green-300">Médico Chegando!</h2>
+                  <p className="text-green-200 text-sm leading-relaxed">
+                    Um médico já está revisando o seu prontuário e os dados da triagem.
+                    Ele entrará na sala em instantes!
+                  </p>
+                  <div className="mt-5 flex justify-center">
+                    <Loader2 className="w-5 h-5 animate-spin text-green-400" />
+                  </div>
+                </>
+
+              /* Estado: posição na fila conhecida */
+              ) : pos !== null ? (
+                <>
+                  {/* Número da posição */}
+                  <div className={`font-extrabold mb-1 tabular-nums transition-all ${
+                    ehSegundo
+                      ? 'text-yellow-300 fila-pisca text-7xl'
+                      : pos === 1
+                        ? 'text-green-300 text-6xl'
+                        : 'text-white text-5xl'
+                  }`}>
+                    {pos}º
+                  </div>
+
+                  <h2 className={`font-bold mb-3 ${ehSegundo ? 'text-yellow-200 text-xl' : 'text-lg'}`}>
+                    Você é o <span className="italic">{ordinalPT(pos)}</span> da fila
+                  </h2>
+
+                  {/* Médicos ativos */}
+                  {(posicaoInfo?.medicosAtivos ?? 0) > 0 && (
+                    <div className="flex items-center justify-center gap-1.5 text-blue-300 text-sm mb-2">
+                      <Users className="w-4 h-4" />
+                      {posicaoInfo!.medicosAtivos} médico{posicaoInfo!.medicosAtivos > 1 ? 's' : ''} atendendo agora
+                    </div>
+                  )}
+
+                  {/* Tempo estimado */}
+                  {posicaoInfo?.tempoEstimado && (
+                    <p className="text-amber-300 text-sm mb-1">
+                      Tempo estimado: ~{posicaoInfo.tempoEstimado} minuto{posicaoInfo.tempoEstimado !== 1 ? 's' : ''}
+                    </p>
+                  )}
+
+                  {/* Total na fila */}
+                  {(posicaoInfo?.total ?? 0) > 1 && (
+                    <p className="text-gray-500 text-xs mt-1">
+                      {posicaoInfo?.total} pessoas na fila
+                    </p>
+                  )}
+                </>
+
+              /* Estado padrão: sem info de posição ainda */
+              ) : (
+                <>
+                  <h2 className="text-xl font-bold mb-3">
+                    {encaminhado ? 'Aguardando Próximo Médico' : 'Aguardando Médico'}
+                  </h2>
+                  <p className="text-green-300 text-sm leading-relaxed">
+                    {encaminhado
+                      ? 'Você foi encaminhado para outro especialista. Fique na sala — o médico entrará em breve.'
+                      : 'Um Médico está analisando a sua triagem, seu histórico de consultas e seu prontuário, e entrará na sala em instantes.'}
+                  </p>
+                </>
+              )}
+
+              <p className="text-blue-400 text-xs mt-5">A câmera vai abrir assim que o médico entrar.</p>
             </div>
           </div>
         )}
 
-        {/* Tela de pré-entrada (médico já está na sala) */}
+        {/* Tela de pré-entrada (médico já está na sala, aguardando paciente clicar) */}
         {!entrou && atendimento.status !== 'aguardando' && (
           <div className="absolute inset-0 bg-[#0F1F33] flex items-center justify-center z-10">
             <div className="text-center text-white max-w-sm px-6">
