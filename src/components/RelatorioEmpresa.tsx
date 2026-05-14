@@ -799,47 +799,13 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
             )}
           </div>
 
-          {/* Mensalidade */}
-          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-gray-100">
-              <p className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2">
-                <Users className="w-4 h-4 text-purple-500" />
-                Mensalidade do sistema
-              </p>
-            </div>
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Funcionários ativos</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Valor/mês/funcionário</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wide">Meses</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">Total mensalidade</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="px-4 py-4 font-medium text-gray-800">{dados?.funcionariosAtivos ?? 0} funcionários</td>
-                  <td className="px-4 py-4 text-center text-gray-600">{formatBRL(dados?.empresa?.preco_mensalidade ?? 0)}</td>
-                  <td className="px-4 py-4 text-center text-gray-600">{meses} {meses === 1 ? 'mês' : 'meses'}</td>
-                  <td className="px-4 py-4 text-right font-semibold text-purple-700">{formatBRL(totalMensalidade)}</td>
-                </tr>
-              </tbody>
-              <tfoot className="bg-purple-50 border-t border-purple-100">
-                <tr>
-                  <td colSpan={3} className="px-4 py-3 font-bold text-[#1A3A2C]">Total mensalidade</td>
-                  <td className="px-4 py-3 text-right font-bold text-purple-700 text-base">{formatBRL(totalMensalidade)}</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-
-          {/* Total geral */}
+          {/* Bloco verde — consultas + renovações */}
           <div className="bg-[#1A3A2C] rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-300 text-sm font-semibold">Total a Pagar no período</p>
                 <p className="text-xs text-green-400 mt-1">
-                  {formatBRL(totalConsultas)} consultas + {formatBRL(totalMensalidade)} mensalidade{totalReceitas > 0 ? ` + ${formatBRL(totalReceitas)} receitas` : ''}
+                  {formatBRL(totalConsultas)} consultas{totalReceitas > 0 ? ` + ${formatBRL(totalReceitas)} renovações` : ''}
                 </p>
               </div>
               <div className="text-right">
@@ -852,7 +818,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
                   <p className="text-orange-300 text-sm font-semibold">Co-participação total dos funcionários ({percentualCopart}%)</p>
                   <p className="text-xs text-orange-400 mt-1">
                     {formatBRL(totalCoparticipacao)} consultas
-                    {totalCoparticipacaoReceitas > 0 && ` + ${formatBRL(totalCoparticipacaoReceitas)} receitas`}
+                    {totalCoparticipacaoReceitas > 0 && ` + ${formatBRL(totalCoparticipacaoReceitas)} renovações`}
                   </p>
                 </div>
                 <div className="text-right">
@@ -860,6 +826,47 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Bloco resumo total geral (consultas + renovações + mensalidade) */}
+          <div className="bg-[#0F2A1E] rounded-2xl p-6">
+            <p className="text-green-300 text-sm font-semibold mb-4">Resumo de Cobrança do Período</p>
+            <div className="space-y-3">
+              {/* Consultas */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white text-sm font-medium">Consultas</p>
+                  <p className="text-green-500 text-xs mt-0.5">{consultasFiltradas.length} consulta{consultasFiltradas.length !== 1 ? 's' : ''} × {formatBRL(dados?.empresa?.preco_consulta ?? 0)}</p>
+                </div>
+                <p className="text-green-300 font-semibold text-lg">{formatBRL(totalConsultas)}</p>
+              </div>
+              {/* Renovações */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white text-sm font-medium">Renovações de Receita</p>
+                  <p className="text-green-500 text-xs mt-0.5">{renovacoes.length} renovação{renovacoes.length !== 1 ? 'ões' : ''} × {formatBRL(dados?.empresa?.preco_receita ?? 0)}</p>
+                </div>
+                <p className="text-green-300 font-semibold text-lg">{formatBRL(totalReceitas)}</p>
+              </div>
+              {/* Mensalidade */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white text-sm font-medium">Mensalidade do Sistema</p>
+                  <p className="text-green-500 text-xs mt-0.5">
+                    {dados?.funcionariosAtivos ?? 0} func. × {formatBRL(dados?.empresa?.preco_mensalidade ?? 0)} × {meses} {meses === 1 ? 'mês' : 'meses'}
+                  </p>
+                </div>
+                <p className="text-purple-300 font-semibold text-lg">{formatBRL(totalMensalidade)}</p>
+              </div>
+              {/* Divisor + Total */}
+              <div className="border-t border-green-800 pt-4 flex items-center justify-between">
+                <div>
+                  <p className="text-white text-base font-bold">Total Geral</p>
+                  <p className="text-green-500 text-xs mt-0.5">consultas + renovações + mensalidade</p>
+                </div>
+                <p className="text-white font-bold text-2xl">{formatBRL(totalConsultas + totalReceitas + totalMensalidade)}</p>
+              </div>
+            </div>
           </div>
 
         </div>
