@@ -267,6 +267,17 @@ function EtapaValidacao({
                 informações de saúde no <strong>prontuário eletrônico</strong>, conforme a
                 Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018)?
               </p>
+              <a
+                href="/termo-lgpd.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-[#5BBD9B] hover:text-[#1A3A2C] hover:underline mt-2 font-medium transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                </svg>
+                Ler os Termos de Tratamento de Dados
+              </a>
             </div>
 
             {erro && (
