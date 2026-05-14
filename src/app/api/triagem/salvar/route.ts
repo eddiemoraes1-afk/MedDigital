@@ -38,6 +38,14 @@ export async function POST(req: NextRequest) {
 
   // ── Criar triagem inicial ──────────────────────────────────────────────────
   if (action === 'criar') {
+    // Persistir telefone no cadastro do paciente para o médico ver durante a consulta
+    if (dados.telefone_contato) {
+      await adminSupabase
+        .from('pacientes')
+        .update({ telefone: dados.telefone_contato as string })
+        .eq('id', paciente.id)
+    }
+
     // classificacao_risco e direcionamento são NOT NULL no schema original.
     // Usamos 'amarelo' e 'virtual' como placeholder até a IA classificar.
     const base = {

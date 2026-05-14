@@ -297,6 +297,24 @@ export default function AtendimentoMedico() {
               <ExternalLink className="w-3.5 h-3.5" />
               <span className="text-[11px]">Prontuário</span>
             </a>
+            {paciente.telefone && (() => {
+              const digits = paciente.telefone.replace(/\D/g, '')
+              const waNum  = digits.startsWith('55') ? digits : `55${digits}`
+              const telFmt = paciente.telefone.replace(/\D/g, '')
+                .replace(/^(\d{2})(\d{4,5})(\d{4})$/, '($1) $2-$3')
+              return (
+                <a
+                  href={`https://wa.me/${waNum}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={`WhatsApp: ${telFmt}`}
+                  className="flex items-center gap-1 bg-green-700/60 hover:bg-green-600/80 border border-green-600/40 text-green-200 hover:text-white px-2 py-0.5 rounded-full transition-colors ml-1"
+                >
+                  <Phone className="w-3 h-3" />
+                  <span className="text-[11px] font-medium">{telFmt}</span>
+                </a>
+              )
+            })()}
           </div>
         )}
         {/* Contador de tempo */}
