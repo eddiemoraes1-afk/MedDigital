@@ -4,12 +4,11 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 /**
  * POST /api/medico/assumir-paciente
  *
- * Atribui o médico autenticado ao atendimento ANTES de entrar na consulta.
- * Acontece quando o médico clica no nome do paciente na fila (vai ao prontuário)
- * ou quando clica em "Atender".
- *
- * Usa update condicional (.is('medico_id', null)) para garantir atomicidade:
- * se dois médicos tentarem simultaneamente, apenas um ganha.
+ * Atribui o médico autenticado ao atendimento antes de entrar na consulta.
+ * Regras de negócio:
+ *  - O médico não pode assumir um novo paciente se já tiver uma consulta em andamento
+ *  - O médico não pode assumir um novo paciente se já tiver outro aguardando (encaminhado ou assumido)
+ *  - Race condition: usa .is('medico_id', null) para garantir atomicidade
  */
 export async function POST(req: NextRequest) {
   const supabase = await createClient()
@@ -34,7 +33,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   }
 
-  // Verificar estado atual do atendimento
+  // ── Regra 1: médico não pode assumir se já tem consulta em andamento ──────
+  const { data: consultaAtiva } = await admin
+    .from('atendimentos')
+    .select('id')
+    .eq('medico_id', medico.id)
+    .eq('status', 'em_andamento')
+    .maybeSingle()
+
+  if (consultaAtiva) {
+    return NextResponse.json({
+      error: 'Você está em uma consulta em andamento. Finalize a consulta atual antes de assumir outro paciente.',
+    }, { status: 409 })
+  }
+
+  // ── Regra 2: médico não pode assumir se já tem outro paciente aguardando ──
+  // (seja por encaminhamento ou por ter clicado no nome de outro paciente)
+  const { data: outroPendente } = await admin
+    .from('atendimentos')
+    .select('id, pacientes(nome)')
+    .eq('medico_id', medico.id)
+    .eq('status', 'aguardando')
+    .neq('id', atendimento_id) // ignora o próprio alvo (idempotência)
+    .maybeSingle()
+
+  if (outroPendente) {
+    const nomePaciente = (outroPendente as any).pacientes?.nome || 'outro paciente'
+    return NextResponse.json({
+      error: `Você já tem "${nomePaciente}" aguardando atendimento. Finalize essa consulta antes de assumir outro paciente.`,
+    }, { status: 409 })
+  }
+
+  // ── Verificar estado do atendimento alvo ──────────────────────────────────
   const { data: atendimento } = await admin
     .from('atendimentos')
     .select('id, status, medico_id')
@@ -49,7 +79,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Atendimento não está aguardando' }, { status: 409 })
   }
 
-  // Idempotente: já é deste médico
+  // Idempotente: este médico já assumiu
   if (atendimento.medico_id === medico.id) {
     return NextResponse.json({ ok: true })
   }
@@ -59,12 +89,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Paciente já foi assumido por outro médico' }, { status: 409 })
   }
 
-  // Assumir atomicamente: só atualiza se medico_id ainda for null
+  // ── Assumir atomicamente ──────────────────────────────────────────────────
   const { data: atualizado, error } = await admin
     .from('atendimentos')
     .update({ medico_id: medico.id })
     .eq('id', atendimento_id)
-    .is('medico_id', null)  // proteção contra race condition
+    .is('medico_id', null) // proteção contra race condition
     .select('id')
 
   if (error) {
@@ -72,7 +102,6 @@ export async function POST(req: NextRequest) {
   }
 
   if (!atualizado || atualizado.length === 0) {
-    // Outra requisição ganhou a corrida
     return NextResponse.json({ error: 'Paciente já foi assumido por outro médico' }, { status: 409 })
   }
 

@@ -147,24 +147,36 @@ export default function FilaVirtualRealtime() {
 
   // ── Determinar estado de cada posição da fila ─────────────────────────────
 
-  // Paciente que este médico já assumiu (mas ainda aguardando / não entrou na consulta)
-  const meuAssumido = medicoId ? fila.find(a => a.medico_id === medicoId) ?? null : null
+  // TODOS os atendimentos atribuídos a este médico (encaminhados + assumidos)
+  const meusAtendimentos = medicoId ? fila.filter(a => a.medico_id === medicoId) : []
+  const meuAssumido      = meusAtendimentos[0] ?? null // para o banner e para o ativoId
+  const estouOcupado     = meusAtendimentos.length > 0
 
-  // Se não tenho nenhum assumido, o primeiro sem médico é o "ativo" (desbloqueado)
-  const ativoId = meuAssumido
-    ? meuAssumido.id
+  // Se não tenho nenhum atribuído, o primeiro sem médico fica desbloqueado
+  const ativoId = estouOcupado
+    ? null // estou ocupado: ninguém da fila fica ativo pra mim
     : (fila.find(a => !a.medico_id)?.id ?? null)
 
   function estadoPosicao(a: AtendimentoFila): 'meu' | 'ativo' | 'travado' {
-    if (a.medico_id === medicoId && medicoId) return 'meu'    // este médico assumiu
-    if (a.id === ativoId && !meuAssumido)     return 'ativo'  // primeiro desbloqueado
+    if (a.medico_id === medicoId && medicoId) return 'meu'   // meu: encaminhado ou assumido
+    if (a.id === ativoId)                     return 'ativo' // primeiro desbloqueado (só se não estou ocupado)
     return 'travado'
   }
 
+  // Detecta se é encaminhamento e quem encaminhou
   const encaminhadoPorMatch = (a: AtendimentoFila) =>
-    a.medico_id === medicoId && a.notas_medico
-      ? a.notas_medico.match(/\[Encaminhado por (.+?)\]/)
-      : null
+    a.notas_medico ? a.notas_medico.match(/\[Encaminhado por (.+?)\]/) : null
+
+  // Mensagem do banner de ocupação
+  function mensagemBanner(): string {
+    if (!meuAssumido) return ''
+    const enc = encaminhadoPorMatch(meuAssumido)
+    const nome = meuAssumido.pacientes?.nome || 'um paciente'
+    if (enc) {
+      return `Você recebeu um encaminhamento de ${enc[1]}: atenda "${nome}" antes de assumir qualquer outro paciente da fila.`
+    }
+    return `Você assumiu "${nome}". Encerre essa consulta para liberar o próximo da fila.`
+  }
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -217,13 +229,12 @@ export default function FilaVirtualRealtime() {
         </div>
       )}
 
-      {/* Aviso: médico já tem um paciente assumido */}
-      {meuAssumido && (
+      {/* Aviso: médico ocupado (encaminhamento ou paciente assumido) */}
+      {estouOcupado && (
         <div className="px-6 py-3 bg-amber-50 border-b border-amber-100 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
           <p className="text-xs text-amber-700 font-medium">
-            Você assumiu <strong>{meuAssumido.pacientes?.nome || 'um paciente'}</strong>.
-            Encerre essa consulta para liberar o próximo da fila.
+            {mensagemBanner()}
           </p>
         </div>
       )}
