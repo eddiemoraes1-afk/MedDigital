@@ -42,6 +42,16 @@ function formatarUltimaAtt(d: Date | null) {
   })
 }
 
+function minutosEspera(iso: string): number {
+  return Math.floor((Date.now() - new Date(iso).getTime()) / 60_000)
+}
+
+function estiloEspera(minutos: number): { classe: string; label: string } {
+  if (minutos < 5)  return { classe: 'text-green-500  font-bold',                  label: `${minutos} min` }
+  if (minutos < 10) return { classe: 'text-orange-500 font-bold',                  label: `${minutos} min` }
+  return               { classe: 'text-red-600    font-bold fila-pisca',            label: `${minutos} min` }
+}
+
 const INTERVALO_MS = 10_000
 
 export default function FilaVirtualRealtime() {
@@ -51,7 +61,9 @@ export default function FilaVirtualRealtime() {
   const [atualizando, setAtualizando] = useState(false)
   const [ultimaAtt, setUltimaAtt]     = useState<Date | null>(null)
   const [erro, setErro]               = useState(false)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [, setAgora]                  = useState(Date.now()) // tick para atualizar cores
+  const intervalRef    = useRef<ReturnType<typeof setInterval> | null>(null)
+  const clockRef       = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const fetchFila = useCallback(async (silencioso = false) => {
     if (!silencioso) setLoading(true)
@@ -81,14 +93,25 @@ export default function FilaVirtualRealtime() {
       fetchFila(true)
     }, INTERVALO_MS)
 
+    // Tick a cada 30s para recalcular minutos de espera e atualizar cores
+    clockRef.current = setInterval(() => setAgora(Date.now()), 30_000)
+
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
+      if (clockRef.current)    clearInterval(clockRef.current)
     }
   }, [fetchFila])
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <style>{`
+        @keyframes fila-blink {
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0; }
+        }
+        .fila-pisca { animation: fila-blink 0.9s step-start infinite; }
+      `}</style>
       {/* Header */}
       <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -210,9 +233,16 @@ export default function FilaVirtualRealtime() {
                   ) : (
                     <p className="text-sm text-gray-300 mt-0.5 italic">Sem resumo de triagem</p>
                   )}
-                  <p className="text-xs text-gray-300 mt-1">
-                    Aguardando desde {formatarHora(atendimento.criado_em)}
-                  </p>
+                  {(() => {
+                    const mins = minutosEspera(atendimento.criado_em)
+                    const { classe, label } = estiloEspera(mins)
+                    return (
+                      <p className={`text-sm mt-1.5 ${classe}`}>
+                        Aguardando desde {formatarHora(atendimento.criado_em)}
+                        <span className="ml-1.5 text-base">({label})</span>
+                      </p>
+                    )
+                  })()}
                 </div>
 
                 <Link
