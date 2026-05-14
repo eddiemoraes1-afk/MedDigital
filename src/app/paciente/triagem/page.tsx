@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   Loader2, ArrowLeft, CheckCircle2, AlertTriangle, AlertCircle,
@@ -841,8 +841,10 @@ function EtapaResultado({
   erroAnalise,
   solicitando,
   salvando,
+  modoAgendamento,
   onSolicitarImediato,
   onConsultarAgora,
+  onAgendar,
   onVoltar,
 }: {
   resultado: ResultadoTriagem | null
@@ -850,8 +852,10 @@ function EtapaResultado({
   erroAnalise: string
   solicitando: boolean
   salvando: boolean
+  modoAgendamento: boolean
   onSolicitarImediato: () => void
   onConsultarAgora: () => void
+  onAgendar: () => void
   onVoltar: () => void
 }) {
   if (analisando) {
@@ -947,8 +951,23 @@ function EtapaResultado({
                 </a>
               </div>
             </div>
+          ) : modoAgendamento ? (
+            /* Modo agendamento: Agendar como CTA principal */
+            <div className="space-y-3">
+              <button onClick={onAgendar}
+                className="w-full flex items-center justify-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-bold transition-colors">
+                <Calendar className="w-4 h-4" /> Agendar consulta
+              </button>
+              <button onClick={onConsultarAgora} disabled={solicitando}
+                className="w-full flex items-center justify-center gap-2 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-[#EAF7F2] py-3 rounded-xl text-sm font-semibold transition-colors">
+                {solicitando
+                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Criando sala...</>
+                  : <><Video className="w-4 h-4" /> Consultar na hora</>
+                }
+              </button>
+            </div>
           ) : (
-            /* Risco Baixo / Moderado: agendar ou consultar agora */
+            /* Modo normal: Consultar como CTA principal */
             <div className="space-y-3">
               <button onClick={onConsultarAgora} disabled={solicitando}
                 className="w-full flex items-center justify-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] disabled:opacity-60 text-white py-3.5 rounded-xl text-sm font-semibold transition-colors">
@@ -957,7 +976,7 @@ function EtapaResultado({
                   : <><Video className="w-4 h-4" /> Consultar na hora</>
                 }
               </button>
-              <Link href="/paciente/agendar"
+              <Link href="/paciente/triagem?modo=agendamento"
                 className="w-full flex items-center justify-center gap-2 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-[#EAF7F2] py-3.5 rounded-xl text-sm font-semibold transition-colors">
                 <Calendar className="w-4 h-4" /> Agendar uma consulta
               </Link>
@@ -988,8 +1007,10 @@ function EtapaResultado({
 
 // ─── Página principal ─────────────────────────────────────────────────────────
 
-export default function TriagemPage() {
+function TriagemConteudo() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const modoAgendamento = searchParams.get('modo') === 'agendamento'
 
   type Etapa = 'carregando' | 'validacao' | 'sintomas' | 'urgencia' | 'triagem'
   const [etapa, setEtapa] = useState<Etapa>('carregando')
@@ -1035,7 +1056,11 @@ export default function TriagemPage() {
     if (etapa === 'sintomas') setEtapa('validacao')
     else if (etapa === 'urgencia') setEtapa('sintomas')
     else if (etapa === 'triagem') { setEtapa('urgencia'); setResultado(null); setErroAnalise('') }
-    else router.push('/paciente/dashboard')
+    else router.back()
+  }
+
+  function handleAgendar() {
+    router.push('/paciente/agendar')
   }
 
   // ── Helper: chama /api/triagem/salvar (usa adminClient no server) ─────────
@@ -1234,11 +1259,25 @@ export default function TriagemPage() {
           erroAnalise={erroAnalise}
           solicitando={solicitando}
           salvando={salvando}
+          modoAgendamento={modoAgendamento}
           onSolicitarImediato={solicitarConsulta}
           onConsultarAgora={solicitarConsulta}
+          onAgendar={handleAgendar}
           onVoltar={voltar}
         />
       )}
     </div>
+  )
+}
+
+export default function TriagemPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--cor-empresa-bg)' }}>
+        <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
+      </div>
+    }>
+      <TriagemConteudo />
+    </Suspense>
   )
 }

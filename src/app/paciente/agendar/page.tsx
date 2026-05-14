@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { Calendar, Clock, User, ChevronRight, Loader2, CheckCircle2, User2 } from 'lucide-react'
+import { Calendar, Clock, User, ChevronRight, Loader2, CheckCircle2, User2, Search, X, ArrowLeft } from 'lucide-react'
 import PacienteHeader from '../PacienteHeader'
 
 interface Medico {
@@ -14,11 +14,16 @@ interface Medico {
   crm: string
   crm_uf: string
   foto_url: string | null
+  sexo?: string | null
 }
 
 const DIAS_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+
+function drTitle(sexo?: string | null) {
+  return sexo === 'feminino' ? 'Dra.' : 'Dr.'
+}
 
 function gerarDias(diasComDisponibilidade: number[]) {
   const dias = []
@@ -36,8 +41,8 @@ function gerarDias(diasComDisponibilidade: number[]) {
 
 function AgendarConteudo() {
   const searchParams = useSearchParams()
-  const reagendarId = searchParams.get('reagendar')   // id do agendamento a cancelar
-  const medicoIdParam = searchParams.get('medico_id') // pré-selecionar médico
+  const reagendarId = searchParams.get('reagendar')
+  const medicoIdParam = searchParams.get('medico_id')
 
   const [passo, setPasso] = useState(1)
   const [medicos, setMedicos] = useState<Medico[]>([])
@@ -51,6 +56,11 @@ function AgendarConteudo() {
   const [carregandoSlots, setCarregandoSlots] = useState(false)
   const [confirmado, setConfirmado] = useState(false)
   const [erroConfirmacao, setErroConfirmacao] = useState('')
+
+  // Filtros de busca
+  const [busca, setBusca] = useState('')
+  const [especialidadeFiltro, setEspecialidadeFiltro] = useState('')
+
   const supabase = createClient()
   const router = useRouter()
 
@@ -58,12 +68,11 @@ function AgendarConteudo() {
     async function carregarMedicos() {
       const { data } = await supabase
         .from('medicos')
-        .select('id, nome, especialidade, crm, crm_uf, foto_url')
+        .select('id, nome, especialidade, crm, crm_uf, foto_url, sexo')
         .eq('status', 'aprovado')
         .order('nome')
       setMedicos(data || [])
 
-      // Se vier parâmetro de reagendamento, pré-selecionar médico e pular para passo 2
       if (medicoIdParam && data) {
         const medico = data.find((m: Medico) => m.id === medicoIdParam)
         if (medico) {
@@ -81,6 +90,18 @@ function AgendarConteudo() {
     }
     carregarMedicos()
   }, [])
+
+  // Especialidades únicas para o filtro
+  const especialidades = [...new Set(medicos.map(m => m.especialidade).filter(Boolean))].sort()
+
+  // Médicos filtrados
+  const medicosFiltrados = medicos.filter(m => {
+    const matchBusca = busca.trim() === '' ||
+      m.nome.toLowerCase().includes(busca.toLowerCase()) ||
+      m.especialidade?.toLowerCase().includes(busca.toLowerCase())
+    const matchEsp = especialidadeFiltro === '' || m.especialidade === especialidadeFiltro
+    return matchBusca && matchEsp
+  })
 
   async function selecionarMedico(medico: Medico) {
     setMedicoSelecionado(medico)
@@ -114,8 +135,7 @@ function AgendarConteudo() {
     setErroConfirmacao('')
 
     try {
-      // Construir datetime com offset de Brasília para evitar conversão UTC errada
-      const dataStr = dataSelecionada.toLocaleDateString('en-CA') // YYYY-MM-DD
+      const dataStr = dataSelecionada.toLocaleDateString('en-CA')
       const dataHoraBrasilia = `${dataStr}T${slotSelecionado}:00-03:00`
 
       const res = await fetch('/api/agendamento/criar', {
@@ -137,7 +157,6 @@ function AgendarConteudo() {
         return
       }
 
-      // Se for reagendamento, marca o antigo como 'reagendado'
       if (reagendarId) {
         await fetch('/api/agendamento/cancelar', {
           method: 'POST',
@@ -147,7 +166,7 @@ function AgendarConteudo() {
       }
 
       setConfirmado(true)
-    } catch (err: any) {
+    } catch {
       setErroConfirmacao('Erro de conexão. Tente novamente.')
     } finally {
       setCarregando(false)
@@ -163,7 +182,7 @@ function AgendarConteudo() {
           <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-[#1A3A2C] mb-2">Consulta agendada!</h2>
           <p className="text-gray-500 mb-2">
-            Dr(a). {medicoSelecionado?.nome}
+            {drTitle(medicoSelecionado?.sexo)} {medicoSelecionado?.nome}
           </p>
           <p className="text-[#5BBD9B] font-semibold mb-6">
             {dataSelecionada?.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })} às {slotSelecionado}
@@ -184,10 +203,16 @@ function AgendarConteudo() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--cor-empresa-bg)' }}>
-      <PacienteHeader titulo="Agendar Consulta" backHref="/paciente/dashboard" />
+      <PacienteHeader titulo="Agendar Consulta" />
 
       <main className="max-w-3xl mx-auto px-6 py-8">
+
+        {/* Voltar + título */}
         <div className="mb-8">
+          <button onClick={() => router.back()}
+            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-[#1A3A2C] mb-4 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Voltar
+          </button>
           <h1 className="text-2xl font-bold text-[#1A3A2C]">
             {reagendarId ? 'Reagendar consulta' : 'Agendar consulta'}
           </h1>
@@ -222,32 +247,76 @@ function AgendarConteudo() {
               <User className="w-4 h-4" /> Escolha o médico
             </h2>
             {passo === 1 ? (
-              <div className="space-y-3">
-                {medicos.length === 0 ? (
-                  <p className="text-gray-400 text-sm">Nenhum médico disponível no momento.</p>
-                ) : medicos.map(m => (
-                  <button
-                    key={m.id}
-                    onClick={() => selecionarMedico(m)}
-                    disabled={carregando}
-                    className="w-full flex items-center gap-3 p-4 border border-gray-100 rounded-xl hover:border-[#5BBD9B] hover:bg-green-50 text-left transition-all"
+              <>
+                {/* ── Filtros ── */}
+                <div className="flex flex-col sm:flex-row gap-3 mb-5">
+                  {/* Busca por nome */}
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      value={busca}
+                      onChange={e => setBusca(e.target.value)}
+                      placeholder="Buscar por nome ou especialidade..."
+                      className="w-full pl-9 pr-9 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+                    />
+                    {busca && (
+                      <button onClick={() => setBusca('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  {/* Filtro por especialidade */}
+                  <select
+                    value={especialidadeFiltro}
+                    onChange={e => setEspecialidadeFiltro(e.target.value)}
+                    className="py-2.5 px-3 border border-gray-200 rounded-xl text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white min-w-[180px]"
                   >
-                    <div className="relative w-11 h-11 rounded-full overflow-hidden bg-green-100 shrink-0 flex items-center justify-center">
-                      {m.foto_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={m.foto_url} alt={m.nome} className="w-full h-full object-cover" />
-                      ) : (
-                        <User2 className="w-6 h-6 text-[#5BBD9B]" />
+                    <option value="">Todas as especialidades</option>
+                    {especialidades.map(esp => (
+                      <option key={esp} value={esp}>{esp}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Lista de médicos */}
+                <div className="space-y-3">
+                  {medicosFiltrados.length === 0 ? (
+                    <div className="text-center py-8">
+                      <User2 className="w-10 h-10 text-gray-200 mx-auto mb-2" />
+                      <p className="text-gray-400 text-sm">Nenhum médico encontrado para esses filtros.</p>
+                      {(busca || especialidadeFiltro) && (
+                        <button onClick={() => { setBusca(''); setEspecialidadeFiltro('') }}
+                          className="text-sm text-[#5BBD9B] hover:underline mt-2">
+                          Limpar filtros
+                        </button>
                       )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-[#1A3A2C]">Dr(a). {m.nome}</p>
-                      <p className="text-sm text-gray-400">{m.especialidade} • CRM {m.crm}/{m.crm_uf}</p>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
-                  </button>
-                ))}
-              </div>
+                  ) : medicosFiltrados.map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => selecionarMedico(m)}
+                      disabled={carregando}
+                      className="w-full flex items-center gap-3 p-4 border border-gray-100 rounded-xl hover:border-[#5BBD9B] hover:bg-green-50 text-left transition-all"
+                    >
+                      <div className="relative w-11 h-11 rounded-full overflow-hidden bg-green-100 shrink-0 flex items-center justify-center">
+                        {m.foto_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={m.foto_url} alt={m.nome} className="w-full h-full object-cover" />
+                        ) : (
+                          <User2 className="w-6 h-6 text-[#5BBD9B]" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-[#1A3A2C]">{drTitle(m.sexo)} {m.nome}</p>
+                        <p className="text-sm text-gray-400">{m.especialidade} • CRM {m.crm}/{m.crm_uf}</p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-300 shrink-0" />
+                    </button>
+                  ))}
+                </div>
+              </>
             ) : (
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -260,7 +329,7 @@ function AgendarConteudo() {
                     )}
                   </div>
                   <div>
-                    <p className="font-semibold text-[#1A3A2C]">Dr(a). {medicoSelecionado?.nome}</p>
+                    <p className="font-semibold text-[#1A3A2C]">{drTitle(medicoSelecionado?.sexo)} {medicoSelecionado?.nome}</p>
                     <p className="text-sm text-gray-400">{medicoSelecionado?.especialidade}</p>
                   </div>
                 </div>
@@ -274,9 +343,17 @@ function AgendarConteudo() {
         {/* Passo 2: Escolher data */}
         {passo >= 2 && (
           <div className={`bg-white rounded-2xl p-6 shadow-sm mb-4 ${passo !== 2 && 'opacity-60'}`}>
-            <h2 className="font-bold text-[#1A3A2C] mb-4 flex items-center gap-2">
-              <Calendar className="w-4 h-4" /> Escolha a data
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
+                <Calendar className="w-4 h-4" /> Escolha a data
+              </h2>
+              {passo === 2 && (
+                <button onClick={() => setPasso(1)}
+                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#1A3A2C] transition-colors">
+                  <ArrowLeft className="w-3.5 h-3.5" /> Voltar
+                </button>
+              )}
+            </div>
             {passo === 2 ? (
               diasParaExibir.length === 0 ? (
                 <p className="text-gray-400 text-sm">Este médico ainda não configurou a disponibilidade.</p>
@@ -310,9 +387,17 @@ function AgendarConteudo() {
         {/* Passo 3: Escolher horário */}
         {passo >= 3 && (
           <div className={`bg-white rounded-2xl p-6 shadow-sm mb-4 ${passo !== 3 && 'opacity-60'}`}>
-            <h2 className="font-bold text-[#1A3A2C] mb-4 flex items-center gap-2">
-              <Clock className="w-4 h-4" /> Escolha o horário
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
+                <Clock className="w-4 h-4" /> Escolha o horário
+              </h2>
+              {passo === 3 && (
+                <button onClick={() => setPasso(2)}
+                  className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#1A3A2C] transition-colors">
+                  <ArrowLeft className="w-3.5 h-3.5" /> Voltar
+                </button>
+              )}
+            </div>
             {passo === 3 ? (
               carregandoSlots ? (
                 <div className="flex justify-center py-6">
@@ -346,9 +431,15 @@ function AgendarConteudo() {
         {/* Passo 4: Confirmar */}
         {passo >= 4 && (
           <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h2 className="font-bold text-[#1A3A2C] mb-4">Confirmar agendamento</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-[#1A3A2C]">Confirmar agendamento</h2>
+              <button onClick={() => setPasso(3)}
+                className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#1A3A2C] transition-colors">
+                <ArrowLeft className="w-3.5 h-3.5" /> Voltar
+              </button>
+            </div>
             <div className="bg-green-50 border border-green-100 rounded-xl p-4 mb-4">
-              <p className="text-sm text-gray-600"><span className="font-medium">Médico:</span> Dr(a). {medicoSelecionado?.nome}</p>
+              <p className="text-sm text-gray-600"><span className="font-medium">Médico:</span> {drTitle(medicoSelecionado?.sexo)} {medicoSelecionado?.nome}</p>
               <p className="text-sm text-gray-600 mt-1"><span className="font-medium">Data:</span> {dataSelecionada?.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</p>
               <p className="text-sm text-gray-600 mt-1"><span className="font-medium">Horário:</span> {slotSelecionado}</p>
             </div>
@@ -384,7 +475,7 @@ function AgendarConteudo() {
 export default function AgendarPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#F3FAF7] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--cor-empresa-bg)' }}>
         <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
       </div>
     }>

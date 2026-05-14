@@ -118,7 +118,7 @@ export default async function AgendamentosPage() {
             <p className="text-gray-500 mt-1">Consultas agendadas</p>
           </div>
           <Link
-            href="/paciente/agendar"
+            href="/paciente/triagem?modo=agendamento"
             className="flex items-center gap-2 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity"
             style={{ backgroundColor: 'var(--cor-empresa)' }}
           >
@@ -133,7 +133,7 @@ export default async function AgendamentosPage() {
             <div className="bg-white rounded-2xl p-10 shadow-sm text-center">
               <Calendar className="w-12 h-12 text-gray-200 mx-auto mb-3" />
               <p className="text-gray-400">Nenhuma consulta agendada</p>
-              <Link href="/paciente/agendar"
+              <Link href="/paciente/triagem?modo=agendamento"
                 className="mt-3 inline-block text-sm font-medium hover:underline"
                 style={{ color: 'var(--cor-empresa)' }}>
                 Agendar agora →
