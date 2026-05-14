@@ -1120,10 +1120,15 @@ function TriagemConteudo() {
     carregarPaciente()
   }, [])
 
+  function irParaEtapa(nova: typeof etapa) {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    setEtapa(nova)
+  }
+
   function voltar() {
-    if (etapa === 'sintomas') setEtapa('validacao')
-    else if (etapa === 'urgencia') setEtapa('sintomas')
-    else if (etapa === 'triagem') { setEtapa('urgencia'); setResultado(null); setErroAnalise('') }
+    if (etapa === 'sintomas') irParaEtapa('validacao')
+    else if (etapa === 'urgencia') irParaEtapa('sintomas')
+    else if (etapa === 'triagem') { irParaEtapa('urgencia'); setResultado(null); setErroAnalise('') }
     else router.back()
   }
 
@@ -1166,7 +1171,7 @@ function TriagemConteudo() {
     setValidacao(dados)
     const id = await criarTriagemInicial(dados)
     setTriagemId(id)
-    setEtapa('sintomas')
+    irParaEtapa('sintomas')
   }
 
   async function handlePularTriagem(dados: DadosValidacao) {
@@ -1187,7 +1192,7 @@ function TriagemConteudo() {
     if (triagemId) {
       await salvarAPI({ action: 'atualizar', triagemId, dados: { dados_sintomas: dados } })
     }
-    setEtapa('urgencia')
+    irParaEtapa('urgencia')
   }
 
   async function handleUrgencia(dados: DadosUrgencia) {
@@ -1197,7 +1202,7 @@ function TriagemConteudo() {
       await salvarAPI({ action: 'atualizar', triagemId, dados: { dados_urgencia: dados } })
     }
 
-    setEtapa('triagem')
+    irParaEtapa('triagem')
     setAnalisando(true)
     setErroAnalise('')
 
