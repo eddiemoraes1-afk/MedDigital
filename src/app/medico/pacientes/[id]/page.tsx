@@ -6,7 +6,7 @@ import {
   Clock, CheckCircle2, Mail, Briefcase, MapPin, XCircle,
   Brain, AlertTriangle, AlertCircle,
   Pill, Stethoscope, Activity, Heart,
-  FlaskConical, ClipboardList, Thermometer,
+  FlaskConical, ClipboardList, Thermometer, ShieldCheck,
 } from 'lucide-react'
 import MedicoHeader from '../../MedicoHeader'
 import AtestadosMedicoClient from './AtestadosMedicoClient'
@@ -77,11 +77,25 @@ const SINAIS_URGENCIA: Record<string, string> = {
 }
 
 const ABAS = [
-  { id: 'identificacao', label: 'Identificação' },
-  { id: 'consultas',     label: 'Consultas'     },
-  { id: 'triagens',      label: 'Triagens'      },
-  { id: 'documentos',    label: 'Documentos'    },
+  { id: 'identificacao', label: 'Identificação'  },
+  { id: 'consultas',     label: 'Consultas'      },
+  { id: 'triagens',      label: 'Triagens'       },
+  { id: 'documentos',    label: 'Documentos'     },
+  { id: 'exclusao',      label: 'Prot. Exclusão' },
 ]
+
+const STATUS_EXCLUSAO_LABEL: Record<string, string> = {
+  apto:           'Apto para atendimento online',
+  apto_ressalvas: 'Apto com ressalvas',
+  nao_apto:       'Não apto — presencial indicado',
+  emergencia:     'Emergência — encaminhamento imediato',
+}
+const STATUS_EXCLUSAO_COR: Record<string, string> = {
+  apto:           'bg-green-100  text-green-800  border-green-300',
+  apto_ressalvas: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  nao_apto:       'bg-orange-100 text-orange-800 border-orange-300',
+  emergencia:     'bg-red-100    text-red-800    border-red-400',
+}
 
 // ── Componente de aba nav (server) ─────────────────────────────────────────────
 
@@ -206,6 +220,13 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
     .eq('paciente_id', id)
     .order('criado_em', { ascending: false })
 
+  // ── Protocolos de exclusão de telemedicina ──
+  const { data: exclusoes } = await admin
+    .from('exclusoes_telemedicina')
+    .select('*, medicos(nome, crm, crm_uf, especialidade)')
+    .eq('paciente_id', id)
+    .order('criado_em', { ascending: false })
+
   // Mapas por atendimento para a aba consultas
   const atestadosPorAtend: Record<string, any[]> = {}
   ;(atestados ?? []).forEach((a: any) => { if (a.atendimento_id) { if (!atestadosPorAtend[a.atendimento_id]) atestadosPorAtend[a.atendimento_id] = []; atestadosPorAtend[a.atendimento_id].push(a) } })
@@ -252,6 +273,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                 { n: atestados?.length ?? 0,         label: 'atestados',   cor: 'bg-blue-50 text-blue-700' },
                 { n: receitas?.length ?? 0,          label: 'receitas',    cor: 'bg-purple-50 text-purple-700' },
                 { n: exames?.length ?? 0,            label: 'exames',      cor: 'bg-orange-50 text-orange-700' },
+                { n: exclusoes?.length ?? 0,         label: 'exclusões',   cor: 'bg-red-50 text-red-700' },
               ].map(k => (
                 <div key={k.label} className={`text-center rounded-xl px-3 py-2.5 ${k.cor}`}>
                   <p className="text-xl font-bold">{k.n}</p>
@@ -600,6 +622,118 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
         {/* ════════════════════════════════════════════════════════════════════ */}
         {/* ABA: DOCUMENTOS                                                      */}
         {/* ════════════════════════════════════════════════════════════════════ */}
+        {/* ════════════════════════════════════════════════════════════════════ */}
+        {/* ABA: PROTOCOLO DE EXCLUSÃO DE TELEMEDICINA                         */}
+        {/* ════════════════════════════════════════════════════════════════════ */}
+        {abaAtiva === 'exclusao' && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-[#1A3A2C] text-lg flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-orange-500" />
+                Protocolo de Exclusão Médica
+                <span className="text-sm text-gray-400 font-normal">({exclusoes?.length ?? 0})</span>
+              </h2>
+              <span className="text-xs text-gray-400 italic">CFM Res. 2.314/2022</span>
+            </div>
+
+            {!exclusoes || exclusoes.length === 0 ? (
+              <div className="bg-white rounded-2xl p-12 shadow-sm text-center">
+                <ShieldCheck className="w-14 h-14 text-gray-200 mx-auto mb-4" />
+                <p className="text-gray-400 font-medium">Nenhum protocolo de exclusão registrado</p>
+                <p className="text-xs text-gray-300 mt-1">Registros são criados pelo médico durante a consulta virtual</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {(exclusoes as any[]).map(ex => {
+                  const { data, hora } = fmtDH(ex.criado_em)
+                  const med = ex.medicos as any
+                  const statusCor = STATUS_EXCLUSAO_COR[ex.status] ?? 'bg-gray-100 text-gray-700 border-gray-200'
+                  const statusLabel = STATUS_EXCLUSAO_LABEL[ex.status] ?? ex.status
+                  return (
+                    <div key={ex.id} className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-50">
+
+                      {/* Cabeçalho */}
+                      <div className="bg-[#1A3A2C] px-6 py-4 flex items-center justify-between">
+                        <div>
+                          <p className="text-white font-bold">{data} às {hora}</p>
+                          {med && (
+                            <p className="text-green-300 text-xs mt-0.5">
+                              Dr(a). {med.nome} — {med.especialidade} · CRM {med.crm}/{med.crm_uf}
+                            </p>
+                          )}
+                        </div>
+                        <span className={`border text-xs font-bold px-3 py-1.5 rounded-full ${statusCor}`}>
+                          {statusLabel}
+                        </span>
+                      </div>
+
+                      <div className="p-6 space-y-4">
+
+                        {/* Motivos */}
+                        {ex.motivos?.length > 0 && (
+                          <div>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                              <AlertTriangle className="w-3.5 h-3.5 text-orange-400" />
+                              Motivos de exclusão
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {(ex.motivos as string[]).map((m: string) => (
+                                <span key={m} className="text-xs bg-orange-50 text-orange-700 border border-orange-200 px-2.5 py-1 rounded-full">
+                                  {m}
+                                </span>
+                              ))}
+                              {ex.motivo_outro && (
+                                <span className="text-xs bg-gray-100 text-gray-600 border border-gray-200 px-2.5 py-1 rounded-full italic">
+                                  Outro: {ex.motivo_outro}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Conduta */}
+                        {ex.conduta && (
+                          <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                              <Stethoscope className="w-3.5 h-3.5 text-blue-500" />
+                              Conduta médica
+                            </p>
+                            <p className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">{ex.conduta}</p>
+                          </div>
+                        )}
+
+                        {/* Observações */}
+                        {ex.observacoes && (
+                          <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1">Observações</p>
+                            <p className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">{ex.observacoes}</p>
+                          </div>
+                        )}
+
+                        {/* Termos */}
+                        <div className="flex items-center gap-2">
+                          {ex.ciente_paciente ? (
+                            <span className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-full font-medium">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              Paciente ciente da decisão médica
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1.5 text-xs text-gray-400 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-full">
+                              <XCircle className="w-3.5 h-3.5" />
+                              Ciência do paciente não registrada
+                            </span>
+                          )}
+                        </div>
+
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         {abaAtiva === 'documentos' && (
           <div className="space-y-8">
 

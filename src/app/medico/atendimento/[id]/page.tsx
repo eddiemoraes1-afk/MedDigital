@@ -6,12 +6,13 @@ import {
   Loader2, Phone, FileText, CheckCircle2, ClipboardList,
   ChevronDown, ChevronUp, Video, Pill, FlaskConical, UserPlus,
   Stethoscope, Activity, Heart, Thermometer, AlertTriangle,
-  Edit3, ExternalLink, X,
+  Edit3, ExternalLink, X, ShieldCheck,
 } from 'lucide-react'
 import AtestadoForm from '@/components/AtestadoForm'
 import ReceitaForm from '@/components/ReceitaForm'
 import SolicitacaoExamesForm from '@/components/SolicitacaoExamesForm'
 import EncaminhamentoForm from '@/components/EncaminhamentoForm'
+import ExclusaoTelemedicinaForm from '@/components/ExclusaoTelemedicinaForm'
 
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 
@@ -99,6 +100,10 @@ export default function AtendimentoMedico() {
   const [examesEmitidos,    setExamesEmitidos]    = useState(false)
   const [showEncaminhamento, setShowEncaminhamento] = useState(false)
   const [encaminhado,       setEncaminhado]       = useState(false)
+
+  // ── Protocolo de exclusão de telemedicina ──
+  const [showExclusao,  setShowExclusao]  = useState(false)
+  const [exclusaoSalva, setExclusaoSalva] = useState(false)
 
   // ── Antecedentes do paciente (editáveis durante a consulta) ──
   const [antEditando,     setAntEditando]     = useState(false)
@@ -261,6 +266,7 @@ export default function AtendimentoMedico() {
   function fecharTodas() {
     setShowAtestado(false); setShowReceita(false)
     setShowExames(false); setShowEncaminhamento(false)
+    setShowExclusao(false)
   }
   function toggleSecao(s: string) {
     setSecaoAberta(prev => prev === s ? '' : s)
@@ -739,6 +745,38 @@ export default function AtendimentoMedico() {
                   salaVideo={atendimento.sala_video ?? null}
                   onFechar={() => setShowEncaminhamento(false)}
                   onEncaminhado={() => { setEncaminhado(true); setShowEncaminhamento(false) }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* ── Protocolo de Exclusão de Telemedicina ── */}
+          <div className="p-4 border-b border-[#2A4A3C]">
+            <button
+              onClick={() => { fecharTodas(); setShowExclusao(v => !v) }}
+              className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+                showExclusao
+                  ? 'bg-orange-500 text-white'
+                  : 'bg-[#0F1F33] text-orange-300 hover:bg-orange-500 hover:text-white'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4" />
+                {exclusaoSalva ? 'Elegibilidade registrada ✓' : 'Elegibilidade Online'}
+              </span>
+              {showExclusao ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </button>
+            {showExclusao && paciente && (
+              <div className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
+                <p className="text-xs font-bold text-orange-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  Elegibilidade para Atendimento Online
+                </p>
+                <ExclusaoTelemedicinaForm
+                  atendimentoId={atendimento.id}
+                  pacienteId={paciente.id}
+                  onFechar={() => setShowExclusao(false)}
+                  onSalvo={() => { setExclusaoSalva(true) }}
                 />
               </div>
             )}
