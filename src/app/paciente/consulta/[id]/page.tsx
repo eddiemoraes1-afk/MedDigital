@@ -383,13 +383,6 @@ export default function ConsultaPaciente() {
                     </div>
                   )}
 
-                  {/* Tempo estimado */}
-                  {posicaoInfo?.tempoEstimado && (
-                    <p className="text-amber-300 text-sm mb-1">
-                      Tempo estimado: ~{posicaoInfo.tempoEstimado} minuto{posicaoInfo.tempoEstimado !== 1 ? 's' : ''}
-                    </p>
-                  )}
-
                   {/* Total na fila */}
                   {(posicaoInfo?.total ?? 0) > 1 && (
                     <p className="text-gray-500 text-xs mt-1">
