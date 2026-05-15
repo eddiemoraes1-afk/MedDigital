@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 
   const { data: atendimento } = await admin
     .from('atendimentos')
-    .select('id, status, medico_id, criado_em, triagens(classificacao_risco)')
+    .select('id, status, medico_id, criado_em, urgente, triagens(classificacao_risco)')
     .eq('id', atendimento_id)
     .eq('paciente_id', paciente.id)
     .single()
@@ -45,13 +45,15 @@ export async function GET(req: NextRequest) {
 
   // Médico assumiu (medico_id definido, ainda aguardando entrar na sala)
   const medicoAssumiu = atendimento.status === 'aguardando' && atendimento.medico_id !== null
+  const isUrgente     = (atendimento as any).urgente === true
 
-  // Buscar toda a fila pública (sem médico)
+  // Buscar fila da mesma categoria (urgente ou normal) — sem médico ainda
   const { data: filaGeral } = await admin
     .from('atendimentos')
-    .select('id, criado_em, triagens(classificacao_risco)')
+    .select('id, criado_em, urgente, triagens(classificacao_risco)')
     .eq('status', 'aguardando')
     .eq('tipo', 'virtual')
+    .eq('urgente', isUrgente)
     .is('medico_id', null)
 
   // Ordenar igual ao painel do médico: risco + chegada
@@ -81,9 +83,10 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     posicao,          // 1-based; null se médico já assumiu
-    total,            // total na fila sem médico
+    total,            // total na fila sem médico (dentro da mesma categoria)
     medicoAssumiu,    // true = médico está revisando prontuário
     medicosAtivos: medicosAtivos ?? 0,
     tempoEstimado,    // minutos estimados; null se assumido
+    urgente: isUrgente, // true = está na fila preferencial
   })
 }

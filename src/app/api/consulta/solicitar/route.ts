@@ -51,6 +51,17 @@ export async function POST(req: NextRequest) {
 
   const salaUrl = `https://${process.env.DAILY_DOMAIN}/${nomeSala}`
 
+  // Verificar se triagem é laranja (fila preferencial)
+  let urgente = false
+  if (triagem_id) {
+    const { data: triagem } = await adminSupabase
+      .from('triagens')
+      .select('classificacao_risco')
+      .eq('id', triagem_id)
+      .single()
+    urgente = triagem?.classificacao_risco === 'laranja'
+  }
+
   // Criar atendimento
   const { data: atendimento, error } = await adminSupabase
     .from('atendimentos')
@@ -60,6 +71,7 @@ export async function POST(req: NextRequest) {
       tipo: 'virtual',
       status: 'aguardando',
       sala_video: salaUrl,
+      urgente,
     })
     .select()
     .single()

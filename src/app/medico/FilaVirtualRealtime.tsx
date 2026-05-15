@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import {
   Users, CheckCircle2, FileText, Video, Loader2,
   RefreshCw, Lock, AlertTriangle, Clock,
@@ -14,6 +13,7 @@ interface AtendimentoFila {
   medico_id: string | null
   paciente_id: string
   notas_medico: string | null
+  urgente: boolean
   pacientes: { id: string; nome: string; cpf: string } | null
   triagens: { id: string; classificacao_risco: string | null; resumo_ia: string | null } | null
 }
@@ -61,21 +61,213 @@ function estiloEspera(minutos: number): { classe: string; label: string } {
 
 const INTERVALO_MS = 10_000
 
+// ── Componente de item de fila (reutilizado nas duas seções) ─────────────────
+
+function FilaItem({
+  atendimento, index, estado, urgente,
+  encaminhadoPorMatch, assumindo,
+  onNomeClick, onAtenderClick,
+}: {
+  atendimento: AtendimentoFila
+  index: number
+  estado: 'meu' | 'ativo' | 'travado'
+  urgente: boolean
+  encaminhadoPorMatch: (a: AtendimentoFila) => RegExpMatchArray | null
+  assumindo: boolean
+  onNomeClick: (e: React.MouseEvent, a: AtendimentoFila) => void
+  onAtenderClick: (e: React.MouseEvent, a: AtendimentoFila) => void
+}) {
+  const risco      = atendimento.triagens?.classificacao_risco ?? null
+  const pacienteId = atendimento.pacientes?.id ?? atendimento.paciente_id
+  const resumo     = atendimento.triagens?.resumo_ia
+  const encMatch   = encaminhadoPorMatch(atendimento)
+  const encPor     = encMatch ? encMatch[1] : null
+  const travado    = estado === 'travado'
+  const isMeu      = estado === 'meu'
+
+  if (travado) {
+    return (
+      <div className="px-6 py-4 flex items-center gap-4 bg-gray-50/70 opacity-60 select-none">
+        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
+          <Lock className="w-4 h-4 text-gray-400" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-semibold text-gray-400 truncate">
+              {atendimento.pacientes?.nome || 'Paciente'}
+            </span>
+            {risco && (
+              <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 opacity-70 ${COR_RISCO[risco] || 'bg-gray-100 text-gray-600'}`}>
+                {LABEL_RISCO[risco] || risco}
+              </span>
+            )}
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-200 text-gray-500 font-semibold shrink-0">
+              #{index + 1} na fila
+            </span>
+          </div>
+          {(() => {
+            const mins = minutosEspera(atendimento.criado_em)
+            const { classe, label } = estiloEspera(mins)
+            return (
+              <p className={`text-xs mt-1 opacity-80 ${classe}`}>
+                Aguardando desde {formatarHora(atendimento.criado_em)}
+                <span className="ml-1">({label})</span>
+              </p>
+            )
+          })()}
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-gray-400 shrink-0">
+          <Lock className="w-3.5 h-3.5" />
+          Aguardando vez
+        </div>
+      </div>
+    )
+  }
+
+  const borderColor = isMeu ? 'border-orange-400' : urgente ? 'border-orange-300' : 'border-[#5BBD9B]'
+  const bgColor     = isMeu ? 'bg-orange-50' : urgente ? 'bg-orange-50/50 hover:bg-orange-50' : 'hover:bg-gray-50'
+
+  return (
+    <div className={`px-6 py-5 flex items-center gap-4 transition-colors border-l-4 ${bgColor} ${borderColor}`}>
+      <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
+        isMeu ? 'bg-orange-100 text-orange-700' : urgente ? 'bg-orange-100/60 text-orange-700' : 'bg-[#5BBD9B]/20 text-[#1A3A2C]'
+      }`}>
+        {isMeu ? '★' : index + 1}
+      </div>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <a
+            href={`/medico/pacientes/${pacienteId}?back=${encodeURIComponent('/medico/dashboard')}`}
+            onClick={e => onNomeClick(e, atendimento)}
+            className={`font-semibold transition-colors hover:underline ${
+              isMeu ? 'text-orange-700 hover:text-orange-900'
+                    : urgente ? 'text-orange-800 hover:text-orange-600'
+                    : 'text-[#1A3A2C] hover:text-[#5BBD9B]'
+            } ${assumindo ? 'pointer-events-none opacity-60' : ''}`}
+            title={isMeu ? 'Ver prontuário' : 'Clique para assumir este paciente e ver o prontuário'}
+          >
+            {atendimento.pacientes?.nome || 'Paciente'}
+          </a>
+
+          {isMeu && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-orange-200 text-orange-800 shrink-0">
+              {encPor ? `Encaminhado por ${encPor}` : 'Você assumiu'}
+            </span>
+          )}
+          {!isMeu && (
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold shrink-0 ${
+              urgente ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-700'
+            }`}>
+              Próximo
+            </span>
+          )}
+
+          {risco && (
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${COR_RISCO[risco] || 'bg-gray-100 text-gray-600'}`}>
+              {LABEL_RISCO[risco] || risco}
+            </span>
+          )}
+        </div>
+
+        {resumo ? (
+          <div className="flex items-start gap-1.5 mt-1">
+            <FileText className="w-3.5 h-3.5 text-[#5BBD9B] shrink-0 mt-0.5" />
+            <p className="text-sm text-gray-500 line-clamp-2">{resumo}</p>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-300 mt-0.5 italic">Sem resumo de triagem</p>
+        )}
+
+        {(() => {
+          const mins = minutosEspera(atendimento.criado_em)
+          const { classe, label } = estiloEspera(mins)
+          return (
+            <p className={`text-sm mt-1.5 ${classe}`}>
+              Aguardando desde {formatarHora(atendimento.criado_em)}
+              <span className="ml-1.5 text-base">({label})</span>
+            </p>
+          )
+        })()}
+
+        {!isMeu && (
+          <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            Ao clicar no nome ou em Atender, você assume este paciente e não poderá desistir.
+          </p>
+        )}
+      </div>
+
+      <button
+        onClick={e => onAtenderClick(e, atendimento)}
+        disabled={assumindo}
+        className={`text-white px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 shrink-0 transition-colors disabled:opacity-60 ${
+          isMeu    ? 'bg-orange-500 hover:bg-orange-600'
+          : urgente ? 'bg-orange-600 hover:bg-orange-700'
+          : 'bg-[#1A3A2C] hover:bg-[#5BBD9B]'
+        }`}
+      >
+        {assumindo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Video className="w-4 h-4" />}
+        {isMeu ? 'Entrar na consulta' : 'Atender'}
+      </button>
+    </div>
+  )
+}
+
 export default function FilaVirtualRealtime() {
   const router = useRouter()
 
   const [fila, setFila]               = useState<AtendimentoFila[]>([])
+  const [filaUrgente, setFilaUrgente] = useState<AtendimentoFila[]>([])
+  const [filaNormal, setFilaNormal]   = useState<AtendimentoFila[]>([])
   const [medicoId, setMedicoId]       = useState<string | null>(null)
   const [loading, setLoading]         = useState(true)
   const [atualizando, setAtualizando] = useState(false)
   const [ultimaAtt, setUltimaAtt]     = useState<Date | null>(null)
   const [erro, setErro]               = useState(false)
-  const [, setAgora]                  = useState(Date.now())
+  const [, setAgora]                  = useState(0)
   const [assumindo, setAssumindo]     = useState(false)
   const [erroAssumir, setErroAssumir] = useState('')
 
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const clockRef    = useRef<ReturnType<typeof setInterval> | null>(null)
+  const intervalRef       = useRef<ReturnType<typeof setInterval> | null>(null)
+  const clockRef          = useRef<ReturnType<typeof setInterval> | null>(null)
+  // IDs urgentes conhecidos (para detectar novos e tocar alerta)
+  const idsUrgenteRef     = useRef<Set<string>>(new Set())
+
+  // ── Alerta sonoro para paciente urgente novo ─────────────────────────────────
+  function tocarAlertaUrgente() {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      const seq = [
+        { freq: 880, start: 0,    dur: 0.18 },
+        { freq: 660, start: 0.22, dur: 0.18 },
+        { freq: 880, start: 0.44, dur: 0.18 },
+        { freq: 440, start: 0.66, dur: 0.35 },
+      ]
+      seq.forEach(({ freq, start, dur }) => {
+        const osc  = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.type = 'sine'
+        osc.frequency.value = freq
+        gain.gain.setValueAtTime(0.45, ctx.currentTime + start)
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur)
+        osc.start(ctx.currentTime + start)
+        osc.stop(ctx.currentTime + start + dur + 0.05)
+      })
+      // Mensagem de voz
+      if ('speechSynthesis' in window) {
+        setTimeout(() => {
+          const msg = new SpeechSynthesisUtterance('Atenção! Paciente urgente na fila preferencial.')
+          msg.lang = 'pt-BR'
+          msg.rate = 0.95
+          window.speechSynthesis.speak(msg)
+        }, 1200)
+      }
+    } catch { /* silencioso se AudioContext não disponível */ }
+  }
 
   const fetchFila = useCallback(async (silencioso = false) => {
     if (!silencioso) setLoading(true)
@@ -84,7 +276,23 @@ export default function FilaVirtualRealtime() {
       const res  = await fetch('/api/medico/fila', { cache: 'no-store' })
       const data = await res.json()
       if (!res.ok) { setErro(true); return }
-      setFila(data.fila ?? [])
+
+      const novaFilaUrgente: AtendimentoFila[] = data.filaUrgente ?? []
+      const novaFilaNormal:  AtendimentoFila[] = data.filaNormal  ?? []
+
+      // Detectar novos pacientes urgentes (sem médico ainda) → alerta sonoro
+      if (silencioso) {
+        const novosUrgentes = novaFilaUrgente.filter(
+          a => !a.medico_id && !idsUrgenteRef.current.has(a.id)
+        )
+        if (novosUrgentes.length > 0) tocarAlertaUrgente()
+      }
+      // Atualizar IDs conhecidos
+      idsUrgenteRef.current = new Set(novaFilaUrgente.map(a => a.id))
+
+      setFilaUrgente(novaFilaUrgente)
+      setFilaNormal(novaFilaNormal)
+      setFila(data.fila ?? [...novaFilaUrgente, ...novaFilaNormal])
       setMedicoId(data.medicoId ?? null)
       setUltimaAtt(new Date())
       setErro(false)
@@ -97,6 +305,7 @@ export default function FilaVirtualRealtime() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchFila(false)
     intervalRef.current = setInterval(() => fetchFila(true), INTERVALO_MS)
     clockRef.current    = setInterval(() => setAgora(Date.now()), 30_000)
@@ -155,17 +364,16 @@ export default function FilaVirtualRealtime() {
 
   // TODOS os atendimentos atribuídos a este médico (encaminhados + assumidos)
   const meusAtendimentos = medicoId ? fila.filter(a => a.medico_id === medicoId) : []
-  const meuAssumido      = meusAtendimentos[0] ?? null // para o banner e para o ativoId
+  const meuAssumido      = meusAtendimentos[0] ?? null
   const estouOcupado     = meusAtendimentos.length > 0
 
-  // Se não tenho nenhum atribuído, o primeiro sem médico fica desbloqueado
-  const ativoId = estouOcupado
-    ? null // estou ocupado: ninguém da fila fica ativo pra mim
-    : (fila.find(a => !a.medico_id)?.id ?? null)
+  // Por fila (urgente e normal têm seus próprios "primeiros desbloqueados")
+  const ativoUrgenteId = estouOcupado ? null : (filaUrgente.find(a => !a.medico_id)?.id ?? null)
+  const ativoNormalId  = estouOcupado ? null : (filaNormal.find(a => !a.medico_id)?.id ?? null)
 
   function estadoPosicao(a: AtendimentoFila): 'meu' | 'ativo' | 'travado' {
-    if (a.medico_id === medicoId && medicoId) return 'meu'   // meu: encaminhado ou assumido
-    if (a.id === ativoId)                     return 'ativo' // primeiro desbloqueado (só se não estou ocupado)
+    if (a.medico_id === medicoId && medicoId) return 'meu'
+    if (a.id === ativoUrgenteId || a.id === ativoNormalId) return 'ativo'
     return 'travado'
   }
 
@@ -214,6 +422,11 @@ export default function FilaVirtualRealtime() {
           {ultimaAtt && (
             <span className="text-[10px] text-gray-300 hidden md:inline">
               atualizado {formatarUltimaAtt(ultimaAtt)}
+            </span>
+          )}
+          {filaUrgente.length > 0 && (
+            <span className="bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+              {filaUrgente.length} urgente{filaUrgente.length > 1 ? 's' : ''}
             </span>
           )}
           {fila.length > 0 && (
@@ -265,158 +478,52 @@ export default function FilaVirtualRealtime() {
           <p className="text-gray-300 text-sm mt-1">Nenhum paciente aguardando no momento</p>
         </div>
       ) : (
-        <div className="divide-y divide-gray-50">
-          {fila.map((atendimento, index) => {
-            const estado     = estadoPosicao(atendimento)
-            const risco      = atendimento.triagens?.classificacao_risco ?? null
-            const pacienteId = atendimento.pacientes?.id ?? atendimento.paciente_id
-            const resumo     = atendimento.triagens?.resumo_ia
-            const encMatch   = encaminhadoPorMatch(atendimento)
-            const encPor     = encMatch ? encMatch[1] : null
-            const travado    = estado === 'travado'
-
-            // ── Linha travada ──────────────────────────────────────────────
-            if (travado) {
-              return (
-                <div
-                  key={atendimento.id}
-                  className="px-6 py-4 flex items-center gap-4 bg-gray-50/70 opacity-60 select-none"
-                >
-                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
-                    <Lock className="w-4 h-4 text-gray-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-gray-400 truncate">
-                        {atendimento.pacientes?.nome || 'Paciente'}
-                      </span>
-                      {risco && (
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 opacity-70 ${COR_RISCO[risco] || 'bg-gray-100 text-gray-600'}`}>
-                          {LABEL_RISCO[risco] || risco}
-                        </span>
-                      )}
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-200 text-gray-500 font-semibold shrink-0">
-                        #{index + 1} na fila
-                      </span>
-                    </div>
-                    {(() => {
-                      const mins = minutosEspera(atendimento.criado_em)
-                      const { classe, label } = estiloEspera(mins)
-                      return (
-                        <p className={`text-xs mt-1 opacity-80 ${classe}`}>
-                          Aguardando desde {formatarHora(atendimento.criado_em)}
-                          <span className="ml-1">({label})</span>
-                        </p>
-                      )
-                    })()}
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-400 shrink-0">
-                    <Lock className="w-3.5 h-3.5" />
-                    Aguardando vez
-                  </div>
-                </div>
-              )
-            }
-
-            // ── Linha ativa (meu paciente assumido ou primeiro da fila) ───
-            const isMeu = estado === 'meu'
-
-            return (
-              <div
-                key={atendimento.id}
-                className={`px-6 py-5 flex items-center gap-4 transition-colors ${
-                  isMeu
-                    ? 'bg-orange-50 border-l-4 border-orange-400'
-                    : 'hover:bg-gray-50 border-l-4 border-[#5BBD9B]'
-                }`}
-              >
-                {/* Posição */}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${
-                  isMeu ? 'bg-orange-100 text-orange-700' : 'bg-[#5BBD9B]/20 text-[#1A3A2C]'
-                }`}>
-                  {isMeu ? '★' : index + 1}
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {/* Nome: clicável apenas para pacientes desta posição */}
-                    <a
-                      href={`/medico/pacientes/${pacienteId}?back=${encodeURIComponent('/medico/dashboard')}`}
-                      onClick={e => handleNomeClick(e, atendimento)}
-                      className={`font-semibold transition-colors hover:underline ${
-                        isMeu
-                          ? 'text-orange-700 hover:text-orange-900'
-                          : 'text-[#1A3A2C] hover:text-[#5BBD9B]'
-                      } ${assumindo ? 'pointer-events-none opacity-60' : ''}`}
-                      title={isMeu ? 'Ver prontuário' : 'Clique para assumir este paciente e ver o prontuário'}
-                    >
-                      {atendimento.pacientes?.nome || 'Paciente'}
-                    </a>
-
-                    {isMeu && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-orange-200 text-orange-800 shrink-0">
-                        {encPor ? `Encaminhado por ${encPor}` : 'Você assumiu'}
-                      </span>
-                    )}
-                    {!isMeu && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-green-100 text-green-700 shrink-0">
-                        Próximo
-                      </span>
-                    )}
-
-                    {risco && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${COR_RISCO[risco] || 'bg-gray-100 text-gray-600'}`}>
-                        {LABEL_RISCO[risco] || risco}
-                      </span>
-                    )}
-                  </div>
-
-                  {resumo ? (
-                    <div className="flex items-start gap-1.5 mt-1">
-                      <FileText className="w-3.5 h-3.5 text-[#5BBD9B] shrink-0 mt-0.5" />
-                      <p className="text-sm text-gray-500 line-clamp-2">{resumo}</p>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-300 mt-0.5 italic">Sem resumo de triagem</p>
-                  )}
-
-                  {(() => {
-                    const mins = minutosEspera(atendimento.criado_em)
-                    const { classe, label } = estiloEspera(mins)
-                    return (
-                      <p className={`text-sm mt-1.5 ${classe}`}>
-                        Aguardando desde {formatarHora(atendimento.criado_em)}
-                        <span className="ml-1.5 text-base">({label})</span>
-                      </p>
-                    )
-                  })()}
-
-                  {!isMeu && (
-                    <p className="text-[10px] text-gray-400 mt-1 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      Ao clicar no nome ou em Atender, você assume este paciente e não poderá desistir.
-                    </p>
-                  )}
-                </div>
-
-                {/* Botão Atender */}
-                <button
-                  onClick={e => handleAtenderClick(e, atendimento)}
-                  disabled={assumindo}
-                  className={`text-white px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 shrink-0 transition-colors disabled:opacity-60 ${
-                    isMeu
-                      ? 'bg-orange-500 hover:bg-orange-600'
-                      : 'bg-[#1A3A2C] hover:bg-[#5BBD9B]'
-                  }`}
-                >
-                  {assumindo
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <Video className="w-4 h-4" />}
-                  {isMeu ? 'Entrar na consulta' : 'Atender'}
-                </button>
+        <div>
+          {/* ── Fila Preferencial (urgente) ── */}
+          {filaUrgente.length > 0 && (
+            <>
+              <div className="px-6 py-2.5 bg-orange-50 border-y border-orange-100 flex items-center gap-2">
+                <AlertTriangle className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                <p className="text-xs font-bold text-orange-700 uppercase tracking-wide">
+                  Fila Preferencial 🟠 — Muito Urgente
+                </p>
+                <span className="ml-auto text-[10px] font-semibold bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">
+                  {filaUrgente.length} paciente{filaUrgente.length > 1 ? 's' : ''}
+                </span>
               </div>
-            )
-          })}
+              <div className="divide-y divide-orange-50">
+                {filaUrgente.map((atendimento, index) =>
+                  <FilaItem key={atendimento.id} atendimento={atendimento} index={index}
+                    estado={estadoPosicao(atendimento)} encaminhadoPorMatch={encaminhadoPorMatch}
+                    assumindo={assumindo} onNomeClick={handleNomeClick} onAtenderClick={handleAtenderClick}
+                    urgente={true} />
+                )}
+              </div>
+            </>
+          )}
+
+          {/* ── Fila Normal ── */}
+          {filaNormal.length > 0 && (
+            <>
+              {filaUrgente.length > 0 && (
+                <div className="px-6 py-2.5 bg-gray-50 border-y border-gray-100 flex items-center gap-2">
+                  <Users className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">Fila Normal</p>
+                  <span className="ml-auto text-[10px] font-semibold bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                    {filaNormal.length} paciente{filaNormal.length > 1 ? 's' : ''}
+                  </span>
+                </div>
+              )}
+              <div className="divide-y divide-gray-50">
+                {filaNormal.map((atendimento, index) =>
+                  <FilaItem key={atendimento.id} atendimento={atendimento} index={index}
+                    estado={estadoPosicao(atendimento)} encaminhadoPorMatch={encaminhadoPorMatch}
+                    assumindo={assumindo} onNomeClick={handleNomeClick} onAtenderClick={handleAtenderClick}
+                    urgente={false} />
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

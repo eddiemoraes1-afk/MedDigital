@@ -27,7 +27,7 @@ export async function GET() {
 
   const { data: fila, error } = await adminSupabase
     .from('atendimentos')
-    .select('id, criado_em, medico_id, paciente_id, notas_medico, pacientes(id, nome, cpf), triagens(id, classificacao_risco, resumo_ia)')
+    .select('id, criado_em, medico_id, paciente_id, notas_medico, urgente, pacientes(id, nome, cpf), triagens(id, classificacao_risco, resumo_ia)')
     .eq('status', 'aguardando')
     .eq('tipo', 'virtual')
     // Só mostra: sem médico OU atribuídos a este médico (encaminhado / assumido)
@@ -36,13 +36,24 @@ export async function GET() {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Ordenar no servidor: risco (urgência primeiro) → hora de chegada (mais antigo primeiro)
-  const filaOrdenada = (fila ?? []).sort((a, b) => {
-    const ra = ORDEM_RISCO[(a.triagens as any)?.classificacao_risco ?? ''] ?? 4
-    const rb = ORDEM_RISCO[(b.triagens as any)?.classificacao_risco ?? ''] ?? 4
-    if (ra !== rb) return ra - rb
-    return new Date(a.criado_em).getTime() - new Date(b.criado_em).getTime()
-  })
+  // Ordenar: risco (urgência primeiro) → hora de chegada (mais antigo primeiro)
+  function ordenarFila<T extends { criado_em: string; triagens: unknown }>(arr: T[]): T[] {
+    return [...arr].sort((a, b) => {
+      const ra = ORDEM_RISCO[(a.triagens as any)?.classificacao_risco ?? ''] ?? 4
+      const rb = ORDEM_RISCO[(b.triagens as any)?.classificacao_risco ?? ''] ?? 4
+      if (ra !== rb) return ra - rb
+      return new Date(a.criado_em).getTime() - new Date(b.criado_em).getTime()
+    })
+  }
 
-  return NextResponse.json({ fila: filaOrdenada, medicoId: medico.id })
+  const todos = fila ?? []
+
+  // Separar fila preferencial (urgente=true) da fila normal
+  const filaUrgente = ordenarFila(todos.filter((a: any) => a.urgente))
+  const filaNormal  = ordenarFila(todos.filter((a: any) => !a.urgente))
+
+  // Retrocompatibilidade: campo fila = tudo junto (para componentes que ainda usam a lista unificada)
+  const filaOrdenada = [...filaUrgente, ...filaNormal]
+
+  return NextResponse.json({ fila: filaOrdenada, filaUrgente, filaNormal, medicoId: medico.id })
 }

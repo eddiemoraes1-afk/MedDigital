@@ -53,7 +53,7 @@ export async function GET(req: Request) {
   ] = await Promise.all([
     adminSupabase
       .from('atendimentos')
-      .select('id, valor_cobrado, finalizado_em, criado_em, paciente_id, medico_id, agendamento_id')
+      .select('id, valor_cobrado, finalizado_em, criado_em, paciente_id, medico_id, agendamento_id, urgente')
       .eq('status', 'concluido')
       .gte('finalizado_em', inicio)
       .lte('finalizado_em', fim),
@@ -288,9 +288,20 @@ export async function GET(req: Request) {
 
   // ===== TIPO ATENDIMENTO =====
   const consultasPorTipo = [
-    { tipo: 'Agendada', count: ats.filter((a: any) => a.agendamento_id).length },
-    { tipo: 'Fila / Hora', count: ats.filter((a: any) => !a.agendamento_id).length },
+    { tipo: 'Agendada',       count: ats.filter((a: any) => a.agendamento_id).length },
+    { tipo: 'Fila Urgente',   count: ats.filter((a: any) => !a.agendamento_id && a.urgente).length },
+    { tipo: 'Fila Normal',    count: ats.filter((a: any) => !a.agendamento_id && !a.urgente).length },
   ]
+
+  // ===== CONSULTAS URGENTES =====
+  const consultasUrgentes       = ats.filter((a: any) => a.urgente).length
+  const consultasUrgentesValor  = ats
+    .filter((a: any) => a.urgente)
+    .reduce((s: number, a: any) => {
+      const eId = pacienteEmpresa.get(a.paciente_id)
+      const emp = eId ? (empresaMap.get(eId) as any) : null
+      return s + (emp?.preco_consulta ?? a.valor_cobrado ?? 0)
+    }, 0)
 
   // ===== FUNCIONÁRIOS × CONSULTAS POR EMPRESA =====
   const funcionariosPorEmpresa = ((empresas ?? []) as any[])
@@ -597,6 +608,8 @@ export async function GET(req: Request) {
       ticketMedio,
       valorParticular,
       consultasParticulares,
+      consultasUrgentes,
+      consultasUrgentesValor,
     },
     faturamentoPorMes,
     faturamentoPorEmpresa,

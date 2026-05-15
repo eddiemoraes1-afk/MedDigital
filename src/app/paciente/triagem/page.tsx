@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense, ElementType } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Loader2, CheckCircle2, AlertTriangle, AlertCircle,
@@ -837,7 +837,6 @@ function EtapaResultado({
   erroAnalise,
   solicitando,
   salvando,
-  modoAgendamento,
   onConsultarAgora,
   onAgendar,
 }: {
@@ -846,7 +845,6 @@ function EtapaResultado({
   erroAnalise: string
   solicitando: boolean
   salvando: boolean
-  modoAgendamento: boolean
   onConsultarAgora: () => void
   onAgendar: () => void
 }) {
@@ -958,8 +956,6 @@ function EtapaResultado({
 
   // Laranja: consultar agora obrigatório (não dá pra agendar — precisa ser visto rápido)
   const isLaranja  = resultado.classificacao === 'laranja'
-  // Verde / Azul: agendar preferido
-  const preferirAgendar = resultado.classificacao === 'verde' || resultado.classificacao === 'azul'
 
   return (
     <div className="flex-1 overflow-y-auto px-4 py-8">
@@ -1008,52 +1004,20 @@ function EtapaResultado({
               </p>
             </div>
 
-          ) : preferirAgendar && !modoAgendamento ? (
-            /* 🟢🔵 VERDE/AZUL — Agendar preferido, consultar disponível */
-            <div className="space-y-3">
-              <button onClick={onAgendar}
-                className="w-full flex items-center justify-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-bold transition-colors">
-                <Calendar className="w-4 h-4" /> Agendar consulta
-              </button>
-              <button onClick={onConsultarAgora} disabled={solicitando}
-                className="w-full flex items-center justify-center gap-2 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-[#EAF7F2] py-3 rounded-xl text-sm font-semibold transition-colors">
-                {solicitando
-                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Criando sala...</>
-                  : <><Video className="w-4 h-4" /> Consultar na hora</>
-                }
-              </button>
-            </div>
-
-          ) : modoAgendamento ? (
-            /* Modo agendamento: Agendar primário */
-            <div className="space-y-3">
-              <button onClick={onAgendar}
-                className="w-full flex items-center justify-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-bold transition-colors">
-                <Calendar className="w-4 h-4" /> Agendar consulta
-              </button>
-              <button onClick={onConsultarAgora} disabled={solicitando}
-                className="w-full flex items-center justify-center gap-2 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-[#EAF7F2] py-3 rounded-xl text-sm font-semibold transition-colors">
-                {solicitando
-                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Criando sala...</>
-                  : <><Video className="w-4 h-4" /> Consultar na hora</>
-                }
-              </button>
-            </div>
-
           ) : (
-            /* 🟡 AMARELO e demais — Consultar primário */
+            /* 🟡🟢🔵 AMARELO/VERDE/AZUL — Consultar agora sempre em destaque */
             <div className="space-y-3">
               <button onClick={onConsultarAgora} disabled={solicitando}
                 className="w-full flex items-center justify-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] disabled:opacity-60 text-white py-3.5 rounded-xl text-sm font-semibold transition-colors">
                 {solicitando
                   ? <><Loader2 className="w-4 h-4 animate-spin" /> Criando sala...</>
-                  : <><Video className="w-4 h-4" /> Consultar na hora</>
+                  : <><Video className="w-4 h-4" /> Consultar agora</>
                 }
               </button>
-              <Link href="/paciente/triagem?modo=agendamento"
+              <button onClick={onAgendar}
                 className="w-full flex items-center justify-center gap-2 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-[#EAF7F2] py-3.5 rounded-xl text-sm font-semibold transition-colors">
                 <Calendar className="w-4 h-4" /> Agendar uma consulta
-              </Link>
+              </button>
             </div>
           )}
 
@@ -1077,8 +1041,6 @@ function EtapaResultado({
 
 function TriagemConteudo() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const modoAgendamento = searchParams.get('modo') === 'agendamento'
 
   type Etapa = 'carregando' | 'validacao' | 'sintomas' | 'urgencia' | 'triagem'
   const [etapa, setEtapa] = useState<Etapa>('carregando')
@@ -1329,7 +1291,6 @@ function TriagemConteudo() {
           erroAnalise={erroAnalise}
           solicitando={solicitando}
           salvando={salvando}
-          modoAgendamento={modoAgendamento}
           onConsultarAgora={solicitarConsulta}
           onAgendar={handleAgendar}
         />
