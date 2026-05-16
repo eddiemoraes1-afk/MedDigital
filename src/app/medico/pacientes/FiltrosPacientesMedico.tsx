@@ -20,6 +20,7 @@ interface Paciente {
   total_atestados: number
   total_exames: number
   total_receitas: number
+  total_exclusoes: number
 }
 
 const corRisco: Record<string, string> = {
@@ -303,6 +304,12 @@ export default function FiltrosPacientesMedico({ pacientes }: { pacientes: Pacie
                         {p.total_receitas}
                       </p>
                       <p className="text-xs text-gray-400">receitas</p>
+                    </div>
+                    <div className="text-center hidden md:block">
+                      <p className={`text-sm font-bold ${p.total_exclusoes > 0 ? 'text-teal-600' : 'text-gray-300'}`}>
+                        {p.total_exclusoes}
+                      </p>
+                      <p className="text-xs text-gray-400">exclusões</p>
                     </div>
                     <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-[#5BBD9B] transition-colors" />
                   </div>

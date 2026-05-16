@@ -35,11 +35,12 @@ export default async function MedicoPacientesPage() {
 
   const pacienteIds = pacientes.map(p => p.id)
 
-  // Buscar triagens, atendimentos e atestados em paralelo
+  // Buscar triagens, atendimentos, atestados e exclusões em paralelo
   const [
     { data: todasTriagens },
     { data: todosAtendimentos },
     { data: todosAtestados },
+    { data: todasExclusoes },
   ] = await Promise.all([
     adminSupabase
       .from('triagens')
@@ -53,6 +54,10 @@ export default async function MedicoPacientesPage() {
       .eq('status', 'concluido'),
     adminSupabase
       .from('atestados')
+      .select('paciente_id')
+      .in('paciente_id', pacienteIds),
+    adminSupabase
+      .from('exclusoes_telemedicina')
       .select('paciente_id')
       .in('paciente_id', pacienteIds),
   ])
@@ -75,6 +80,11 @@ export default async function MedicoPacientesPage() {
     totalAtestadosMap[a.paciente_id] = (totalAtestadosMap[a.paciente_id] || 0) + 1
   }
 
+  const totalExclusoesMap: Record<string, number> = {}
+  for (const e of todasExclusoes ?? []) {
+    totalExclusoesMap[e.paciente_id] = (totalExclusoesMap[e.paciente_id] || 0) + 1
+  }
+
   // Montar lista final enriquecida (sem ordenação — feita no client)
   const pacientesEnriquecidos = pacientes.map(p => ({
     id: p.id,
@@ -88,6 +98,7 @@ export default async function MedicoPacientesPage() {
     total_atestados: totalAtestadosMap[p.id] ?? 0,
     total_exames: 0,
     total_receitas: 0,
+    total_exclusoes: totalExclusoesMap[p.id] ?? 0,
   }))
 
   return (
