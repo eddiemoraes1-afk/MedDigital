@@ -55,5 +55,17 @@ export async function GET() {
   // Retrocompatibilidade: campo fila = tudo junto (para componentes que ainda usam a lista unificada)
   const filaOrdenada = [...filaUrgente, ...filaNormal]
 
-  return NextResponse.json({ fila: filaOrdenada, filaUrgente, filaNormal, medicoId: medico.id })
+  // Consulta em andamento deste médico (saiu da tela sem finalizar?)
+  const { data: consultaAtivaRow } = await adminSupabase
+    .from('atendimentos')
+    .select('id, pacientes(nome)')
+    .eq('medico_id', medico.id)
+    .eq('status', 'em_andamento')
+    .maybeSingle()
+
+  const consultaAtiva = consultaAtivaRow
+    ? { id: consultaAtivaRow.id, pacienteNome: (consultaAtivaRow.pacientes as any)?.nome ?? 'Paciente' }
+    : null
+
+  return NextResponse.json({ fila: filaOrdenada, filaUrgente, filaNormal, medicoId: medico.id, consultaAtiva })
 }

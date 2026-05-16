@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Users, CheckCircle2, FileText, Video, Loader2,
-  RefreshCw, Lock, AlertTriangle, Clock,
+  RefreshCw, Lock, AlertTriangle, Clock, PhoneCall,
 } from 'lucide-react'
 
 interface AtendimentoFila {
@@ -228,6 +228,7 @@ export default function FilaVirtualRealtime() {
   const [, setAgora]                  = useState(0)
   const [assumindo, setAssumindo]     = useState(false)
   const [erroAssumir, setErroAssumir] = useState('')
+  const [consultaAtiva, setConsultaAtiva] = useState<{ id: string; pacienteNome: string } | null>(null)
 
   const intervalRef       = useRef<ReturnType<typeof setInterval> | null>(null)
   const clockRef          = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -294,6 +295,7 @@ export default function FilaVirtualRealtime() {
       setFilaNormal(novaFilaNormal)
       setFila(data.fila ?? [...novaFilaUrgente, ...novaFilaNormal])
       setMedicoId(data.medicoId ?? null)
+      setConsultaAtiva(data.consultaAtiva ?? null)
       setUltimaAtt(new Date())
       setErro(false)
     } catch {
@@ -448,8 +450,32 @@ export default function FilaVirtualRealtime() {
         </div>
       )}
 
-      {/* Aviso: médico ocupado (encaminhamento ou paciente assumido) */}
-      {estouOcupado && (
+      {/* ── Consulta em andamento travada (saiu sem finalizar) ── */}
+      {consultaAtiva && (
+        <div className="px-6 py-4 bg-red-50 border-b-2 border-red-200 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 min-w-0">
+            <PhoneCall className="w-4 h-4 text-red-500 shrink-0 animate-pulse" />
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-red-700 leading-tight">
+                Consulta em andamento com {consultaAtiva.pacienteNome}
+              </p>
+              <p className="text-xs text-red-500 mt-0.5">
+                Você saiu da sala sem finalizar. O paciente pode ainda estar aguardando.
+              </p>
+            </div>
+          </div>
+          <a
+            href={`/medico/atendimento/${consultaAtiva.id}`}
+            className="shrink-0 flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap"
+          >
+            <Video className="w-3.5 h-3.5" />
+            Retomar consulta
+          </a>
+        </div>
+      )}
+
+      {/* Aviso: médico ocupado com paciente aguardando (assumido mas ainda não entrou) */}
+      {estouOcupado && !consultaAtiva && (
         <div className="px-6 py-3 bg-amber-50 border-b border-amber-100 flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
           <p className="text-xs text-amber-700 font-medium">
