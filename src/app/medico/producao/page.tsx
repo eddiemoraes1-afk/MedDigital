@@ -216,7 +216,7 @@ export default async function ProducaoMedicoPage({
 
     admin
       .from('exclusoes_telemedicina')
-      .select('id, criado_em, status, motivos, conduta, paciente_id, pacientes(id, nome)')
+      .select('id, criado_em, status, motivos, conduta, atendimento_id, paciente_id, pacientes(id, nome)')
       .eq('medico_id', medico.id)
       .gte('criado_em', inicioISO)
       .lte('criado_em', fimISO)
@@ -259,12 +259,10 @@ export default async function ProducaoMedicoPage({
     if (!examPorDia[d]) examPorDia[d] = new Set()
     if (e.paciente_id) examPorDia[d].add(e.paciente_id)
   })
-  const exclPorDia: Record<string, Set<string>> = {}
-  exclArr.forEach((e: any) => {
-    const d = toLocalDate(e.criado_em)
-    if (!exclPorDia[d]) exclPorDia[d] = new Set()
-    if (e.paciente_id) exclPorDia[d].add(e.paciente_id)
-  })
+  // Índice exato por atendimento_id (vínculo 1-para-1)
+  const atendimentosComExclusao = new Set<string>(
+    exclArr.filter((e: any) => e.atendimento_id).map((e: any) => e.atendimento_id as string)
+  )
 
   // ── Chart data ────────────────────────────────────────────────────────────
   const atsChartDates   = ats.map(a => toLocalDate(a.finalizado_em)).filter(Boolean)
@@ -288,7 +286,7 @@ export default async function ProducaoMedicoPage({
     tem_atestado:  !!(atestPorDia[toLocalDate(a.finalizado_em)]?.has(a.paciente_id ?? '')),
     tem_receita:   !!(recPorDia[toLocalDate(a.finalizado_em)]?.has(a.paciente_id ?? '')),
     tem_exame:     !!(examPorDia[toLocalDate(a.finalizado_em)]?.has(a.paciente_id ?? '')),
-    tem_exclusao:  !!(exclPorDia[toLocalDate(a.finalizado_em)]?.has(a.paciente_id ?? '')),
+    tem_exclusao:  atendimentosComExclusao.has(a.id),
     custo:         custoConsulta,
   }))
 
