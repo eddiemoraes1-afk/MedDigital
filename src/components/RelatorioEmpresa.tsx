@@ -713,18 +713,15 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
                 Receitas emitidas
               </p>
               <div className="flex items-center gap-3">
-                {receitasConsulta.length > 0 && (
-                  <span className="text-xs text-gray-400">{receitasConsulta.length} em consulta (sem custo)</span>
-                )}
                 {renovacoes.length > 0 && (
-                  <span className="text-xs text-purple-600 font-medium">{renovacoes.length} renovação{renovacoes.length !== 1 ? 'ões' : ''} (cobradas)</span>
+                  <span className="text-xs text-purple-600 font-medium">{renovacoes.length} renovação{renovacoes.length !== 1 ? 'ões' : ''} cobrada{renovacoes.length !== 1 ? 's' : ''}</span>
                 )}
               </div>
             </div>
-            {receitas.length === 0 ? (
+            {renovacoes.length === 0 ? (
               <div className="text-center py-10">
                 <FileText className="w-10 h-10 text-gray-200 mx-auto mb-2" />
-                <p className="text-gray-400 text-sm">Nenhuma receita emitida no período</p>
+                <p className="text-gray-400 text-sm">Nenhuma renovação de receita cobrada no período</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -732,7 +729,6 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Paciente</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Tipo</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Responsável co-part.</th>
                       <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">Data / Hora</th>
                       <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wide">Valor</th>
@@ -742,7 +738,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {receitas.map(r => (
+                    {renovacoes.map(r => (
                       <tr key={r.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
                           <div className="font-medium text-gray-800">{r.paciente_nome}</div>
@@ -752,23 +748,17 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
                             {r.e_dependente ? 'Dependente' : 'Funcionário'}
                           </span>
                         </td>
-                        <td className="px-4 py-3">
-                          {r.is_renovacao
-                            ? <span className="text-xs bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-bold">Renovação</span>
-                            : <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-full font-medium">Em consulta</span>
-                          }
-                        </td>
                         <td className="px-4 py-3 text-gray-700 text-sm">{r.titular_nome}</td>
                         <td className="px-4 py-3 text-gray-500 text-xs">{formatDataHora(r.data)}</td>
                         <td className="px-4 py-3 text-right font-semibold">
-                          {r.is_renovacao && r.valor_cobrado > 0
+                          {r.valor_cobrado > 0
                             ? <span className="text-cyan-700">{formatBRL(r.valor_cobrado)}</span>
                             : <span className="text-gray-300">—</span>
                           }
                         </td>
                         {temCoparticipacao && (
                           <td className="px-4 py-3 text-right font-semibold">
-                            {r.is_renovacao && r.valor_coparticipacao > 0
+                            {r.valor_coparticipacao > 0
                               ? <span className="text-orange-600">{formatBRL(r.valor_coparticipacao)}</span>
                               : <span className="text-gray-300">—</span>
                             }
