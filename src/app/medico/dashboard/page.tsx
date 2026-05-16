@@ -562,6 +562,50 @@ export default async function MedicoDashboard() {
           )}
         </div>
 
+        {/* ── Exames pedidos hoje ── */}
+        <div id="exames" className="bg-white rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <FlaskConical className="w-4 h-4 text-blue-500" />
+            <h2 className="font-bold text-[#1A3A2C] text-sm">
+              Exames pedidos hoje
+              <span className="ml-2 text-xs text-gray-400 font-normal">({exames.length})</span>
+            </h2>
+          </div>
+          {exames.length === 0 ? (
+            <div className="py-10 text-center">
+              <FlaskConical className="w-9 h-9 text-gray-200 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">Nenhum exame pedido hoje</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {(exames as any[]).map((ex: any) => {
+                const lista = ex.exames?.split('\n').map((l: string) => l.trim()).filter(Boolean) ?? []
+                const isUrgente = ex.urgencia === 'urgente' || ex.urgencia === 'emergencia'
+                return (
+                  <div key={ex.id} className="px-6 py-3 flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-[#1A3A2C]">
+                        {(ex.pacientes as any)?.nome ?? 'Paciente'}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">{lista.join(' · ')}</p>
+                    </div>
+                    {isUrgente && (
+                      <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${
+                        ex.urgencia === 'emergencia'
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {ex.urgencia === 'emergencia' ? 'Emergência' : 'Urgente'}
+                      </span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+
         {/* ── Resumo do Dia ── */}
         {(atendidos.length > 0 || receitas.length > 0 || atestados.length > 0) && (
           <div className="bg-[#1A3A2C] rounded-2xl shadow-sm p-6">
@@ -610,50 +654,6 @@ export default async function MedicoDashboard() {
             </div>
           </div>
         )}
-
-        {/* ── Exames pedidos hoje ── */}
-        <div id="exames" className="bg-white rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-            <FlaskConical className="w-4 h-4 text-blue-500" />
-            <h2 className="font-bold text-[#1A3A2C] text-sm">
-              Exames pedidos hoje
-              <span className="ml-2 text-xs text-gray-400 font-normal">({exames.length})</span>
-            </h2>
-          </div>
-          {exames.length === 0 ? (
-            <div className="py-10 text-center">
-              <FlaskConical className="w-9 h-9 text-gray-200 mx-auto mb-2" />
-              <p className="text-sm text-gray-400">Nenhum exame pedido hoje</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-50">
-              {(exames as any[]).map((ex: any) => {
-                const lista = ex.exames?.split('\n').map((l: string) => l.trim()).filter(Boolean) ?? []
-                const isUrgente = ex.urgencia === 'urgente' || ex.urgencia === 'emergencia'
-                return (
-                  <div key={ex.id} className="px-6 py-3 flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#1A3A2C]">
-                        {(ex.pacientes as any)?.nome ?? 'Paciente'}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-0.5 truncate">{lista.join(' · ')}</p>
-                    </div>
-                    {isUrgente && (
-                      <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${
-                        ex.urgencia === 'emergencia'
-                          ? 'bg-red-100 text-red-700'
-                          : 'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        {ex.urgencia === 'emergencia' ? 'Emergência' : 'Urgente'}
-                      </span>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-
 
       </main>
     </div>
