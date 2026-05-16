@@ -277,7 +277,7 @@ export default function AtendimentoMedico() {
     .filter(v => v.trim()).length + (Object.values(sv).some(v => v.trim()) ? 1 : 0)
 
   return (
-    <div className="min-h-screen bg-[#0F1F33] flex flex-col">
+    <div className="h-screen bg-[#0F1F33] flex flex-col overflow-hidden">
 
       {/* ── Header ── */}
       <div className="bg-[#1A3A2C] px-6 py-3 flex items-center justify-between shrink-0">
