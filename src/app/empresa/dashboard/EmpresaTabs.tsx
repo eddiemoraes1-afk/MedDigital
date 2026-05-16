@@ -1,15 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { Receipt, BarChart2, FileText, Users, List, Stethoscope } from 'lucide-react'
+import { Receipt, BarChart2, FileText, Users, List, Stethoscope, FlaskConical, ShieldCheck } from 'lucide-react'
 import RelatorioEmpresa from '@/components/RelatorioEmpresa'
 import EmpresaDashboardClient from './EmpresaDashboardClient'
 import AtestadosDashboard from './AtestadosDashboard'
 import FuncionariosDashboard from './FuncionariosDashboard'
 import ListaFuncionariosDashboard from './ListaFuncionariosDashboard'
 import ConsultasDashboard from './ConsultasDashboard'
+import ExamesDashboard from './ExamesDashboard'
+import ExclusoesDashboard from './ExclusoesDashboard'
 
-type Aba = 'relatorio' | 'dashboard' | 'funcionarios' | 'lista' | 'consultas' | 'atestados'
+type Aba = 'relatorio' | 'dashboard' | 'funcionarios' | 'consultas' | 'atestados' | 'exames' | 'exclusoes' | 'lista'
 
 export default function EmpresaTabs() {
   const [aba, setAba] = useState<Aba>('relatorio')
@@ -40,11 +42,6 @@ export default function EmpresaTabs() {
           Funcionários
         </button>
 
-        <button onClick={() => setAba('lista')} className={btnClass('lista')}>
-          <List className="w-4 h-4" />
-          Lista de Funcionários
-        </button>
-
         <button onClick={() => setAba('consultas')} className={btnClass('consultas')}>
           <Stethoscope className="w-4 h-4" />
           Consultas
@@ -53,6 +50,21 @@ export default function EmpresaTabs() {
         <button onClick={() => setAba('atestados')} className={btnClass('atestados')}>
           <FileText className="w-4 h-4" />
           Atestados
+        </button>
+
+        <button onClick={() => setAba('exames')} className={btnClass('exames')}>
+          <FlaskConical className="w-4 h-4" />
+          Exames
+        </button>
+
+        <button onClick={() => setAba('exclusoes')} className={btnClass('exclusoes')}>
+          <ShieldCheck className="w-4 h-4" />
+          Protocolo de Exclusões
+        </button>
+
+        <button onClick={() => setAba('lista')} className={btnClass('lista')}>
+          <List className="w-4 h-4" />
+          Lista de Funcionários
         </button>
       </div>
 
@@ -74,16 +86,24 @@ export default function EmpresaTabs() {
         <FuncionariosDashboard />
       )}
 
-      {aba === 'lista' && (
-        <ListaFuncionariosDashboard />
-      )}
-
       {aba === 'consultas' && (
         <ConsultasDashboard />
       )}
 
       {aba === 'atestados' && (
         <AtestadosDashboard />
+      )}
+
+      {aba === 'exames' && (
+        <ExamesDashboard />
+      )}
+
+      {aba === 'exclusoes' && (
+        <ExclusoesDashboard />
+      )}
+
+      {aba === 'lista' && (
+        <ListaFuncionariosDashboard />
       )}
     </div>
   )
