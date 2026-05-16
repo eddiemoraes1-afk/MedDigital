@@ -49,19 +49,48 @@ export async function POST(req: NextRequest) {
 
   // ── Regra 2: médico não pode assumir se já tem outro paciente aguardando ──
   // (seja por encaminhamento ou por ter clicado no nome de outro paciente)
-  const { data: outroPendente } = await admin
-    .from('atendimentos')
-    .select('id, pacientes(nome)')
-    .eq('medico_id', medico.id)
-    .eq('status', 'aguardando')
-    .neq('id', atendimento_id) // ignora o próprio alvo (idempotência)
-    .maybeSingle()
+  // Exceção: laranja (urgente=true) + encaminhado não é laranja + nenhum outro médico online
+  const [{ data: outroPendente }, { data: alvoInfo }] = await Promise.all([
+    admin
+      .from('atendimentos')
+      .select('id, urgente, pacientes(nome)')
+      .eq('medico_id', medico.id)
+      .eq('status', 'aguardando')
+      .neq('id', atendimento_id) // ignora o próprio alvo (idempotência)
+      .maybeSingle(),
+    admin
+      .from('atendimentos')
+      .select('urgente')
+      .eq('id', atendimento_id)
+      .maybeSingle(),
+  ])
 
   if (outroPendente) {
-    const nomePaciente = (outroPendente as any).pacientes?.nome || 'outro paciente'
-    return NextResponse.json({
-      error: `Você já tem "${nomePaciente}" aguardando atendimento. Finalize essa consulta antes de assumir outro paciente.`,
-    }, { status: 409 })
+    const alvoEhUrgente    = alvoInfo?.urgente === true
+    const pendenteEhUrgente = (outroPendente as any).urgente === true
+
+    let excecaoPermitida = false
+
+    // Excepção: novo paciente é laranja + encaminhado não é laranja + nenhum outro médico online
+    if (alvoEhUrgente && !pendenteEhUrgente) {
+      const limiteOnline = new Date(Date.now() - 2 * 60 * 1000).toISOString()
+      const { data: outrosMedOnline } = await admin
+        .from('presenca_medicos')
+        .select('medico_id')
+        .gt('ultimo_ping', limiteOnline)
+        .neq('medico_id', medico.id)
+
+      if (!outrosMedOnline || outrosMedOnline.length === 0) {
+        excecaoPermitida = true
+      }
+    }
+
+    if (!excecaoPermitida) {
+      const nomePaciente = (outroPendente as any).pacientes?.nome || 'outro paciente'
+      return NextResponse.json({
+        error: `Você já tem "${nomePaciente}" aguardando atendimento. Finalize essa consulta antes de assumir outro paciente.`,
+      }, { status: 409 })
+    }
   }
 
   // ── Verificar estado do atendimento alvo ──────────────────────────────────

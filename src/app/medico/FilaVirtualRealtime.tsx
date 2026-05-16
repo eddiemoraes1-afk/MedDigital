@@ -230,10 +230,50 @@ export default function FilaVirtualRealtime() {
   const [erroAssumir, setErroAssumir] = useState('')
   const [consultaAtiva, setConsultaAtiva] = useState<{ id: string; pacienteNome: string } | null>(null)
 
-  const intervalRef       = useRef<ReturnType<typeof setInterval> | null>(null)
-  const clockRef          = useRef<ReturnType<typeof setInterval> | null>(null)
+  const intervalRef           = useRef<ReturnType<typeof setInterval> | null>(null)
+  const clockRef              = useRef<ReturnType<typeof setInterval> | null>(null)
   // IDs urgentes conhecidos (para detectar novos e tocar alerta)
-  const idsUrgenteRef     = useRef<Set<string>>(new Set())
+  const idsUrgenteRef         = useRef<Set<string>>(new Set())
+  // IDs dos meus atendimentos (encaminhados ou assumidos) para detectar novos encaminhamentos
+  const meusAtendimentosRef   = useRef<Set<string>>(new Set())
+
+  // ── Alerta sonoro para encaminhamento recebido ───────────────────────────────
+  function tocarAlertaEncaminhamento(nomeMedico: string) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      // Sequência ascendente distinta (diferente do alerta de urgência)
+      const seq = [
+        { freq: 523,  start: 0,    dur: 0.14 },
+        { freq: 659,  start: 0.17, dur: 0.14 },
+        { freq: 784,  start: 0.34, dur: 0.14 },
+        { freq: 1047, start: 0.51, dur: 0.40 },
+      ]
+      seq.forEach(({ freq, start, dur }) => {
+        const osc  = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.type = 'sine'
+        osc.frequency.value = freq
+        gain.gain.setValueAtTime(0.5, ctx.currentTime + start)
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur)
+        osc.start(ctx.currentTime + start)
+        osc.stop(ctx.currentTime + start + dur + 0.05)
+      })
+      if ('speechSynthesis' in window) {
+        setTimeout(() => {
+          const preposicao = nomeMedico.startsWith('Dra.') ? 'pela' : 'pelo'
+          const msg = new SpeechSynthesisUtterance(
+            `Consulta encaminhada ${preposicao} ${nomeMedico}, aguardando atendimento.`
+          )
+          msg.lang = 'pt-BR'
+          msg.rate = 0.9
+          window.speechSynthesis.speak(msg)
+        }, 1600)
+      }
+    } catch { /* silencioso se AudioContext não disponível */ }
+  }
 
   // ── Alerta sonoro para paciente urgente novo ─────────────────────────────────
   function tocarAlertaUrgente() {
@@ -280,16 +320,39 @@ export default function FilaVirtualRealtime() {
 
       const novaFilaUrgente: AtendimentoFila[] = data.filaUrgente ?? []
       const novaFilaNormal:  AtendimentoFila[] = data.filaNormal  ?? []
+      const meusMedId = data.medicoId as string | null
+      const todaFila  = [...novaFilaUrgente, ...novaFilaNormal]
 
-      // Detectar novos pacientes urgentes (sem médico ainda) → alerta sonoro
       if (silencioso) {
+        // Detectar novos pacientes urgentes (sem médico ainda) → alerta urgência
         const novosUrgentes = novaFilaUrgente.filter(
           a => !a.medico_id && !idsUrgenteRef.current.has(a.id)
         )
         if (novosUrgentes.length > 0) tocarAlertaUrgente()
+
+        // Detectar novo encaminhamento imediato para este médico → alerta encaminhamento
+        if (meusMedId) {
+          const novosEncaminhados = todaFila.filter(
+            a =>
+              a.medico_id === meusMedId &&
+              !meusAtendimentosRef.current.has(a.id) &&
+              a.notas_medico?.includes('[Encaminhado por ')
+          )
+          if (novosEncaminhados.length > 0) {
+            const match = novosEncaminhados[0].notas_medico?.match(/\[Encaminhado por (.+?)\]/)
+            const nomeMedico = match ? match[1] : 'um médico'
+            tocarAlertaEncaminhamento(nomeMedico)
+          }
+        }
       }
+
       // Atualizar IDs conhecidos
       idsUrgenteRef.current = new Set(novaFilaUrgente.map(a => a.id))
+      if (meusMedId) {
+        meusAtendimentosRef.current = new Set(
+          todaFila.filter(a => a.medico_id === meusMedId).map(a => a.id)
+        )
+      }
 
       setFilaUrgente(novaFilaUrgente)
       setFilaNormal(novaFilaNormal)
