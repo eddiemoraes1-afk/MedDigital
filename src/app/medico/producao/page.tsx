@@ -2,12 +2,12 @@ import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import {
   CheckCircle2, FileText, ClipboardList,
-  DollarSign, TrendingUp, AlertCircle, FlaskConical,
+  DollarSign, TrendingUp, AlertCircle, FlaskConical, ShieldCheck,
 } from 'lucide-react'
 import MedicoHeader from '../MedicoHeader'
 import ProducaoFiltroClient from './ProducaoFiltroClient'
 import ProducaoListasClient, {
-  type ConsultaRow, type AtestadoRow, type ReceitaRow, type ExameRow,
+  type ConsultaRow, type AtestadoRow, type ReceitaRow, type ExameRow, type ExclusaoRow,
 } from './ProducaoListasClient'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -180,7 +180,7 @@ export default async function ProducaoMedicoPage({
   const fimISO    = new Date(dataFim + 'T23:59:59-03:00').toISOString()
 
   // ── Busca paralela ────────────────────────────────────────────────────────
-  const [atsRes, atestRes, recRes, examRes] = await Promise.all([
+  const [atsRes, atestRes, recRes, examRes, exclRes] = await Promise.all([
     admin
       .from('atendimentos')
       .select('id, finalizado_em, paciente_id, pacientes(id, nome)')
@@ -213,12 +213,21 @@ export default async function ProducaoMedicoPage({
       .gte('data_solicitacao', dataIni)
       .lte('data_solicitacao', dataFim)
       .order('data_solicitacao', { ascending: false }),
+
+    admin
+      .from('exclusoes_telemedicina')
+      .select('id, criado_em, status, motivos, conduta, paciente_id, pacientes(id, nome)')
+      .eq('medico_id', medico.id)
+      .gte('criado_em', inicioISO)
+      .lte('criado_em', fimISO)
+      .order('criado_em', { ascending: false }),
   ])
 
   const ats    = atsRes.data    ?? []
   const atests = atestRes.data  ?? []
   const recs   = recRes.data    ?? []
   const exams  = examRes.data   ?? []
+  const exclArr = exclRes.data  ?? []
 
   // ── Valores configurados pelo admin ──────────────────────────────────────
   const custoConsulta = Number(medico.custo_consulta ?? 0)
@@ -250,17 +259,25 @@ export default async function ProducaoMedicoPage({
     if (!examPorDia[d]) examPorDia[d] = new Set()
     if (e.paciente_id) examPorDia[d].add(e.paciente_id)
   })
+  const exclPorDia: Record<string, Set<string>> = {}
+  exclArr.forEach((e: any) => {
+    const d = toLocalDate(e.criado_em)
+    if (!exclPorDia[d]) exclPorDia[d] = new Set()
+    if (e.paciente_id) exclPorDia[d].add(e.paciente_id)
+  })
 
   // ── Chart data ────────────────────────────────────────────────────────────
   const atsChartDates   = ats.map(a => toLocalDate(a.finalizado_em)).filter(Boolean)
   const atestChartDates = atests.map(a => toLocalDate(a.criado_em)).filter(Boolean)
   const recChartDates   = recs.map(r => toLocalDate(r.criado_em)).filter(Boolean)
   const examChartDates  = exams.map((e: any) => e.data_solicitacao ?? '').filter(Boolean)
+  const exclChartDates  = exclArr.map((e: any) => toLocalDate(e.criado_em)).filter(Boolean)
 
   const atsChart   = buildChartData(atsChartDates,   dataIni, dataFim)
   const atestChart = buildChartData(atestChartDates, dataIni, dataFim)
   const recChart   = buildChartData(recChartDates,   dataIni, dataFim)
   const examChart  = buildChartData(examChartDates,  dataIni, dataFim)
+  const exclChart  = buildChartData(exclChartDates,  dataIni, dataFim)
 
   // ── Dados serializáveis para os clientes ──────────────────────────────────
   const consultaRows: ConsultaRow[] = ats.map(a => ({
@@ -268,10 +285,11 @@ export default async function ProducaoMedicoPage({
     finalizado_em: a.finalizado_em ?? '',
     paciente_id:  a.paciente_id ?? '',
     paciente_nome: (a.pacientes as any)?.nome ?? 'Paciente',
-    tem_atestado: !!(atestPorDia[toLocalDate(a.finalizado_em)]?.has(a.paciente_id ?? '')),
-    tem_receita:  !!(recPorDia[toLocalDate(a.finalizado_em)]?.has(a.paciente_id ?? '')),
-    tem_exame:    !!(examPorDia[toLocalDate(a.finalizado_em)]?.has(a.paciente_id ?? '')),
-    custo:        custoConsulta,
+    tem_atestado:  !!(atestPorDia[toLocalDate(a.finalizado_em)]?.has(a.paciente_id ?? '')),
+    tem_receita:   !!(recPorDia[toLocalDate(a.finalizado_em)]?.has(a.paciente_id ?? '')),
+    tem_exame:     !!(examPorDia[toLocalDate(a.finalizado_em)]?.has(a.paciente_id ?? '')),
+    tem_exclusao:  !!(exclPorDia[toLocalDate(a.finalizado_em)]?.has(a.paciente_id ?? '')),
+    custo:         custoConsulta,
   }))
 
   const atestadoRows: AtestadoRow[] = atests.map(a => ({
@@ -301,6 +319,16 @@ export default async function ProducaoMedicoPage({
     urgencia:         e.urgencia ?? 'normal',
   }))
 
+  const exclusaoRows: ExclusaoRow[] = exclArr.map((e: any) => ({
+    id:           e.id,
+    criado_em:    e.criado_em ?? '',
+    paciente_id:  e.paciente_id ?? '',
+    paciente_nome: (e.pacientes as any)?.nome ?? 'Paciente',
+    status:       e.status ?? 'apto',
+    motivos:      Array.isArray(e.motivos) ? e.motivos : [],
+    conduta:      e.conduta ?? '',
+  }))
+
   // ── Label de período ──────────────────────────────────────────────────────
   const labelPeriodo = [
     new Date(dataIni + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
@@ -328,7 +356,7 @@ export default async function ProducaoMedicoPage({
         <ProducaoFiltroClient dataIni={dataIni} dataFim={dataFim} label={labelPeriodo} />
 
         {/* ── KPIs ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           <div className="bg-[#1A3A2C] rounded-2xl p-5 shadow-sm">
             <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center mb-3">
               <CheckCircle2 className="w-5 h-5 text-[#5BBD9B]" />
@@ -359,6 +387,14 @@ export default async function ProducaoMedicoPage({
             </div>
             <div className="text-3xl font-bold text-[#1A3A2C]">{exams.length}</div>
             <div className="text-sm text-gray-400 mt-1">Exames pedidos</div>
+          </div>
+
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50">
+            <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center mb-3">
+              <ShieldCheck className="w-5 h-5 text-teal-600" />
+            </div>
+            <div className="text-3xl font-bold text-[#1A3A2C]">{exclArr.length}</div>
+            <div className="text-sm text-gray-400 mt-1">Prot. Exclusão</div>
           </div>
 
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50">
@@ -458,12 +494,23 @@ export default async function ProducaoMedicoPage({
           todayColor="#1d4ed8"
         />
 
+        <ChartCard
+          icon={<ShieldCheck className="w-4 h-4 text-teal-600" />}
+          title="Prot. Exclusão por dia"
+          count={exclArr.length}
+          avg={calcMedia(exclArr.length, exclChart)}
+          data={exclChart}
+          barColor="#0d9488"
+          todayColor="#134e4a"
+        />
+
         {/* ── Histórico detalhado (client — com filtro e download) ── */}
         <ProducaoListasClient
           consultas={consultaRows}
           atestados={atestadoRows}
           receitas={receitaRows}
           exames={exameRows}
+          exclusoes={exclusaoRows}
           custoConsulta={custoConsulta}
           periodo={periodoTexto}
           medicoNome={medico.nome}

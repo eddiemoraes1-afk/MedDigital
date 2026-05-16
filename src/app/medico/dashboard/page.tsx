@@ -4,7 +4,7 @@ import Link from 'next/link'
 import {
   Clock, CheckCircle2, AlertTriangle, Calendar,
   FileText, Stethoscope, ClipboardList, FlaskConical,
-  ChevronRight, BarChart2, ScrollText,
+  ChevronRight, BarChart2, ScrollText, ShieldCheck,
 } from 'lucide-react'
 import PingMedico from '../PingMedico'
 import MedicoHeader from '../MedicoHeader'
@@ -47,7 +47,7 @@ export default async function MedicoDashboard() {
   const hojeInicio = new Date(hojeStr + 'T00:00:00-03:00').toISOString()
 
   // ── Dados em paralelo ─────────────────────────────────────────────────────
-  const [atendidosRes, atestadosRes, receitasRes, renovacoesRes, examesRes, agendamentosFuturosRes] = await Promise.all([
+  const [atendidosRes, atestadosRes, receitasRes, renovacoesRes, examesRes, agendamentosFuturosRes, exclusoesRes] = await Promise.all([
     // Atendidos hoje
     adminSupabase
       .from('atendimentos')
@@ -95,14 +95,23 @@ export default async function MedicoDashboard() {
       .eq('medico_id', medico.id)
       .gte('data_hora', new Date().toISOString())
       .not('status', 'in', '(cancelado,reagendado)'),
+
+    // Protocolos de exclusão hoje
+    adminSupabase
+      .from('exclusoes_telemedicina')
+      .select('id, criado_em, status, motivos, conduta, pacientes(id, nome)')
+      .eq('medico_id', medico.id)
+      .gte('criado_em', hojeInicio)
+      .order('criado_em', { ascending: false }),
   ])
 
-  const atendidos          = atendidosRes.data   ?? []
-  const atestados          = atestadosRes.data   ?? []
-  const receitas           = receitasRes.data    ?? []
-  const renovacoes         = renovacoesRes.data  ?? []
-  const exames             = examesRes.data      ?? []
+  const atendidos          = atendidosRes.data      ?? []
+  const atestados          = atestadosRes.data      ?? []
+  const receitas           = receitasRes.data       ?? []
+  const renovacoes         = renovacoesRes.data     ?? []
+  const exames             = examesRes.data         ?? []
   const totalAgendamentos  = agendamentosFuturosRes.count ?? 0
+  const exclusoes          = exclusoesRes.data      ?? []
 
   // ── Cálculos do resumo do dia ─────────────────────────────────────────────
   const custoConsulta     = Number(medico.custo_consulta ?? 0)
@@ -138,6 +147,17 @@ export default async function MedicoDashboard() {
   function formatBRL(v: number | null) {
     if (!v) return '—'
     return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+  }
+
+  // ── Status de exclusão ────────────────────────────────────────────────────
+  const STATUS_EXCL_LABEL: Record<string, string> = {
+    apto: 'Apto', apto_ressalvas: 'Ressalvas', nao_apto: 'Não apto', emergencia: 'Emergência',
+  }
+  const STATUS_EXCL_COR: Record<string, string> = {
+    apto:            'bg-green-100 text-green-700',
+    apto_ressalvas:  'bg-yellow-100 text-yellow-700',
+    nao_apto:        'bg-orange-100 text-orange-700',
+    emergencia:      'bg-red-100 text-red-700',
   }
 
   // ── KPI card config ───────────────────────────────────────────────────────
@@ -178,6 +198,15 @@ export default async function MedicoDashboard() {
       iconColor: 'text-blue-500',
       bgIcon: 'bg-blue-50',
     },
+    {
+      href: '#exclusoes',
+      count: exclusoes.length,
+      label: 'Prot. Exclusão',
+      icon: ShieldCheck,
+      dark: false,
+      iconColor: 'text-teal-600',
+      bgIcon: 'bg-teal-50',
+    },
   ]
 
   return (
@@ -202,7 +231,7 @@ export default async function MedicoDashboard() {
         </div>
 
         {/* ── KPI cards clicáveis ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {kpis.map(k => (
             <a
               key={k.href}
@@ -606,6 +635,53 @@ export default async function MedicoDashboard() {
         </div>
 
 
+        {/* ── Protocolos de Exclusão hoje ── */}
+        <div id="exclusoes" className="bg-white rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+            <ShieldCheck className="w-4 h-4 text-teal-600" />
+            <h2 className="font-bold text-[#1A3A2C] text-sm">
+              Protocolos de Exclusão hoje
+              <span className="ml-2 text-xs text-gray-400 font-normal">({exclusoes.length})</span>
+            </h2>
+          </div>
+          {exclusoes.length === 0 ? (
+            <div className="py-10 text-center">
+              <ShieldCheck className="w-9 h-9 text-gray-200 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">Nenhum protocolo de exclusão registrado hoje</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-50">
+              {(exclusoes as any[]).map((ex: any) => {
+                const motivos: string[] = Array.isArray(ex.motivos) ? ex.motivos : []
+                return (
+                  <div key={ex.id} className="px-6 py-3 flex items-start gap-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <Link
+                          href={`/medico/pacientes/${(ex.pacientes as any)?.id}?back=${encodeURIComponent('/medico/dashboard')}`}
+                          className="text-sm font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
+                        >
+                          {(ex.pacientes as any)?.nome ?? '—'}
+                        </Link>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-semibold shrink-0 ${STATUS_EXCL_COR[ex.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                          {STATUS_EXCL_LABEL[ex.status] ?? ex.status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 line-clamp-1">{ex.conduta}</p>
+                      {motivos.length > 0 && (
+                        <p className="text-[10px] text-gray-300 mt-0.5">
+                          {motivos.length} motivo{motivos.length !== 1 ? 's' : ''}: {motivos.slice(0, 2).join(', ')}{motivos.length > 2 ? '…' : ''}
+                        </p>
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-300 shrink-0 pt-0.5">{formatarHora(ex.criado_em)}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
         {/* ── Resumo do Dia ── */}
         {(atendidos.length > 0 || receitas.length > 0 || atestados.length > 0) && (
           <div className="bg-[#1A3A2C] rounded-2xl shadow-sm p-6">
@@ -639,6 +715,10 @@ export default async function MedicoDashboard() {
               <div className="bg-white/10 rounded-xl p-4">
                 <p className="text-xs text-green-300 font-medium">Exames pedidos</p>
                 <p className="text-2xl font-bold text-white mt-1">{exames.length}</p>
+              </div>
+              <div className="bg-white/10 rounded-xl p-4">
+                <p className="text-xs text-green-300 font-medium">Prot. Exclusão</p>
+                <p className="text-2xl font-bold text-white mt-1">{exclusoes.length}</p>
               </div>
             </div>
             <div className="border-t border-white/20 pt-4 flex items-center justify-between">

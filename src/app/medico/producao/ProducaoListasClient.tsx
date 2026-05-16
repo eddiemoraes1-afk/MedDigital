@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, FileText, ClipboardList, CheckCircle2, FileSpreadsheet, Printer, FlaskConical } from 'lucide-react'
+import { Search, FileText, ClipboardList, CheckCircle2, FileSpreadsheet, Printer, FlaskConical, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -14,6 +14,7 @@ export interface ConsultaRow {
   tem_atestado: boolean
   tem_receita: boolean
   tem_exame: boolean
+  tem_exclusao: boolean
   custo: number
 }
 
@@ -44,11 +45,32 @@ export interface ExameRow {
   urgencia: string
 }
 
+export interface ExclusaoRow {
+  id: string
+  criado_em: string
+  paciente_id: string
+  paciente_nome: string
+  status: string       // 'apto' | 'apto_ressalvas' | 'nao_apto' | 'emergencia'
+  motivos: string[]
+  conduta: string
+}
+
+const STATUS_EXCL_LABEL: Record<string, string> = {
+  apto: 'Apto', apto_ressalvas: 'Ressalvas', nao_apto: 'Não apto', emergencia: 'Emergência',
+}
+const STATUS_EXCL_COR: Record<string, string> = {
+  apto:           'bg-green-100 text-green-700',
+  apto_ressalvas: 'bg-yellow-100 text-yellow-700',
+  nao_apto:       'bg-orange-100 text-orange-700',
+  emergencia:     'bg-red-100 text-red-700',
+}
+
 interface Props {
   consultas:  ConsultaRow[]
   atestados:  AtestadoRow[]
   receitas:   ReceitaRow[]
   exames:     ExameRow[]
+  exclusoes:  ExclusaoRow[]
   custoConsulta: number
   periodo:    string
   medicoNome: string
@@ -84,22 +106,23 @@ const LABEL_TIPO: Record<string, string> = {
 
 function gerarCSV(
   consultas: ConsultaRow[], atestados: AtestadoRow[], receitas: ReceitaRow[], exames: ExameRow[],
-  periodo: string, medicoNome: string, custoConsulta: number,
+  exclusoes: ExclusaoRow[], periodo: string, medicoNome: string, custoConsulta: number,
 ) {
   const linhas: string[] = []
   linhas.push(`Produção Médica — Dr(a). ${medicoNome} — ${periodo}`)
   linhas.push('')
 
   linhas.push('CONSULTAS CONCLUÍDAS')
-  linhas.push('Data,Hora,Paciente,Atestado,Receita,Exame,Valor')
+  linhas.push('Data,Hora,Paciente,Atestado,Receita,Exame,Prot.Exclusão,Valor')
   consultas.forEach(c => {
     linhas.push([
       fmtData(c.finalizado_em),
       fmtHora(c.finalizado_em),
       `"${c.paciente_nome}"`,
-      c.tem_atestado ? 'Sim' : 'Não',
-      c.tem_receita  ? 'Sim' : 'Não',
-      c.tem_exame    ? 'Sim' : 'Não',
+      c.tem_atestado  ? 'Sim' : 'Não',
+      c.tem_receita   ? 'Sim' : 'Não',
+      c.tem_exame     ? 'Sim' : 'Não',
+      c.tem_exclusao  ? 'Sim' : 'Não',
       custoConsulta > 0 ? formatBRL(custoConsulta) : '—',
     ].join(','))
   })
@@ -149,6 +172,19 @@ function gerarCSV(
       e.urgencia || 'normal',
     ].join(','))
   })
+  linhas.push('')
+
+  linhas.push('PROTOCOLOS DE EXCLUSÃO DE TELEMEDICINA')
+  linhas.push('Data,Paciente,Status,Motivos,Conduta')
+  exclusoes.forEach(ex => {
+    linhas.push([
+      fmtData(ex.criado_em),
+      `"${ex.paciente_nome}"`,
+      STATUS_EXCL_LABEL[ex.status] || ex.status,
+      `"${ex.motivos.join('; ')}"`,
+      `"${ex.conduta}"`,
+    ].join(','))
+  })
 
   return '﻿' + linhas.join('\r\n')
 }
@@ -157,7 +193,7 @@ function gerarCSV(
 
 function imprimirRelatorio(
   consultas: ConsultaRow[], atestados: AtestadoRow[], receitas: ReceitaRow[], exames: ExameRow[],
-  periodo: string, medicoNome: string, custoConsulta: number,
+  exclusoes: ExclusaoRow[], periodo: string, medicoNome: string, custoConsulta: number,
 ) {
   const totalConsultas = consultas.length * custoConsulta
 
@@ -193,7 +229,7 @@ function imprimirRelatorio(
     <thead>
       <tr>
         <th>Data</th><th>Hora</th><th>Paciente</th>
-        <th>Atestado</th><th>Receita</th><th>Exame</th>
+        <th>Atestado</th><th>Receita</th><th>Exame</th><th>Excl.</th>
         ${custoConsulta > 0 ? '<th>Valor</th>' : ''}
       </tr>
     </thead>
@@ -203,14 +239,15 @@ function imprimirRelatorio(
         <td>${fmtData(c.finalizado_em)}</td>
         <td>${fmtHora(c.finalizado_em)}</td>
         <td>${c.paciente_nome}</td>
-        <td>${c.tem_atestado ? '<span class="badge bg-amber">Sim</span>' : '—'}</td>
-        <td>${c.tem_receita  ? '<span class="badge bg-purple">Sim</span>' : '—'}</td>
-        <td>${c.tem_exame    ? '<span class="badge bg-green">Sim</span>' : '—'}</td>
+        <td>${c.tem_atestado  ? '<span class="badge bg-amber">Sim</span>' : '—'}</td>
+        <td>${c.tem_receita   ? '<span class="badge bg-purple">Sim</span>' : '—'}</td>
+        <td>${c.tem_exame     ? '<span class="badge bg-green">Sim</span>' : '—'}</td>
+        <td>${c.tem_exclusao  ? '<span class="badge" style="background:#ccfbf1;color:#0f766e">Sim</span>' : '—'}</td>
         ${custoConsulta > 0 ? `<td class="val">${formatBRL(custoConsulta)}</td>` : ''}
       </tr>`).join('')}
       ${custoConsulta > 0 ? `
       <tr class="total-row">
-        <td colspan="${custoConsulta > 0 ? 6 : 5}">Total</td>
+        <td colspan="${custoConsulta > 0 ? 7 : 6}">Total</td>
         <td class="val">${formatBRL(totalConsultas)}</td>
       </tr>` : ''}
     </tbody>
@@ -274,6 +311,30 @@ function imprimirRelatorio(
       }).join('')}
     </tbody>
   </table>
+
+  <h2>Protocolos de Exclusão de Telemedicina (${exclusoes.length})</h2>
+  <table>
+    <thead><tr><th>Data</th><th>Paciente</th><th>Status</th><th>Motivos</th><th>Conduta</th></tr></thead>
+    <tbody>
+      ${exclusoes.map(ex => {
+        const statusCor = ex.status === 'emergencia'
+          ? 'background:#fee2e2;color:#991b1b'
+          : ex.status === 'nao_apto'
+          ? 'background:#ffedd5;color:#c2410c'
+          : ex.status === 'apto_ressalvas'
+          ? 'background:#fef9c3;color:#854d0e'
+          : 'background:#d1fae5;color:#065f46'
+        return `
+      <tr>
+        <td>${fmtData(ex.criado_em)}</td>
+        <td>${ex.paciente_nome}</td>
+        <td><span class="badge" style="${statusCor}">${STATUS_EXCL_LABEL[ex.status] || ex.status}</span></td>
+        <td style="font-size:9px">${ex.motivos.join('; ') || '—'}</td>
+        <td style="font-size:9px">${ex.conduta}</td>
+      </tr>`
+      }).join('')}
+    </tbody>
+  </table>
 </body>
 </html>`
 
@@ -288,12 +349,13 @@ function imprimirRelatorio(
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function ProducaoListasClient({
-  consultas, atestados, receitas, exames, custoConsulta, periodo, medicoNome,
+  consultas, atestados, receitas, exames, exclusoes, custoConsulta, periodo, medicoNome,
 }: Props) {
   const [buscaC, setBuscaC] = useState('')
   const [buscaA, setBuscaA] = useState('')
   const [buscaR, setBuscaR] = useState('')
   const [buscaE, setBuscaE] = useState('')
+  const [buscaX, setBuscaX] = useState('')
 
   const consultasFiltradas = useMemo(
     () => consultas.filter(c => c.paciente_nome.toLowerCase().includes(buscaC.toLowerCase())),
@@ -311,9 +373,13 @@ export default function ProducaoListasClient({
     () => exames.filter(e => e.paciente_nome.toLowerCase().includes(buscaE.toLowerCase())),
     [exames, buscaE],
   )
+  const exclusoesFiltradas = useMemo(
+    () => exclusoes.filter(ex => ex.paciente_nome.toLowerCase().includes(buscaX.toLowerCase())),
+    [exclusoes, buscaX],
+  )
 
   function baixarCSV() {
-    const csv = gerarCSV(consultas, atestados, receitas, exames, periodo, medicoNome, custoConsulta)
+    const csv = gerarCSV(consultas, atestados, receitas, exames, exclusoes, periodo, medicoNome, custoConsulta)
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
@@ -324,7 +390,7 @@ export default function ProducaoListasClient({
   }
 
   function imprimir() {
-    imprimirRelatorio(consultas, atestados, receitas, exames, periodo, medicoNome, custoConsulta)
+    imprimirRelatorio(consultas, atestados, receitas, exames, exclusoes, periodo, medicoNome, custoConsulta)
   }
 
   // ── Search input ──────────────────────────────────────────────────────────────
@@ -404,6 +470,9 @@ export default function ProducaoListasClient({
                   )}
                   {c.tem_exame && (
                     <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">Exame</span>
+                  )}
+                  {c.tem_exclusao && (
+                    <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-medium">Exclusão</span>
                   )}
                 </div>
                 {custoConsulta > 0 && (
@@ -590,6 +659,53 @@ export default function ProducaoListasClient({
                 </div>
               )
             })}
+          </div>
+        )}
+      </div>
+
+      {/* ── Protocolos de Exclusão ── */}
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-teal-600" />
+            <h3 className="font-bold text-[#1A3A2C] text-sm">
+              Prot. Exclusão ({exclusoesFiltradas.length}{buscaX ? ` de ${exclusoes.length}` : ''})
+            </h3>
+          </div>
+          <SearchInput value={buscaX} onChange={setBuscaX} />
+        </div>
+
+        {exclusoesFiltradas.length === 0 ? (
+          <div className="py-10 text-center text-gray-400 text-sm">
+            {buscaX ? 'Nenhum paciente encontrado com esse nome' : 'Nenhum protocolo de exclusão no período'}
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-50">
+            {exclusoesFiltradas.map((ex, idx) => (
+              <div key={ex.id} className="px-6 py-3 flex items-start gap-3 hover:bg-gray-50 transition-colors">
+                <span className="text-xs text-gray-300 font-mono w-5 text-right shrink-0 mt-0.5">{idx + 1}</span>
+                <span className="text-xs text-gray-400 shrink-0 mt-0.5">
+                  {new Date(ex.criado_em).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'America/Sao_Paulo' })}
+                </span>
+                <Link
+                  href={`/medico/pacientes/${ex.paciente_id}?back=${encodeURIComponent('/medico/producao')}`}
+                  className="text-sm font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors shrink-0"
+                >
+                  {ex.paciente_nome}
+                </Link>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-gray-500 line-clamp-1">{ex.conduta}</p>
+                  {ex.motivos.length > 0 && (
+                    <p className="text-[10px] text-gray-300 mt-0.5">
+                      {ex.motivos.length} motivo{ex.motivos.length !== 1 ? 's' : ''} · {ex.motivos[0]}{ex.motivos.length > 1 ? '…' : ''}
+                    </p>
+                  )}
+                </div>
+                <span className={`shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_EXCL_COR[ex.status] ?? 'bg-gray-100 text-gray-600'}`}>
+                  {STATUS_EXCL_LABEL[ex.status] ?? ex.status}
+                </span>
+              </div>
+            ))}
           </div>
         )}
       </div>
