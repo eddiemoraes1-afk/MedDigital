@@ -48,6 +48,13 @@ function alertaMedicoAssumiu() {
   setTimeout(() => falarPT('Um médico já está revisando o seu prontuário e entrará na sala em instantes!'), 900)
 }
 
+function alertaMedicoNaSala() {
+  // Tom mais urgente e celebratório — sequência ascendente rápida seguida de nota sustentada
+  tocarBeep([523, 659, 784, 1047], 160)
+  setTimeout(() => tocarBeep([1047, 784], 220), 750)
+  setTimeout(() => falarPT('Médico na sala! Clique em entrar agora!'), 1400)
+}
+
 // ── Ordinal em português ──────────────────────────────────────────────────────
 
 function ordinalPT(n: number): string {
@@ -89,6 +96,7 @@ export default function ConsultaPaciente() {
   const encerradoRef     = useRef(false)
   const prevPosicaoRef   = useRef<number | null>(null)
   const prevAssumiuRef   = useRef(false)
+  const prevStatusRef    = useRef<string>('')
 
   useEffect(() => {
     poll()
@@ -158,11 +166,15 @@ export default function ConsultaPaciente() {
       return
     }
 
-    // Se novo médico entrou na sala, limpa banner de encaminhamento
+    // Se médico acabou de entrar na sala (aguardando → em_andamento), dispara alerta
     if (data.status === 'em_andamento') {
+      if (prevStatusRef.current === 'aguardando') {
+        alertaMedicoNaSala()
+      }
       setEncaminhado(false)
       setPosicaoInfo(null)
     }
+    prevStatusRef.current = data.status
 
     // ── Posição na fila (só quando aguardando) ────────────────────────────────
     if (data.status === 'aguardando') {
