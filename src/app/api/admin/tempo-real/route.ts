@@ -12,24 +12,33 @@ export async function GET() {
   const [
     { data: filaData },
     { data: consultasAtivasData },
+    { data: assumidosData },
     { data: medicosData },
     { data: presencasData },
     { data: vinculosData },
     { data: empresasData },
   ] = await Promise.all([
-    // Fila de espera virtual
+    // Fila de espera virtual (inclui medico_id para saber se já foi assumido)
     admin
       .from('atendimentos')
-      .select('id, criado_em, paciente_id, triagem_id, urgente, pacientes(nome), triagens(classificacao_risco, resumo_ia)')
+      .select('id, criado_em, paciente_id, medico_id, triagem_id, urgente, pacientes(nome), triagens(classificacao_risco, resumo_ia)')
       .eq('status', 'aguardando')
       .eq('tipo', 'virtual')
       .order('criado_em', { ascending: true }),
 
-    // Consultas em andamento agora
+    // Consultas em andamento agora (médico já entrou na sala)
     admin
       .from('atendimentos')
       .select('id, criado_em, iniciado_em, paciente_id, medico_id, pacientes(nome), medicos(nome, especialidade)')
       .eq('status', 'em_andamento')
+      .not('medico_id', 'is', null),
+
+    // Assumidos: aguardando + médico já clicou no nome (medico_id setado, ainda não entrou na sala)
+    admin
+      .from('atendimentos')
+      .select('id, criado_em, paciente_id, medico_id, pacientes(nome), medicos(nome, especialidade)')
+      .eq('status', 'aguardando')
+      .eq('tipo', 'virtual')
       .not('medico_id', 'is', null),
 
     // Todos os médicos aprovados
@@ -60,7 +69,11 @@ export async function GET() {
       pacienteEmpresa.set((v as any).paciente_id, (v as any).empresa_id)
   }
 
-  const emAtendimento = new Set((consultasAtivasData ?? []).map(a => a.medico_id))
+  // Médicos ocupados = em_andamento OU assumidos (revisando prontuário)
+  const emAtendimento = new Set([
+    ...(consultasAtivasData ?? []).map(a => a.medico_id as string),
+    ...(assumidosData ?? []).map((a: any) => a.medico_id as string),
+  ])
 
   function empresaDoPaciente(pacienteId: string): string {
     const empId = pacienteEmpresa.get(pacienteId)
@@ -107,22 +120,37 @@ export async function GET() {
     empresa_nome: empresaDoPaciente(a.paciente_id),
     criado_em: a.criado_em,
     urgente: a.urgente ?? false,
+    medico_id: a.medico_id ?? null, // não nulo = médico revisando prontuário
   }))
 
   const filaUrgente = fila.filter((a: any) => a.urgente)
   const filaNormal  = fila.filter((a: any) => !a.urgente)
 
-  // Consultas ativas enriquecidas
-  const consultasAtivas = (consultasAtivasData ?? []).map((a: any) => ({
-    id: a.id,
-    medico_id: a.medico_id,
-    medico_nome: a.medicos?.nome ?? '—',
-    medico_especialidade: a.medicos?.especialidade ?? '',
-    paciente_nome: a.pacientes?.nome ?? '—',
-    empresa_nome: empresaDoPaciente(a.paciente_id),
-    criado_em: a.criado_em,     // quando entrou na fila
-    iniciado_em: a.iniciado_em, // quando o médico chamou
-  }))
+  // Consultas ativas: em_andamento (médico na sala) + assumidos (revisando prontuário)
+  const consultasAtivas = [
+    ...(consultasAtivasData ?? []).map((a: any) => ({
+      id: a.id,
+      medico_id: a.medico_id,
+      medico_nome: a.medicos?.nome ?? '—',
+      medico_especialidade: a.medicos?.especialidade ?? '',
+      paciente_nome: a.pacientes?.nome ?? '—',
+      empresa_nome: empresaDoPaciente(a.paciente_id),
+      criado_em: a.criado_em,
+      iniciado_em: a.iniciado_em,
+      assumido: false, // médico já entrou na sala
+    })),
+    ...(assumidosData ?? []).map((a: any) => ({
+      id: a.id,
+      medico_id: a.medico_id,
+      medico_nome: a.medicos?.nome ?? '—',
+      medico_especialidade: a.medicos?.especialidade ?? '',
+      paciente_nome: a.pacientes?.nome ?? '—',
+      empresa_nome: empresaDoPaciente(a.paciente_id),
+      criado_em: a.criado_em,
+      iniciado_em: null,
+      assumido: true, // médico clicou no nome, revisando prontuário, ainda não entrou na sala
+    })),
+  ]
 
   return NextResponse.json({ fila, filaUrgente, filaNormal, medicos, consultasAtivas })
 }

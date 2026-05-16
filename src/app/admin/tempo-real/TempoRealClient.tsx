@@ -16,6 +16,7 @@ interface FilaItem {
   resumo_ia: string | null
   empresa_nome: string
   criado_em: string
+  medico_id: string | null // não nulo = médico revisando prontuário
 }
 
 interface MedicoStatus {
@@ -36,6 +37,7 @@ interface ConsultaAtiva {
   empresa_nome: string
   criado_em: string
   iniciado_em: string | null
+  assumido: boolean // true = revisando prontuário; false = já entrou na sala
 }
 
 interface TempoRealData {
@@ -196,24 +198,29 @@ export default function TempoRealClient() {
                 {medicosAtendendo.map(m => {
                   const consulta = consultasAtivas.find(c => c.medico_id === m.id)
                   return (
-                    <div key={m.id} className="bg-blue-50 rounded-xl p-3 border border-blue-100">
+                    <div key={m.id} className={`rounded-xl p-3 border ${consulta?.assumido ? 'bg-amber-50 border-amber-100' : 'bg-blue-50 border-blue-100'}`}>
                       <div className="flex items-center gap-2.5">
                         <div className="relative">
                           {m.foto_url
                             ? <img src={m.foto_url} className="w-8 h-8 rounded-full object-cover" alt="" />
-                            : <div className="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center">
-                                <Stethoscope className="w-4 h-4 text-blue-600" />
+                            : <div className={`w-8 h-8 rounded-full flex items-center justify-center ${consulta?.assumido ? 'bg-amber-200' : 'bg-blue-200'}`}>
+                                <Stethoscope className={`w-4 h-4 ${consulta?.assumido ? 'text-amber-600' : 'text-blue-600'}`} />
                               </div>
                           }
-                          <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-blue-500 border-2 border-white" />
+                          <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${consulta?.assumido ? 'bg-amber-400' : 'bg-blue-500'}`} />
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-xs font-bold text-[#1A3A2C] truncate">{m.nome}</p>
-                          <p className="text-[10px] text-blue-500 font-medium">{m.especialidade}</p>
+                          <p className={`text-[10px] font-medium ${consulta?.assumido ? 'text-amber-600' : 'text-blue-500'}`}>{m.especialidade}</p>
                         </div>
+                        {consulta?.assumido && (
+                          <span className="text-[9px] font-bold bg-amber-200 text-amber-800 px-1.5 py-0.5 rounded-full shrink-0">
+                            Prontuário
+                          </span>
+                        )}
                       </div>
                       {consulta && (
-                        <div className="mt-2 pt-2 border-t border-blue-100 space-y-1">
+                        <div className={`mt-2 pt-2 border-t space-y-1 ${consulta.assumido ? 'border-amber-100' : 'border-blue-100'}`}>
                           <div className="flex items-center gap-1 text-[10px] text-gray-600">
                             <User className="w-3 h-3 text-gray-400" />
                             <span className="font-medium truncate">{consulta.paciente_nome}</span>
@@ -222,24 +229,33 @@ export default function TempoRealClient() {
                             <Building2 className="w-3 h-3 text-gray-400" />
                             <span className="truncate">{consulta.empresa_nome}</span>
                           </div>
-                          {consulta.iniciado_em && (
+                          {consulta.assumido ? (
                             <div className="flex items-center justify-between text-[10px] mt-1">
-                              <span className="text-gray-400">Aguardou:</span>
-                              <span className="font-semibold text-amber-600">
-                                {formatDuration(
-                                  new Date(consulta.iniciado_em).getTime() -
-                                  new Date(consulta.criado_em).getTime()
-                                )}
-                              </span>
+                              <span className="text-gray-400">Status:</span>
+                              <span className="font-bold text-amber-600 animate-pulse">Revisando prontuário...</span>
                             </div>
-                          )}
-                          {consulta.iniciado_em && (
-                            <div className="flex items-center justify-between text-[10px]">
-                              <span className="text-gray-400">Em consulta:</span>
-                              <span className="font-bold text-blue-600 tabular-nums">
-                                {formatDuration(now - new Date(consulta.iniciado_em).getTime())}
-                              </span>
-                            </div>
+                          ) : (
+                            <>
+                              {consulta.iniciado_em && (
+                                <div className="flex items-center justify-between text-[10px] mt-1">
+                                  <span className="text-gray-400">Aguardou:</span>
+                                  <span className="font-semibold text-amber-600">
+                                    {formatDuration(
+                                      new Date(consulta.iniciado_em).getTime() -
+                                      new Date(consulta.criado_em).getTime()
+                                    )}
+                                  </span>
+                                </div>
+                              )}
+                              {consulta.iniciado_em && (
+                                <div className="flex items-center justify-between text-[10px]">
+                                  <span className="text-gray-400">Em consulta:</span>
+                                  <span className="font-bold text-blue-600 tabular-nums">
+                                    {formatDuration(now - new Date(consulta.iniciado_em).getTime())}
+                                  </span>
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       )}
@@ -364,6 +380,11 @@ export default function TempoRealClient() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-bold text-[#1A3A2C] text-sm">{item.paciente_nome}</p>
                             <RiscoBadge risco={item.classificacao_risco} />
+                            {item.medico_id && (
+                              <span className="text-[9px] font-bold bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-full animate-pulse">
+                                Médico revisando prontuário
+                              </span>
+                            )}
                           </div>
 
                           <div className="flex items-center gap-3 mt-1 flex-wrap">
@@ -425,6 +446,7 @@ export default function TempoRealClient() {
                       <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-4">Médico</th>
                       <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-4">Paciente</th>
                       <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-4">Empresa</th>
+                      <th className="text-center text-xs text-gray-400 font-medium pb-2 pr-4">Status</th>
                       <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-4">Aguardou</th>
                       <th className="text-right text-xs text-gray-400 font-medium pb-2">Consulta</th>
                     </tr>
@@ -448,6 +470,17 @@ export default function TempoRealClient() {
                           </td>
                           <td className="py-3 pr-4">
                             <p className="text-xs text-gray-500">{c.empresa_nome}</p>
+                          </td>
+                          <td className="py-3 pr-4 text-center">
+                            {c.assumido ? (
+                              <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full animate-pulse">
+                                Revisando prontuário
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                                Na sala
+                              </span>
+                            )}
                           </td>
                           <td className="py-3 pr-4 text-right">
                             {tempoEspera !== null ? (
