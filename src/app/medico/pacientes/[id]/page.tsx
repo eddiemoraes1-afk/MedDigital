@@ -46,6 +46,10 @@ function fmtDH(iso: string | null | undefined) {
 const LABEL_SEXO: Record<string, string> = {
   masculino: 'Masculino', feminino: 'Feminino', outro: 'Outro', nao_informado: 'Não informado',
 }
+
+function prefixoMedico(sexo: string | null | undefined): string {
+  return sexo === 'feminino' ? 'Dra.' : 'Dr.'
+}
 const COR_RISCO: Record<string, string> = {
   verde:    'border-green-300 bg-green-50',
   amarelo:  'border-yellow-300 bg-yellow-50',
@@ -223,7 +227,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
   // ── Protocolos de exclusão de telemedicina ──
   const { data: exclusoes } = await admin
     .from('exclusoes_telemedicina')
-    .select('*, medicos(nome, crm, crm_uf, especialidade)')
+    .select('*, medicos(nome, crm, crm_uf, especialidade, sexo)')
     .eq('paciente_id', id)
     .order('criado_em', { ascending: false })
 
@@ -394,7 +398,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                           <p className="text-white font-bold">{data} às {hora}</p>
                           {medA && (
                             <p className="text-green-300 text-xs mt-0.5">
-                              Dr(a). {medA.nome} — {medA.especialidade} · CRM {medA.crm}/{medA.crm_uf}
+                              {prefixoMedico(medA.sexo)} {medA.nome} — {medA.especialidade} · CRM {medA.crm}/{medA.crm_uf}
                             </p>
                           )}
                         </div>
@@ -578,20 +582,71 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                         )}
 
                         {sintomas?.motivosPrincipais?.length > 0 && (
-                          <div className="bg-white/80 rounded-xl p-4 border border-white">
-                            <p className="text-xs font-bold text-[#1A3A2C] uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                              <Stethoscope className="w-3.5 h-3.5 text-[#5BBD9B]" /> Sintomas Relatados
-                            </p>
-                            <div className="flex flex-wrap gap-1.5">
-                              {sintomas.motivosPrincipais.map((m: string) => (
-                                <span key={m} className="text-xs bg-[#EAF7F2] text-[#1A3A2C] border border-green-200 px-2.5 py-1 rounded-full font-medium">{m}</span>
-                              ))}
-                              {sintomas.outroMotivo && <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">{sintomas.outroMotivo}</span>}
-                            </div>
-                            {sintomas.intensidadeDor != null && (
-                              <p className="text-xs text-gray-500 mt-2">
-                                Intensidade da dor: <strong>{sintomas.intensidadeDor}/10</strong>
+                          <div className="bg-white/80 rounded-xl p-4 border border-white space-y-3">
+                            {/* Motivos principais */}
+                            <div>
+                              <p className="text-xs font-bold text-[#1A3A2C] uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                                <Stethoscope className="w-3.5 h-3.5 text-[#5BBD9B]" /> Sintomas Relatados
                               </p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {sintomas.motivosPrincipais.map((m: string) => (
+                                  <span key={m} className="text-xs bg-[#EAF7F2] text-[#1A3A2C] border border-green-200 px-2.5 py-1 rounded-full font-medium">{m}</span>
+                                ))}
+                                {sintomas.outroMotivo && <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">{sintomas.outroMotivo}</span>}
+                              </div>
+                            </div>
+
+                            {/* Localização da dor */}
+                            {sintomas.locaisDor?.length > 0 && (
+                              <div>
+                                <p className="text-xs font-semibold text-gray-500 mb-1.5">Localização da dor:</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {sintomas.locaisDor.map((l: string) => (
+                                    <span key={l} className="text-xs bg-orange-50 text-orange-700 border border-orange-200 px-2.5 py-1 rounded-full">{l}</span>
+                                  ))}
+                                  {sintomas.outraLocalizacaoDor && <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">{sintomas.outraLocalizacaoDor}</span>}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Intensidade da dor */}
+                            {sintomas.intensidadeDor != null && (
+                              <p className="text-xs text-gray-500">
+                                Intensidade da dor: <strong className={
+                                  sintomas.intensidadeDor <= 3 ? 'text-green-600' :
+                                  sintomas.intensidadeDor <= 6 ? 'text-yellow-600' : 'text-red-600'
+                                }>{sintomas.intensidadeDor}/10</strong>
+                              </p>
+                            )}
+
+                            {/* Remédio para aliviar */}
+                            {sintomas.tomouRemedio != null && (
+                              <div>
+                                <p className="text-xs font-semibold text-gray-500 mb-1">Tomou remédio / fez algo para melhorar:</p>
+                                {sintomas.tomouRemedio ? (
+                                  <div className="space-y-1">
+                                    {sintomas.oQueTomou && <p className="text-xs text-gray-700">O que tomou: <span className="font-medium">{sintomas.oQueTomou}</span></p>}
+                                    {sintomas.remedioMelhorou && (
+                                      <p className="text-xs text-gray-700">Resultado: <span className="font-medium">
+                                        {sintomas.remedioMelhorou === 'sim' ? '✓ Melhorou' : sintomas.remedioMelhorou === 'parcial' ? '◑ Melhorou parcialmente' : '✗ Não melhorou'}
+                                      </span></p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-gray-500 italic">Não tomou remédio</p>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Remédio de uso contínuo */}
+                            {sintomas.remedioContinuo != null && (
+                              <div>
+                                <p className="text-xs font-semibold text-gray-500 mb-1">Remédio de uso contínuo:</p>
+                                {sintomas.remedioContinuo && sintomas.remedioContinuoQuais
+                                  ? <p className="text-xs text-gray-700 font-medium">{sintomas.remedioContinuoQuais}</p>
+                                  : <p className="text-xs text-gray-500 italic">{sintomas.remedioContinuo ? 'Sim (não especificado)' : 'Não usa'}</p>
+                                }
+                              </div>
                             )}
                           </div>
                         )}
@@ -658,7 +713,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                           <p className="text-white font-bold">{data} às {hora}</p>
                           {med && (
                             <p className="text-green-300 text-xs mt-0.5">
-                              Dr(a). {med.nome} — {med.especialidade} · CRM {med.crm}/{med.crm_uf}
+                              {prefixoMedico(med.sexo)} {med.nome} — {med.especialidade} · CRM {med.crm}/{med.crm_uf}
                             </p>
                           )}
                         </div>
