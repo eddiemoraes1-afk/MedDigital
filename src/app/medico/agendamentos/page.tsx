@@ -18,12 +18,17 @@ const COR_STATUS: Record<string, string> = {
   nao_compareceu: 'bg-red-100 text-red-700 border-red-200',
 }
 
-function getStatusDisplay(status: string): { label: string; cor: string } {
+function getStatusDisplay(status: string, dataHora: string): { label: string; cor: string } {
   if (status === 'nao_compareceu') return { label: 'Não compareceu', cor: 'bg-red-100 text-red-700 border-red-200' }
   if (status === 'cancelado')      return { label: 'Cancelado',      cor: 'bg-red-50 text-red-400 border-red-100' }
   if (status === 'reagendado')     return { label: 'Reagendado',     cor: 'bg-orange-50 text-orange-400 border-orange-100' }
   if (status === 'concluido')      return { label: 'Realizado',      cor: 'bg-gray-100 text-gray-500 border-gray-200' }
-  return { label: 'Agendado', cor: 'bg-blue-50 text-blue-600 border-blue-100' }
+  // agendado / confirmado / pendente — distinguir futuro vs passado
+  const appointmentDate = new Date(dataHora.endsWith('Z') ? dataHora : dataHora + 'Z')
+  if (appointmentDate > new Date()) {
+    return { label: 'Agendado', cor: 'bg-blue-50 text-blue-600 border-blue-100' }
+  }
+  return { label: 'Pendente', cor: 'bg-yellow-100 text-yellow-700 border-yellow-200' }
 }
 
 function isAtivo(status: string) {
@@ -420,7 +425,9 @@ export default async function MedicoAgendamentosPage({
                               className={`block text-[10px] rounded px-1.5 py-0.5 truncate font-medium hover:opacity-80 transition-opacity ${
                                 a.status === 'concluido'      ? 'bg-gray-100 text-gray-500' :
                                 a.status === 'nao_compareceu' ? 'bg-red-100 text-red-600' :
-                                'bg-blue-50 text-blue-600'
+                                (() => { const d = new Date(a.data_hora.endsWith('Z') ? a.data_hora : a.data_hora + 'Z'); return d > new Date() })()
+                                  ? 'bg-blue-50 text-blue-600'
+                                  : 'bg-yellow-100 text-yellow-700'
                               }`}
                             >
                               {hora} {primeiroNome}
@@ -479,7 +486,7 @@ function ListaDetalhada({
           const isCancelado = a.status === 'cancelado'
           const isNaoComp   = a.status === 'nao_compareceu'
           const isDimmed    = isCancelado || isNaoComp
-          const { label, cor } = getStatusDisplay(a.status)
+          const { label, cor } = getStatusDisplay(a.status, a.data_hora)
           return (
             <div key={a.id} className={`px-6 py-4 flex items-start justify-between ${isDimmed ? 'opacity-70' : ''}`}>
               <div className="flex items-start gap-4">

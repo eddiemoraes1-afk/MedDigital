@@ -199,7 +199,12 @@ export default async function AdminAgendamentosPage({
     if (status === 'cancelado')      return { label: 'Cancelado',      cor: 'bg-red-50 text-red-400 border-red-100' }
     if (status === 'reagendado')     return { label: 'Reagendado',     cor: 'bg-orange-50 text-orange-400 border-orange-100' }
     if (status === 'concluido')      return { label: 'Realizado',      cor: 'bg-gray-100 text-gray-500 border-gray-200' }
-    return { label: 'Agendado', cor: 'bg-blue-50 text-blue-600 border-blue-100' }
+    // agendado / confirmado / pendente — distinguir futuro vs passado
+    const appointmentDate = new Date(dataHora.endsWith('Z') ? dataHora : dataHora + 'Z')
+    if (appointmentDate > new Date()) {
+      return { label: 'Agendado', cor: 'bg-blue-50 text-blue-600 border-blue-100' }
+    }
+    return { label: 'Pendente', cor: 'bg-yellow-100 text-yellow-700 border-yellow-200' }
   }
 
   function navLink(novaSemana: number, novoMedico?: string) {
