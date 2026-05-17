@@ -517,6 +517,37 @@ export default function FuncionariosDashboard() {
 
   useEffect(() => { carregar('30d') }, [carregar])
 
+  // ── Hooks derivados — DEVEM ficar antes de qualquer early return (Rules of Hooks) ──
+  const todosDeptos = useMemo(() => {
+    const s = new Set<string>()
+    ;(data?.gastosPorTitular ?? []).forEach(t => { if (t.departamento && t.departamento !== '—') s.add(t.departamento) })
+    return [...s].sort()
+  }, [data?.gastosPorTitular])
+
+  const todosCargos = useMemo(() => {
+    const s = new Set<string>()
+    ;(data?.gastosPorTitular ?? []).forEach(t => { if (t.cargo && t.cargo !== '—') s.add(t.cargo) })
+    return [...s].sort()
+  }, [data?.gastosPorTitular])
+
+  const titularesFiltrados = useMemo(() => {
+    let lista = data?.gastosPorTitular ?? []
+    if (buscaNome.trim()) {
+      const q = buscaNome.trim().toLowerCase()
+      lista = lista.filter(t =>
+        t.nome.toLowerCase().includes(q) ||
+        t.registroFuncional.toLowerCase().includes(q)
+      )
+    }
+    if (filtroDept) lista = lista.filter(t => t.departamento === filtroDept)
+    if (filtroCargo) lista = lista.filter(t => t.cargo === filtroCargo)
+    if (filtroUso === 'com') lista = lista.filter(t => t.totalConsultas > 0 || t.totalRenovacoes > 0)
+    if (filtroUso === 'sem') lista = lista.filter(t => t.totalConsultas === 0 && t.totalRenovacoes === 0)
+    return lista
+  }, [data?.gastosPorTitular, buscaNome, filtroDept, filtroCargo, filtroUso])
+
+  const temFiltroTabela = !!(buscaNome.trim() || filtroDept || filtroCargo || filtroUso !== 'todos')
+
   function handlePeriodo(p: string) {
     setPeriodo(p)
     if (p !== 'custom') carregar(p)
@@ -548,36 +579,6 @@ export default function FuncionariosDashboard() {
   }
 
   const { kpis } = data
-
-  const todosDeptos = useMemo(() => {
-    const s = new Set<string>()
-    ;(data.gastosPorTitular ?? []).forEach(t => { if (t.departamento && t.departamento !== '—') s.add(t.departamento) })
-    return [...s].sort()
-  }, [data.gastosPorTitular])
-
-  const todosCargos = useMemo(() => {
-    const s = new Set<string>()
-    ;(data.gastosPorTitular ?? []).forEach(t => { if (t.cargo && t.cargo !== '—') s.add(t.cargo) })
-    return [...s].sort()
-  }, [data.gastosPorTitular])
-
-  const titularesFiltrados = useMemo(() => {
-    let lista = data.gastosPorTitular ?? []
-    if (buscaNome.trim()) {
-      const q = buscaNome.trim().toLowerCase()
-      lista = lista.filter(t =>
-        t.nome.toLowerCase().includes(q) ||
-        t.registroFuncional.toLowerCase().includes(q)
-      )
-    }
-    if (filtroDept) lista = lista.filter(t => t.departamento === filtroDept)
-    if (filtroCargo) lista = lista.filter(t => t.cargo === filtroCargo)
-    if (filtroUso === 'com') lista = lista.filter(t => t.totalConsultas > 0 || t.totalRenovacoes > 0)
-    if (filtroUso === 'sem') lista = lista.filter(t => t.totalConsultas === 0 && t.totalRenovacoes === 0)
-    return lista
-  }, [data.gastosPorTitular, buscaNome, filtroDept, filtroCargo, filtroUso])
-
-  const temFiltroTabela = buscaNome.trim() || filtroDept || filtroCargo || filtroUso !== 'todos'
 
   return (
     <div className="space-y-6">
