@@ -2,7 +2,7 @@ import { requireAdmin } from '@/lib/auth-sistema'
 import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import {
-  Calendar, Clock, ChevronLeft, ChevronRight, User, XCircle, Users, ExternalLink,
+  Calendar, Clock, ChevronLeft, ChevronRight, User, XCircle, Users, ExternalLink, UserX, CheckCircle2,
 } from 'lucide-react'
 import AdminHeader from '../components/AdminHeader'
 import SeletorMedicoAgendamentos from './SeletorMedicoAgendamentos'
@@ -379,22 +379,41 @@ export default async function AdminAgendamentosPage({
                       {agsDia.length === 0 ? (
                         <p className="text-center text-xs text-gray-300 py-4">—</p>
                       ) : agsDia.map((a: any) => {
-                        const hora    = new Date(a.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
-                        const pac     = pacienteMap[a.paciente_id]
-                        const nomePac = (pac?.nome || 'Paciente').split(' ')[0]
+                        const hora       = new Date(a.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
+                        const pac        = pacienteMap[a.paciente_id]
+                        const nomePac    = (pac?.nome || 'Paciente').split(' ')[0]
                         const isCancelado = a.status === 'cancelado'
-                        const medInfo = medicoMap[a.medico_id]
-                        const cardClass = modoTodos && !isCancelado
-                          ? `${medInfo?.cor.bg} ${medInfo?.cor.text} border ${medInfo?.cor.border}`
-                          : corStatus[a.status] || 'bg-green-50 text-green-700 border-green-100'
+                        const isNaoComp  = a.status === 'nao_compareceu'
+                        const isConcluido = a.status === 'concluido'
+                        const isDimmed   = isCancelado || isNaoComp
+                        const medInfo    = medicoMap[a.medico_id]
+
+                        // card background: nao_compareceu e cancelado → vermelho; concluido → cinza; modoTodos → cor do médico; padrão → corStatus
+                        const cardClass = isNaoComp
+                          ? 'bg-red-50 text-red-600 border border-red-200'
+                          : isCancelado
+                            ? 'bg-red-50 text-red-300 border border-red-100 opacity-60'
+                            : isConcluido
+                              ? 'bg-gray-50 text-gray-400 border border-gray-100'
+                              : modoTodos && medInfo
+                                ? `${medInfo.cor.bg} ${medInfo.cor.text} border ${medInfo.cor.border}`
+                                : corStatus[a.status] || 'bg-blue-50 text-blue-600 border-blue-100'
+
                         return (
                           <Link
                             href={pac ? `/admin/pacientes/${a.paciente_id}?back=${backEncoded}` : '#'}
                             key={a.id}
-                            className={`block rounded-lg p-2 border text-xs hover:opacity-80 transition-opacity ${cardClass}`}
+                            className={`block rounded-lg p-2 text-xs hover:opacity-80 transition-opacity ${cardClass}`}
                           >
-                            <div className={`flex items-center gap-1 font-semibold ${isCancelado ? 'line-through opacity-60' : ''}`}>
-                              {isCancelado ? <XCircle className="w-3 h-3 shrink-0" /> : <Clock className="w-3 h-3 shrink-0" />}
+                            <div className={`flex items-center gap-1 font-semibold ${isDimmed ? 'line-through' : ''}`}>
+                              {isNaoComp
+                                ? <UserX className="w-3 h-3 shrink-0 text-red-500" />
+                                : isConcluido
+                                  ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-500" />
+                                  : isCancelado
+                                    ? <XCircle className="w-3 h-3 shrink-0" />
+                                    : <Clock className="w-3 h-3 shrink-0" />
+                              }
                               {hora}
                             </div>
                             {modoTodos && medInfo ? (
@@ -403,14 +422,20 @@ export default async function AdminAgendamentosPage({
                                 {drTitle(medInfo.sexo)} {nomeAbrev(medInfo.nome)}
                               </p>
                             ) : (
-                              <p className="text-[10px] text-gray-400 truncate mt-0.5">
+                              <p className="text-[10px] truncate mt-0.5 opacity-70">
                                 {drTitle(medico.sexo)} {nomeAbrev(modoTodos ? (medInfo?.nome || '') : medico.nome)}
                               </p>
                             )}
-                            <div className={`flex items-center gap-1 mt-0.5 truncate ${isCancelado ? 'opacity-60 text-gray-400' : 'text-gray-600'}`}>
+                            <div className={`flex items-center gap-1 mt-0.5 truncate ${isDimmed ? 'line-through opacity-60' : 'text-gray-600'}`}>
                               <User className="w-3 h-3 shrink-0" />
                               <span className="truncate">{nomePac}</span>
                             </div>
+                            {isNaoComp && (
+                              <p className="text-[9px] font-semibold text-red-500 mt-0.5 uppercase tracking-wide">Não compareceu</p>
+                            )}
+                            {isConcluido && (
+                              <p className="text-[9px] font-semibold text-green-600 mt-0.5 uppercase tracking-wide">Realizado</p>
+                            )}
                           </Link>
                         )
                       })}

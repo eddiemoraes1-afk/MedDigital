@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Calendar, Clock, User, ChevronLeft, ChevronRight, XCircle, LayoutGrid, List } from 'lucide-react'
+import { Calendar, Clock, User, ChevronLeft, ChevronRight, XCircle, LayoutGrid, List, UserX, CheckCircle2 } from 'lucide-react'
 import BotaoEntrarConsultaMedico from './BotaoEntrarConsultaMedico'
 import MarcarNaoCompareceuMedico from './MarcarNaoCompareceuMedico'
 import MedicoHeader from '../MedicoHeader'
@@ -285,8 +285,9 @@ export default async function MedicoAgendamentosPage({
                 const isHoje    = dia.toDateString() === new Date().toDateString()
                 const agsDia    = agsPorDiaSemana[dia.toDateString()] || []
                 const isPast    = dia < hoje && !isHoje
-                const ativos    = agsDia.filter((a: any) => isAtivo(a.status))
-                const cancelados = agsDia.filter((a: any) => a.status === 'cancelado')
+                const ativos      = agsDia.filter((a: any) => isAtivo(a.status))
+                const cancelados  = agsDia.filter((a: any) => a.status === 'cancelado')
+                const naoCompDia  = agsDia.filter((a: any) => a.status === 'nao_compareceu')
 
                 return (
                   <div
@@ -310,6 +311,11 @@ export default async function MedicoAgendamentosPage({
                               -{cancelados.length}
                             </span>
                           )}
+                          {naoCompDia.length > 0 && (
+                            <span className="text-xs px-1.5 py-0.5 rounded-full font-medium bg-red-200 text-red-600" title="Não compareceu">
+                              ✕{naoCompDia.length}
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
@@ -319,21 +325,46 @@ export default async function MedicoAgendamentosPage({
                         <p className="text-center text-xs text-gray-300 py-4">—</p>
                       ) : (
                         agsDia.map((a: any) => {
-                          const hora = new Date(a.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
-                          const paciente = pacienteMap[a.paciente_id]
+                          const hora         = new Date(a.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
+                          const paciente     = pacienteMap[a.paciente_id]
                           const primeiroNome = (paciente?.nome || 'Paciente').split(' ')[0]
                           const isCancelado  = a.status === 'cancelado'
+                          const isNaoComp    = a.status === 'nao_compareceu'
+                          const isConcluido  = a.status === 'concluido'
+                          const isDimmed     = isCancelado || isNaoComp
+
+                          const cardClass = isNaoComp
+                            ? 'bg-red-50 text-red-600 border border-red-200'
+                            : isCancelado
+                              ? 'bg-red-50 text-red-300 border border-red-100 opacity-60'
+                              : isConcluido
+                                ? 'bg-gray-50 text-gray-400 border border-gray-100'
+                                : COR_STATUS[a.status] || 'bg-blue-50 text-blue-600 border-blue-100'
+
                           return (
-                            <div key={a.id} className={`rounded-lg p-2 border text-xs ${COR_STATUS[a.status] || 'bg-green-50 text-green-700 border-green-100'}`}>
-                              <div className={`flex items-center gap-1 font-semibold ${isCancelado ? 'line-through opacity-60' : ''}`}>
-                                {isCancelado ? <XCircle className="w-3 h-3 shrink-0" /> : <Clock className="w-3 h-3 shrink-0" />}
+                            <div key={a.id} className={`rounded-lg p-2 text-xs ${cardClass}`}>
+                              <div className={`flex items-center gap-1 font-semibold ${isDimmed ? 'line-through' : ''}`}>
+                                {isNaoComp
+                                  ? <UserX className="w-3 h-3 shrink-0 text-red-500" />
+                                  : isConcluido
+                                    ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-500" />
+                                    : isCancelado
+                                      ? <XCircle className="w-3 h-3 shrink-0" />
+                                      : <Clock className="w-3 h-3 shrink-0" />
+                                }
                                 {hora}
                               </div>
-                              <Link href={`/medico/agendamento/${a.id}`} className={`flex items-center gap-1 mt-0.5 truncate hover:underline ${isCancelado ? 'opacity-60 text-gray-400' : 'text-gray-600'}`}>
+                              <Link href={`/medico/agendamento/${a.id}`} className={`flex items-center gap-1 mt-0.5 truncate hover:underline ${isDimmed ? 'line-through opacity-60' : 'text-gray-600'}`}>
                                 <User className="w-3 h-3 shrink-0" />
                                 <span className="truncate">{primeiroNome}</span>
                               </Link>
-                              {!isCancelado && (
+                              {isNaoComp && (
+                                <p className="text-[9px] font-semibold text-red-500 mt-0.5 uppercase tracking-wide">Não compareceu</p>
+                              )}
+                              {isConcluido && (
+                                <p className="text-[9px] font-semibold text-green-600 mt-0.5 uppercase tracking-wide">Realizado</p>
+                              )}
+                              {!isDimmed && !isConcluido && (
                                 <BotaoEntrarConsultaMedico agendamentoId={a.id} dataHora={a.data_hora} />
                               )}
                             </div>
