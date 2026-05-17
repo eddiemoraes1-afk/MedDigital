@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { BarChart2, FileText, Stethoscope, Pill, FlaskConical, Timer, ScrollText } from 'lucide-react'
+import { BarChart2, FileText, Stethoscope, Pill, FlaskConical, Timer, ScrollText, ShieldCheck } from 'lucide-react'
 import DashboardClient from './DashboardClient'
 import AdminAtestadosDashboard from './AtestadosDashboard'
 import ProducaoMedicaDashboard from './ProducaoMedicaDashboard'
@@ -9,8 +9,9 @@ import AdminReceitasDashboard from './ReceitasDashboard'
 import ExamesDashboard from './ExamesDashboard'
 import TempoDashboard from './TempoDashboard'
 import LogsDashboard from './LogsDashboard'
+import AdminExclusoesDashboard from './ExclusoesDashboard'
 
-type Aba = 'financeiro' | 'atestados' | 'producao' | 'receitas' | 'exames' | 'tempo' | 'log'
+type Aba = 'financeiro' | 'atestados' | 'producao' | 'receitas' | 'exames' | 'exclusoes' | 'tempo' | 'log'
 
 export default function AdminDashboardTabs() {
   const [aba, setAba] = useState<Aba>('financeiro')
@@ -51,6 +52,11 @@ export default function AdminDashboardTabs() {
           Exames
         </button>
 
+        <button onClick={() => setAba('exclusoes')} className={tabClass(aba === 'exclusoes')}>
+          <ShieldCheck className="w-4 h-4" />
+          Prot. Exclusão
+        </button>
+
         <button onClick={() => setAba('tempo')} className={tabClass(aba === 'tempo')}>
           <Timer className="w-4 h-4" />
           Tempo
@@ -63,12 +69,13 @@ export default function AdminDashboardTabs() {
       </div>
 
       {aba === 'financeiro' && <DashboardClient />}
-      {aba === 'atestados' && <AdminAtestadosDashboard />}
-      {aba === 'receitas'  && <AdminReceitasDashboard />}
-      {aba === 'producao'  && <ProducaoMedicaDashboard />}
-      {aba === 'exames'    && <ExamesDashboard />}
-      {aba === 'tempo'     && <TempoDashboard />}
-      {aba === 'log'       && <LogsDashboard />}
+      {aba === 'atestados'  && <AdminAtestadosDashboard />}
+      {aba === 'receitas'   && <AdminReceitasDashboard />}
+      {aba === 'producao'   && <ProducaoMedicaDashboard />}
+      {aba === 'exames'     && <ExamesDashboard />}
+      {aba === 'exclusoes'  && <AdminExclusoesDashboard />}
+      {aba === 'tempo'      && <TempoDashboard />}
+      {aba === 'log'        && <LogsDashboard />}
     </div>
   )
 }
