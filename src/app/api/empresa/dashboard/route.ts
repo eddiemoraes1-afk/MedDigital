@@ -470,6 +470,25 @@ export async function GET(req: Request) {
     titularMap.set(titularKey, cur)
   }
 
+  // Garante que TODOS os funcionários (titulares) apareçam, mesmo sem consultas no período
+  for (const v of todosVinculos) {
+    if (classRelacao(v.relacao) !== 'Funcionário') continue
+    const key = v.id
+    if (!titularMap.has(key)) {
+      titularMap.set(key, {
+        nome: v.nome_completo ?? '—',
+        cargo: v.cargo ?? '—',
+        departamento: v.departamento ?? '—',
+        registroFuncional: v.registro_funcional ?? '—',
+        consultasProprias: 0, consultasDependentes: 0,
+        valorProprio: 0, valorDependentes: 0,
+        renovacoesProprias: 0, renovacoesDependentes: 0,
+        valorRenovacoesProprias: 0, valorRenovacoesDependentes: 0,
+        dependentes: new Map(),
+      })
+    }
+  }
+
   const gastosPorTitular = [...titularMap.values()]
     .map(t => ({
       nome: t.nome, cargo: t.cargo, departamento: t.departamento, registroFuncional: t.registroFuncional,
@@ -485,7 +504,6 @@ export async function GET(req: Request) {
       dependentes: [...t.dependentes.values()],
     }))
     .sort((a, b) => b.totalValor - a.totalValor)
-    .slice(0, 20)
 
   // ===== KPIs =====
   const totalConsultas = ats.length

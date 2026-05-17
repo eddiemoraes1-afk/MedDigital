@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { Users, Loader2, RefreshCw, BarChart2, Download } from 'lucide-react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import { Users, Loader2, RefreshCw, BarChart2, Download, Search, X, FileText } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface KPIs {
@@ -396,6 +396,89 @@ async function exportarExcel(data: DashData, setLoading: (v: boolean) => void) {
   }
 }
 
+// ── Export PDF ────────────────────────────────────────────────────────────────
+function exportarPDF(titulares: TitularItem[], titulo: string) {
+  const rows = titulares.map((t, i) => `
+    <tr style="border-bottom:1px solid #f3f4f6; ${i % 2 === 0 ? 'background:#fafafa' : 'background:#fff'}">
+      <td style="padding:6px 8px; font-size:12px; color:#6b7280;">${i + 1}</td>
+      <td style="padding:6px 8px; font-size:12px; font-weight:600; color:#1a3a2c;">${t.nome}</td>
+      <td style="padding:6px 8px; font-size:11px; color:#6b7280; font-family:monospace;">${t.registroFuncional !== '—' ? t.registroFuncional : ''}</td>
+      <td style="padding:6px 8px; font-size:11px; color:#6b7280;">${[t.cargo !== '—' ? t.cargo : '', t.departamento !== '—' ? t.departamento : ''].filter(Boolean).join(' / ') || '—'}</td>
+      <td style="padding:6px 8px; font-size:12px; text-align:right; color:#374151;">${t.totalConsultas > 0 ? t.totalConsultas : '—'}</td>
+      <td style="padding:6px 8px; font-size:12px; text-align:right; font-weight:600; color:#1a3a2c;">${t.totalValorConsultas > 0 ? t.totalValorConsultas.toLocaleString('pt-BR', {style:'currency',currency:'BRL'}) : '—'}</td>
+      <td style="padding:6px 8px; font-size:12px; text-align:right; color:#374151;">${t.totalRenovacoes > 0 ? t.totalRenovacoes : '—'}</td>
+      <td style="padding:6px 8px; font-size:12px; text-align:right; font-weight:600; color:#7c3aed;">${t.totalValorRenovacoes > 0 ? t.totalValorRenovacoes.toLocaleString('pt-BR', {style:'currency',currency:'BRL'}) : '—'}</td>
+      <td style="padding:6px 8px; font-size:12px; text-align:right; font-weight:700; color:#1a3a2c;">${t.totalValor.toLocaleString('pt-BR', {style:'currency',currency:'BRL'})}</td>
+    </tr>
+  `).join('')
+
+  const totalGeral = titulares.reduce((s, t) => s + t.totalValor, 0)
+  const totalConsultas = titulares.reduce((s, t) => s + t.totalConsultas, 0)
+
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>${titulo}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #1a3a2c; padding: 24px; }
+    h1 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+    .subtitle { font-size: 12px; color: #6b7280; margin-bottom: 20px; }
+    .meta { display: flex; gap: 24px; margin-bottom: 20px; }
+    .meta-item { background: #f3faf7; border-radius: 8px; padding: 10px 16px; }
+    .meta-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; }
+    .meta-value { font-size: 18px; font-weight: 700; color: #1a3a2c; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th { background: #1a3a2c; color: white; padding: 8px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+    th:nth-child(n+5) { text-align: right; }
+    tfoot td { background: #1a3a2c; color: white; padding: 8px; font-size: 12px; font-weight: 700; }
+    tfoot td:nth-child(n+5) { text-align: right; }
+    .footer { margin-top: 24px; font-size: 10px; color: #9ca3af; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  <h1>${titulo}</h1>
+  <p class="subtitle">Gerado em ${new Date().toLocaleString('pt-BR')} · ${titulares.length} funcionário${titulares.length !== 1 ? 's' : ''}</p>
+  <div class="meta">
+    <div class="meta-item"><div class="meta-label">Total Funcionários</div><div class="meta-value">${titulares.length}</div></div>
+    <div class="meta-item"><div class="meta-label">Total Consultas</div><div class="meta-value">${totalConsultas}</div></div>
+    <div class="meta-item"><div class="meta-label">Total Gasto</div><div class="meta-value">${totalGeral.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</div></div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th><th>Nome</th><th>Registro</th><th>Cargo / Depto</th>
+        <th>Consultas</th><th>Custo Consultas</th>
+        <th>Renovações</th><th>Custo Renovações</th>
+        <th>Total Gasto</th>
+      </tr>
+    </thead>
+    <tbody>${rows}</tbody>
+    <tfoot>
+      <tr>
+        <td colspan="4">TOTAL</td>
+        <td>${totalConsultas}</td>
+        <td>${titulares.reduce((s,t)=>s+t.totalValorConsultas,0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
+        <td>${titulares.reduce((s,t)=>s+t.totalRenovacoes,0)}</td>
+        <td>${titulares.reduce((s,t)=>s+t.totalValorRenovacoes,0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
+        <td>${totalGeral.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td>
+      </tr>
+    </tfoot>
+  </table>
+  <p class="footer">* Custo total inclui consultas e renovações de dependentes atribuídas ao titular.</p>
+</body>
+</html>`
+
+  const win = window.open('', '_blank')
+  if (!win) return
+  win.document.write(html)
+  win.document.close()
+  win.focus()
+  setTimeout(() => win.print(), 500)
+}
+
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function FuncionariosDashboard() {
   const [data, setData] = useState<DashData | null>(null)
@@ -404,6 +487,11 @@ export default function FuncionariosDashboard() {
   const [periodo, setPeriodo] = useState('30d')
   const [inicio, setInicio] = useState('')
   const [fim, setFim] = useState('')
+  // Filtros da tabela de funcionários
+  const [buscaNome, setBuscaNome] = useState('')
+  const [filtroDept, setFiltroDept] = useState('')
+  const [filtroCargo, setFiltroCargo] = useState('')
+  const [filtroUso, setFiltroUso] = useState<'todos' | 'com' | 'sem'>('todos')
 
   const calcRange = useCallback((p: string): [string, string] => {
     const now = new Date()
@@ -461,6 +549,36 @@ export default function FuncionariosDashboard() {
 
   const { kpis } = data
 
+  const todosDeptos = useMemo(() => {
+    const s = new Set<string>()
+    ;(data.gastosPorTitular ?? []).forEach(t => { if (t.departamento && t.departamento !== '—') s.add(t.departamento) })
+    return [...s].sort()
+  }, [data.gastosPorTitular])
+
+  const todosCargos = useMemo(() => {
+    const s = new Set<string>()
+    ;(data.gastosPorTitular ?? []).forEach(t => { if (t.cargo && t.cargo !== '—') s.add(t.cargo) })
+    return [...s].sort()
+  }, [data.gastosPorTitular])
+
+  const titularesFiltrados = useMemo(() => {
+    let lista = data.gastosPorTitular ?? []
+    if (buscaNome.trim()) {
+      const q = buscaNome.trim().toLowerCase()
+      lista = lista.filter(t =>
+        t.nome.toLowerCase().includes(q) ||
+        t.registroFuncional.toLowerCase().includes(q)
+      )
+    }
+    if (filtroDept) lista = lista.filter(t => t.departamento === filtroDept)
+    if (filtroCargo) lista = lista.filter(t => t.cargo === filtroCargo)
+    if (filtroUso === 'com') lista = lista.filter(t => t.totalConsultas > 0 || t.totalRenovacoes > 0)
+    if (filtroUso === 'sem') lista = lista.filter(t => t.totalConsultas === 0 && t.totalRenovacoes === 0)
+    return lista
+  }, [data.gastosPorTitular, buscaNome, filtroDept, filtroCargo, filtroUso])
+
+  const temFiltroTabela = buscaNome.trim() || filtroDept || filtroCargo || filtroUso !== 'todos'
+
   return (
     <div className="space-y-6">
 
@@ -489,12 +607,8 @@ export default function FuncionariosDashboard() {
           </div>
         )}
 
-        <div className="ml-auto">
-          <button onClick={() => exportarExcel(data, setExportandoExcel)} disabled={exportandoExcel}
-            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-medium disabled:opacity-60 transition-colors">
-            {exportandoExcel ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-            Excel
-          </button>
+        <div className="ml-auto text-xs text-gray-400">
+          {(data.gastosPorTitular ?? []).length} funcionários · Exportar na tabela abaixo
         </div>
       </div>
 
@@ -625,9 +739,106 @@ export default function FuncionariosDashboard() {
       </ChartCard>
 
       {/* ── Custo por Titular (tabela principal) ── */}
-      <ChartCard title="Custo por Funcionário — Consultas e Renovações" subtitle="Clique em uma linha para ver os dependentes atribuídos ao titular">
-        <TitularTable titulares={data.gastosPorTitular ?? []} />
-      </ChartCard>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-50 overflow-hidden">
+        {/* Cabeçalho + filtros */}
+        <div className="px-5 pt-5 pb-3 border-b border-gray-100 space-y-3">
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div>
+              <h3 className="font-bold text-[#1A3A2C] text-sm">Custo por Funcionário — Consultas e Renovações</h3>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {temFiltroTabela
+                  ? `${titularesFiltrados.length} de ${(data.gastosPorTitular ?? []).length} funcionários`
+                  : `${(data.gastosPorTitular ?? []).length} funcionários`
+                } · Clique em uma linha para ver dependentes
+              </p>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => exportarExcel(data, setExportandoExcel)}
+                disabled={exportandoExcel}
+                className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-60 transition-colors"
+              >
+                {exportandoExcel ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                Excel
+              </button>
+              <button
+                onClick={() => exportarPDF(titularesFiltrados, 'Custo por Funcionário')}
+                className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              >
+                <FileText className="w-3.5 h-3.5" /> PDF
+              </button>
+            </div>
+          </div>
+
+          {/* Filtros */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Busca por nome */}
+            <div className="relative min-w-[200px] flex-1 max-w-xs">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Buscar por nome ou registro…"
+                value={buscaNome}
+                onChange={e => setBuscaNome(e.target.value)}
+                className="w-full pl-8 pr-7 py-1.5 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-gray-50 text-gray-700 placeholder-gray-400"
+              />
+              {buscaNome && (
+                <button onClick={() => setBuscaNome('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Departamento */}
+            {todosDeptos.length > 0 && (
+              <select
+                value={filtroDept}
+                onChange={e => setFiltroDept(e.target.value)}
+                className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-gray-50"
+              >
+                <option value="">Todos os departamentos</option>
+                {todosDeptos.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            )}
+
+            {/* Cargo */}
+            {todosCargos.length > 0 && (
+              <select
+                value={filtroCargo}
+                onChange={e => setFiltroCargo(e.target.value)}
+                className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-gray-50"
+              >
+                <option value="">Todos os cargos</option>
+                {todosCargos.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            )}
+
+            {/* Uso */}
+            <select
+              value={filtroUso}
+              onChange={e => setFiltroUso(e.target.value as 'todos' | 'com' | 'sem')}
+              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-gray-50"
+            >
+              <option value="todos">Com e sem uso</option>
+              <option value="com">Com consultas/renovações</option>
+              <option value="sem">Sem uso no período</option>
+            </select>
+
+            {temFiltroTabela && (
+              <button
+                onClick={() => { setBuscaNome(''); setFiltroDept(''); setFiltroCargo(''); setFiltroUso('todos') }}
+                className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 underline underline-offset-2"
+              >
+                <X className="w-3 h-3" /> Limpar
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="p-5">
+          <TitularTable titulares={titularesFiltrados} />
+        </div>
+      </div>
 
     </div>
   )
