@@ -7,12 +7,19 @@ import FiltrosPacientes from './FiltrosPacientes'
 import { Suspense } from 'react'
 
 interface Props {
-  searchParams: Promise<{ empresa_id?: string; tipo?: string; consultas?: string }>
+  searchParams: Promise<{
+    empresa_id?: string
+    tipo?: string
+    consultas?: string
+    nome?: string
+    cadastro_de?: string
+    cadastro_ate?: string
+  }>
 }
 
 export default async function AdminPacientesPage({ searchParams }: Props) {
   await requireAdmin()
-  const { empresa_id, tipo, consultas } = await searchParams
+  const { empresa_id, tipo, consultas, nome, cadastro_de, cadastro_ate } = await searchParams
   const adminSupabase = createAdminClient()
 
   // Buscar empresas para o filtro
@@ -34,28 +41,39 @@ export default async function AdminPacientesPage({ searchParams }: Props) {
   const { data: atendimentos } = pacienteIds.length > 0
     ? await adminSupabase
         .from('atendimentos')
-        .select('paciente_id')
+        .select('paciente_id, finalizado_em, criado_em')
         .in('paciente_id', pacienteIds)
         .eq('status', 'concluido')
+        .order('finalizado_em', { ascending: false })
     : { data: [] }
 
   // Buscar agendamentos concluídos (consultas agendadas)
   const { data: agendamentos } = pacienteIds.length > 0
     ? await adminSupabase
         .from('agendamentos')
-        .select('paciente_id')
+        .select('paciente_id, data_hora')
         .in('paciente_id', pacienteIds)
         .eq('status', 'concluido')
+        .order('data_hora', { ascending: false })
     : { data: [] }
 
-  // Mapas: paciente_id → contagens
+  // Mapas: paciente_id → contagens + último atendimento
   const atendMap: Record<string, number> = {}
+  const ultimoAtendMap: Record<string, string> = {}  // paciente_id → ISO date string
   for (const a of atendimentos ?? []) {
     atendMap[a.paciente_id] = (atendMap[a.paciente_id] ?? 0) + 1
+    const dataA = a.finalizado_em ?? a.criado_em
+    if (dataA && (!ultimoAtendMap[a.paciente_id] || dataA > ultimoAtendMap[a.paciente_id])) {
+      ultimoAtendMap[a.paciente_id] = dataA
+    }
   }
   const agendMap: Record<string, number> = {}
   for (const a of agendamentos ?? []) {
     agendMap[a.paciente_id] = (agendMap[a.paciente_id] ?? 0) + 1
+    const dataA = a.data_hora
+    if (dataA && (!ultimoAtendMap[a.paciente_id] || dataA > ultimoAtendMap[a.paciente_id])) {
+      ultimoAtendMap[a.paciente_id] = dataA
+    }
   }
 
   // Buscar vínculos para cruzar CPFs
@@ -76,8 +94,22 @@ export default async function AdminPacientesPage({ searchParams }: Props) {
     totalAtend: atendMap[p.id] ?? 0,    // consultas via triagem
     totalAgend: agendMap[p.id] ?? 0,    // consultas agendadas
     totalConsultas: (atendMap[p.id] ?? 0) + (agendMap[p.id] ?? 0),
+    ultimoAtend: ultimoAtendMap[p.id] ?? null,
     vinculo: p.cpf ? vinculoMap[p.cpf] ?? null : null,
   }))
+
+  // Ordenar: mais recentemente atendido primeiro; sem atendimento → por criado_em desc
+  pacientesEnriquecidos.sort((a, b) => {
+    if (a.ultimoAtend && b.ultimoAtend) return b.ultimoAtend.localeCompare(a.ultimoAtend)
+    if (a.ultimoAtend) return -1
+    if (b.ultimoAtend) return 1
+    return new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime()
+  })
+
+  // Helpers de data para filtros
+  const nomeLower = (nome ?? '').toLowerCase().trim()
+  const tsInicio = cadastro_de ? new Date(cadastro_de + 'T00:00:00-03:00').getTime() : null
+  const tsFim    = cadastro_ate ? new Date(cadastro_ate + 'T23:59:59-03:00').getTime() : null
 
   // Aplicar filtros
   let pacientesFiltrados = pacientesEnriquecidos.filter(p => {
@@ -90,6 +122,9 @@ export default async function AdminPacientesPage({ searchParams }: Props) {
     if (tipo === 'particular' && p.vinculo) return false
     if (consultas === 'sim' && p.totalConsultas === 0) return false
     if (consultas === 'nao' && p.totalConsultas > 0) return false
+    if (nomeLower && !p.nome.toLowerCase().includes(nomeLower)) return false
+    if (tsInicio && new Date(p.criado_em).getTime() < tsInicio) return false
+    if (tsFim && new Date(p.criado_em).getTime() > tsFim) return false
     return true
   })
 
@@ -138,7 +173,13 @@ export default async function AdminPacientesPage({ searchParams }: Props) {
 
         {/* Filtros */}
         <Suspense fallback={null}>
-          <FiltrosPacientes empresas={empresas ?? []} total={pacientesFiltrados.length} />
+          <FiltrosPacientes
+            empresas={empresas ?? []}
+            total={pacientesFiltrados.length}
+            nomeInicial={nome ?? ''}
+            cadastroDeInicial={cadastro_de ?? ''}
+            cadastroAteInicial={cadastro_ate ?? ''}
+          />
         </Suspense>
 
         {/* Tabela */}
@@ -162,6 +203,7 @@ export default async function AdminPacientesPage({ searchParams }: Props) {
                     <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Contato</th>
                     <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Empresa</th>
                     <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Consultas</th>
+                    <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Último atend.</th>
                     <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Cadastro</th>
                   </tr>
                 </thead>
@@ -227,6 +269,16 @@ export default async function AdminPacientesPage({ searchParams }: Props) {
                             <span className="text-xs text-gray-400 px-2">0 consultas</span>
                           )}
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {p.ultimoAtend ? (
+                          <span className="text-xs text-[#5BBD9B] font-medium flex items-center gap-1">
+                            <Stethoscope className="w-3 h-3" />
+                            {new Date(p.ultimoAtend).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: 'short', year: 'numeric' })}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-xs text-gray-400 flex items-center gap-1">
