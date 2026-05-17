@@ -6,6 +6,7 @@ import {
 } from 'lucide-react'
 import AdminHeader from '../components/AdminHeader'
 import SeletorMedicoAgendamentos from './SeletorMedicoAgendamentos'
+import MarcarNaoCompareceu from './MarcarNaoCompareceu'
 
 // Paleta de cores por médico no modo "todos"
 const PALETA = [
@@ -179,16 +180,26 @@ export default async function AdminAgendamentosPage({
 
   const labelMes     = segunda.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
   const labelMesMes  = primeiroDiaMes.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
-  const totalAtivos     = agendamentos.filter((a: any) => !['cancelado', 'reagendado'].includes(a.status)).length
+  const totalAtivos     = agendamentos.filter((a: any) => !['cancelado', 'reagendado', 'nao_compareceu'].includes(a.status)).length
   const totalCancelados = agendamentos.filter((a: any) => a.status === 'cancelado').length
-  const totalAtivosMes  = agendamentosMes.filter((a: any) => !['cancelado', 'reagendado'].includes(a.status)).length
+  const totalAtivosMes  = agendamentosMes.filter((a: any) => !['cancelado', 'reagendado', 'nao_compareceu'].includes(a.status)).length
 
   const corStatus: Record<string, string> = {
-    confirmado: 'bg-green-100 text-green-700 border-green-200',
-    pendente:   'bg-yellow-100 text-yellow-700 border-yellow-200',
-    concluido:  'bg-gray-100 text-gray-500 border-gray-200',
-    cancelado:  'bg-red-50 text-red-400 border-red-100',
-    reagendado: 'bg-orange-50 text-orange-400 border-orange-100',
+    agendado:       'bg-blue-50 text-blue-600 border-blue-100',
+    confirmado:     'bg-blue-50 text-blue-600 border-blue-100',
+    pendente:       'bg-blue-50 text-blue-600 border-blue-100',
+    concluido:      'bg-gray-100 text-gray-500 border-gray-200',
+    cancelado:      'bg-red-50 text-red-400 border-red-100',
+    reagendado:     'bg-orange-50 text-orange-400 border-orange-100',
+    nao_compareceu: 'bg-red-100 text-red-700 border-red-200',
+  }
+
+  function getStatusDisplay(status: string, dataHora: string): { label: string; cor: string } {
+    if (status === 'nao_compareceu') return { label: 'Não compareceu', cor: 'bg-red-100 text-red-700 border-red-200' }
+    if (status === 'cancelado')      return { label: 'Cancelado',      cor: 'bg-red-50 text-red-400 border-red-100' }
+    if (status === 'reagendado')     return { label: 'Reagendado',     cor: 'bg-orange-50 text-orange-400 border-orange-100' }
+    if (status === 'concluido')      return { label: 'Realizado',      cor: 'bg-gray-100 text-gray-500 border-gray-200' }
+    return { label: 'Agendado', cor: 'bg-blue-50 text-blue-600 border-blue-100' }
   }
 
   function navLink(novaSemana: number, novoMedico?: string) {
@@ -334,7 +345,7 @@ export default async function AdminAgendamentosPage({
                 const isHoje    = dia.toDateString() === new Date().toDateString()
                 const agsDia    = agendamentosPorDia[dia.toDateString()] || []
                 const isPast    = dia < hoje && !isHoje
-                const ativos    = agsDia.filter((a: any) => !['cancelado', 'reagendado'].includes(a.status))
+                const ativos    = agsDia.filter((a: any) => !['cancelado', 'reagendado', 'nao_compareceu'].includes(a.status))
                 const cancelados= agsDia.filter((a: any) => a.status === 'cancelado')
                 return (
                   <div
@@ -491,15 +502,21 @@ export default async function AdminAgendamentosPage({
                                 <ExternalLink className="w-3 h-3" /> Ver detalhes do paciente
                               </Link>
                             )}
+                            <MarcarNaoCompareceu
+                              agendamentoId={a.id}
+                              dataHora={a.data_hora}
+                              status={a.status}
+                            />
                           </div>
                         </div>
-                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ml-4 ${
-                          corStatus[a.status]?.replace('border-', '') || 'bg-gray-100 text-gray-500'
-                        }`}>
-                          {a.status === 'confirmado' ? 'Confirmado' : a.status === 'cancelado' ? 'Cancelado' :
-                           a.status === 'reagendado' ? 'Reagendado' : a.status === 'concluido' ? 'Concluído' :
-                           a.status === 'agendado' ? 'Agendado' : a.status}
-                        </span>
+                        {(() => {
+                          const { label, cor } = getStatusDisplay(a.status, a.data_hora)
+                          return (
+                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border shrink-0 ml-4 ${cor}`}>
+                              {label}
+                            </span>
+                          )
+                        })()}
                       </div>
                     )
                   })}
@@ -526,7 +543,7 @@ export default async function AdminAgendamentosPage({
               <div className="flex flex-wrap gap-2 mb-4">
                 {medicos.map((m: any, i: number) => {
                   const cor   = PALETA[i % PALETA.length]
-                  const count = agendamentosMes.filter((a: any) => a.medico_id === m.id && !['cancelado','reagendado'].includes(a.status)).length
+                  const count = agendamentosMes.filter((a: any) => a.medico_id === m.id && !['cancelado','reagendado','nao_compareceu'].includes(a.status)).length
                   if (count === 0) return null
                   return (
                     <span key={m.id} className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${cor.bg} ${cor.text} ${cor.border}`}>
@@ -556,7 +573,7 @@ export default async function AdminAgendamentosPage({
                   const isHoje         = dia.toDateString() === new Date().toDateString()
                   const key            = `${dia.getFullYear()}-${dia.getMonth()}-${dia.getDate()}`
                   const agsDia         = agsPorDiaMes[key] || []
-                  const ativos         = agsDia.filter((a: any) => !['cancelado','reagendado'].includes(a.status))
+                  const ativos         = agsDia.filter((a: any) => !['cancelado','reagendado','nao_compareceu'].includes(a.status))
                   const cancelados     = agsDia.filter((a: any) => a.status === 'cancelado')
                   const wOffset        = weekOffsetForDay(dia)
 
@@ -704,15 +721,21 @@ export default async function AdminAgendamentosPage({
                                 <ExternalLink className="w-3 h-3" /> Ver detalhes do paciente
                               </Link>
                             )}
+                            <MarcarNaoCompareceu
+                              agendamentoId={a.id}
+                              dataHora={a.data_hora}
+                              status={a.status}
+                            />
                           </div>
                         </div>
-                        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full shrink-0 ml-4 ${
-                          corStatus[a.status]?.replace('border-', '') || 'bg-gray-100 text-gray-500'
-                        }`}>
-                          {a.status === 'confirmado' ? 'Confirmado' : a.status === 'cancelado' ? 'Cancelado' :
-                           a.status === 'reagendado' ? 'Reagendado' : a.status === 'concluido' ? 'Concluído' :
-                           a.status === 'agendado' ? 'Agendado' : a.status}
-                        </span>
+                        {(() => {
+                          const { label, cor } = getStatusDisplay(a.status, a.data_hora)
+                          return (
+                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border shrink-0 ml-4 ${cor}`}>
+                              {label}
+                            </span>
+                          )
+                        })()}
                       </div>
                     )
                   })}

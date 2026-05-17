@@ -3,27 +3,31 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Calendar, Clock, User, ChevronLeft, ChevronRight, XCircle, LayoutGrid, List } from 'lucide-react'
 import BotaoEntrarConsultaMedico from './BotaoEntrarConsultaMedico'
+import MarcarNaoCompareceuMedico from './MarcarNaoCompareceuMedico'
 import MedicoHeader from '../MedicoHeader'
 
 // ── helpers ────────────────────────────────────────────────────────────────────
 
 const COR_STATUS: Record<string, string> = {
-  confirmado: 'bg-green-100 text-green-700 border-green-200',
-  pendente:   'bg-yellow-100 text-yellow-700 border-yellow-200',
-  concluido:  'bg-gray-100 text-gray-500 border-gray-200',
-  cancelado:  'bg-red-50 text-red-400 border-red-100',
-  reagendado: 'bg-orange-50 text-orange-400 border-orange-100',
+  agendado:       'bg-blue-50 text-blue-600 border-blue-100',
+  confirmado:     'bg-blue-50 text-blue-600 border-blue-100',
+  pendente:       'bg-blue-50 text-blue-600 border-blue-100',
+  concluido:      'bg-gray-100 text-gray-500 border-gray-200',
+  cancelado:      'bg-red-50 text-red-400 border-red-100',
+  reagendado:     'bg-orange-50 text-orange-400 border-orange-100',
+  nao_compareceu: 'bg-red-100 text-red-700 border-red-200',
 }
-const LABEL_STATUS: Record<string, string> = {
-  confirmado: 'Confirmado',
-  pendente:   'Pendente',
-  concluido:  'Concluído',
-  cancelado:  'Cancelado',
-  reagendado: 'Reagendado',
+
+function getStatusDisplay(status: string): { label: string; cor: string } {
+  if (status === 'nao_compareceu') return { label: 'Não compareceu', cor: 'bg-red-100 text-red-700 border-red-200' }
+  if (status === 'cancelado')      return { label: 'Cancelado',      cor: 'bg-red-50 text-red-400 border-red-100' }
+  if (status === 'reagendado')     return { label: 'Reagendado',     cor: 'bg-orange-50 text-orange-400 border-orange-100' }
+  if (status === 'concluido')      return { label: 'Realizado',      cor: 'bg-gray-100 text-gray-500 border-gray-200' }
+  return { label: 'Agendado', cor: 'bg-blue-50 text-blue-600 border-blue-100' }
 }
 
 function isAtivo(status: string) {
-  return !['cancelado', 'reagendado'].includes(status)
+  return !['cancelado', 'reagendado', 'nao_compareceu'].includes(status)
 }
 
 // ── página ─────────────────────────────────────────────────────────────────────
@@ -414,10 +418,9 @@ export default async function MedicoAgendamentosPage({
                               key={a.id}
                               href={`/medico/agendamento/${a.id}`}
                               className={`block text-[10px] rounded px-1.5 py-0.5 truncate font-medium hover:opacity-80 transition-opacity ${
-                                a.status === 'confirmado' ? 'bg-green-100 text-green-700' :
-                                a.status === 'pendente'   ? 'bg-yellow-100 text-yellow-700' :
-                                a.status === 'concluido'  ? 'bg-gray-100 text-gray-500' :
-                                'bg-green-100 text-green-700'
+                                a.status === 'concluido'      ? 'bg-gray-100 text-gray-500' :
+                                a.status === 'nao_compareceu' ? 'bg-red-100 text-red-600' :
+                                'bg-blue-50 text-blue-600'
                               }`}
                             >
                               {hora} {primeiroNome}
@@ -471,14 +474,19 @@ function ListaDetalhada({
       </div>
       <div className="divide-y divide-gray-50">
         {agendamentos.map((a: any) => {
-          const paciente   = pacienteMap[a.paciente_id]
-          const dataHora   = new Date(a.data_hora)
+          const paciente    = pacienteMap[a.paciente_id]
+          const dataHora    = new Date(a.data_hora)
           const isCancelado = a.status === 'cancelado'
+          const isNaoComp   = a.status === 'nao_compareceu'
+          const isDimmed    = isCancelado || isNaoComp
+          const { label, cor } = getStatusDisplay(a.status)
           return (
-            <div key={a.id} className={`px-6 py-4 flex items-start justify-between ${isCancelado ? 'opacity-70' : ''}`}>
+            <div key={a.id} className={`px-6 py-4 flex items-start justify-between ${isDimmed ? 'opacity-70' : ''}`}>
               <div className="flex items-start gap-4">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isCancelado ? 'bg-red-50' : 'bg-green-50'}`}>
-                  {isCancelado
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                  isCancelado ? 'bg-red-50' : isNaoComp ? 'bg-red-50' : 'bg-green-50'
+                }`}>
+                  {(isCancelado || isNaoComp)
                     ? <XCircle className="w-5 h-5 text-red-300" />
                     : <User className="w-5 h-5 text-[#5BBD9B]" />
                   }
@@ -486,7 +494,7 @@ function ListaDetalhada({
                 <div>
                   <Link
                     href={`/medico/agendamento/${a.id}`}
-                    className={`font-medium hover:text-[#5BBD9B] hover:underline ${isCancelado ? 'line-through text-gray-400' : 'text-gray-800'}`}
+                    className={`font-medium hover:text-[#5BBD9B] hover:underline ${isDimmed ? 'text-gray-400' : 'text-gray-800'}`}
                   >
                     {paciente?.nome || 'Paciente'}
                   </Link>
@@ -512,7 +520,7 @@ function ListaDetalhada({
                   {isCancelado && !a.motivo_cancelamento && (
                     <p className="text-xs text-red-300 mt-1 italic">Cancelado sem motivo informado</p>
                   )}
-                  {!isCancelado && (() => {
+                  {!isDimmed && (() => {
                     const dataConsulta = new Date(a.data_hora.endsWith('Z') ? a.data_hora : a.data_hora + 'Z')
                     const isFutura = dataConsulta > new Date()
                     if (!isFutura) return null
@@ -525,13 +533,18 @@ function ListaDetalhada({
                       </p>
                     )
                   })()}
-                  {!isCancelado && (
+                  {!isDimmed && (
                     <BotaoEntrarConsultaMedico agendamentoId={a.id} dataHora={a.data_hora} />
                   )}
+                  <MarcarNaoCompareceuMedico
+                    agendamentoId={a.id}
+                    dataHora={a.data_hora}
+                    status={a.status}
+                  />
                 </div>
               </div>
-              <span className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${COR_STATUS[a.status] || 'bg-gray-100 text-gray-500 border-gray-200'}`}>
-                {LABEL_STATUS[a.status] || a.status}
+              <span className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${cor}`}>
+                {label}
               </span>
             </div>
           )
