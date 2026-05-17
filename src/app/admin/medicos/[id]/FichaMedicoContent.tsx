@@ -77,6 +77,7 @@ export interface ExclusaoEnriquecida {
   origemLabel: string
   origemTipo: 'empresa' | 'particular'
   empresaId: string | null
+  atendimentoId: string | null
   status: string
   motivos: string[]
   motivo_outro: string | null
@@ -167,8 +168,9 @@ export default function FichaMedicoContent({
     () => new Set(filteredExames.filter(e => e.atendimentoId).map(e => e.atendimentoId!)),
     [filteredExames],
   )
-  const filteredExclPacientes = useMemo(
-    () => new Set(filteredExclusoes.map(e => e.pacienteId)),
+  // Marcador por atendimento_id específico (exclusões criadas durante a consulta)
+  const filteredExclAts = useMemo(
+    () => new Set(filteredExclusoes.filter(e => e.atendimentoId).map(e => e.atendimentoId!)),
     [filteredExclusoes],
   )
 
@@ -566,7 +568,7 @@ export default function FichaMedicoContent({
                             : <span className="text-gray-200 text-xs">—</span>}
                         </td>
                         <td className="px-5 py-3 text-center">
-                          {filteredExclPacientes.has(a.pacienteId)
+                          {filteredExclAts.has(a.id)
                             ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100"><CheckCircle2 className="w-3 h-3 text-red-600" /></span>
                             : <span className="text-gray-200 text-xs">—</span>}
                         </td>

@@ -87,7 +87,7 @@ export default async function FichaMedicoPage({
   // ── Protocolos de exclusão ────────────────────────────────────────────────
   const { data: exclusoesData } = await admin
     .from('exclusoes_telemedicina')
-    .select('id, criado_em, status, motivos, motivo_outro, conduta, ciente_paciente, paciente_id')
+    .select('id, criado_em, status, motivos, motivo_outro, conduta, ciente_paciente, paciente_id, atendimento_id')
     .eq('medico_id', id)
     .order('criado_em', { ascending: false })
 
@@ -253,6 +253,7 @@ export default async function FichaMedicoPage({
       origemLabel: orig.label,
       origemTipo: orig.tipo,
       empresaId: pacienteEmpresaId[e.paciente_id] ?? null,
+      atendimentoId: (e as any).atendimento_id ?? null,
       status: e.status ?? '',
       motivos: Array.isArray(e.motivos) ? e.motivos : [],
       motivo_outro: (e as any).motivo_outro ?? null,
