@@ -6,7 +6,7 @@ import {
   Activity, Building2, Users, Clock, CheckCircle2,
   Search, X, SlidersHorizontal, DollarSign, TrendingDown,
   TrendingUp, FileText, ClipboardList, FileSpreadsheet, Printer,
-  FlaskConical,
+  FlaskConical, ShieldCheck, XCircle,
 } from 'lucide-react'
 
 // ── Types (exported so page.tsx can build them) ───────────────────────────────
@@ -68,6 +68,22 @@ export interface ExameEnriquecido {
   urgencia: string
 }
 
+export interface ExclusaoEnriquecida {
+  id: string
+  isoDate: string
+  data: string
+  pacienteId: string
+  pacienteNome: string
+  origemLabel: string
+  origemTipo: 'empresa' | 'particular'
+  empresaId: string | null
+  status: string
+  motivos: string[]
+  motivo_outro: string | null
+  conduta: string | null
+  ciente_paciente: boolean
+}
+
 interface Empresa { id: string; nome: string }
 
 interface Props {
@@ -75,6 +91,7 @@ interface Props {
   atestados: AtestadoEnriquecido[]
   receitas: ReceitaEnriquecida[]
   exames: ExameEnriquecido[]
+  exclusoes: ExclusaoEnriquecida[]
   empresas: Empresa[]
   custoConsulta: number
   custoReceita: number
@@ -121,7 +138,7 @@ function applyFilters<T extends Filterable>(
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function FichaMedicoContent({
-  atendimentos, atestados, receitas, exames, empresas,
+  atendimentos, atestados, receitas, exames, exclusoes, empresas,
   custoConsulta, custoReceita, medicoId, medicoNome, sidebar,
 }: Props) {
   const [dateFrom, setDateFrom] = useState('')
@@ -131,12 +148,13 @@ export default function FichaMedicoContent({
 
   const isFiltered = !!(dateFrom || dateTo || origem !== 'all' || busca.trim())
 
-  const filteredAts    = useMemo(() => applyFilters(atendimentos, dateFrom, dateTo, origem, busca), [atendimentos, dateFrom, dateTo, origem, busca])
-  const filteredAtests = useMemo(() => applyFilters(atestados,    dateFrom, dateTo, origem, busca), [atestados,    dateFrom, dateTo, origem, busca])
-  const filteredRecs   = useMemo(() => applyFilters(receitas,     dateFrom, dateTo, origem, busca), [receitas,     dateFrom, dateTo, origem, busca])
-  const filteredExames = useMemo(() => applyFilters(exames,       dateFrom, dateTo, origem, busca), [exames,       dateFrom, dateTo, origem, busca])
+  const filteredAts      = useMemo(() => applyFilters(atendimentos, dateFrom, dateTo, origem, busca), [atendimentos, dateFrom, dateTo, origem, busca])
+  const filteredAtests   = useMemo(() => applyFilters(atestados,    dateFrom, dateTo, origem, busca), [atestados,    dateFrom, dateTo, origem, busca])
+  const filteredRecs     = useMemo(() => applyFilters(receitas,     dateFrom, dateTo, origem, busca), [receitas,     dateFrom, dateTo, origem, busca])
+  const filteredExames   = useMemo(() => applyFilters(exames,       dateFrom, dateTo, origem, busca), [exames,       dateFrom, dateTo, origem, busca])
+  const filteredExclusoes = useMemo(() => applyFilters(exclusoes,   dateFrom, dateTo, origem, busca), [exclusoes,    dateFrom, dateTo, origem, busca])
 
-  // Sets para indicadores por linha — compara pelo atendimento_id (não por paciente)
+  // Sets para indicadores por linha — atestado/receita/exame: por atendimento_id; exclusão: por paciente_id
   const filteredAtestAts = useMemo(
     () => new Set(filteredAtests.filter(a => a.atendimentoId).map(a => a.atendimentoId!)),
     [filteredAtests],
@@ -148,6 +166,10 @@ export default function FichaMedicoContent({
   const filteredExamAts = useMemo(
     () => new Set(filteredExames.filter(e => e.atendimentoId).map(e => e.atendimentoId!)),
     [filteredExames],
+  )
+  const filteredExclPacientes = useMemo(
+    () => new Set(filteredExclusoes.map(e => e.pacienteId)),
+    [filteredExclusoes],
   )
 
   // Dynamic KPIs
@@ -166,6 +188,7 @@ export default function FichaMedicoContent({
   const lucro                = faturamento - custoTotal
   const totalAtestados       = filteredAtests.length
   const totalExames          = filteredExames.length
+  const totalExclusoes       = filteredExclusoes.length
 
   function clearFilters() {
     setDateFrom(''); setDateTo(''); setOrigem('all'); setBusca('')
@@ -432,6 +455,16 @@ export default function FichaMedicoContent({
             <div className="p-2 rounded-xl bg-blue-50"><FlaskConical className="w-4 h-4 text-blue-500" /></div>
           </div>
         </div>
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-50">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-xs text-gray-400 font-medium">Exclusões</p>
+              <p className="text-2xl font-bold text-red-600 mt-1">{totalExclusoes}</p>
+              <p className="text-xs text-gray-400 mt-0.5">protocolos</p>
+            </div>
+            <div className="p-2 rounded-xl bg-red-50"><ShieldCheck className="w-4 h-4 text-red-500" /></div>
+          </div>
+        </div>
       </div>
 
       {/* Main grid */}
@@ -483,6 +516,7 @@ export default function FichaMedicoContent({
                       <th className="px-5 py-3 text-center">Atestado</th>
                       <th className="px-5 py-3 text-center">Receita</th>
                       <th className="px-5 py-3 text-center">Exame</th>
+                      <th className="px-5 py-3 text-center">Exclusão</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -531,6 +565,11 @@ export default function FichaMedicoContent({
                             ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-100"><CheckCircle2 className="w-3 h-3 text-blue-600" /></span>
                             : <span className="text-gray-200 text-xs">—</span>}
                         </td>
+                        <td className="px-5 py-3 text-center">
+                          {filteredExclPacientes.has(a.pacienteId)
+                            ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-red-100"><CheckCircle2 className="w-3 h-3 text-red-600" /></span>
+                            : <span className="text-gray-200 text-xs">—</span>}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -547,7 +586,7 @@ export default function FichaMedicoContent({
                           {formatBRL(custoConsultas)}
                         </td>
                       )}
-                      <td colSpan={3} />
+                      <td colSpan={4} />
                     </tr>
                   </tfoot>
                 </table>
@@ -760,6 +799,94 @@ export default function FichaMedicoContent({
               ) : (
                 <div className="py-10 text-center">
                   <p className="text-sm text-gray-400">Nenhum exame no período selecionado</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Protocolos de Exclusão */}
+          {exclusoes.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
+                  <ShieldCheck className="w-4 h-4 text-red-500" />
+                  Protocolos de Exclusão
+                  <span className="text-xs text-gray-400 font-normal">
+                    ({isFiltered ? `${filteredExclusoes.length} de ${exclusoes.length}` : exclusoes.length})
+                  </span>
+                </h2>
+              </div>
+              {filteredExclusoes.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 text-xs text-gray-400 font-medium uppercase tracking-wide">
+                      <tr>
+                        <th className="px-5 py-3 text-left">Data</th>
+                        <th className="px-5 py-3 text-left">Paciente</th>
+                        <th className="px-5 py-3 text-center">Status</th>
+                        <th className="px-5 py-3 text-left">Motivos</th>
+                        <th className="px-5 py-3 text-left">Conduta</th>
+                        <th className="px-5 py-3 text-center">Ciente</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {filteredExclusoes.map(ex => {
+                        const statusCor =
+                          ex.status === 'apto' ? 'bg-green-100 text-green-700'
+                          : ex.status === 'apto_ressalvas' ? 'bg-yellow-100 text-yellow-700'
+                          : ex.status === 'nao_apto' ? 'bg-red-100 text-red-700'
+                          : ex.status === 'emergencia' ? 'bg-red-200 text-red-800'
+                          : 'bg-gray-100 text-gray-500'
+                        const statusLabel =
+                          ex.status === 'apto' ? 'Apto'
+                          : ex.status === 'apto_ressalvas' ? 'Apto c/ ressalvas'
+                          : ex.status === 'nao_apto' ? 'Não apto'
+                          : ex.status === 'emergencia' ? 'Emergência'
+                          : ex.status || '—'
+                        return (
+                          <tr key={ex.id} className="hover:bg-gray-50">
+                            <td className="px-5 py-3 text-xs text-gray-600">{ex.data}</td>
+                            <td className="px-5 py-3">
+                              {ex.pacienteId && ex.pacienteNome ? (
+                                <Link href={`/admin/pacientes/${ex.pacienteId}?back=${encodeURIComponent(`/admin/medicos/${medicoId}`)}`}
+                                  className="text-sm text-[#5BBD9B] hover:underline">{ex.pacienteNome}</Link>
+                              ) : <span className="text-gray-300 text-xs">—</span>}
+                            </td>
+                            <td className="px-5 py-3 text-center">
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusCor}`}>
+                                {statusLabel}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3">
+                              <div className="flex flex-wrap gap-1 max-w-[180px]">
+                                {ex.motivos.slice(0, 2).map((m, i) => (
+                                  <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{m}</span>
+                                ))}
+                                {ex.motivos.length > 2 && (
+                                  <span className="text-xs text-gray-400">+{ex.motivos.length - 2}</span>
+                                )}
+                                {ex.motivo_outro && ex.motivos.length === 0 && (
+                                  <span className="text-xs text-gray-500 italic">{ex.motivo_outro}</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-5 py-3 text-xs text-gray-600 max-w-[140px]">
+                              {ex.conduta || '—'}
+                            </td>
+                            <td className="px-5 py-3 text-center">
+                              {ex.ciente_paciente
+                                ? <CheckCircle2 className="w-4 h-4 text-green-500 mx-auto" />
+                                : <XCircle className="w-4 h-4 text-gray-300 mx-auto" />}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="py-10 text-center">
+                  <p className="text-sm text-gray-400">Nenhum protocolo no período selecionado</p>
                 </div>
               )}
             </div>

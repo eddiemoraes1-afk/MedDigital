@@ -16,6 +16,7 @@ import FichaMedicoContent, {
   type AtestadoEnriquecido,
   type ReceitaEnriquecida,
   type ExameEnriquecido,
+  type ExclusaoEnriquecida,
 } from './FichaMedicoContent'
 
 export default async function FichaMedicoPage({
@@ -83,12 +84,22 @@ export default async function FichaMedicoPage({
 
   const exms = examesData ?? []
 
+  // ── Protocolos de exclusão ────────────────────────────────────────────────
+  const { data: exclusoesData } = await admin
+    .from('exclusoes_telemedicina')
+    .select('id, criado_em, status, motivos, motivo_outro, conduta, ciente_paciente, paciente_id')
+    .eq('medico_id', id)
+    .order('criado_em', { ascending: false })
+
+  const excls = exclusoesData ?? []
+
   // ── Pacientes (para nomes) ────────────────────────────────────────────────
   const pacienteIds = [...new Set([
     ...ats.map(a => a.paciente_id),
     ...atests.map(a => a.paciente_id),
     ...recs.map(r => r.paciente_id),
     ...exms.map(e => e.paciente_id),
+    ...excls.map(e => e.paciente_id),
   ].filter(Boolean))]
 
   const { data: pacientes } = pacienteIds.length > 0
@@ -230,6 +241,26 @@ export default async function FichaMedicoPage({
     }
   })
 
+  const exclusoesEnriquecidas: ExclusaoEnriquecida[] = excls.map(e => {
+    const { data } = formatDataHora(e.criado_em)
+    const orig = origemPaciente(e.paciente_id)
+    return {
+      id: e.id,
+      isoDate: e.criado_em ?? '',
+      data,
+      pacienteId: e.paciente_id ?? '',
+      pacienteNome: pacienteMap[e.paciente_id] ?? '',
+      origemLabel: orig.label,
+      origemTipo: orig.tipo,
+      empresaId: pacienteEmpresaId[e.paciente_id] ?? null,
+      status: e.status ?? '',
+      motivos: Array.isArray(e.motivos) ? e.motivos : [],
+      motivo_outro: (e as any).motivo_outro ?? null,
+      conduta: (e as any).conduta ?? null,
+      ciente_paciente: (e as any).ciente_paciente ?? false,
+    }
+  })
+
   const empresasParaFiltro = empresaIds.map(eid => ({
     id: eid,
     nome: empresaMap[eid]?.nome ?? eid,
@@ -319,6 +350,7 @@ export default async function FichaMedicoPage({
           atestados={atestadosEnriquecidos}
           receitas={receitasEnriquecidas}
           exames={examesEnriquecidos}
+          exclusoes={exclusoesEnriquecidas}
           empresas={empresasParaFiltro}
           custoConsulta={custoConsulta}
           custoReceita={custoReceita}
