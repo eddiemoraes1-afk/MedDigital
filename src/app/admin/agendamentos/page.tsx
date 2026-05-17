@@ -2,9 +2,10 @@ import { requireAdmin } from '@/lib/auth-sistema'
 import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import {
-  Calendar, Clock, ChevronLeft, ChevronRight, User, XCircle, Users, ExternalLink, LayoutGrid,
+  Calendar, Clock, ChevronLeft, ChevronRight, User, XCircle, Users, ExternalLink,
 } from 'lucide-react'
 import AdminHeader from '../components/AdminHeader'
+import SeletorMedicoAgendamentos from './SeletorMedicoAgendamentos'
 
 // Paleta de cores por médico no modo "todos"
 const PALETA = [
@@ -29,7 +30,7 @@ export default async function AdminAgendamentosPage({
   // Todos os médicos aprovados
   const { data: medicos } = await adminSupabase
     .from('medicos')
-    .select('id, nome, especialidade, sexo')
+    .select('id, nome, especialidade, sexo, crm, crm_uf')
     .eq('status', 'aprovado')
     .order('nome', { ascending: true })
 
@@ -238,49 +239,21 @@ export default async function AdminAgendamentosPage({
       <main className="max-w-6xl mx-auto px-6 py-8">
 
         {/* ── Seletor de médico ── */}
-        <div className="bg-white rounded-2xl p-4 shadow-sm mb-6 flex flex-wrap items-center gap-3">
-          <span className="text-sm font-medium text-gray-500 flex items-center gap-1.5">
-            <Users className="w-4 h-4" /> Médico:
-          </span>
-          <div className="flex flex-wrap gap-2">
-
-            {/* Botão "Todos" */}
-            <Link
-              href={todosLink()}
-              className={`px-4 py-1.5 rounded-xl text-sm font-semibold transition-colors flex items-center gap-1.5 ${
-                modoTodos
-                  ? 'bg-[#1A3A2C] text-white'
-                  : 'bg-[#5BBD9B]/10 text-[#1A3A2C] hover:bg-[#5BBD9B]/20 border border-[#5BBD9B]/30'
-              }`}
-            >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              Todos
-            </Link>
-
-            {/* Divider */}
-            <div className="w-px h-7 bg-gray-200 self-center" />
-
-            {/* Médicos individuais */}
-            {medicos.map((m: any, i: number) => {
-              const cor  = PALETA[i % PALETA.length]
-              const ativo = !modoTodos && m.id === medico.id
-              return (
-                <Link
-                  key={m.id}
-                  href={medicoLink(m.id)}
-                  className={`px-4 py-1.5 rounded-xl text-sm font-medium transition-colors flex items-center gap-1.5 ${
-                    ativo ? 'bg-[#1A3A2C] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {modoTodos && (
-                    <span className={`w-2 h-2 rounded-full shrink-0 ${cor.dot}`} />
-                  )}
-                  {drTitle(m.sexo)} {nomeAbrev(m.nome)}
-                </Link>
-              )
-            })}
-          </div>
-        </div>
+        <SeletorMedicoAgendamentos
+          medicos={medicos.map((m, i) => ({
+            id: m.id,
+            nome: m.nome,
+            especialidade: m.especialidade ?? null,
+            crm: (m as any).crm ?? null,
+            crm_uf: (m as any).crm_uf ?? null,
+            sexo: m.sexo ?? null,
+            cor: PALETA[i % PALETA.length],
+          }))}
+          medicoIdAtivo={modoTodos ? 'todos' : medico.id}
+          view={view}
+          offset={offset}
+          mesOffset={mesOffset}
+        />
 
         {/* ── Cabeçalho + toggle Semana / Mês ── */}
         <div className="flex items-center justify-between mb-6">
