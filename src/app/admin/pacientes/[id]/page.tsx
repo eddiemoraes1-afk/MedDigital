@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {
   User, Phone, FileText, Building2, Calendar, Activity,
   Clock, CheckCircle2, Mail, Briefcase, MapPin, XCircle,
-  Stethoscope, ClipboardList, DollarSign, FlaskConical,
+  Stethoscope, ClipboardList, DollarSign, FlaskConical, ShieldCheck, AlertTriangle,
 } from 'lucide-react'
 import AdminHeader from '../../components/AdminHeader'
 import AcoesAtendimento from './AcoesAtendimento'
@@ -89,12 +89,22 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
 
   const exames = examesData ?? []
 
+  // ── Protocolos de Exclusão ────────────────────────────────────────────────
+  const { data: exclusoesData } = await admin
+    .from('exclusoes_telemedicina')
+    .select('id, criado_em, status, motivos, motivo_outro, conduta, ciente_paciente, observacoes, medico_id')
+    .eq('paciente_id', id)
+    .order('criado_em', { ascending: false })
+
+  const exclusoes = exclusoesData ?? []
+
   // ── Médicos (para nomes) ──────────────────────────────────────────────────
   const medicoIds = [...new Set([
     ...atendimentos.map(a => a.medico_id),
     ...atestados.map(a => a.medico_id),
     ...receitas.map(r => r.medico_id),
     ...exames.map(e => e.medico_id),
+    ...exclusoes.map((e: any) => e.medico_id),
   ].filter(Boolean))]
 
   const { data: medicos } = medicoIds.length > 0
@@ -163,6 +173,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
   const totalAtestados = atestados.length
   const totalReceitas = receitas.length
   const totalExames = exames.length
+  const totalExclusoes = exclusoes.length
 
   // ── Helpers ───────────────────────────────────────────────────────────────
   const empresa = vinculo?.empresas as any
@@ -328,6 +339,12 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                   <p className="text-2xl font-bold text-blue-600">{totalExames}</p>
                   <p className="text-xs text-gray-400">exames</p>
                 </div>
+                {totalExclusoes > 0 && (
+                  <div className="text-center bg-red-50 rounded-xl px-4 py-3">
+                    <p className="text-2xl font-bold text-red-600">{totalExclusoes}</p>
+                    <p className="text-xs text-gray-400">exclusões</p>
+                  </div>
+                )}
               </div>
               <FichaPacienteExports
                 pacienteNome={paciente.nome}
@@ -394,7 +411,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                                   href={`/admin/medicos/${a.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
                                   className="text-sm text-[#5BBD9B] hover:underline font-medium"
                                 >
-                                  {medicoNome}
+                                  {drTitleP(a.medico_id ? medicoMap[a.medico_id]?.sexo : null)} {medicoNome}
                                 </Link>
                               ) : (
                                 <span className="text-gray-300 text-xs">—</span>
@@ -488,7 +505,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                                   href={`/admin/medicos/${a.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
                                   className="text-sm text-[#5BBD9B] hover:underline"
                                 >
-                                  {medicoMap[a.medico_id]?.nome}
+                                  {drTitleP(medicoMap[a.medico_id]?.sexo)} {medicoMap[a.medico_id]?.nome}
                                 </Link>
                               ) : <span className="text-gray-300 text-xs">—</span>}
                             </td>
@@ -548,7 +565,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                                   href={`/admin/medicos/${r.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
                                   className="text-sm text-[#5BBD9B] hover:underline"
                                 >
-                                  {medicoMap[r.medico_id]?.nome}
+                                  {drTitleP(medicoMap[r.medico_id]?.sexo)} {medicoMap[r.medico_id]?.nome}
                                 </Link>
                               ) : <span className="text-gray-300 text-xs">—</span>}
                             </td>
@@ -630,7 +647,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                                   href={`/admin/medicos/${e.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
                                   className="text-sm text-[#5BBD9B] hover:underline"
                                 >
-                                  {medicoMap[e.medico_id]?.nome}
+                                  {drTitleP(medicoMap[e.medico_id]?.sexo)} {medicoMap[e.medico_id]?.nome}
                                 </Link>
                               ) : <span className="text-gray-300 text-xs">—</span>}
                             </td>
@@ -651,8 +668,103 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
               </div>
             )}
 
+            {/* Protocolos de Exclusão */}
+            {exclusoes.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100">
+                  <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
+                    <ShieldCheck className="w-4 h-4 text-red-500" />
+                    Protocolos de Exclusão
+                    <span className="text-xs text-gray-400 font-normal">({exclusoes.length})</span>
+                  </h2>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 text-xs text-gray-400 font-medium uppercase tracking-wide">
+                      <tr>
+                        <th className="px-5 py-3 text-left">Data</th>
+                        <th className="px-5 py-3 text-left">Médico</th>
+                        <th className="px-5 py-3 text-center">Status</th>
+                        <th className="px-5 py-3 text-left">Motivos</th>
+                        <th className="px-5 py-3 text-left">Conduta</th>
+                        <th className="px-5 py-3 text-center">Ciente</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {exclusoes.map((ex: any) => {
+                        const { data, hora } = formatDataHora(ex.criado_em)
+                        const m = ex.medico_id ? medicoMap[ex.medico_id] : null
+                        const status = ex.status as string
+                        const statusCor =
+                          status === 'apto' ? 'bg-green-100 text-green-700'
+                          : status === 'apto_ressalvas' ? 'bg-yellow-100 text-yellow-700'
+                          : status === 'nao_apto' ? 'bg-red-100 text-red-700'
+                          : status === 'emergencia' ? 'bg-red-200 text-red-800'
+                          : 'bg-gray-100 text-gray-500'
+                        const statusLabel =
+                          status === 'apto' ? 'Apto'
+                          : status === 'apto_ressalvas' ? 'Apto c/ ressalvas'
+                          : status === 'nao_apto' ? 'Não apto'
+                          : status === 'emergencia' ? 'Emergência'
+                          : status ?? '—'
+                        const motivos: string[] = Array.isArray(ex.motivos) ? ex.motivos : []
+                        return (
+                          <tr key={ex.id} className="hover:bg-gray-50">
+                            <td className="px-5 py-3">
+                              <p className="font-medium text-gray-800 text-xs">{data}</p>
+                              <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                                <Clock className="w-3 h-3" /> {hora}
+                              </p>
+                            </td>
+                            <td className="px-5 py-3">
+                              {m ? (
+                                <Link
+                                  href={`/admin/medicos/${ex.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
+                                  className="text-sm text-[#5BBD9B] hover:underline font-medium"
+                                >
+                                  {drTitleP(m.sexo)} {m.nome}
+                                </Link>
+                              ) : <span className="text-gray-300 text-xs">—</span>}
+                            </td>
+                            <td className="px-5 py-3 text-center">
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusCor}`}>
+                                {statusLabel}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3">
+                              <div className="flex flex-wrap gap-1 max-w-[200px]">
+                                {motivos.slice(0, 2).map((mot: string, i: number) => (
+                                  <span key={i} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{mot}</span>
+                                ))}
+                                {motivos.length > 2 && (
+                                  <span className="text-xs text-gray-400">+{motivos.length - 2}</span>
+                                )}
+                                {ex.motivo_outro && motivos.length === 0 && (
+                                  <span className="text-xs text-gray-500 italic">{ex.motivo_outro}</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-5 py-3 text-xs text-gray-600 max-w-[150px]">
+                              {ex.conduta || '—'}
+                            </td>
+                            <td className="px-5 py-3 text-center">
+                              {ex.ciente_paciente ? (
+                                <CheckCircle2 className="w-4 h-4 text-green-500 mx-auto" />
+                              ) : (
+                                <XCircle className="w-4 h-4 text-gray-300 mx-auto" />
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
             {/* Se não há nenhuma atividade */}
-            {atendimentos.length === 0 && atestados.length === 0 && receitas.length === 0 && exames.length === 0 && (
+            {atendimentos.length === 0 && atestados.length === 0 && receitas.length === 0 && exames.length === 0 && exclusoes.length === 0 && (
               <div className="bg-white rounded-2xl shadow-sm py-14 text-center">
                 <Activity className="w-10 h-10 text-gray-200 mx-auto mb-3" />
                 <p className="text-sm text-gray-400">Nenhuma atividade registrada para este paciente</p>
@@ -780,7 +892,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
             </div>
 
             {/* Resumo de atividade */}
-            {(totalAtendimentos > 0 || totalAtestados > 0 || totalReceitas > 0 || totalExames > 0) && (
+            {(totalAtendimentos > 0 || totalAtestados > 0 || totalReceitas > 0 || totalExames > 0 || totalExclusoes > 0) && (
               <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
                 <h3 className="font-semibold text-[#1A3A2C] text-xs uppercase tracking-wide mb-3">Resumo de Atividade</h3>
                 <div className="space-y-2 text-xs">
@@ -808,6 +920,14 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                         <FlaskConical className="w-3.5 h-3.5 text-blue-500" /> Exames
                       </span>
                       <span className="font-bold text-blue-600">{totalExames}</span>
+                    </div>
+                  )}
+                  {totalExclusoes > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="flex items-center gap-1.5 text-gray-500">
+                        <ShieldCheck className="w-3.5 h-3.5 text-red-500" /> Prot. Exclusão
+                      </span>
+                      <span className="font-bold text-red-600">{totalExclusoes}</span>
                     </div>
                   )}
 
