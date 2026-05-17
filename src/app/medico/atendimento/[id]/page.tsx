@@ -6,13 +6,14 @@ import {
   Loader2, Phone, FileText, CheckCircle2, ClipboardList,
   ChevronDown, ChevronUp, Video, Pill, FlaskConical, UserPlus,
   Stethoscope, Activity, Heart, Thermometer, AlertTriangle,
-  Edit3, ExternalLink, X, ShieldCheck,
+  Edit3, X, ShieldCheck,
 } from 'lucide-react'
 import AtestadoForm from '@/components/AtestadoForm'
 import ReceitaForm from '@/components/ReceitaForm'
 import SolicitacaoExamesForm from '@/components/SolicitacaoExamesForm'
 import EncaminhamentoForm from '@/components/EncaminhamentoForm'
 import ExclusaoTelemedicinaForm from '@/components/ExclusaoTelemedicinaForm'
+import ProntuarioDrawer from './ProntuarioDrawer'
 
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 
@@ -105,6 +106,9 @@ export default function AtendimentoMedico() {
   const [showExclusao,  setShowExclusao]  = useState(false)
   const [exclusaoSalva, setExclusaoSalva] = useState(false)
 
+  // ── Prontuário inline (drawer) ──
+  const [showProntuario, setShowProntuario] = useState(false)
+
   // ── Antecedentes do paciente (editáveis durante a consulta) ──
   const [antEditando,     setAntEditando]     = useState(false)
   const [antSalvando,     setAntSalvando]     = useState(false)
@@ -167,15 +171,21 @@ export default function AtendimentoMedico() {
       .catch(() => router.push('/medico/dashboard'))
   }, [id])
 
-  // Inicia/para o timer conforme o médico entra ou sai da sala
+  // Inicia/para o timer conforme o médico entra ou sai da sala.
+  // Ao entrar, parte do criado_em do banco para nunca zerar ao voltar de outra aba.
+  const atendimentoCriadoEm = dados?.atendimento?.criado_em ?? null
   useEffect(() => {
     if (entrou) {
+      if (atendimentoCriadoEm) {
+        const inicioMs = new Date(atendimentoCriadoEm).getTime()
+        setSegundos(Math.max(0, Math.floor((Date.now() - inicioMs) / 1000)))
+      }
       timerRef.current = setInterval(() => setSegundos(s => s + 1), 1000)
     } else {
       if (timerRef.current) clearInterval(timerRef.current)
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
-  }, [entrou])
+  }, [entrou, atendimentoCriadoEm])
 
   function formatarTempo(s: number): string {
     const h = Math.floor(s / 3600)
@@ -293,16 +303,18 @@ export default function AtendimentoMedico() {
                 {triagem.classificacao_risco}
               </span>
             )}
-            <a
-              href={`/medico/pacientes/${paciente.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Abrir prontuário completo em nova aba"
-              className="flex items-center gap-1 text-green-400 hover:text-white transition-colors ml-1"
+            <button
+              onClick={() => setShowProntuario(v => !v)}
+              title="Ver prontuário completo"
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors ml-1 border ${
+                showProntuario
+                  ? 'bg-[#5BBD9B] text-white border-[#5BBD9B]'
+                  : 'text-green-400 hover:text-white border-green-700/40 hover:border-[#5BBD9B]'
+              }`}
             >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span className="text-[11px]">Prontuário</span>
-            </a>
+              <FileText className="w-3.5 h-3.5" />
+              Prontuário
+            </button>
             {paciente.telefone && (() => {
               const digits = paciente.telefone.replace(/\D/g, '')
               const waNum  = digits.startsWith('55') ? digits : `55${digits}`
@@ -349,6 +361,14 @@ export default function AtendimentoMedico() {
 
         {/* Vídeo */}
         <div className="flex-1 relative">
+          {/* Prontuário inline — drawer sobre o vídeo */}
+          {showProntuario && paciente && (
+            <ProntuarioDrawer
+              pacienteId={paciente.id}
+              onFechar={() => setShowProntuario(false)}
+            />
+          )}
+
           {!entrou && (
             <div className="absolute inset-0 bg-[#0F1F33] flex items-center justify-center z-10">
               <div className="text-center text-white max-w-sm px-6">
