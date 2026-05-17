@@ -2,9 +2,37 @@ import { requireAdmin } from '@/lib/auth-sistema'
 import { createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
+// Tempo sem heartbeat para considerar sessão encerrada (horas)
+const TIMEOUT_HORAS = 4
+
+async function autoCleanup(admin: ReturnType<typeof createAdminClient>) {
+  try {
+    const limite = new Date(Date.now() - TIMEOUT_HORAS * 60 * 60 * 1000).toISOString()
+    // Busca sessões antigas sem logout
+    const { data: velhas } = await admin
+      .from('sessoes_sistema')
+      .select('id, login_em')
+      .is('logout_em', null)
+      .lt('login_em', limite)
+    if (!velhas || velhas.length === 0) return
+    for (const s of velhas) {
+      const logoutEst = new Date(
+        new Date((s as any).login_em).getTime() + TIMEOUT_HORAS * 60 * 60 * 1000
+      ).toISOString()
+      await admin.from('sessoes_sistema').update({
+        logout_em: logoutEst,
+        duracao_segundos: TIMEOUT_HORAS * 3600,
+      }).eq('id', (s as any).id)
+    }
+  } catch { /* silencioso */ }
+}
+
 export async function GET(req: NextRequest) {
   await requireAdmin()
   const admin = createAdminClient()
+
+  // Fechar automaticamente sessões antigas sem logout (fire-and-forget)
+  autoCleanup(admin)
 
   const { searchParams } = new URL(req.url)
   const dataInicio  = searchParams.get('dataInicio') || ''

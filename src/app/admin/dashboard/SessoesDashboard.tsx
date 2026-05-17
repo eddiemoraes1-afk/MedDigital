@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Loader2, RefreshCw, LogIn, LogOut, Clock, Users,
   Download, Printer, Search, X, SlidersHorizontal,
-  ChevronLeft, ChevronRight, Wifi, WifiOff,
+  ChevronLeft, ChevronRight, Wifi, WifiOff, ShieldOff,
 } from 'lucide-react'
 import * as XLSX from 'xlsx'
 
@@ -121,6 +121,27 @@ export default function SessoesDashboard() {
   const dbEmail = useDebounce(emailBusca, 300)
 
   const [pagina, setPagina] = useState(1)
+  const [limpando, setLimpando] = useState(false)
+  const [msgCleanup, setMsgCleanup] = useState<string | null>(null)
+
+  async function fecharSessoesInativas() {
+    setLimpando(true)
+    setMsgCleanup(null)
+    try {
+      const res = await fetch('/api/admin/sessoes/cleanup', { method: 'POST' })
+      const json = await res.json()
+      setMsgCleanup(
+        json.fechadas > 0
+          ? `${json.fechadas} sessão(ões) inativa(s) encerrada(s).`
+          : 'Nenhuma sessão inativa encontrada.'
+      )
+      fetchData()
+    } catch {
+      setMsgCleanup('Erro ao executar cleanup.')
+    } finally {
+      setLimpando(false)
+    }
+  }
 
   const fetchData = useCallback(async () => {
     setLoading(true); setError('')
@@ -275,6 +296,15 @@ ${rows.map(s => {
             <button onClick={fetchData} disabled={loading} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white bg-[#1A3A2C] hover:bg-[#2a5040] transition disabled:opacity-60">
               {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Atualizar
             </button>
+            <button onClick={fecharSessoesInativas} disabled={limpando} title="Encerrar sessões sem logout há mais de 4 horas"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white bg-amber-600 hover:bg-amber-700 transition disabled:opacity-60">
+              {limpando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldOff className="w-3.5 h-3.5" />} Fechar inativas
+            </button>
+            {msgCleanup && (
+              <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-lg">
+                {msgCleanup}
+              </span>
+            )}
             <button onClick={exportarExcel} disabled={!sessoesFiltradas.length} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white bg-emerald-600 hover:bg-emerald-700 transition disabled:opacity-40">
               <Download className="w-3.5 h-3.5" /> Excel
             </button>

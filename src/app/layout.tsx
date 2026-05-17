@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import HeartbeatProvider from './HeartbeatProvider'
 
 export const metadata: Metadata = {
   title: 'RovarisMed — Pronto Atendimento Médico Digital',
@@ -13,7 +14,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" className="h-full">
-      <body className="min-h-full antialiased">{children}</body>
+      <body className="min-h-full antialiased">
+        <HeartbeatProvider />
+        {children}
+      </body>
     </html>
   )
 }
