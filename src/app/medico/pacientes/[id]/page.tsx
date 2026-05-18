@@ -178,7 +178,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
   const empresa = (vinculo as any)?.empresas
 
   // ── Triagens ──
-  const TCOLS = 'id, criado_em, classificacao_risco, direcionamento, resumo_ia, recomendacao_ia, status, dados_sintomas, dados_urgencia, consentimento_lgpd, consentimento_em'
+  const TCOLS = 'id, criado_em, classificacao_risco, direcionamento, resumo_ia, recomendacao_ia, status, dados_sintomas, dados_urgencia, consentimento_lgpd, consentimento_em, opcao_apos_triagem'
   const { data: triagensDirectas } = await admin.from('triagens').select(TCOLS).eq('paciente_id', id).order('criado_em', { ascending: false })
   const { data: atendPaciente }    = await admin.from('atendimentos').select('triagem_id').eq('paciente_id', id).not('triagem_id', 'is', null)
   const idsJaBuscados = new Set((triagensDirectas ?? []).map((t: any) => t.id))
@@ -566,13 +566,46 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                       </div>
 
                       <div className="px-6 pb-6 space-y-4">
-                        {/* Direcionamento */}
-                        {t.direcionamento && (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Direcionamento:</span>
-                            <span className="text-xs bg-white/70 text-gray-700 border border-white px-2.5 py-1 rounded-full font-medium">{t.direcionamento}</span>
-                          </div>
-                        )}
+                        {/* Direcionamento + Escolha do paciente */}
+                        <div className="flex flex-wrap items-center gap-2">
+                          {t.direcionamento && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Direcionamento:</span>
+                              <span className="text-xs bg-white/70 text-gray-700 border border-white px-2.5 py-1 rounded-full font-medium">{t.direcionamento}</span>
+                            </div>
+                          )}
+                          {t.opcao_apos_triagem && (
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Paciente optou por:</span>
+                              {t.opcao_apos_triagem === 'consulta_imediata' ? (
+                                <span className="text-xs bg-green-100 text-green-700 border border-green-200 px-2.5 py-1 rounded-full font-semibold">
+                                  🟢 Consulta imediata
+                                </span>
+                              ) : (
+                                <span className={`text-xs px-2.5 py-1 rounded-full font-semibold border ${
+                                  ['vermelho', 'laranja'].includes(t.classificacao_risco)
+                                    ? 'bg-red-100 text-red-700 border-red-300'
+                                    : t.classificacao_risco === 'amarelo'
+                                    ? 'bg-yellow-100 text-yellow-700 border-yellow-300'
+                                    : 'bg-gray-100 text-gray-600 border-gray-200'
+                                }`}>
+                                  📅 Agendamento
+                                </span>
+                              )}
+                              {/* Alerta: risco alto mas optou por agendar */}
+                              {t.opcao_apos_triagem === 'agendamento' && ['vermelho', 'laranja'].includes(t.classificacao_risco) && (
+                                <span className="text-xs bg-red-600 text-white px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                                  <AlertCircle className="w-3 h-3" /> Contra-indicado
+                                </span>
+                              )}
+                              {t.opcao_apos_triagem === 'agendamento' && t.classificacao_risco === 'amarelo' && (
+                                <span className="text-xs bg-yellow-500 text-white px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                                  <AlertTriangle className="w-3 h-3" /> Atenção
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
 
                         {(t.resumo_ia || t.recomendacao_ia) && (
                           <div className="bg-white/80 rounded-xl p-4 border border-white">

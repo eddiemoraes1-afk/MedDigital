@@ -39,3 +39,10 @@ ALTER TABLE triagens
 
 ALTER TABLE triagens
   ADD COLUMN IF NOT EXISTS telefone_contato TEXT DEFAULT NULL;
+
+-- 6. Escolha do paciente após a triagem
+--    'consulta_imediata' = clicou em "Consultar agora"
+--    'agendamento'       = clicou em "Agendar uma consulta"
+--    NULL = saiu da tela sem escolher (emergência vermelho, etc.)
+ALTER TABLE triagens
+  ADD COLUMN IF NOT EXISTS opcao_apos_triagem TEXT DEFAULT NULL;

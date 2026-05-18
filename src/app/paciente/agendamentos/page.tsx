@@ -40,7 +40,8 @@ export default async function AgendamentosPage() {
   const passados = (agendamentos || []).filter((a: any) => new Date(a.data_hora) < agora || a.status === 'cancelado')
 
   const corStatus: Record<string, string> = {
-    confirmado: 'bg-green-100 text-green-700',
+    confirmado: 'bg-blue-100 text-blue-700',
+    agendado: 'bg-blue-100 text-blue-700',
     pendente: 'bg-yellow-100 text-yellow-700',
     cancelado: 'bg-red-100 text-red-700',
     reagendado: 'bg-orange-100 text-orange-700',
@@ -48,7 +49,8 @@ export default async function AgendamentosPage() {
   }
 
   const labelStatus: Record<string, string> = {
-    confirmado: 'Confirmado',
+    confirmado: 'Agendado',
+    agendado: 'Agendado',
     pendente: 'Pendente',
     cancelado: 'Cancelado',
     reagendado: 'Reagendado',

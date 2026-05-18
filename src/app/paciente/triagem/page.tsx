@@ -1094,7 +1094,11 @@ function TriagemConteudo() {
     else router.back()
   }
 
-  function handleAgendar() {
+  async function handleAgendar() {
+    // Registra que o paciente optou por agendar (mesmo que a plataforma pudesse sugerir urgência)
+    if (triagemId) {
+      await salvarAPI({ action: 'atualizar', triagemId, dados: { opcao_apos_triagem: 'agendamento' } })
+    }
     router.push('/paciente/agendar')
   }
 
@@ -1229,6 +1233,10 @@ function TriagemConteudo() {
 
   async function solicitarConsulta() {
     setSolicitando(true)
+    // Registra que o paciente optou por consulta imediata
+    if (triagemId) {
+      await salvarAPI({ action: 'atualizar', triagemId, dados: { opcao_apos_triagem: 'consulta_imediata' } })
+    }
     try {
       const res = await fetch('/api/consulta/solicitar', {
         method: 'POST',
