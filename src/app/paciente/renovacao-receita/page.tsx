@@ -153,9 +153,9 @@ function EtapaValidacao({
           <label className="block text-sm font-medium text-gray-700 mb-1">CPF</label>
           <div className="relative">
             <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="text" value={cpf} onChange={e => setCpf(formatarCPF(e.target.value))}
-              placeholder="000.000.000-00" disabled={aceito}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm disabled:bg-gray-50 disabled:cursor-default" />
+            <input type="text" value={cpf} readOnly
+              placeholder="000.000.000-00"
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-gray-50 text-sm text-gray-700 cursor-default" />
           </div>
         </div>
 
