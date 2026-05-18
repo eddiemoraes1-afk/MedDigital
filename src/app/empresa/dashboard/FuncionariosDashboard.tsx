@@ -491,7 +491,7 @@ export default function FuncionariosDashboard() {
   const [buscaNome, setBuscaNome] = useState('')
   const [filtroDept, setFiltroDept] = useState('')
   const [filtroCargo, setFiltroCargo] = useState('')
-  const [filtroUso, setFiltroUso] = useState<'todos' | 'com' | 'sem'>('todos')
+  const [filtroUso, setFiltroUso] = useState<'todos' | 'com_consultas' | 'com_renovacoes'>('todos')
 
   const calcRange = useCallback((p: string): [string, string] => {
     const now = new Date()
@@ -541,12 +541,13 @@ export default function FuncionariosDashboard() {
     }
     if (filtroDept) lista = lista.filter(t => t.departamento === filtroDept)
     if (filtroCargo) lista = lista.filter(t => t.cargo === filtroCargo)
-    if (filtroUso === 'com') lista = lista.filter(t => t.totalConsultas > 0 || t.totalRenovacoes > 0)
-    if (filtroUso === 'sem') lista = lista.filter(t => t.totalConsultas === 0 && t.totalRenovacoes === 0)
+    if (filtroUso === 'com_consultas') lista = lista.filter(t => t.totalConsultas > 0)
+    if (filtroUso === 'com_renovacoes') lista = lista.filter(t => t.totalRenovacoes > 0)
     return lista
   }, [data?.gastosPorTitular, buscaNome, filtroDept, filtroCargo, filtroUso])
 
   const temFiltroTabela = !!(buscaNome.trim() || filtroDept || filtroCargo || filtroUso !== 'todos')
+
 
   function handlePeriodo(p: string) {
     setPeriodo(p)
@@ -817,12 +818,12 @@ export default function FuncionariosDashboard() {
             {/* Uso */}
             <select
               value={filtroUso}
-              onChange={e => setFiltroUso(e.target.value as 'todos' | 'com' | 'sem')}
+              onChange={e => setFiltroUso(e.target.value as 'todos' | 'com_consultas' | 'com_renovacoes')}
               className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-gray-50"
             >
-              <option value="todos">Com e sem uso</option>
-              <option value="com">Com consultas/renovações</option>
-              <option value="sem">Sem uso no período</option>
+              <option value="todos">Consultas e renovações</option>
+              <option value="com_consultas">Apenas consultas</option>
+              <option value="com_renovacoes">Apenas renovações</option>
             </select>
 
             {temFiltroTabela && (

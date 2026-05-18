@@ -470,25 +470,7 @@ export async function GET(req: Request) {
     titularMap.set(titularKey, cur)
   }
 
-  // Garante que TODOS os funcionários (titulares) apareçam, mesmo sem consultas no período
-  for (const v of todosVinculos) {
-    if (classRelacao(v.relacao) !== 'Funcionário') continue
-    const key = v.id
-    if (!titularMap.has(key)) {
-      titularMap.set(key, {
-        nome: v.nome_completo ?? '—',
-        cargo: v.cargo ?? '—',
-        departamento: v.departamento ?? '—',
-        registroFuncional: v.registro_funcional ?? '—',
-        consultasProprias: 0, consultasDependentes: 0,
-        valorProprio: 0, valorDependentes: 0,
-        renovacoesProprias: 0, renovacoesDependentes: 0,
-        valorRenovacoesProprias: 0, valorRenovacoesDependentes: 0,
-        dependentes: new Map(),
-      })
-    }
-  }
-
+  // Apenas funcionários COM custo (consultas ou renovações) no período aparecem na lista
   const gastosPorTitular = [...titularMap.values()]
     .map(t => ({
       nome: t.nome, cargo: t.cargo, departamento: t.departamento, registroFuncional: t.registroFuncional,
