@@ -6,6 +6,7 @@ import { imprimirAtestado, gerarHTMLAtestado, nomeArquivo, type AtestadoHTMLPara
 import { baixarComoPDF } from '@/lib/gerarPDF'
 import AtestadoShareModal from '@/components/AtestadoShareModal'
 import { drTitle } from '@/lib/medico-utils'
+import { CidBadgeTable } from '@/components/CidTooltip'
 
 interface AtestadoDetalhe {
   id: string
@@ -81,11 +82,7 @@ export default function AtestadosMedicoClient({
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${ehMeu ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                       {at.dias} dia{at.dias !== 1 ? 's' : ''}
                     </span>
-                    {at.cid && (
-                      <span className="font-mono text-xs bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full">
-                        CID: {at.cid}
-                      </span>
-                    )}
+                    {at.cid && <CidBadgeTable cid={at.cid} />}
                     {ehMeu && (
                       <span className="text-xs bg-[#1A3A2C] text-white px-2 py-0.5 rounded-full font-medium">
                         Emitido por você

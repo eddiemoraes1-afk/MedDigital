@@ -12,6 +12,7 @@ import MedicoHeader from '../../MedicoHeader'
 import AtestadosMedicoClient from './AtestadosMedicoClient'
 import ReceitasMedicoClient from './ReceitasMedicoClient'
 import AntecedentesForm from './AntecedentesForm'
+import { CidBadge, CidBadgeTable } from '@/components/CidTooltip'
 
 // ── Props ──────────────────────────────────────────────────────────────────────
 
@@ -125,7 +126,7 @@ function TabNav({ abaAtiva, pacienteId, back }: { abaAtiva: string; pacienteId: 
 
 // ── Bloco de campo da consulta ─────────────────────────────────────────────────
 
-function CampoConsulta({ icone, titulo, valor, className = '' }: { icone: React.ReactNode; titulo: string; valor: string | null | undefined; className?: string }) {
+function CampoConsulta({ icone, titulo, valor, className = '' }: { icone: React.ReactNode; titulo: React.ReactNode; valor: string | null | undefined; className?: string }) {
   if (!valor?.trim()) return null
   return (
     <div className={`rounded-xl border p-4 ${className}`}>
@@ -404,9 +405,10 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                         </div>
                         <div className="flex items-center gap-2">
                           {a.cid && (
-                            <span className="bg-white/15 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-                              CID {a.cid}
-                            </span>
+                            <CidBadge
+                              cid={a.cid}
+                              className="font-mono text-xs bg-white/15 text-white border border-white/30 px-2.5 py-1 rounded-full font-bold"
+                            />
                           )}
                           <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
                             a.status === 'concluido' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
@@ -473,7 +475,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                         {/* Hipótese diagnóstica */}
                         <CampoConsulta
                           icone={<Thermometer className="w-3.5 h-3.5 text-amber-500" />}
-                          titulo={`Hipótese Diagnóstica${a.cid ? ` — CID ${a.cid}` : ''}`}
+                          titulo={a.cid ? <span className="flex items-center gap-1.5">Hipótese Diagnóstica — <CidBadgeTable cid={a.cid} /></span> : 'Hipótese Diagnóstica'}
                           valor={a.hipotese_diag}
                           className="bg-amber-50 border-amber-100"
                         />

@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { Search, FileText, ClipboardList, CheckCircle2, FileSpreadsheet, Printer, FlaskConical, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 import { drTitle } from '@/lib/medico-utils'
+import { CidBadgeTable } from '@/components/CidTooltip'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -530,8 +531,8 @@ export default function ProducaoListasClient({
                   {a.dias} dia{a.dias !== 1 ? 's' : ''}
                 </span>
                 {a.cid && (
-                  <span className="text-xs bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full font-mono shrink-0">
-                    CID {a.cid}
+                  <span className="shrink-0">
+                    <CidBadgeTable cid={a.cid} />
                   </span>
                 )}
               </div>
