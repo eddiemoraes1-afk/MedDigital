@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Printer, Download, Share2, FlaskConical, AlertTriangle, Loader2 } from 'lucide-react'
+import { Printer, Download, Share2, FlaskConical, AlertTriangle, Loader2, Clock, Lock } from 'lucide-react'
 import { imprimirExames, gerarHTMLExames, nomeArquivoExames, type ExamesHTMLParams } from '@/lib/examesHTML'
 import { baixarComoPDF } from '@/lib/gerarPDF'
 import { drTitle } from '@/lib/medico-utils'
@@ -30,10 +30,26 @@ interface Paciente {
   sexo?: string | null
 }
 
+const VALIDADE_EXAMES_DIAS = 90
+
 function fmtData(iso: string) {
   return new Date(iso + 'T12:00:00').toLocaleDateString('pt-BR', {
     day: '2-digit', month: 'short', year: 'numeric',
   })
+}
+
+function isExameValido(dataSolicitacao: string): boolean {
+  const emissao = new Date(dataSolicitacao + 'T12:00:00')
+  const expira = new Date(emissao)
+  expira.setDate(expira.getDate() + VALIDADE_EXAMES_DIAS)
+  return new Date() <= expira
+}
+
+function dataExpiracao(dataSolicitacao: string): string {
+  const emissao = new Date(dataSolicitacao + 'T12:00:00')
+  const expira = new Date(emissao)
+  expira.setDate(expira.getDate() + VALIDADE_EXAMES_DIAS)
+  return expira.toISOString().split('T')[0]
 }
 
 const URGENCIA_LABEL: Record<string, string> = {
@@ -134,27 +150,49 @@ export default function ExamesListaClient({
           const urgencia = ex.urgencia ?? 'normal'
           const isUrgente = urgencia === 'urgente' || urgencia === 'emergencia'
           const listaExames = ex.exames.split('\n').map(l => l.trim()).filter(Boolean)
+          const valido = isExameValido(ex.data_solicitacao)
+          const dataExp = dataExpiracao(ex.data_solicitacao)
 
           return (
             <div key={ex.id} className={`bg-white rounded-2xl shadow-sm border-2 overflow-hidden ${
-              isUrgente ? 'border-yellow-200' : 'border-gray-100'
+              !valido ? 'border-gray-100' : isUrgente ? 'border-yellow-200' : 'border-gray-100'
             }`}>
               {/* Status banner */}
               <div className={`px-5 py-2.5 flex items-center justify-between ${
-                isUrgente ? 'bg-yellow-50' : 'bg-gray-50'
+                !valido ? 'bg-gray-50' : isUrgente ? 'bg-yellow-50' : 'bg-gray-50'
               }`}>
                 <div className="flex items-center gap-2">
-                  {isUrgente ? (
-                    <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                  {!valido ? (
+                    <>
+                      <Clock className="w-4 h-4 text-gray-400" />
+                      <span className="text-xs font-bold text-gray-500">Solicitação encerrada</span>
+                      <span className="text-xs text-gray-400">· expirou em {fmtData(dataExp)}</span>
+                    </>
+                  ) : isUrgente ? (
+                    <>
+                      <AlertTriangle className="w-4 h-4 text-yellow-600" />
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${URGENCIA_BADGE[urgencia] ?? 'bg-gray-100 text-gray-600'}`}>
+                        {URGENCIA_LABEL[urgencia] ?? urgencia}
+                      </span>
+                      <span className="text-xs text-gray-400">Solicitado em {fmtData(ex.data_solicitacao)}</span>
+                    </>
                   ) : (
-                    <FlaskConical className="w-4 h-4 text-[#5BBD9B]" />
+                    <>
+                      <FlaskConical className="w-4 h-4 text-[#5BBD9B]" />
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${URGENCIA_BADGE[urgencia] ?? 'bg-gray-100 text-gray-600'}`}>
+                        {URGENCIA_LABEL[urgencia] ?? urgencia}
+                      </span>
+                      <span className="text-xs text-gray-400">Solicitado em {fmtData(ex.data_solicitacao)}</span>
+                    </>
                   )}
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${URGENCIA_BADGE[urgencia] ?? 'bg-gray-100 text-gray-600'}`}>
-                    {URGENCIA_LABEL[urgencia] ?? urgencia}
-                  </span>
-                  <span className="text-xs text-gray-400">Solicitado em {fmtData(ex.data_solicitacao)}</span>
                 </div>
-                <span className="text-xs text-gray-400">{listaExames.length} exame(s)</span>
+                {!valido ? (
+                  <div className="flex items-center gap-1 text-xs text-gray-400">
+                    <Lock className="w-3 h-3" /> somente consulta
+                  </div>
+                ) : (
+                  <span className="text-xs text-gray-400">{listaExames.length} exame(s)</span>
+                )}
               </div>
 
               {/* Content */}
@@ -197,8 +235,8 @@ export default function ExamesListaClient({
                     )}
                   </div>
 
-                  {/* Actions */}
-                  {params && (
+                  {/* Actions — apenas quando válido */}
+                  {valido && params && (
                     <div className="flex flex-col gap-2 shrink-0">
                       <button
                         onClick={() => imprimirExames(params)}

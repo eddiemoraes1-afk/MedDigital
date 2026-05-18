@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Printer, Download, Share2, Eye, Lock, CheckCircle2, Clock, FileText, Loader2 } from 'lucide-react'
+import { Printer, Download, Share2, Lock, CheckCircle2, Clock, FileText, Loader2 } from 'lucide-react'
 import { imprimirAtestado, gerarHTMLAtestado, nomeArquivo, type AtestadoHTMLParams } from '@/lib/atestadoHTML'
 import { baixarComoPDF } from '@/lib/gerarPDF'
 import AtestadoShareModal from '@/components/AtestadoShareModal'
@@ -155,42 +155,33 @@ export default function AtestadosListaClient({
                     )}
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex flex-col gap-2 shrink-0">
-                    {valido && params ? (
-                      <>
-                        <button
-                          onClick={() => imprimirAtestado(params)}
-                          className="flex items-center gap-1.5 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
-                        >
-                          <Printer className="w-3.5 h-3.5" /> Imprimir
-                        </button>
-                        <button
-                          onClick={() => baixar(at.id, params)}
-                          disabled={baixandoId === at.id}
-                          className="flex items-center gap-1.5 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-green-50 px-4 py-2 rounded-xl text-xs font-semibold transition-colors disabled:opacity-60"
-                        >
-                          {baixandoId === at.id
-                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            : <Download className="w-3.5 h-3.5" />}
-                          {baixandoId === at.id ? 'Gerando…' : 'Baixar PDF'}
-                        </button>
-                        <button
-                          onClick={() => setShareParams(params)}
-                          className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
-                        >
-                          <Share2 className="w-3.5 h-3.5" /> Encaminhar
-                        </button>
-                      </>
-                    ) : params ? (
+                  {/* Actions — apenas quando válido */}
+                  {valido && params && (
+                    <div className="flex flex-col gap-2 shrink-0">
                       <button
                         onClick={() => imprimirAtestado(params)}
-                        className="flex items-center gap-1.5 border border-gray-200 text-gray-500 hover:bg-gray-50 px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
+                        className="flex items-center gap-1.5 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
                       >
-                        <Eye className="w-3.5 h-3.5" /> Visualizar
+                        <Printer className="w-3.5 h-3.5" /> Imprimir
                       </button>
-                    ) : null}
-                  </div>
+                      <button
+                        onClick={() => baixar(at.id, params)}
+                        disabled={baixandoId === at.id}
+                        className="flex items-center gap-1.5 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-green-50 px-4 py-2 rounded-xl text-xs font-semibold transition-colors disabled:opacity-60"
+                      >
+                        {baixandoId === at.id
+                          ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          : <Download className="w-3.5 h-3.5" />}
+                        {baixandoId === at.id ? 'Gerando…' : 'Baixar PDF'}
+                      </button>
+                      <button
+                        onClick={() => setShareParams(params)}
+                        className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
+                      >
+                        <Share2 className="w-3.5 h-3.5" /> Encaminhar
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
