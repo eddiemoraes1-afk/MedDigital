@@ -566,6 +566,14 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                       </div>
 
                       <div className="px-6 pb-6 space-y-4">
+                        {/* Direcionamento */}
+                        {t.direcionamento && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500 font-semibold uppercase tracking-wide">Direcionamento:</span>
+                            <span className="text-xs bg-white/70 text-gray-700 border border-white px-2.5 py-1 rounded-full font-medium">{t.direcionamento}</span>
+                          </div>
+                        )}
+
                         {(t.resumo_ia || t.recomendacao_ia) && (
                           <div className="bg-white/80 rounded-xl p-4 border border-white">
                             <p className="text-xs font-bold text-[#1A3A2C] uppercase tracking-wide mb-2 flex items-center gap-1.5">
@@ -664,6 +672,13 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                               )}
                             </div>
                           </div>
+                        )}
+
+                        {/* Fallback — triagem sem detalhes salvos */}
+                        {!t.resumo_ia && !t.recomendacao_ia && !t.direcionamento && !(sintomas?.motivosPrincipais?.length > 0) && !temUrgencia && (
+                          <p className="text-xs text-gray-400 italic py-1">
+                            Triagem sem detalhes registrados — pode ser um registro anterior ao armazenamento de sintomas ou uma triagem não concluída pelo paciente.
+                          </p>
                         )}
                       </div>
                     </div>
