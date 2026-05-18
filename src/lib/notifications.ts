@@ -1,11 +1,13 @@
 // Notificações por email (Gmail SMTP) e WhatsApp (Twilio)
 import nodemailer from 'nodemailer'
+import { drTitle } from '@/lib/medico-utils'
 
 interface DadosAgendamento {
   pacienteNome: string
   pacienteEmail: string
   pacienteTelefone?: string
   medicoNome: string
+  medicoSexo?: string | null
   medicoEspecialidade: string
   dataHora: Date
   motivoCancelamento?: string
@@ -75,7 +77,7 @@ export async function enviarEmailConfirmacao(dados: DadosAgendamento) {
           <div class="card">
             <div class="card-row">
               <span class="card-label">Médico</span>
-              <span class="card-value">Dr(a). ${dados.medicoNome}</span>
+              <span class="card-value">${drTitle(dados.medicoSexo)} ${dados.medicoNome}</span>
             </div>
             <div class="card-row">
               <span class="card-label">Especialidade</span>
@@ -164,7 +166,7 @@ export async function enviarEmailCancelamento(dados: DadosAgendamento) {
           <div class="card">
             <div class="card-row">
               <span class="card-label">Médico</span>
-              <span class="card-value">Dr(a). ${dados.medicoNome}</span>
+              <span class="card-value">${drTitle(dados.medicoSexo)} ${dados.medicoNome}</span>
             </div>
             <div class="card-row">
               <span class="card-label">Especialidade</span>
@@ -227,7 +229,7 @@ Olá, ${dados.pacienteNome} 👋
 
 Sua consulta foi agendada com sucesso:
 
-👨‍⚕️ *Médico:* Dr(a). ${dados.medicoNome}
+👨‍⚕️ *Médico:* ${drTitle(dados.medicoSexo)} ${dados.medicoNome}
 🩺 *Especialidade:* ${dados.medicoEspecialidade}
 📅 *Data:* ${data}
 ⏰ *Horário:* ${hora}

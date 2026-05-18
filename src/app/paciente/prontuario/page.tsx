@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { User, Phone, FileText, Calendar, Stethoscope, Brain, Clock, CheckCircle2, FlaskConical } from 'lucide-react'
 import PacienteHeader from '../PacienteHeader'
+import { drTitle } from '@/lib/medico-utils'
 
 export default async function ProntuarioPage() {
   const supabase = await createClient()
@@ -45,7 +46,7 @@ export default async function ProntuarioPage() {
   // Buscar dados dos médicos separadamente
   const medicoIds = [...new Set((atendimentos || []).map((a: any) => a.medico_id).filter(Boolean))]
   const { data: medicos } = medicoIds.length > 0
-    ? await adminSupabase.from('medicos').select('id, nome, especialidade').in('id', medicoIds)
+    ? await adminSupabase.from('medicos').select('id, nome, especialidade, sexo').in('id', medicoIds)
     : { data: [] }
 
   const medicoMap: Record<string, any> = {}
@@ -254,7 +255,7 @@ export default async function ProntuarioPage() {
                         <div className="mb-3">
                           <p className="text-xs text-gray-500 font-medium mb-1">Médico responsável:</p>
                           <p className="text-sm text-gray-700">
-                            Dr(a). {medicoMap[item.medico_id].nome}
+                            {drTitle(medicoMap[item.medico_id].sexo)} {medicoMap[item.medico_id].nome}
                             {medicoMap[item.medico_id].especialidade && (
                               <span className="text-gray-400"> — {medicoMap[item.medico_id].especialidade}</span>
                             )}

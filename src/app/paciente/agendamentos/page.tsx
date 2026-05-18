@@ -5,6 +5,7 @@ import { Calendar, Clock, User, Plus } from 'lucide-react'
 import BotoesAgendamento from './BotoesAgendamento'
 import BotaoEntrarConsulta from './BotaoEntrarConsulta'
 import PacienteHeader from '../PacienteHeader'
+import { drTitle } from '@/lib/medico-utils'
 
 export default async function AgendamentosPage() {
   const supabase = await createClient()
@@ -29,7 +30,7 @@ export default async function AgendamentosPage() {
 
   const medicoIds = [...new Set((agendamentos || []).map((a: any) => a.medico_id))]
   const { data: medicos } = medicoIds.length > 0
-    ? await adminSupabase.from('medicos').select('id, nome, especialidade').in('id', medicoIds)
+    ? await adminSupabase.from('medicos').select('id, nome, especialidade, sexo').in('id', medicoIds)
     : { data: [] }
 
   const medicoMap: Record<string, any> = {}
@@ -70,7 +71,7 @@ export default async function AgendamentosPage() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <p className="font-semibold text-[#1A3A2C] text-sm">Dr(a). {medico?.nome || 'Médico'}</p>
+                <p className="font-semibold text-[#1A3A2C] text-sm">{drTitle(medico?.sexo)} {medico?.nome || 'Médico'}</p>
                 {a.reagendado_de && (
                   <span className="text-xs bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full">
                     Reagendado
@@ -94,7 +95,7 @@ export default async function AgendamentosPage() {
               {futuro && a.status !== 'cancelado' && (
                 <>
                   <BotaoEntrarConsulta agendamentoId={a.id} dataHora={a.data_hora} />
-                  <BotoesAgendamento agendamentoId={a.id} medicoId={a.medico_id} medicoNome={medico?.nome || 'Médico'} />
+                  <BotoesAgendamento agendamentoId={a.id} medicoId={a.medico_id} medicoNome={medico?.nome || 'Médico'} medicoSexo={medico?.sexo} />
                 </>
               )}
             </div>

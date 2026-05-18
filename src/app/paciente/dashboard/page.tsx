@@ -5,6 +5,7 @@ import { ScrollText, Clock, FileText, Calendar, Video, ChevronRight, User, Pill,
 import { gerarTema } from '@/lib/tema'
 import { getEmpresaPaciente } from '@/lib/getEmpresaPaciente'
 import PacienteHeader from '../PacienteHeader'
+import { drTitle } from '@/lib/medico-utils'
 
 export default async function PacienteDashboard() {
   const supabase = await createClient()
@@ -84,7 +85,7 @@ export default async function PacienteDashboard() {
 
   const medicoIds = [...new Set((proximasConsultas || []).map((a: any) => a.medico_id))]
   const { data: medicos } = medicoIds.length > 0
-    ? await adminSupabase.from('medicos').select('id, nome, especialidade').in('id', medicoIds)
+    ? await adminSupabase.from('medicos').select('id, nome, especialidade, sexo').in('id', medicoIds)
     : { data: [] }
   const medicoMap: Record<string, any> = {}
   ;(medicos || []).forEach((m: any) => { medicoMap[m.id] = m })
@@ -180,7 +181,7 @@ export default async function PacienteDashboard() {
                       <User className="w-4 h-4" style={{ color: tema.corPrimaria }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#1A3A2C] truncate">Dr(a). {medico?.nome || 'Médico'}</p>
+                      <p className="text-sm font-semibold text-[#1A3A2C] truncate">{drTitle(medico?.sexo)} {medico?.nome || 'Médico'}</p>
                       <p className="text-xs text-gray-400">{medico?.especialidade}</p>
                     </div>
                     <div className="text-right shrink-0">

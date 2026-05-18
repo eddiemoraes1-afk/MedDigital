@@ -512,6 +512,7 @@ export default async function ProducaoMedicoPage({
           custoConsulta={custoConsulta}
           periodo={periodoTexto}
           medicoNome={medico.nome}
+          medicoSexo={medico.sexo}
         />
 
       </main>

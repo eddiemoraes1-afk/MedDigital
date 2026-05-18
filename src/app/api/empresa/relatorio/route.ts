@@ -134,12 +134,12 @@ export async function GET(req: NextRequest) {
 
     const medicoIdsSet = [...new Set((atendimentos ?? []).map(a => a.medico_id).filter(Boolean))]
     const { data: medicosData } = medicoIdsSet.length > 0
-      ? await adminSupabase.from('medicos').select('id, nome').in('id', medicoIdsSet)
+      ? await adminSupabase.from('medicos').select('id, nome, sexo').in('id', medicoIdsSet)
       : { data: [] }
     medicos = medicosData ?? []
 
-    const medicoMap: Record<string, string> = {}
-    medicos.forEach(m => { medicoMap[m.id] = m.nome })
+    const medicoMap: Record<string, { nome: string; sexo: string | null }> = {}
+    medicos.forEach(m => { medicoMap[m.id] = { nome: m.nome, sexo: m.sexo ?? null } })
 
     const precoConsulta = empresa.preco_consulta ?? 0
     const percentualCopart = empresa.percentual_coparticipacao ?? 0
@@ -167,7 +167,8 @@ export async function GET(req: NextRequest) {
         titular_nome: titularNome,
         titular_registro: titularRegistro,
         medico_id: a.medico_id,
-        medico_nome: medicoMap[a.medico_id] ?? 'Médico',
+        medico_nome: medicoMap[a.medico_id]?.nome ?? 'Médico',
+        medico_sexo: medicoMap[a.medico_id]?.sexo ?? null,
         valor_cobrado: valorCobrado,
         valor_coparticipacao: percentualCopart > 0
           ? Math.round(valorCobrado * (percentualCopart / 100) * 100) / 100

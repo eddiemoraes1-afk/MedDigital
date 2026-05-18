@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { Search, FileText, ClipboardList, CheckCircle2, FileSpreadsheet, Printer, FlaskConical, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
+import { drTitle } from '@/lib/medico-utils'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -74,6 +75,7 @@ interface Props {
   custoConsulta: number
   periodo:    string
   medicoNome: string
+  medicoSexo?: string | null
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -107,9 +109,10 @@ const LABEL_TIPO: Record<string, string> = {
 function gerarCSV(
   consultas: ConsultaRow[], atestados: AtestadoRow[], receitas: ReceitaRow[], exames: ExameRow[],
   exclusoes: ExclusaoRow[], periodo: string, medicoNome: string, custoConsulta: number,
+  medicoSexo?: string | null,
 ) {
   const linhas: string[] = []
-  linhas.push(`Produção Médica — Dr(a). ${medicoNome} — ${periodo}`)
+  linhas.push(`Produção Médica — ${drTitle(medicoSexo)} ${medicoNome} — ${periodo}`)
   linhas.push('')
 
   linhas.push('CONSULTAS CONCLUÍDAS')
@@ -194,6 +197,7 @@ function gerarCSV(
 function imprimirRelatorio(
   consultas: ConsultaRow[], atestados: AtestadoRow[], receitas: ReceitaRow[], exames: ExameRow[],
   exclusoes: ExclusaoRow[], periodo: string, medicoNome: string, custoConsulta: number,
+  medicoSexo?: string | null,
 ) {
   const totalConsultas = consultas.length * custoConsulta
 
@@ -201,7 +205,7 @@ function imprimirRelatorio(
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Produção — Dr(a). ${medicoNome}</title>
+  <title>Produção — ${drTitle(medicoSexo)} ${medicoNome}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; font-size: 11px; color: #1A3A2C; padding: 24px; }
@@ -222,7 +226,7 @@ function imprimirRelatorio(
 </head>
 <body>
   <h1>Produção Médica</h1>
-  <p class="sub">Dr(a). ${medicoNome} &nbsp;·&nbsp; ${periodo}</p>
+  <p class="sub">${drTitle(medicoSexo)} ${medicoNome} &nbsp;·&nbsp; ${periodo}</p>
 
   <h2>Consultas Concluídas (${consultas.length})</h2>
   <table>
@@ -349,7 +353,7 @@ function imprimirRelatorio(
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function ProducaoListasClient({
-  consultas, atestados, receitas, exames, exclusoes, custoConsulta, periodo, medicoNome,
+  consultas, atestados, receitas, exames, exclusoes, custoConsulta, periodo, medicoNome, medicoSexo,
 }: Props) {
   const [buscaC, setBuscaC] = useState('')
   const [buscaA, setBuscaA] = useState('')
@@ -379,7 +383,7 @@ export default function ProducaoListasClient({
   )
 
   function baixarCSV() {
-    const csv = gerarCSV(consultas, atestados, receitas, exames, exclusoes, periodo, medicoNome, custoConsulta)
+    const csv = gerarCSV(consultas, atestados, receitas, exames, exclusoes, periodo, medicoNome, custoConsulta, medicoSexo)
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
@@ -390,7 +394,7 @@ export default function ProducaoListasClient({
   }
 
   function imprimir() {
-    imprimirRelatorio(consultas, atestados, receitas, exames, exclusoes, periodo, medicoNome, custoConsulta)
+    imprimirRelatorio(consultas, atestados, receitas, exames, exclusoes, periodo, medicoNome, custoConsulta, medicoSexo)
   }
 
   // ── Search input ──────────────────────────────────────────────────────────────

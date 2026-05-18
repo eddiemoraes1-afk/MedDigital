@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { DollarSign, Users, Search, FileText, Loader2, TrendingUp, Receipt, Download, Printer } from 'lucide-react'
+import { drTitle } from '@/lib/medico-utils'
 
 interface Consulta {
   id: string
@@ -16,6 +17,7 @@ interface Consulta {
   titular_registro: string | null
   medico_id: string
   medico_nome: string
+  medico_sexo?: string | null
   valor_cobrado: number
   valor_coparticipacao: number
 }
@@ -48,7 +50,7 @@ interface RelatorioData {
   receitas: Receita[]
   funcionariosAtivos: number
   pacientesAtivos: number
-  medicos: Array<{ id: string; nome: string }>
+  medicos: Array<{ id: string; nome: string; sexo?: string | null }>
 }
 
 interface Props {
@@ -182,7 +184,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
           c.paciente_nome,
           c.e_dependente ? 'Dependente' : 'Funcionário',
           c.titular_nome,
-          `Dr(a). ${c.medico_nome}`,
+          `${drTitle(c.medico_sexo)} ${c.medico_nome}`,
           formatDataCurta(c.data),
           c.tipo === 'virtual' ? 'Virtual' : 'Agendada',
           c.valor_cobrado || 0,
@@ -305,7 +307,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
       <tr>
         <td>${c.paciente_nome}<br><span class="badge ${c.e_dependente ? 'badge-dep' : 'badge-func'}">${c.e_dependente ? 'Dependente' : 'Funcionário'}</span></td>
         <td>${c.titular_nome}${c.e_dependente ? '<br><span style="font-size:9px;color:#888">responsável co-part.</span>' : ''}</td>
-        <td>Dr(a). ${c.medico_nome}</td>
+        <td>${drTitle(c.medico_sexo)} ${c.medico_nome}</td>
         <td>${formatDataCurta(c.data)}</td>
         <td><span class="badge ${c.tipo === 'virtual' ? 'badge-virtual' : 'badge-agendada'}">${c.tipo === 'virtual' ? 'Virtual' : 'Agendada'}</span></td>
         <td class="valor">${formatBRL(c.valor_cobrado || 0)}</td>
@@ -564,7 +566,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
           >
             <option value="">Todos os médicos</option>
             {dados!.medicos.map(m => (
-              <option key={m.id} value={m.id}>Dr(a). {m.nome}</option>
+              <option key={m.id} value={m.id}>{drTitle(m.sexo)} {m.nome}</option>
             ))}
           </select>
         )}
@@ -665,7 +667,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
                             <div className="text-xs text-gray-400">responsável</div>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-gray-600 text-sm">Dr(a). {c.medico_nome}</td>
+                        <td className="px-4 py-3 text-gray-600 text-sm">{drTitle(c.medico_sexo)} {c.medico_nome}</td>
                         <td className="px-4 py-3 text-gray-500 text-xs">{formatDataHora(c.data)}</td>
                         <td className="px-4 py-3">
                           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${

@@ -32,7 +32,7 @@ export async function GET(request: Request) {
 
     admin
       .from('receitas')
-      .select('id, medicamentos, instrucoes, data_emissao, medicos(nome)')
+      .select('id, medicamentos, instrucoes, data_emissao, medicos(nome, sexo)')
       .eq('paciente_id', paciente.id)
       .eq('tipo', tipo)
       .order('data_emissao', { ascending: false })
@@ -63,6 +63,7 @@ export async function GET(request: Request) {
       instrucoes:   ultima.instrucoes ?? '',
       data_emissao: ultima.data_emissao,
       medico_nome:  (ultima.medicos as any)?.nome ?? 'Médico',
+      medico_sexo:  (ultima.medicos as any)?.sexo ?? null,
     },
     todasReceitas: receitas.map(r => ({
       id:           r.id,
@@ -70,6 +71,7 @@ export async function GET(request: Request) {
       instrucoes:   r.instrucoes ?? '',
       data_emissao: r.data_emissao,
       medico_nome:  (r.medicos as any)?.nome ?? 'Médico',
+      medico_sexo:  (r.medicos as any)?.sexo ?? null,
     })),
     totalConsultas,
     totalReceitas,

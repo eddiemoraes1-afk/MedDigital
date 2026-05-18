@@ -8,6 +8,7 @@ import {
   Shield, Phone, FileText, ChevronRight, ScrollText,
   Video, Clock, ClipboardList,
 } from 'lucide-react'
+import { drTitle } from '@/lib/medico-utils'
 import PacienteHeader from '../PacienteHeader'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -24,6 +25,7 @@ interface UltimaReceita {
   instrucoes: string
   data_emissao: string
   medico_nome: string
+  medico_sexo?: string | null
 }
 
 type TipoReceita = 'simples' | 'especial' | 'antimicrobiano'
@@ -408,7 +410,7 @@ function EtapaConfirmacao({
           </div>
           <div>
             <h2 className="font-bold text-[#1A3A2C] text-lg leading-tight">Confirme a receita</h2>
-            <p className="text-sm text-gray-500 mt-0.5">{tipoLabel} · emitida por Dr(a). {ultimaReceita.medico_nome}</p>
+            <p className="text-sm text-gray-500 mt-0.5">{tipoLabel} · emitida por {drTitle(ultimaReceita.medico_sexo)} {ultimaReceita.medico_nome}</p>
           </div>
         </div>
 

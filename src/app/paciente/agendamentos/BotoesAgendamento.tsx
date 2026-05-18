@@ -3,14 +3,16 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, RefreshCw, Loader2 } from 'lucide-react'
+import { drTitle } from '@/lib/medico-utils'
 
 interface Props {
   agendamentoId: string
   medicoId: string
   medicoNome: string
+  medicoSexo?: string | null
 }
 
-export default function BotoesAgendamento({ agendamentoId, medicoId, medicoNome }: Props) {
+export default function BotoesAgendamento({ agendamentoId, medicoId, medicoNome, medicoSexo }: Props) {
   const [cancelando, setCancelando] = useState(false)
   const [confirmar, setConfirmar] = useState(false)
   const [justificativa, setJustificativa] = useState('')
@@ -39,7 +41,7 @@ export default function BotoesAgendamento({ agendamentoId, medicoId, medicoNome 
   if (confirmar) {
     return (
       <div className="mt-3 space-y-2">
-        <p className="text-xs text-gray-500">Cancelar consulta com Dr(a). {medicoNome}?</p>
+        <p className="text-xs text-gray-500">Cancelar consulta com {drTitle(medicoSexo)} {medicoNome}?</p>
         <textarea
           value={justificativa}
           onChange={e => setJustificativa(e.target.value)}

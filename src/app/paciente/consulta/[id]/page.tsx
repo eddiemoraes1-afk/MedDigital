@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Loader2, Clock, Phone, Video, CheckCircle2, ArrowRight, Users } from 'lucide-react'
+import { drTitle } from '@/lib/medico-utils'
 
 // ── Helpers de áudio ──────────────────────────────────────────────────────────
 
@@ -128,7 +129,7 @@ export default function ConsultaPaciente() {
     // Busca atendimento atual
     const { data } = await supabase
       .from('atendimentos')
-      .select('*, medicos(nome, especialidade)')
+      .select('*, medicos(nome, especialidade, sexo)')
       .eq('id', atendimentoIdRef.current)
       .single()
 
@@ -140,7 +141,7 @@ export default function ConsultaPaciente() {
 
       const { data: novoAtend } = await supabase
         .from('atendimentos')
-        .select('id, status, sala_video, medicos(nome, especialidade)')
+        .select('id, status, sala_video, medicos(nome, especialidade, sexo)')
         .eq('paciente_id', pid)
         .in('status', ['aguardando', 'em_andamento'])
         .neq('id', atendimentoIdRef.current)
@@ -320,7 +321,7 @@ export default function ConsultaPaciente() {
           )}
           {atendimento.status === 'em_andamento' && atendimento.medicos && (
             <div className="text-green-200 text-xs">
-              Dr(a). {atendimento.medicos.nome} — {atendimento.medicos.especialidade}
+              {drTitle(atendimento.medicos.sexo)} {atendimento.medicos.nome} — {atendimento.medicos.especialidade}
             </div>
           )}
           <button
@@ -431,7 +432,7 @@ export default function ConsultaPaciente() {
               </div>
               {atendimento.medicos && (
                 <p className="text-green-300 text-sm mb-4">
-                  Dr(a). {atendimento.medicos.nome} está na sala aguardando você.
+                  {drTitle(atendimento.medicos.sexo)} {atendimento.medicos.nome} está na sala aguardando você.
                 </p>
               )}
               <h2 className="text-3xl font-extrabold mb-2 tracking-tight">Entrar AGORA</h2>

@@ -72,7 +72,7 @@ export async function POST(request: Request) {
   // Buscar dados do médico
   const { data: medico } = await adminSupabase
     .from('medicos')
-    .select('nome, especialidade')
+    .select('nome, especialidade, sexo')
     .eq('id', medico_id)
     .single()
 
@@ -82,6 +82,7 @@ export async function POST(request: Request) {
     pacienteEmail: user.email!,
     pacienteTelefone: paciente.telefone,
     medicoNome: medico?.nome || 'Médico',
+    medicoSexo: medico?.sexo ?? null,
     medicoEspecialidade: medico?.especialidade || '',
     dataHora: new Date(dataHoraUTC),
   }

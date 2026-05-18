@@ -50,7 +50,7 @@ export async function POST(request: Request) {
   if (statusFinal === 'cancelado') {
     const { data: medico } = await adminSupabase
       .from('medicos')
-      .select('nome, especialidade')
+      .select('nome, especialidade, sexo')
       .eq('id', agendamento.medico_id)
       .single()
 
@@ -59,6 +59,7 @@ export async function POST(request: Request) {
       pacienteEmail: user.email!,
       pacienteTelefone: paciente.telefone,
       medicoNome: medico?.nome || 'Médico',
+      medicoSexo: medico?.sexo ?? null,
       medicoEspecialidade: medico?.especialidade || '',
       dataHora: new Date(agendamento.data_hora),
       motivoCancelamento: motivo_cancelamento || undefined,

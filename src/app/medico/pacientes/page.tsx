@@ -51,7 +51,7 @@ export default async function MedicoPacientesPage() {
       .order('criado_em', { ascending: false }),
     adminSupabase
       .from('atendimentos')
-      .select('paciente_id')
+      .select('paciente_id, status')
       .in('paciente_id', pacienteIds)
       .in('status', ['concluido', 'em_andamento']),
     adminSupabase
