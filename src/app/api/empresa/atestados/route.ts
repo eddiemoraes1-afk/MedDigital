@@ -1,6 +1,7 @@
 import { requireEmpresa } from '@/lib/auth-sistema'
 import { createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { cidParaGrupo, cidParaGrupoAbrev } from '@/lib/cidGrupos'
 
 export async function GET() {
   const perfil = await requireEmpresa()
@@ -70,7 +71,7 @@ export async function GET() {
   if (ats.length === 0) {
     return NextResponse.json({
       kpis: { total: 0, totalDias: 0, mediaDias: 0, funcionariosComAtestado: 0 },
-      porMes: [], porSexo: [], porSecretaria: [], porCargo: [], porRelacao: [], topFuncionarios: [], lista: [],
+      porMes: [], porSexo: [], porSecretaria: [], porCargo: [], porRelacao: [], porCID: [], porGrupoCID: [], cidPorSecretaria: [], topFuncionarios: [], lista: [],
     })
   }
 
@@ -133,6 +134,22 @@ export async function GET() {
     .map(r => ({ cid: r.cid, atestados: r.atestados, dias: r.dias, funcionarios: r.funcionarios.size }))
     .sort((a, b) => b.atestados - a.atestados)
 
+  // Por Grupo CID-10
+  const grupoCIDMap = new Map<string, { grupo: string; abrev: string; atestados: number; dias: number; funcionarios: Set<string> }>()
+  for (const a of ats) {
+    const cidCode = (a.cid ?? '').trim()
+    const grupo = cidCode ? cidParaGrupo(cidCode) : 'Não classificado'
+    const abrev = cidCode ? cidParaGrupoAbrev(cidCode) : 'Outros'
+    const cur = grupoCIDMap.get(grupo) ?? { grupo, abrev, atestados: 0, dias: 0, funcionarios: new Set() }
+    cur.atestados++
+    cur.dias += a.dias ?? 0
+    if (a.paciente_id) cur.funcionarios.add(a.paciente_id)
+    grupoCIDMap.set(grupo, cur)
+  }
+  const porGrupoCID = [...grupoCIDMap.values()]
+    .map(r => ({ grupo: r.grupo, abrev: r.abrev, atestados: r.atestados, dias: r.dias, funcionarios: r.funcionarios.size }))
+    .sort((a, b) => b.atestados - a.atestados)
+
   // CID mais frequente por secretaria
   const secretariaCIDMap = new Map<string, Map<string, number>>()
   for (const a of ats) {
@@ -171,5 +188,5 @@ export async function GET() {
       cidPrincipal: [...f.cids.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—',
     }))
 
-  return NextResponse.json({ kpis: { total, totalDias, mediaDias, funcionariosComAtestado }, porMes, porSexo, porSecretaria, porCargo, porRelacao, porCID, cidPorSecretaria, topFuncionarios, lista })
+  return NextResponse.json({ kpis: { total, totalDias, mediaDias, funcionariosComAtestado }, porMes, porSexo, porSecretaria, porCargo, porRelacao, porCID, porGrupoCID, cidPorSecretaria, topFuncionarios, lista })
 }

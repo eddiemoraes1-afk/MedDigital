@@ -242,6 +242,49 @@ export default function AtestadosDashboard() {
             </div>
           </Card>
 
+          {/* Grupos CID-10 */}
+          {data.porGrupoCID && data.porGrupoCID.length > 0 && (
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card title="Atestados por Grupo CID-10" sub="Classificação oficial — 22 grupos">
+                <DonutChart
+                  slices={(data.porGrupoCID as any[]).slice(0, 8).map((g: any, i: number) => ({
+                    label: g.abrev,
+                    value: g.atestados,
+                    color: COLORS[i % COLORS.length],
+                  }))}
+                />
+              </Card>
+              <Card title="Dias de Afastamento por Grupo CID-10" sub="Total de dias por categoria de diagnóstico">
+                <div className="space-y-2">
+                  {(data.porGrupoCID as any[]).slice(0, 10).map((g: any, i: number) => {
+                    const max = data.porGrupoCID[0]?.atestados ?? 1
+                    return (
+                      <div key={i} className="flex items-center gap-2">
+                        <span
+                          className="text-xs text-gray-600 shrink-0 truncate"
+                          style={{ width: '120px' }}
+                          title={g.grupo}
+                        >
+                          {g.abrev}
+                        </span>
+                        <div className="flex-1 bg-gray-100 rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full transition-all"
+                            style={{ width: `${(g.atestados / max) * 100}%`, backgroundColor: COLORS[i % COLORS.length] }}
+                          />
+                        </div>
+                        <div className="flex items-center gap-2 text-xs shrink-0">
+                          <span className="font-semibold text-gray-700 w-6 text-right">{g.atestados}</span>
+                          <span className="text-gray-400 w-14 text-right">{g.dias} dias</span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </Card>
+            </div>
+          )}
+
           {/* CID por Secretaria */}
           {data.cidPorSecretaria && data.cidPorSecretaria.length > 0 && (
             <Card title="CIDs Mais Frequentes por Secretaria" sub="Top 3 diagnósticos em cada unidade">
