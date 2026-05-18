@@ -35,11 +35,13 @@ export default async function MedicoPacientesPage() {
 
   const pacienteIds = pacientes.map(p => p.id)
 
-  // Buscar triagens, atendimentos, atestados e exclusões em paralelo
+  // Buscar triagens, atendimentos, atestados, receitas, exames e exclusões em paralelo
   const [
     { data: todasTriagens },
     { data: todosAtendimentos },
     { data: todosAtestados },
+    { data: todasReceitas },
+    { data: todosExames },
     { data: todasExclusoes },
   ] = await Promise.all([
     adminSupabase
@@ -51,9 +53,17 @@ export default async function MedicoPacientesPage() {
       .from('atendimentos')
       .select('paciente_id')
       .in('paciente_id', pacienteIds)
-      .eq('status', 'concluido'),
+      .in('status', ['concluido', 'em_andamento']),
     adminSupabase
       .from('atestados')
+      .select('paciente_id')
+      .in('paciente_id', pacienteIds),
+    adminSupabase
+      .from('receitas')
+      .select('paciente_id')
+      .in('paciente_id', pacienteIds),
+    adminSupabase
+      .from('solicitacoes_exames')
       .select('paciente_id')
       .in('paciente_id', pacienteIds),
     adminSupabase
@@ -72,12 +82,25 @@ export default async function MedicoPacientesPage() {
 
   const totalAtendMap: Record<string, number> = {}
   for (const a of todosAtendimentos ?? []) {
-    totalAtendMap[a.paciente_id] = (totalAtendMap[a.paciente_id] || 0) + 1
+    // Conta apenas consultas concluídas (em_andamento é só para não excluir consultas ativas)
+    if (a.status === 'concluido') {
+      totalAtendMap[a.paciente_id] = (totalAtendMap[a.paciente_id] || 0) + 1
+    }
   }
 
   const totalAtestadosMap: Record<string, number> = {}
   for (const a of todosAtestados ?? []) {
     totalAtestadosMap[a.paciente_id] = (totalAtestadosMap[a.paciente_id] || 0) + 1
+  }
+
+  const totalReceitasMap: Record<string, number> = {}
+  for (const r of todasReceitas ?? []) {
+    totalReceitasMap[r.paciente_id] = (totalReceitasMap[r.paciente_id] || 0) + 1
+  }
+
+  const totalExamesMap: Record<string, number> = {}
+  for (const e of todosExames ?? []) {
+    totalExamesMap[e.paciente_id] = (totalExamesMap[e.paciente_id] || 0) + 1
   }
 
   const totalExclusoesMap: Record<string, number> = {}
@@ -96,8 +119,8 @@ export default async function MedicoPacientesPage() {
     total_triagens: totalTriagensMap[p.id] ?? 0,
     total_atendimentos: totalAtendMap[p.id] ?? 0,
     total_atestados: totalAtestadosMap[p.id] ?? 0,
-    total_exames: 0,
-    total_receitas: 0,
+    total_receitas: totalReceitasMap[p.id] ?? 0,
+    total_exames: totalExamesMap[p.id] ?? 0,
     total_exclusoes: totalExclusoesMap[p.id] ?? 0,
   }))
 
