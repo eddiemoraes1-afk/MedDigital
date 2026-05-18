@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { BarChart2, Loader2, RefreshCw, FileText, Calendar, Users, Clock } from 'lucide-react'
+import { CidBadgePill, CidBadgeTable, GrupoLabel } from '@/components/CidTooltip'
 
 const COLORS = ['#5BBD9B','#3B82F6','#F59E0B','#8B5CF6','#EF4444','#14B8A6','#EC4899','#6366F1']
 
@@ -218,13 +219,13 @@ export default function AtestadosDashboard() {
           </div>
 
           {/* Row 3 — CID */}
-          <Card title="Atestados por CID-10" sub="Diagnósticos mais frequentes">
+          <Card title="Atestados por CID-10" sub="Diagnósticos mais frequentes — passe o mouse no código para ver a descrição">
             <div className="space-y-2">
               {(data.porCID ?? []).slice(0, 12).map((c: any, i: number) => {
                 const max = data.porCID[0]?.atestados ?? 1
                 return (
                   <div key={i} className="flex items-center gap-3">
-                    <span className="font-mono text-xs font-bold text-[#1A3A2C] w-20 shrink-0">{c.cid}</span>
+                    <span className="w-20 shrink-0"><CidBadgePill cid={c.cid} /></span>
                     <div className="flex-1 bg-gray-100 rounded-full h-2">
                       <div className="h-2 rounded-full" style={{ width: `${(c.atestados / max) * 100}%`, backgroundColor: '#5BBD9B' }} />
                     </div>
@@ -245,7 +246,7 @@ export default function AtestadosDashboard() {
           {/* Grupos CID-10 */}
           {data.porGrupoCID && data.porGrupoCID.length > 0 && (
             <div className="grid md:grid-cols-2 gap-6">
-              <Card title="Atestados por Grupo CID-10" sub="Classificação oficial — 22 grupos">
+              <Card title="Atestados por Grupo CID-10" sub="22 grupos oficiais — passe o mouse no grupo para ver o nome completo">
                 <DonutChart
                   slices={(data.porGrupoCID as any[]).slice(0, 8).map((g: any, i: number) => ({
                     label: g.abrev,
@@ -253,6 +254,15 @@ export default function AtestadosDashboard() {
                     color: COLORS[i % COLORS.length],
                   }))}
                 />
+                <div className="mt-3 space-y-1.5">
+                  {(data.porGrupoCID as any[]).slice(0, 8).map((g: any, i: number) => (
+                    <div key={i} className="flex items-center gap-2 text-xs">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                      <GrupoLabel abrev={g.abrev} grupo={g.grupo} />
+                      <span className="ml-auto font-semibold text-gray-700">{g.atestados}</span>
+                    </div>
+                  ))}
+                </div>
               </Card>
               <Card title="Dias de Afastamento por Grupo CID-10" sub="Total de dias por categoria de diagnóstico">
                 <div className="space-y-2">
@@ -260,12 +270,8 @@ export default function AtestadosDashboard() {
                     const max = data.porGrupoCID[0]?.atestados ?? 1
                     return (
                       <div key={i} className="flex items-center gap-2">
-                        <span
-                          className="text-xs text-gray-600 shrink-0 truncate"
-                          style={{ width: '120px' }}
-                          title={g.grupo}
-                        >
-                          {g.abrev}
+                        <span className="shrink-0" style={{ width: '120px' }}>
+                          <GrupoLabel abrev={g.abrev} grupo={g.grupo} className="text-xs text-gray-600 cursor-help truncate block" />
                         </span>
                         <div className="flex-1 bg-gray-100 rounded-full h-2">
                           <div
@@ -301,10 +307,11 @@ export default function AtestadosDashboard() {
                       <tr key={i} className="hover:bg-gray-50">
                         <td className="px-4 py-2.5 text-xs font-medium text-[#1A3A2C]">{s.secretaria}</td>
                         <td className="px-4 py-2.5">
-                          <div className="flex flex-wrap gap-1.5">
+                          <div className="flex flex-wrap gap-1.5 items-center">
                             {s.topCID.map((c: any, j: number) => (
-                              <span key={j} className="font-mono text-xs bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full">
-                                {c.cid} <span className="text-blue-400">×{c.n}</span>
+                              <span key={j} className="flex items-center gap-1">
+                                <CidBadgePill cid={c.cid} />
+                                <span className="text-blue-400 text-xs">×{c.n}</span>
                               </span>
                             ))}
                           </div>
@@ -360,7 +367,7 @@ export default function AtestadosDashboard() {
                       <td className="px-4 py-2.5 text-xs text-gray-600">{f.secretaria}</td>
                       <td className="px-4 py-2.5">
                         {f.cidPrincipal && f.cidPrincipal !== '—' ? (
-                          <span className="font-mono text-xs bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full">{f.cidPrincipal}</span>
+                          <CidBadgePill cid={f.cidPrincipal} />
                         ) : <span className="text-gray-300 text-xs">—</span>}
                       </td>
                       <td className="px-4 py-2.5 text-center">
@@ -401,7 +408,7 @@ export default function AtestadosDashboard() {
                         <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">{a.medico}</td>
                         <td className="px-4 py-3">
                           {a.cid ? (
-                            <span className="font-mono text-xs bg-gray-100 text-gray-700 border border-gray-200 px-2 py-0.5 rounded-md font-semibold">{a.cid}</span>
+                            <CidBadgeTable cid={a.cid} />
                           ) : <span className="text-gray-300 text-xs">—</span>}
                         </td>
                         <td className="px-4 py-3 text-center">

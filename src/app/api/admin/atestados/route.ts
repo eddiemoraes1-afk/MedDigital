@@ -1,6 +1,7 @@
 import { requireAdmin } from '@/lib/auth-sistema'
 import { createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { cidParaGrupo, cidParaGrupoAbrev } from '@/lib/cidGrupos'
 
 export async function GET(req: NextRequest) {
   await requireAdmin()
@@ -60,7 +61,7 @@ export async function GET(req: NextRequest) {
   if (ats.length === 0) {
     return NextResponse.json({
       kpis: { total: 0, totalDias: 0, mediaDias: 0, pacientesUnicos: 0 },
-      porMes: [], porSexo: [], porMedico: [], porCID: [], topPacientes: [], registros: [],
+      porMes: [], porSexo: [], porMedico: [], porCID: [], porGrupoCID: [], topPacientes: [], registros: [],
       empresas: empresas ?? [],
     })
   }
@@ -119,6 +120,22 @@ export async function GET(req: NextRequest) {
     .map(r => ({ cid: r.cid, atestados: r.atestados, dias: r.dias, pacientes: r.pacientes.size }))
     .sort((a, b) => b.atestados - a.atestados)
 
+  // Por Grupo CID-10
+  const grupoCIDMap = new Map<string, { grupo: string; abrev: string; atestados: number; dias: number; pacientes: Set<string> }>()
+  for (const a of ats) {
+    const cidCode = (a.cid ?? '').trim()
+    const grupo = cidCode ? cidParaGrupo(cidCode) : 'Não classificado'
+    const abrev = cidCode ? cidParaGrupoAbrev(cidCode) : 'Outros'
+    const cur = grupoCIDMap.get(grupo) ?? { grupo, abrev, atestados: 0, dias: 0, pacientes: new Set() }
+    cur.atestados++
+    cur.dias += a.dias ?? 0
+    if (a.paciente_id) cur.pacientes.add(a.paciente_id)
+    grupoCIDMap.set(grupo, cur)
+  }
+  const porGrupoCID = [...grupoCIDMap.values()]
+    .map(r => ({ grupo: r.grupo, abrev: r.abrev, atestados: r.atestados, dias: r.dias, pacientes: r.pacientes.size }))
+    .sort((a, b) => b.atestados - a.atestados)
+
   // Top pacientes
   const pacAtMap = new Map<string, { nome: string; empresa: string; atestados: number; dias: number; cids: Map<string, number> }>()
   for (const a of ats) {
@@ -161,7 +178,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     kpis: { total, totalDias, mediaDias, pacientesUnicos },
-    porMes, porSexo, porMedico, porCID, topPacientes, registros,
+    porMes, porSexo, porMedico, porCID, porGrupoCID, topPacientes, registros,
     empresas: empresas ?? [],
   })
 }

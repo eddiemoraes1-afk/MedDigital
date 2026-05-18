@@ -6,6 +6,7 @@ import {
   Search, Filter, X, Download, Printer,
 } from 'lucide-react'
 import * as XLSX from 'xlsx'
+import { CidBadgePill, CidBadgeTable, GrupoLabel } from '@/components/CidTooltip'
 
 const COLORS = ['#5BBD9B','#3B82F6','#F59E0B','#8B5CF6','#EF4444','#14B8A6','#EC4899','#6366F1']
 
@@ -586,13 +587,13 @@ export default function AdminAtestadosDashboard() {
               </div>
 
               {/* Por CID */}
-              <Card title="Atestados por CID-10" sub="Diagnósticos mais frequentes no período selecionado">
+              <Card title="Atestados por CID-10" sub="Diagnósticos mais frequentes — passe o mouse no código para ver a descrição">
                 <div className="space-y-2">
                   {(data.porCID ?? []).slice(0, 12).map((c: any, i: number) => {
                     const max = (data.porCID ?? [])[0]?.atestados ?? 1
                     return (
                       <div key={i} className="flex items-center gap-3">
-                        <span className="font-mono text-xs font-bold text-[#1A3A2C] w-20 shrink-0">{c.cid}</span>
+                        <span className="w-20 shrink-0"><CidBadgePill cid={c.cid} /></span>
                         <div className="flex-1 bg-gray-100 rounded-full h-2">
                           <div className="h-2 rounded-full" style={{ width: `${(c.atestados / max) * 100}%`, backgroundColor: '#5BBD9B' }} />
                         </div>
@@ -609,6 +610,54 @@ export default function AdminAtestadosDashboard() {
                   )}
                 </div>
               </Card>
+
+              {/* Por Grupo CID-10 */}
+              {data.porGrupoCID && data.porGrupoCID.length > 0 && (
+                <div className="grid md:grid-cols-2 gap-6">
+                  <Card title="Atestados por Grupo CID-10" sub="22 grupos oficiais — passe o mouse no grupo para ver o nome completo">
+                    <DonutChart
+                      slices={(data.porGrupoCID as any[]).slice(0, 8).map((g: any, i: number) => ({
+                        label: g.abrev,
+                        value: g.atestados,
+                        color: COLORS[i % COLORS.length],
+                      }))}
+                    />
+                    <div className="mt-3 space-y-1.5">
+                      {(data.porGrupoCID as any[]).slice(0, 8).map((g: any, i: number) => (
+                        <div key={i} className="flex items-center gap-2 text-xs">
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                          <GrupoLabel abrev={g.abrev} grupo={g.grupo} />
+                          <span className="ml-auto font-semibold text-gray-700">{g.atestados}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </Card>
+                  <Card title="Dias de Afastamento por Grupo CID-10" sub="Total de dias por categoria de diagnóstico">
+                    <div className="space-y-2">
+                      {(data.porGrupoCID as any[]).slice(0, 10).map((g: any, i: number) => {
+                        const max = data.porGrupoCID[0]?.atestados ?? 1
+                        return (
+                          <div key={i} className="flex items-center gap-2">
+                            <span className="shrink-0" style={{ width: '110px' }}>
+                              <GrupoLabel abrev={g.abrev} grupo={g.grupo} className="text-xs text-gray-600 cursor-help truncate block" />
+                            </span>
+                            <div className="flex-1 bg-gray-100 rounded-full h-2">
+                              <div
+                                className="h-2 rounded-full transition-all"
+                                style={{ width: `${(g.atestados / max) * 100}%`, backgroundColor: COLORS[i % COLORS.length] }}
+                              />
+                            </div>
+                            <div className="flex items-center gap-2 text-xs shrink-0">
+                              <span className="font-semibold text-gray-700 w-6 text-right">{g.atestados}</span>
+                              <span className="text-gray-400 w-14 text-right">{g.dias} dias</span>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </Card>
+                </div>
+              )}
 
               {/* Por médico */}
               <div className="grid md:grid-cols-2 gap-6">
@@ -642,7 +691,7 @@ export default function AdminAtestadosDashboard() {
                           <td className="px-4 py-2.5 text-xs text-gray-500">{p.empresa ?? 'Particular'}</td>
                           <td className="px-4 py-2.5">
                             {p.cidPrincipal && p.cidPrincipal !== '—' ? (
-                              <span className="font-mono text-xs bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full">{p.cidPrincipal}</span>
+                              <CidBadgePill cid={p.cidPrincipal} />
                             ) : <span className="text-gray-300 text-xs">—</span>}
                           </td>
                           <td className="px-4 py-2.5 text-center">
@@ -685,7 +734,7 @@ export default function AdminAtestadosDashboard() {
                           <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{r.medico}</td>
                           <td className="px-3 py-2">
                             {r.cid && r.cid !== '—' ? (
-                              <span className="font-mono font-bold text-[#1A3A2C] bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded text-xs">{r.cid}</span>
+                              <CidBadgeTable cid={r.cid} />
                             ) : <span className="text-gray-300">—</span>}
                           </td>
                           <td className="px-3 py-2 text-center">
