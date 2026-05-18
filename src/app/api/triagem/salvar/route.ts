@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
       console.warn('Update completo falhou, tentando colunas básicas:', error.message)
 
       // Tenta atualizar apenas colunas que definitivamente existem
-      const seguros = ['classificacao_risco', 'direcionamento', 'resumo_ia', 'status']
+      const seguros = ['classificacao_risco', 'direcionamento', 'resumo_ia', 'recomendacao_ia', 'status']
       const dadosBasicos: Record<string, unknown> = {}
       for (const col of seguros) {
         if (col in dados) dadosBasicos[col] = dados[col]

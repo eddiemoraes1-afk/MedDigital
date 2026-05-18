@@ -220,6 +220,7 @@ export async function POST(req: NextRequest) {
         classificacao_risco: resultado.classificacao,
         direcionamento:      'virtual',
         resumo_ia:           resultado.resumo,
+        recomendacao_ia:     resultado.recomendacao,
         status:              'concluida',
       }
 
