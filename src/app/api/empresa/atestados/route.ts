@@ -71,7 +71,7 @@ export async function GET() {
   if (ats.length === 0) {
     return NextResponse.json({
       kpis: { total: 0, totalDias: 0, mediaDias: 0, funcionariosComAtestado: 0 },
-      porMes: [], porSexo: [], porSecretaria: [], porCargo: [], porTipoCargo: [], porRelacao: [], porCID: [], porGrupoCID: [], cidPorSecretaria: [], cidPorTipoCargo: [], topFuncionarios: [], lista: [],
+      porMes: [], porSexo: [], porSecretaria: [], porCargo: [], porTipoCargo: [], porRelacao: [], porCID: [], porGrupoCID: [], cidPorSecretaria: [], cidPorCargo: [], cidPorTipoCargo: [], topFuncionarios: [], lista: [],
     })
   }
 
@@ -166,6 +166,21 @@ export async function GET() {
     return { secretaria, topCID }
   })
 
+  // CID mais frequente por cargo
+  const cargoMapCID = new Map<string, Map<string, number>>()
+  for (const a of ats) {
+    const v = vinculoByPaciente.get(a.paciente_id)
+    const cargo = v?.cargo || 'Não informado'
+    const cidKey = (a.cid ?? '').trim().toUpperCase() || 'Não informado'
+    if (!cargoMapCID.has(cargo)) cargoMapCID.set(cargo, new Map())
+    const inner = cargoMapCID.get(cargo)!
+    inner.set(cidKey, (inner.get(cidKey) ?? 0) + 1)
+  }
+  const cidPorCargo = [...cargoMapCID.entries()].map(([cargo, cidCounts]) => {
+    const topCID = [...cidCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([cid, n]) => ({ cid, n }))
+    return { cargo, topCID }
+  }).sort((a, b) => b.topCID.reduce((s, c) => s + c.n, 0) - a.topCID.reduce((s, c) => s + c.n, 0))
+
   // CID mais frequente por tipo de cargo
   const tipoCargoMapCID = new Map<string, Map<string, number>>()
   for (const a of ats) {
@@ -204,5 +219,5 @@ export async function GET() {
       cidPrincipal: [...f.cids.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—',
     }))
 
-  return NextResponse.json({ kpis: { total, totalDias, mediaDias, funcionariosComAtestado }, porMes, porSexo, porSecretaria, porCargo, porTipoCargo, porRelacao, porCID, porGrupoCID, cidPorSecretaria, cidPorTipoCargo, topFuncionarios, lista })
+  return NextResponse.json({ kpis: { total, totalDias, mediaDias, funcionariosComAtestado }, porMes, porSexo, porSecretaria, porCargo, porTipoCargo, porRelacao, porCID, porGrupoCID, cidPorSecretaria, cidPorCargo, cidPorTipoCargo, topFuncionarios, lista })
 }

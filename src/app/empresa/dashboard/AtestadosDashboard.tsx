@@ -324,6 +324,39 @@ export default function AtestadosDashboard() {
             </Card>
           )}
 
+          {/* CID por Cargo */}
+          {data.cidPorCargo && data.cidPorCargo.length > 0 && (
+            <Card title="CIDs Mais Frequentes por Cargo" sub="Top 3 diagnósticos em cada função — sem identificação nominal">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                    <tr>
+                      <th className="px-4 py-2.5 text-left">Cargo</th>
+                      <th className="px-4 py-2.5 text-left">CIDs mais frequentes</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {data.cidPorCargo.map((c: any, i: number) => (
+                      <tr key={i} className="hover:bg-gray-50">
+                        <td className="px-4 py-2.5 text-xs font-medium text-[#1A3A2C] max-w-[160px] truncate" title={c.cargo}>{c.cargo}</td>
+                        <td className="px-4 py-2.5">
+                          <div className="flex flex-wrap gap-1.5 items-center">
+                            {c.topCID.map((t: any, j: number) => (
+                              <span key={j} className="flex items-center gap-1">
+                                <CidBadgePill cid={t.cid} />
+                                <span className="text-blue-400 text-xs">×{t.n}</span>
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
+
           {/* Row 4 — Barras horizontais */}
           <div className="grid md:grid-cols-2 gap-6">
             <Card title="Atestados por Secretaria" sub="Quantidade por unidade">
