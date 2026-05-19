@@ -71,7 +71,7 @@ export async function GET() {
   if (ats.length === 0) {
     return NextResponse.json({
       kpis: { total: 0, totalDias: 0, mediaDias: 0, funcionariosComAtestado: 0 },
-      porMes: [], porSexo: [], porSecretaria: [], porCargo: [], porRelacao: [], porCID: [], porGrupoCID: [], cidPorSecretaria: [], topFuncionarios: [], lista: [],
+      porMes: [], porSexo: [], porSecretaria: [], porCargo: [], porTipoCargo: [], porRelacao: [], porCID: [], porGrupoCID: [], cidPorSecretaria: [], cidPorTipoCargo: [], topFuncionarios: [], lista: [],
     })
   }
 
@@ -119,6 +119,7 @@ export async function GET() {
   const porSecretaria = agg('departamento', v => v?.departamento).map(r => ({ secretaria: r.label, ...r }))
   const porCargo = agg('cargo', v => v?.cargo).map(r => ({ cargo: r.label, ...r }))
   const porRelacao = agg('relacao', v => v?.relacao).map(r => ({ relacao: r.label, ...r }))
+  const porTipoCargo = agg('tipo_cargo', v => v?.tipo_cargo).map(r => ({ tipo_cargo: r.label, ...r }))
 
   // Por CID
   const cidMap = new Map<string, { cid: string; atestados: number; dias: number; funcionarios: Set<string> }>()
@@ -165,6 +166,21 @@ export async function GET() {
     return { secretaria, topCID }
   })
 
+  // CID mais frequente por tipo de cargo
+  const tipoCargoMapCID = new Map<string, Map<string, number>>()
+  for (const a of ats) {
+    const v = vinculoByPaciente.get(a.paciente_id)
+    const tc = v?.tipo_cargo || 'Não informado'
+    const cidKey = (a.cid ?? '').trim().toUpperCase() || 'Não informado'
+    if (!tipoCargoMapCID.has(tc)) tipoCargoMapCID.set(tc, new Map())
+    const inner = tipoCargoMapCID.get(tc)!
+    inner.set(cidKey, (inner.get(cidKey) ?? 0) + 1)
+  }
+  const cidPorTipoCargo = [...tipoCargoMapCID.entries()].map(([tipoCargo, cidCounts]) => {
+    const topCID = [...cidCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([cid, n]) => ({ cid, n }))
+    return { tipoCargo, topCID }
+  }).sort((a, b) => b.topCID.reduce((s, c) => s + c.n, 0) - a.topCID.reduce((s, c) => s + c.n, 0))
+
   // Top funcionários (com CID mais frequente)
   const funcMap = new Map<string, { nome: string; cargo: string; secretaria: string; atestados: number; dias: number; cids: Map<string, number> }>()
   for (const a of ats) {
@@ -188,5 +204,5 @@ export async function GET() {
       cidPrincipal: [...f.cids.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—',
     }))
 
-  return NextResponse.json({ kpis: { total, totalDias, mediaDias, funcionariosComAtestado }, porMes, porSexo, porSecretaria, porCargo, porRelacao, porCID, porGrupoCID, cidPorSecretaria, topFuncionarios, lista })
+  return NextResponse.json({ kpis: { total, totalDias, mediaDias, funcionariosComAtestado }, porMes, porSexo, porSecretaria, porCargo, porTipoCargo, porRelacao, porCID, porGrupoCID, cidPorSecretaria, cidPorTipoCargo, topFuncionarios, lista })
 }

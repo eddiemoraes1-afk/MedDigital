@@ -343,6 +343,41 @@ export default function AtestadosDashboard() {
             </Card>
           </div>
 
+          {/* Tipo de cargo */}
+          {data.porTipoCargo && data.porTipoCargo.length > 0 && (
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card title="Atestados por Tipo de Cargo" sub="Celetista, concursado, comissionado, etc.">
+                <HBar data={data.porTipoCargo} labelKey="tipo_cargo" valueKey="atestados" color="#14B8A6" />
+              </Card>
+              <Card title="Dias Afastados por Tipo de Cargo" sub="Total de dias por vínculo empregatício">
+                <HBar data={data.porTipoCargo} labelKey="tipo_cargo" valueKey="dias" color="#EC4899" suffix=" dias" />
+              </Card>
+            </div>
+          )}
+
+          {/* CID por tipo de cargo */}
+          {data.cidPorTipoCargo && data.cidPorTipoCargo.length > 0 && (
+            <Card title="CIDs Mais Frequentes por Tipo de Cargo" sub="Top 3 diagnósticos em cada vínculo — sem identificação nominal">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {data.cidPorTipoCargo.map((tc: any, i: number) => (
+                  <div key={i} className="bg-gray-50 rounded-xl p-4">
+                    <p className="text-xs font-bold text-[#1A3A2C] mb-3 uppercase tracking-wide truncate" title={tc.tipoCargo}>
+                      {tc.tipoCargo}
+                    </p>
+                    <div className="space-y-2">
+                      {tc.topCID.map((c: any, j: number) => (
+                        <div key={j} className="flex items-center justify-between gap-2">
+                          <CidBadgePill cid={c.cid} />
+                          <span className="text-xs font-semibold text-gray-600 shrink-0">{c.n} atestado{c.n !== 1 ? 's' : ''}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
           {/* Top funcionários com CID */}
           <Card title="Top Funcionários por Dias de Afastamento" sub="Ordenado por total de dias — inclui CID principal">
             <div className="overflow-x-auto">
