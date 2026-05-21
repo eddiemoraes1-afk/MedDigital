@@ -53,18 +53,20 @@ export async function GET() {
   }
 
   const lista = ats.map((a: any) => {
-    const pac = pacMap.get(a.paciente_id) as any
     const vinc = vinculoByPaciente.get(a.paciente_id)
     return {
       id: a.id,
       data: fmtDate(a.data_emissao),
-      paciente: vinc?.nome_completo ?? pac?.nome ?? '—',
-      medico: medMap.get(a.medico_id) ?? '—',
+      data_raw: a.data_emissao ?? '',
+      cargo: vinc?.cargo ?? '—',
+      secretaria: vinc?.departamento ?? '—',
+      tipo_cargo: vinc?.tipo_cargo ?? '—',
       cid: a.cid ?? null,
       dias: a.dias ?? null,
       inicio: fmtDate(a.data_inicio),
+      inicio_raw: a.data_inicio ?? '',
       fim: fmtDate(a.data_fim),
-      empresa: empresaNome,
+      fim_raw: a.data_fim ?? '',
     }
   })
 

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { BarChart2, Loader2, RefreshCw, FileText, Calendar, Users, Clock } from 'lucide-react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { BarChart2, Loader2, RefreshCw, FileText, Calendar, Users, Clock, Filter, X } from 'lucide-react'
 import { CidBadgePill, CidBadgeTable, GrupoLabel } from '@/components/CidTooltip'
 
 const COLORS = ['#5BBD9B','#3B82F6','#F59E0B','#8B5CF6','#EF4444','#14B8A6','#EC4899','#6366F1']
@@ -122,6 +122,191 @@ function KpiCard({ label, value, sub, icon: Icon, color }: { label: string; valu
       </div>
       <p className="text-2xl font-bold text-[#1A3A2C] leading-none">{value}</p>
       {sub && <p className="text-xs text-gray-400 mt-1.5">{sub}</p>}
+    </div>
+  )
+}
+
+// ── Legenda de cores de dias ──────────────────────────────────────────────────
+function diasCor(dias: number | null): string {
+  if (dias == null) return 'bg-gray-100 text-gray-500'
+  if (dias === 1)   return 'bg-green-100 text-green-700'
+  if (dias === 2)   return 'bg-yellow-100 text-yellow-700'
+  if (dias === 3)   return 'bg-orange-100 text-orange-700'
+  if (dias <= 6)    return 'bg-red-100 text-red-700'
+  if (dias <= 14)   return 'bg-red-200 text-red-800'
+  return 'bg-purple-100 text-purple-700'
+}
+
+// ── Lista por Dias de Afastamento (anônima, com filtros) ──────────────────────
+function ListaAtestados({ lista }: { lista: any[] }) {
+  const [filtroCargo,      setFiltroCargo]      = useState('')
+  const [filtroSecretaria, setFiltroSecretaria] = useState('')
+  const [filtroCid,        setFiltroCid]        = useState('')
+  const [filtroDataDe,     setFiltroDataDe]     = useState('')
+  const [filtroDataAte,    setFiltroDataAte]    = useState('')
+  const [ordenacao,        setOrdenacao]        = useState('dias_desc')
+
+  const cargos = useMemo(
+    () => [...new Set(lista.map(a => a.cargo).filter((c: string) => c && c !== '—'))].sort(),
+    [lista],
+  )
+  const secretarias = useMemo(
+    () => [...new Set(lista.map(a => a.secretaria).filter((s: string) => s && s !== '—'))].sort(),
+    [lista],
+  )
+
+  const listaFiltrada = useMemo(() => {
+    let items = lista
+    if (filtroCargo)      items = items.filter(a => a.cargo === filtroCargo)
+    if (filtroSecretaria) items = items.filter(a => a.secretaria === filtroSecretaria)
+    if (filtroCid)        items = items.filter(a => a.cid?.toUpperCase().includes(filtroCid.toUpperCase()))
+    if (filtroDataDe)     items = items.filter(a => a.inicio_raw >= filtroDataDe)
+    if (filtroDataAte)    items = items.filter(a => a.fim_raw <= filtroDataAte)
+
+    return [...items].sort((a, b) => {
+      if (ordenacao === 'dias_desc') return (b.dias ?? 0) - (a.dias ?? 0)
+      if (ordenacao === 'dias_asc')  return (a.dias ?? 0) - (b.dias ?? 0)
+      if (ordenacao === 'data_desc') return b.data_raw.localeCompare(a.data_raw)
+      return a.data_raw.localeCompare(b.data_raw)
+    })
+  }, [lista, filtroCargo, filtroSecretaria, filtroCid, filtroDataDe, filtroDataAte, ordenacao])
+
+  const temFiltro = filtroCargo || filtroSecretaria || filtroCid || filtroDataDe || filtroDataAte
+
+  function limparFiltros() {
+    setFiltroCargo(''); setFiltroSecretaria(''); setFiltroCid('')
+    setFiltroDataDe(''); setFiltroDataAte('')
+  }
+
+  const selectCls = 'border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 bg-white focus:ring-1 focus:ring-[#5BBD9B] focus:outline-none'
+  const inputCls  = 'border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 bg-white focus:ring-1 focus:ring-[#5BBD9B] focus:outline-none'
+
+  return (
+    <div>
+      {/* Filtros */}
+      <div className="flex flex-wrap items-end gap-3 mb-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+        <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium mr-1">
+          <Filter className="w-3.5 h-3.5" /> Filtros
+        </div>
+
+        {cargos.length > 0 && (
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">Cargo</label>
+            <select value={filtroCargo} onChange={e => setFiltroCargo(e.target.value)} className={selectCls}>
+              <option value="">Todos</option>
+              {cargos.map((c: string) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+        )}
+
+        {secretarias.length > 0 && (
+          <div className="flex flex-col gap-0.5">
+            <label className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">Secretaria</label>
+            <select value={filtroSecretaria} onChange={e => setFiltroSecretaria(e.target.value)} className={selectCls}>
+              <option value="">Todas</option>
+              {secretarias.map((s: string) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+        )}
+
+        <div className="flex flex-col gap-0.5">
+          <label className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">CID</label>
+          <input
+            type="text" value={filtroCid} onChange={e => setFiltroCid(e.target.value)}
+            placeholder="ex: J11" className={`${inputCls} w-24`}
+          />
+        </div>
+
+        <div className="flex flex-col gap-0.5">
+          <label className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">Início a partir de</label>
+          <input type="date" value={filtroDataDe} onChange={e => setFiltroDataDe(e.target.value)} className={inputCls} />
+        </div>
+
+        <div className="flex flex-col gap-0.5">
+          <label className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">Fim até</label>
+          <input type="date" value={filtroDataAte} onChange={e => setFiltroDataAte(e.target.value)} className={inputCls} />
+        </div>
+
+        <div className="flex flex-col gap-0.5">
+          <label className="text-[10px] text-gray-400 font-medium uppercase tracking-wide">Ordenar por</label>
+          <select value={ordenacao} onChange={e => setOrdenacao(e.target.value)} className={selectCls}>
+            <option value="dias_desc">Mais dias primeiro</option>
+            <option value="dias_asc">Menos dias primeiro</option>
+            <option value="data_desc">Mais recente primeiro</option>
+            <option value="data_asc">Mais antigo primeiro</option>
+          </select>
+        </div>
+
+        {temFiltro && (
+          <button onClick={limparFiltros}
+            className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg px-2.5 py-1.5 bg-white transition-colors self-end">
+            <X className="w-3 h-3" /> Limpar
+          </button>
+        )}
+
+        <span className="text-xs text-gray-400 self-end ml-auto">
+          {listaFiltrada.length} registro{listaFiltrada.length !== 1 ? 's' : ''}
+          {temFiltro && ` de ${lista.length}`}
+        </span>
+      </div>
+
+      {/* Legenda de cores */}
+      <div className="flex flex-wrap items-center gap-3 mb-3 px-1">
+        {[
+          { label: '1 dia', cls: 'bg-green-100 text-green-700' },
+          { label: '2 dias', cls: 'bg-yellow-100 text-yellow-700' },
+          { label: '3 dias', cls: 'bg-orange-100 text-orange-700' },
+          { label: '4–6 dias', cls: 'bg-red-100 text-red-700' },
+          { label: '7–14 dias', cls: 'bg-red-200 text-red-800' },
+          { label: '15+ dias', cls: 'bg-purple-100 text-purple-700' },
+        ].map(l => (
+          <span key={l.label} className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${l.cls}`}>{l.label}</span>
+        ))}
+      </div>
+
+      {/* Tabela */}
+      {listaFiltrada.length === 0 ? (
+        <p className="text-center text-xs text-gray-300 py-8">Nenhum atestado encontrado com os filtros aplicados</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+              <tr>
+                <th className="px-4 py-2.5 text-left">#</th>
+                <th className="px-4 py-2.5 text-left">Emissão</th>
+                <th className="px-4 py-2.5 text-left">Início</th>
+                <th className="px-4 py-2.5 text-left">Fim</th>
+                <th className="px-4 py-2.5 text-left">Cargo</th>
+                <th className="px-4 py-2.5 text-left">Secretaria</th>
+                <th className="px-4 py-2.5 text-left">CID</th>
+                <th className="px-4 py-2.5 text-center">Dias</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {listaFiltrada.map((a: any, i: number) => (
+                <tr key={a.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-2.5 text-xs text-gray-300">{i + 1}</td>
+                  <td className="px-4 py-2.5 text-xs text-gray-500 whitespace-nowrap">{a.data}</td>
+                  <td className="px-4 py-2.5 text-xs text-gray-500 whitespace-nowrap">{a.inicio}</td>
+                  <td className="px-4 py-2.5 text-xs text-gray-500 whitespace-nowrap">{a.fim}</td>
+                  <td className="px-4 py-2.5 text-xs text-gray-700 whitespace-nowrap">{a.cargo}</td>
+                  <td className="px-4 py-2.5 text-xs text-gray-700 whitespace-nowrap">{a.secretaria}</td>
+                  <td className="px-4 py-2.5">
+                    {a.cid
+                      ? <CidBadgeTable cid={a.cid} />
+                      : <span className="text-gray-300 text-xs">—</span>}
+                  </td>
+                  <td className="px-4 py-2.5 text-center">
+                    {a.dias != null
+                      ? <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${diasCor(a.dias)}`}>{a.dias}d</span>
+                      : <span className="text-gray-300 text-xs">—</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }
@@ -411,93 +596,10 @@ export default function AtestadosDashboard() {
             </Card>
           )}
 
-          {/* Top funcionários com CID */}
-          <Card title="Top Funcionários por Dias de Afastamento" sub="Ordenado por total de dias — inclui CID principal">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
-                  <tr>
-                    <th className="px-4 py-2.5 text-left">#</th>
-                    <th className="px-4 py-2.5 text-left">Funcionário</th>
-                    <th className="px-4 py-2.5 text-left">Cargo</th>
-                    <th className="px-4 py-2.5 text-left">Secretaria</th>
-                    <th className="px-4 py-2.5 text-left">CID Principal</th>
-                    <th className="px-4 py-2.5 text-center">Atestados</th>
-                    <th className="px-4 py-2.5 text-center">Dias</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {data.topFuncionarios.map((f: any, i: number) => (
-                    <tr key={i} className="hover:bg-gray-50">
-                      <td className="px-4 py-2.5 text-xs text-gray-400">{i + 1}</td>
-                      <td className="px-4 py-2.5 font-medium text-[#1A3A2C] text-xs">{f.nome}</td>
-                      <td className="px-4 py-2.5 text-xs text-gray-600">{f.cargo}</td>
-                      <td className="px-4 py-2.5 text-xs text-gray-600">{f.secretaria}</td>
-                      <td className="px-4 py-2.5">
-                        {f.cidPrincipal && f.cidPrincipal !== '—' ? (
-                          <CidBadgePill cid={f.cidPrincipal} />
-                        ) : <span className="text-gray-300 text-xs">—</span>}
-                      </td>
-                      <td className="px-4 py-2.5 text-center">
-                        <span className="bg-green-100 text-green-700 text-xs font-semibold px-2 py-0.5 rounded-full">{f.atestados}</span>
-                      </td>
-                      <td className="px-4 py-2.5 text-center">
-                        <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-full">{f.dias}d</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          {/* Lista por Dias de Afastamento — LGPD-anônima, com filtros */}
+          <Card title={`Lista por Dias de Afastamento (${data.lista?.length ?? 0})`} sub="Dados anonimizados conforme LGPD — sem identificação nominal">
+            <ListaAtestados lista={data.lista ?? []} />
           </Card>
-
-          {/* Lista completa de atestados */}
-          {data.lista && data.lista.length > 0 && (
-            <Card title={`Lista Completa de Atestados (${data.lista.length})`} sub="Todos os atestados do período com detalhes completos">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 text-xs text-gray-500 font-semibold uppercase tracking-wide">
-                    <tr>
-                      <th className="px-4 py-3 text-left">Data</th>
-                      <th className="px-4 py-3 text-left">Paciente</th>
-                      <th className="px-4 py-3 text-left">Médico</th>
-                      <th className="px-4 py-3 text-left">CID</th>
-                      <th className="px-4 py-3 text-center">Dias</th>
-                      <th className="px-4 py-3 text-left">Início</th>
-                      <th className="px-4 py-3 text-left">Fim</th>
-                      <th className="px-4 py-3 text-left">Empresa</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {data.lista.map((a: any) => (
-                      <tr key={a.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{a.data}</td>
-                        <td className="px-4 py-3 font-semibold text-[#1A3A2C] text-xs whitespace-nowrap">{a.paciente}</td>
-                        <td className="px-4 py-3 text-xs text-gray-600 whitespace-nowrap">{a.medico}</td>
-                        <td className="px-4 py-3">
-                          {a.cid ? (
-                            <CidBadgeTable cid={a.cid} />
-                          ) : <span className="text-gray-300 text-xs">—</span>}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {a.dias != null ? (
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                              a.dias >= 3 ? 'bg-orange-100 text-orange-700'
-                              : a.dias === 2 ? 'bg-yellow-100 text-yellow-700'
-                              : 'bg-blue-50 text-blue-600'
-                            }`}>{a.dias}d</span>
-                          ) : <span className="text-gray-300 text-xs">—</span>}
-                        </td>
-                        <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{a.inicio}</td>
-                        <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{a.fim}</td>
-                        <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{a.empresa}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          )}
         </>
       )}
     </div>
