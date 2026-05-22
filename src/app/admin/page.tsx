@@ -9,27 +9,37 @@ import BotoesAprovacao from './components/BotoesAprovacao'
 import AdminHeader from './components/AdminHeader'
 import ConfiguracoesSistema from './components/ConfiguracoesSistema'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminDashboardPage() {
   await requireAdmin()
   const adminSupabase = createAdminClient()
+
+  // Data de hoje e amanhã no fuso de Brasília (America/Sao_Paulo)
+  // Usado para filtrar atendimentos finalizados hoje
+  const hojeBrasil   = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' }) // 'YYYY-MM-DD'
+  const amanhaFmt    = new Date(Date.now() + 86400000)
+  const amanhabrasil = amanhaFmt.toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' })
 
   const [
     { count: totalEmpresas },
     { count: totalFuncionarios },
     { count: totalPacientes },
     { count: totalAgendamentos },
-    { count: agendamentosHoje },
+    { count: consultasHoje },
     { count: totalMedicos },
     { count: consultasFuturas },
   ] = await Promise.all([
-    adminSupabase.from('empresas').select('*', { count: 'exact', head: true }),
+    adminSupabase.from('empresas').select('*', { count: 'exact', head: true }).eq('ativo', true),
     adminSupabase.from('vinculos_empresa').select('*', { count: 'exact', head: true }).eq('ativo', true),
     adminSupabase.from('pacientes').select('*', { count: 'exact', head: true }),
     adminSupabase.from('agendamentos').select('*', { count: 'exact', head: true }),
-    adminSupabase.from('agendamentos').select('*', { count: 'exact', head: true })
-      .gte('data_hora', new Date().toISOString().slice(0, 10))
-      .lt('data_hora', new Date(Date.now() + 86400000).toISOString().slice(0, 10)),
-    adminSupabase.from('medicos').select('*', { count: 'exact', head: true }),
+    // Consultas efetivamente realizadas hoje (finalizado_em é TIMESTAMPTZ, comparamos com data Brasil)
+    adminSupabase.from('atendimentos').select('*', { count: 'exact', head: true })
+      .eq('status', 'concluido')
+      .gte('finalizado_em', hojeBrasil)
+      .lt('finalizado_em', amanhabrasil),
+    adminSupabase.from('medicos').select('*', { count: 'exact', head: true }).eq('status', 'aprovado'),
     adminSupabase.from('agendamentos').select('*', { count: 'exact', head: true })
       .gt('data_hora', new Date().toISOString())
       .neq('status', 'cancelado'),
@@ -72,7 +82,7 @@ export default async function AdminDashboardPage() {
               <span className="text-xs text-gray-400">empresas</span>
             </div>
             <p className="text-3xl font-bold text-[#1A3A2C]">{totalEmpresas ?? 0}</p>
-            <p className="text-xs text-gray-500 mt-1">cadastradas</p>
+            <p className="text-xs text-gray-500 mt-1">ativas</p>
           </Link>
 
           <Link href="/admin/empresas" className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:border hover:border-purple-300 transition-all">
@@ -107,8 +117,8 @@ export default async function AdminDashboardPage() {
               <TrendingUp className="w-5 h-5 text-[#5BBD9B]" />
               <span className="text-xs text-gray-400">hoje</span>
             </div>
-            <p className="text-3xl font-bold text-[#5BBD9B]">{agendamentosHoje ?? 0}</p>
-            <p className="text-xs text-gray-500 mt-1">consultas hoje</p>
+            <p className="text-3xl font-bold text-[#5BBD9B]">{consultasHoje ?? 0}</p>
+            <p className="text-xs text-gray-500 mt-1">realizadas hoje</p>
           </Link>
 
           <Link href="/admin/medicos" className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:border hover:border-[#5BBD9B] transition-all">
@@ -117,7 +127,7 @@ export default async function AdminDashboardPage() {
               <span className="text-xs text-gray-400">médicos</span>
             </div>
             <p className="text-3xl font-bold text-[#1A3A2C]">{totalMedicos ?? 0}</p>
-            <p className="text-xs text-gray-500 mt-1">cadastrados</p>
+            <p className="text-xs text-gray-500 mt-1">aprovados</p>
           </Link>
 
           <Link href="/admin/agendamentos" className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:border hover:border-teal-300 transition-all">
