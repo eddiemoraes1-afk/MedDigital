@@ -293,7 +293,9 @@ function ListaAtestados({ lista }: { lista: any[] }) {
                   <td className="px-4 py-2.5 text-xs text-gray-700 whitespace-nowrap">{a.secretaria}</td>
                   <td className="px-4 py-2.5">
                     {a.cid
-                      ? <CidBadgeTable cid={a.cid} />
+                      ? a.cid_autorizado === false
+                        ? <span className="text-gray-400 text-xs italic">Não divulgado</span>
+                        : <CidBadgeTable cid={a.cid} />
                       : <span className="text-gray-300 text-xs">—</span>}
                   </td>
                   <td className="px-4 py-2.5 text-center">

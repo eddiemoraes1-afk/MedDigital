@@ -6,6 +6,7 @@ import { gerarTema } from '@/lib/tema'
 import { getEmpresaPaciente } from '@/lib/getEmpresaPaciente'
 import PacienteHeader from '../PacienteHeader'
 import { drTitle } from '@/lib/medico-utils'
+import AutorizacaoCidWatcher from './AutorizacaoCidWatcher'
 
 export default async function PacienteDashboard() {
   const supabase = await createClient()
@@ -126,6 +127,7 @@ export default async function PacienteDashboard() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: tema.corBgPagina }}>
       <PacienteHeader />
+      <AutorizacaoCidWatcher />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
         {/* Saudação */}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Loader2, FileText, Download, CheckCircle2, X, AlertCircle,
   BriefcaseMedical, CalendarCheck, Users,
@@ -73,6 +73,7 @@ function gerarPDF(params: {
   dataInicio: string
   dataEmissao: string
   cid: string
+  cidAutorizado: boolean | null
   textComplementar: string
   observacoes: string
   horaInicio: string
@@ -81,9 +82,12 @@ function gerarPDF(params: {
   relacaoAcompanhante: string
 }) {
   const {
-    tipo, paciente, medico, dias, dataInicio, dataEmissao, cid, textComplementar,
+    tipo, paciente, medico, dias, dataInicio, dataEmissao, cid, cidAutorizado, textComplementar,
     observacoes, horaInicio, horaFim, nomeAcompanhante, relacaoAcompanhante,
   } = params
+
+  // LGPD: para afastamento, o CID só entra no documento se o paciente não tiver negado
+  const mostrarCid = !!cid && !(tipo === 'afastamento' && cidAutorizado === false)
 
   const sexoPac = paciente.sexo === 'feminino' ? 'a paciente' : 'o paciente'
   const nascFormatado = paciente.data_nascimento
@@ -178,7 +182,7 @@ function gerarPDF(params: {
   <p class="body-text">${corpo}
   </p>
 
-  ${cid ? `<div><div class="cid-box">CID-10: ${cid}</div></div>` : ''}
+  ${mostrarCid ? `<div><div class="cid-box">CID-10: ${cid}</div></div>` : ''}
 
   ${textComplementar ? `<p class="body-text">${textComplementar}</p>` : ''}
 
@@ -232,6 +236,55 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
   const [atestadoSalvo, setAtestadoSalvo] = useState<any>(null)
   const [erro, setErro] = useState('')
 
+  // Autorização LGPD do CID (null = ainda não perguntado)
+  const [cidAutorizado, setCidAutorizado] = useState<boolean | null>(null)
+  const [autorizacaoId, setAutorizacaoId] = useState<string | null>(null)
+  const [aguardandoAutorizacao, setAguardandoAutorizacao] = useState(false)
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  function pararPolling() {
+    if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null }
+  }
+
+  function resetarAutorizacao() {
+    pararPolling()
+    setCidAutorizado(null)
+    setAutorizacaoId(null)
+    setAguardandoAutorizacao(false)
+  }
+
+  useEffect(() => () => pararPolling(), [])
+
+  async function solicitarAutorizacao() {
+    if (!cid.trim() || aguardandoAutorizacao) return
+    setErro('')
+    try {
+      const res = await fetch('/api/medico/autorizacao-cid', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ atendimento_id: atendimentoId, paciente_id: pacienteId, cid: cid.trim() }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      const idAutorizacao = data.autorizacao.id as string
+      setAutorizacaoId(idAutorizacao)
+      setAguardandoAutorizacao(true)
+      pollingRef.current = setInterval(async () => {
+        try {
+          const r = await fetch(`/api/medico/autorizacao-cid/${idAutorizacao}/status`)
+          const d = await r.json()
+          if (d.status && d.status !== 'pendente') {
+            pararPolling()
+            setAguardandoAutorizacao(false)
+            setCidAutorizado(d.status === 'autorizado')
+          }
+        } catch { /* tenta de novo no próximo ciclo */ }
+      }, 3000)
+    } catch (e: any) {
+      setErro(e.message)
+    }
+  }
+
   const dataFim = calcDataFim(dataInicio, dias)
 
   const valido =
@@ -247,6 +300,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
     setHoraInicio(''); setHoraFim('')
     setNomeAcompanhante(''); setRelacaoAcompanhante('')
     setObservacoes('')
+    resetarAutorizacao()
   }
 
   async function salvar() {
@@ -273,6 +327,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
           hora_fim: !afast ? horaFim : null,
           nome_acompanhante: tipo === 'acompanhamento' ? nomeAcompanhante.trim() : null,
           relacao_acompanhante: tipo === 'acompanhamento' ? relacaoAcompanhante : null,
+          cid_autorizado: cidAutorizado,
         }),
       })
       const data = await res.json()
@@ -291,6 +346,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
     gerarPDF({
       tipo, paciente, medico, dias, dataInicio, dataEmissao: hoje,
       cid: tipo === 'acompanhamento' ? '' : cid,
+      cidAutorizado,
       textComplementar: tipo === 'afastamento' ? textComplementar : '',
       observacoes, horaInicio, horaFim,
       nomeAcompanhante: nomeAcompanhante.trim(), relacaoAcompanhante,
@@ -354,7 +410,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
         ] as { t: TipoAtestado; icon: React.ReactNode; label: string; ativo: string; inativo: string }[]).map(({ t, icon, label, ativo, inativo }) => (
           <button
             key={t}
-            onClick={() => setTipo(t)}
+            onClick={() => { setTipo(t); resetarAutorizacao() }}
             className={`flex flex-col items-center gap-1 border rounded-xl px-2 py-2.5 text-[11px] font-semibold transition-colors ${tipo === t ? ativo : inativo}`}
           >
             {icon}
@@ -400,11 +456,60 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
               CID-10 <span className="text-red-400">*</span>
             </label>
             <input
-              type="text" value={cid} onChange={e => setCid(e.target.value.toUpperCase())}
+              type="text" value={cid}
+              disabled={aguardandoAutorizacao}
+              onChange={e => {
+                const v = e.target.value.toUpperCase()
+                setCid(v)
+                // Limpou ou alterou o CID após pedir autorização → reseta o fluxo LGPD
+                if (!v.trim() || cidAutorizado !== null) resetarAutorizacao()
+              }}
               placeholder="Ex: J00, Z76.0, M54.5"
-              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] font-mono ${!cid.trim() ? 'border-red-200 bg-red-50' : 'border-gray-200'}`}
+              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] font-mono disabled:opacity-60 ${
+                !cid.trim()
+                  ? 'border-red-200 bg-red-50'
+                  : cidAutorizado === false
+                    ? 'border-red-400 border-dashed bg-red-50'
+                    : 'border-gray-200'
+              }`}
             />
             {!cid.trim() && <p className="text-red-400 text-xs mt-1">CID-10 é obrigatório</p>}
+
+            {/* ── Autorização LGPD do CID ── */}
+            {cid.trim() && cidAutorizado === null && !aguardandoAutorizacao && (
+              <div className="mt-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 space-y-2">
+                <p className="text-xs text-amber-700 leading-relaxed">
+                  ⚠️ Antes de salvar, solicite a autorização do paciente para incluir o CID no atestado (exigência da LGPD).
+                </p>
+                <button
+                  type="button"
+                  onClick={solicitarAutorizacao}
+                  className="w-full bg-[#5BBD9B] hover:bg-[#1A3A2C] text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors"
+                >
+                  📱 Enviar pergunta ao paciente
+                </button>
+              </div>
+            )}
+            {aguardandoAutorizacao && (
+              <div className="mt-2 flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2.5">
+                <Loader2 className="w-4 h-4 animate-spin text-blue-600 shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-blue-700">Aguardando resposta do paciente...</p>
+                  <p className="text-[10px] text-blue-500">(a pergunta já apareceu na tela do paciente)</p>
+                </div>
+              </div>
+            )}
+            {cidAutorizado === true && (
+              <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Paciente autorizou a inclusão do CID
+              </p>
+            )}
+            {cidAutorizado === false && (
+              <p className="mt-2 flex items-start gap-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                <X className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                Paciente não autorizou — CID não será incluído no atestado, mas fica registrado internamente
+              </p>
+            )}
           </div>
 
           <div>

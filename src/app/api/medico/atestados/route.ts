@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
     paciente_id, atendimento_id, data_inicio, data_fim, dias, cid,
     texto_complementar, observacoes, tipo,
     hora_inicio, hora_fim, nome_acompanhante, relacao_acompanhante,
+    cid_autorizado,
   } = body
 
   const tipoAtestado: 'afastamento' | 'comparecimento' | 'acompanhamento' = tipo || 'afastamento'
@@ -65,6 +66,7 @@ export async function POST(req: NextRequest) {
     hora_fim: hora_fim || null,
     nome_acompanhante: nome_acompanhante || null,
     relacao_acompanhante: relacao_acompanhante || null,
+    cid_autorizado: cid_autorizado ?? null,
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

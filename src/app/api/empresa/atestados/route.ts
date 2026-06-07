@@ -10,7 +10,7 @@ export async function GET() {
 
   const { data: atestados } = await admin
     .from('atestados')
-    .select('id, paciente_id, medico_id, data_emissao, data_inicio, data_fim, dias, cid, criado_em, tipo, hora_inicio, hora_fim, nome_acompanhante, relacao_acompanhante')
+    .select('id, paciente_id, medico_id, data_emissao, data_inicio, data_fim, dias, cid, cid_autorizado, criado_em, tipo, hora_inicio, hora_fim, nome_acompanhante, relacao_acompanhante')
     .eq('empresa_id', empresaId)
     .order('data_emissao', { ascending: false })
 
@@ -71,12 +71,13 @@ export async function GET() {
       hora_inicio: a.hora_inicio ?? null,
       hora_fim: a.hora_fim ?? null,
       nome_acompanhante: a.nome_acompanhante ?? null,
+      cid_autorizado: a.cid_autorizado ?? null,
     }
   })
 
   if (ats.length === 0) {
     return NextResponse.json({
-      kpis: { total: 0, totalDias: 0, mediaDias: 0, funcionariosComAtestado: 0 },
+      kpis: { total: 0, totalDias: 0, mediaDias: 0, funcionariosComAtestado: 0, cidNaoAutorizados: 0 },
       porMes: [], porSexo: [], porSecretaria: [], porCargo: [], porTipoCargo: [], porRelacao: [], porCID: [], porGrupoCID: [], cidPorSecretaria: [], cidPorCargo: [], cidPorTipoCargo: [], topFuncionarios: [], lista: [],
     })
   }
@@ -86,6 +87,7 @@ export async function GET() {
   const totalDias = ats.reduce((s: number, a: any) => s + (a.dias ?? 0), 0)
   const mediaDias = total > 0 ? Math.round((totalDias / total) * 10) / 10 : 0
   const funcionariosComAtestado = new Set(ats.map(a => a.paciente_id)).size
+  const cidNaoAutorizados = ats.filter(a => a.cid_autorizado === false).length
 
   // Por mês
   const mesMap = new Map<string, { atestados: number; dias: number }>()
@@ -225,5 +227,5 @@ export async function GET() {
       cidPrincipal: [...f.cids.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—',
     }))
 
-  return NextResponse.json({ kpis: { total, totalDias, mediaDias, funcionariosComAtestado }, porMes, porSexo, porSecretaria, porCargo, porTipoCargo, porRelacao, porCID, porGrupoCID, cidPorSecretaria, cidPorCargo, cidPorTipoCargo, topFuncionarios, lista })
+  return NextResponse.json({ kpis: { total, totalDias, mediaDias, funcionariosComAtestado, cidNaoAutorizados }, porMes, porSexo, porSecretaria, porCargo, porTipoCargo, porRelacao, porCID, porGrupoCID, cidPorSecretaria, cidPorCargo, cidPorTipoCargo, topFuncionarios, lista })
 }
