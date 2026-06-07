@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Loader2, Pill, Download, CheckCircle2, X, AlertCircle } from 'lucide-react'
 import { imprimirReceita, type ReceitaHTMLParams } from '@/lib/receitaHTML'
+import { type Medicamento, buscarMedicamentos, medicamentoLabel } from '@/lib/medicamentos'
 
 interface ReceitaFormProps {
   atendimentoId: string
@@ -41,6 +42,11 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
 
   const [tipo, setTipo] = useState<TipoReceita>('simples')
   const [medicamentos, setMedicamentos] = useState('')
+
+  // Autocomplete de medicamentos
+  const [buscaMed, setBuscaMed] = useState('')
+  const [sugestoes, setSugestoes] = useState<Medicamento[]>([])
+  const [mostrarSugestoes, setMostrarSugestoes] = useState(false)
   const [instrucoes, setInstrucoes] = useState('')
   const [observacoes, setObservacoes] = useState('')
   const [validade, setValidade] = useState('')
@@ -168,6 +174,67 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
         </div>
       </div>
 
+      {/* Campo de busca com autocomplete */}
+      <div className="relative">
+        <div className="flex items-center gap-2 mb-1">
+          <label className="text-xs font-medium text-gray-600">Buscar medicamento</label>
+          <span className="text-[10px] text-gray-400">(selecione para adicionar à receita)</span>
+        </div>
+        <div className="relative">
+          <input
+            type="text"
+            value={buscaMed}
+            onChange={e => {
+              setBuscaMed(e.target.value)
+              setSugestoes(buscarMedicamentos(e.target.value))
+              setMostrarSugestoes(true)
+            }}
+            onFocus={() => { if (buscaMed.length >= 2) setMostrarSugestoes(true) }}
+            onBlur={() => setTimeout(() => setMostrarSugestoes(false), 150)}
+            placeholder="Digite nome do medicamento ou princípio ativo... ex: losartana, omeprazol"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] pr-8"
+            autoComplete="off"
+          />
+          {buscaMed && (
+            <button
+              onClick={() => { setBuscaMed(''); setSugestoes([]); setMostrarSugestoes(false) }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {/* Dropdown de sugestões */}
+        {mostrarSugestoes && sugestoes.length > 0 && (
+          <div className="absolute z-50 left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
+            {sugestoes.map((med, i) => (
+              <button
+                key={i}
+                type="button"
+                onMouseDown={() => {
+                  // Adiciona o medicamento ao textarea (nova linha)
+                  const linha = medicamentoLabel(med)
+                  setMedicamentos(prev => prev ? `${prev}\n${linha}` : linha)
+                  setBuscaMed('')
+                  setSugestoes([])
+                  setMostrarSugestoes(false)
+                }}
+                className="w-full text-left px-4 py-2.5 hover:bg-[#F0F9F5] border-b border-gray-50 last:border-0 transition-colors"
+              >
+                <p className="text-sm font-medium text-[#1A3A2C]">{med.principio} {med.concentracao}</p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {med.forma}
+                  {med.comerciais && med.comerciais.length > 0 && (
+                    <span className="ml-2 text-[#5BBD9B]">· {med.comerciais.slice(0, 2).join(', ')}</span>
+                  )}
+                </p>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Medicamentos */}
       <div>
         <label className="block text-xs font-medium text-gray-600 mb-1">
@@ -181,7 +248,7 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
           className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none font-mono text-xs leading-relaxed ${!medicamentos.trim() ? 'border-red-200 bg-red-50' : 'border-gray-200'}`}
         />
         {!medicamentos.trim() && <p className="text-red-400 text-xs mt-1">Informe ao menos um medicamento</p>}
-        <p className="text-gray-400 text-xs mt-1">Digite um medicamento por linha (nome, dosagem, quantidade)</p>
+        <p className="text-gray-400 text-xs mt-1">Use a busca acima para encontrar medicamentos rapidamente, ou digite livremente um por linha.</p>
       </div>
 
       {/* Instruções */}
