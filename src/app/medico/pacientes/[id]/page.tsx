@@ -6,7 +6,7 @@ import {
   Clock, CheckCircle2, Mail, Briefcase, MapPin, XCircle,
   Brain, AlertTriangle, AlertCircle,
   Pill, Stethoscope, Activity, Heart,
-  FlaskConical, ClipboardList, Thermometer, ShieldCheck,
+  FlaskConical, ClipboardList, Thermometer, ShieldCheck, Video,
 } from 'lucide-react'
 import MedicoHeader from '../../MedicoHeader'
 import AtestadosMedicoClient from './AtestadosMedicoClient'
@@ -242,6 +242,17 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
 
   const totalConsultas = (atendimentos ?? []).filter((a: any) => a.status === 'concluido').length
 
+  // Verificar se há consulta ativa assumida por este médico com este paciente
+  const { data: atendimentoAtivo } = await admin
+    .from('atendimentos')
+    .select('id')
+    .eq('paciente_id', id)
+    .eq('medico_id', medico.id)
+    .in('status', ['aguardando', 'em_andamento'])
+    .order('criado_em', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
   return (
     <div className="min-h-screen bg-[#F3FAF7]">
       <MedicoHeader titulo="Prontuário" backHref={backHref} />
@@ -287,6 +298,22 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
               ))}
             </div>
           </div>
+
+          {/* Banner de consulta ativa — aparece só quando o médico assumiu este paciente */}
+          {atendimentoAtivo && (
+            <div className="mt-4 flex items-center justify-between gap-4 bg-[#1A3A2C] rounded-xl px-4 py-3">
+              <div className="flex items-center gap-2.5 text-white">
+                <Video className="w-4 h-4 text-[#5BBD9B] shrink-0" />
+                <p className="text-sm font-semibold">Você assumiu este paciente — consulta aguardando</p>
+              </div>
+              <Link
+                href={`/medico/atendimento/${atendimentoAtivo.id}`}
+                className="flex items-center gap-2 bg-[#5BBD9B] hover:bg-green-400 text-white font-bold px-5 py-2 rounded-xl text-sm transition-colors whitespace-nowrap shrink-0"
+              >
+                <Video className="w-4 h-4" /> Entrar na consulta
+              </Link>
+            </div>
+          )}
 
           {/* Alergias em destaque — visível em qualquer aba */}
           {paciente.alergias && (
