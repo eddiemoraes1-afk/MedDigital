@@ -1134,15 +1134,23 @@ function TriagemConteudo() {
   }
 
   // Registra os consentimentos aceitos na tabela de auditoria (não bloqueia em caso de erro)
-  function salvarConsentimentos(triagemId: string | null) {
-    fetch('/api/paciente/consentimentos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tipos: ['lgpd_geral', 'telemedicina', 'video_voz'],
-        triagem_id: triagemId,
-      }),
-    }).catch(() => {}) // silencioso
+  async function salvarConsentimentos(triagemId: string | null) {
+    try {
+      const res = await fetch('/api/paciente/consentimentos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tipos: ['lgpd_geral', 'telemedicina', 'video_voz'],
+          triagem_id: triagemId,
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        console.error('[consentimentos] Falha ao salvar:', res.status, err)
+      }
+    } catch (e) {
+      console.error('[consentimentos] Erro de rede:', e)
+    }
   }
 
   async function handleFazerTriagem(dados: DadosValidacao) {
