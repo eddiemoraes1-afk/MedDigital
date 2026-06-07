@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { Loader2, Search, X, Download, ChevronDown, ChevronUp, ShieldCheck, RefreshCw } from 'lucide-react'
+import * as XLSX from 'xlsx'
 
 type Registro = {
   id: string
@@ -74,21 +75,43 @@ export default function AuditoriaClient() {
 
   useEffect(() => { carregar() }, [carregar])
 
-  function exportarCSV() {
-    const linhas = [
-      ['Data/Hora', 'Tipo', 'Status', 'Paciente', 'CPF', 'IP do Paciente', 'Médico', 'Detalhe', 'Versão Termo'],
-      ...registros.map(r => [
-        fmtDH(r.criado_em), r.tipo_label, r.status_label,
-        r.paciente_nome, r.paciente_cpf, r.ip_address ?? '—',
-        r.medico_nome, r.detalhe, r.versao_termo ?? '—',
-      ]),
+  function exportarExcel() {
+    const dados = registros.map(r => ({
+      'Data/Hora':      fmtDH(r.criado_em),
+      'Tipo':           r.tipo_label,
+      'Status':         r.status_label,
+      'Paciente':       r.paciente_nome,
+      'CPF':            r.paciente_cpf,
+      'IP do Paciente': r.ip_address ?? '—',
+      'Médico':         r.medico_nome !== '—' ? r.medico_nome : '',
+      'Detalhe':        r.detalhe,
+      'Versão Termo':   r.versao_termo ?? '—',
+    }))
+
+    const ws = XLSX.utils.json_to_sheet(dados)
+
+    // Largura das colunas
+    ws['!cols'] = [
+      { wch: 22 }, // Data/Hora
+      { wch: 32 }, // Tipo
+      { wch: 12 }, // Status
+      { wch: 30 }, // Paciente
+      { wch: 16 }, // CPF
+      { wch: 18 }, // IP
+      { wch: 28 }, // Médico
+      { wch: 45 }, // Detalhe
+      { wch: 14 }, // Versão Termo
     ]
-    const csv = linhas.map(l => l.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Auditoria')
+
+    const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `auditoria_consentimentos_${hoje}.csv`
+    a.download = `auditoria_consentimentos_${hoje}.xlsx`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -161,8 +184,8 @@ export default function AuditoriaClient() {
           <button onClick={carregar} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#1A3A2C] border border-gray-200 px-3 py-1.5 rounded-lg bg-white transition-colors self-end">
             <RefreshCw className="w-3.5 h-3.5" /> Atualizar
           </button>
-          <button onClick={exportarCSV} className="flex items-center gap-1.5 text-xs text-[#1A3A2C] border border-[#5BBD9B] px-3 py-1.5 rounded-lg bg-white hover:bg-[#F0F9F5] transition-colors self-end">
-            <Download className="w-3.5 h-3.5" /> Exportar CSV
+          <button onClick={exportarExcel} className="flex items-center gap-1.5 text-xs text-[#1A3A2C] border border-[#5BBD9B] px-3 py-1.5 rounded-lg bg-white hover:bg-[#F0F9F5] transition-colors self-end">
+            <Download className="w-3.5 h-3.5" /> Exportar Excel
           </button>
         </div>
         <p className="text-xs text-gray-400 mt-3">{registros.length} registro{registros.length !== 1 ? 's' : ''} encontrado{registros.length !== 1 ? 's' : ''}</p>

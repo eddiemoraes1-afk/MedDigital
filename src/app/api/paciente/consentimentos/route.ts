@@ -70,7 +70,25 @@ export async function POST(req: NextRequest) {
   }))
 
   const { error } = await admin.from('consentimentos').insert(registros)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  if (error) {
+    console.error('[consentimentos] Insert completo falhou:', error.message)
+
+    // Fallback: colunas mínimas garantidas (caso tabela tenha schema básico sem versao_termo etc.)
+    const registrosMinimos = registros.map(r => ({
+      paciente_id: r.paciente_id,
+      tipo:        r.tipo,
+      aceito:      r.aceito,
+    }))
+
+    const { error: err2 } = await admin.from('consentimentos').insert(registrosMinimos)
+    if (err2) {
+      console.error('[consentimentos] Insert mínimo também falhou:', err2.message)
+      return NextResponse.json({ error: err2.message }, { status: 500 })
+    }
+
+    console.warn('[consentimentos] Salvo com schema mínimo — execute migration 20260607_fix_consentimentos_schema.sql no Supabase')
+  }
 
   return NextResponse.json({ ok: true, registros: registros.length })
 }

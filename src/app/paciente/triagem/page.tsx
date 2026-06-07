@@ -1157,7 +1157,7 @@ function TriagemConteudo() {
     setValidacao(dados)
     const id = await criarTriagemInicial(dados)
     setTriagemId(id)
-    salvarConsentimentos(id)
+    await salvarConsentimentos(id)
     irParaEtapa('sintomas')
   }
 
@@ -1171,7 +1171,7 @@ function TriagemConteudo() {
         telefone_contato: dados.telefone,
       },
     })
-    salvarConsentimentos(result?.id ?? null)
+    await salvarConsentimentos(result?.id ?? null)
     router.push('/paciente/dashboard')
   }
 
