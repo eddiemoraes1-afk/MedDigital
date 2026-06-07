@@ -2,20 +2,40 @@ import { requireAdmin } from '@/lib/auth-sistema'
 import { createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
-/** Extrai nomes de medicamentos de um bloco de texto (1 por linha) */
+/**
+ * Extrai nome normalizado e quantidade de uma linha de medicamento.
+ * Suporta tanto o formato antigo ("Paracetamol 500mg")
+ * quanto o novo ("Paracetamol 500mg (comprimido) — 2 caixa(s)").
+ */
+function parseLinhaMed(linha: string): { nome: string; qty: number } {
+  let l = linha.trim()
+  if (!l) return { nome: '', qty: 0 }
+
+  // Extrair quantidade: " — 2 caixa(s)" | " — 1 frasco(s)" | " - 3 unidade(s)"
+  let qty = 1
+  const qtyMatch = l.match(/\s*[—–-]+\s*(\d+)\s*\S+\s*$/)
+  if (qtyMatch) {
+    qty = parseInt(qtyMatch[1]) || 1
+    l = l.substring(0, l.length - qtyMatch[0].length).trim()
+  }
+
+  // Remove forma farmacêutica entre parênteses no final: "(comprimido)", "(cápsula)"
+  l = l.replace(/\s*\([^)]*\)\s*$/, '').trim()
+
+  return { nome: l, qty }
+}
+
+/** Extrai nomes normalizados de um bloco de texto (1 por linha) */
 function parseMedicamentos(texto: string): string[] {
   return texto
     .split('\n')
-    .map(l => l.trim())
+    .map(l => parseLinhaMed(l).nome)
     .filter(Boolean)
-    .map(l => {
-      // Pega o texto antes do primeiro traço/hífen (ex: "Paracetamol 500mg - 1 cp")
-      const semTraco = l.split(/\s*[-–—]\s*/)[0].trim()
-      // Pega até as 3 primeiras palavras (nome + dosagem)
-      const palavras = semTraco.split(' ')
-      return palavras.slice(0, palavras.length > 2 ? 2 : palavras.length).join(' ')
-    })
-    .filter(Boolean)
+}
+
+/** Chave de normalização para deduplicação case-insensitive */
+function chaveNorm(nome: string): string {
+  return nome.toLowerCase().replace(/\s+/g, ' ').trim()
 }
 
 export async function GET(req: NextRequest) {
@@ -148,15 +168,23 @@ export async function GET(req: NextRequest) {
   }
   const porEmpresa = [...empAtMap.values()].sort((a, b) => b.receitas - a.receitas)
 
-  // Top medicamentos
-  const medCountMap = new Map<string, number>()
+  // Top medicamentos — agrupa por nome normalizado (case-insensitive),
+  // soma quantidade de caixas/unidades e conta prescrições distintas
+  const medCountMap = new Map<string, { nome: string; receitas: number; totalUnidades: number }>()
   for (const r of recs) {
-    for (const med of parseMedicamentos(r.medicamentos ?? '')) {
-      medCountMap.set(med, (medCountMap.get(med) ?? 0) + 1)
+    for (const linha of (r.medicamentos ?? '').split('\n').map((l: string) => l.trim()).filter(Boolean)) {
+      const { nome, qty } = parseLinhaMed(linha)
+      if (!nome) continue
+      const chave = chaveNorm(nome)
+      const cur = medCountMap.get(chave) ?? { nome, receitas: 0, totalUnidades: 0 }
+      cur.receitas++
+      cur.totalUnidades += qty
+      // Mantém a versão mais descritiva do nome (a mais longa)
+      if (nome.length > cur.nome.length) cur.nome = nome
+      medCountMap.set(chave, cur)
     }
   }
-  const topMedicamentos = [...medCountMap.entries()]
-    .map(([nome, receitas]) => ({ nome, receitas }))
+  const topMedicamentos = [...medCountMap.values()]
     .sort((a, b) => b.receitas - a.receitas)
     .slice(0, 15)
 
