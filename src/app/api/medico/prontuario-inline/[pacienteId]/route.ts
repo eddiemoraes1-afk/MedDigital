@@ -10,6 +10,18 @@ export async function GET(
   if (!user) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
   const admin = createAdminClient()
+
+  // Verificar que o solicitante é um médico aprovado
+  const { data: medico } = await admin
+    .from('medicos')
+    .select('id, status')
+    .eq('usuario_id', user.id)
+    .single()
+
+  if (!medico || medico.status !== 'aprovado') {
+    return NextResponse.json({ error: 'Acesso restrito a médicos aprovados' }, { status: 403 })
+  }
+
   const { pacienteId } = await params
 
   const [

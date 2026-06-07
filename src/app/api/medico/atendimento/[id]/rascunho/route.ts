@@ -42,21 +42,28 @@ export async function PATCH(
     return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
   }
 
+  // Monta apenas os campos presentes no body (undefined = não veio = não sobrescrever)
+  const campos: Record<string, unknown> = {}
+  if (notas_medico      !== undefined) campos.notas_medico      = notas_medico      ?? null
+  if (queixa_principal  !== undefined) campos.queixa_principal  = queixa_principal  ?? null
+  if (hda               !== undefined) campos.hda               = hda               ?? null
+  if (exame_fisico      !== undefined) campos.exame_fisico      = exame_fisico      ?? null
+  if (sinais_vitais     !== undefined) campos.sinais_vitais     = sinais_vitais     ?? null
+  if (hipotese_diag     !== undefined) campos.hipotese_diag     = hipotese_diag     ?? null
+  if (cid               !== undefined) campos.cid               = cid               ?? null
+  if (plano_terapeutico !== undefined) campos.plano_terapeutico = plano_terapeutico ?? null
+  if (evolucao          !== undefined) campos.evolucao          = evolucao          ?? null
+
+  if (Object.keys(campos).length === 0) {
+    return NextResponse.json({ ok: true, salvo_em: new Date().toISOString() })
+  }
+
   const { error } = await admin
     .from('atendimentos')
-    .update({
-      notas_medico:      notas_medico      ?? null,
-      queixa_principal:  queixa_principal  ?? null,
-      hda:               hda               ?? null,
-      exame_fisico:      exame_fisico      ?? null,
-      sinais_vitais:     sinais_vitais     ?? null,
-      hipotese_diag:     hipotese_diag     ?? null,
-      cid:               cid               ?? null,
-      plano_terapeutico: plano_terapeutico ?? null,
-      evolucao:          evolucao          ?? null,
-    })
+    .update(campos)
     .eq('id', id)
-    .eq('medico_id', medico.id) // garantia extra: só o médico dono pode salvar
+    .eq('medico_id', medico.id)   // só o médico dono pode salvar
+    .eq('status', 'em_andamento') // nunca sobrescrever consulta já finalizada
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 

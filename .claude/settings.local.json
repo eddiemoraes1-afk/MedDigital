@@ -5,7 +5,13 @@
       "Bash(git add *)",
       "Bash(git commit -m 'feat: controle de tamanho do vídeo na sala de atendimento *)",
       "Bash(git push *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(find src *)",
+      "Bash(grep -rl \"use server\" src)",
+      "Bash(find . -path ./node_modules -prune -o \\\\\\( -name \"*.test.ts\" -o -name \"*.test.tsx\" -o -name \"*.spec.ts\" \\\\\\) -print)",
+      "Bash(sed -n '100,112p' src/app/paciente/consulta/[id]/page.tsx)",
+      "Bash(grep -rnE \"\\(cpf|cid\\)=\\\\$\\\\{|searchParams.set\\\\\\(['\\\\\"]\\(cpf|cid|nome|paciente\\)\" src/app src/components --include=\"*.tsx\" --include=\"*.ts\")",
+      "Bash(grep -rniE \"\\(secret|password|senha|token|api[_-]?key\\)['\\\\\"]?\\\\s*[:=]\\\\s*['\\\\\"][^'\\\\\"]{8,}\" src --include=\"*.ts\" --include=\"*.tsx\")"
     ]
   }
 }

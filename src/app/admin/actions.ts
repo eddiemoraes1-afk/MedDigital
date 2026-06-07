@@ -1,9 +1,11 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/auth-sistema'
 import { revalidatePath } from 'next/cache'
 
 export async function aprovarMedico(medicoId: string) {
+  await requireAdmin()
   const supabase = createAdminClient()
   const { error } = await supabase
     .from('medicos')
@@ -15,6 +17,7 @@ export async function aprovarMedico(medicoId: string) {
 }
 
 export async function reprovarMedico(medicoId: string) {
+  await requireAdmin()
   const supabase = createAdminClient()
   const { error } = await supabase
     .from('medicos')
@@ -26,6 +29,7 @@ export async function reprovarMedico(medicoId: string) {
 }
 
 export async function toggleMedicoAtivo(medicoId: string, ativo: boolean) {
+  await requireAdmin()
   const supabase = createAdminClient()
   const { error } = await supabase
     .from('medicos')
@@ -37,6 +41,7 @@ export async function toggleMedicoAtivo(medicoId: string, ativo: boolean) {
 }
 
 export async function excluirAtendimento(atendimentoId: string, pacienteId: string) {
+  await requireAdmin()
   const supabase = createAdminClient()
   const { error } = await supabase
     .from('atendimentos')
@@ -47,6 +52,7 @@ export async function excluirAtendimento(atendimentoId: string, pacienteId: stri
 }
 
 export async function atribuirMedicoAtendimento(atendimentoId: string, medicoId: string, pacienteId: string) {
+  await requireAdmin()
   const supabase = createAdminClient()
   const { error } = await supabase
     .from('atendimentos')

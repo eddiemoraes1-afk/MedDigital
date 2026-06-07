@@ -87,6 +87,7 @@ export default function AtendimentoMedico() {
   const [carregando, setCarregando] = useState(true)
   const [salvando, setSalvando]     = useState(false)
   const [entrou, setEntrou]         = useState(false)
+  const [erroFinalizar, setErro]    = useState('')
 
   // ── Layout do vídeo / barra lateral ──
   type LayoutMode = 'grande' | 'medio' | 'pequeno' | 'sem-video'
@@ -277,24 +278,36 @@ export default function AtendimentoMedico() {
       ? { pa_sist: sv.pa_sist, pa_diast: sv.pa_diast, fc: sv.fc, temp: sv.temp, spo2: sv.spo2, peso: sv.peso, altura: sv.altura }
       : null
 
-    await fetch('/api/medico/finalizar-atendimento', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        atendimento_id:    id,
-        notas_medico:      notasLegado,
-        queixa_principal:  qp,
-        hda,
-        exame_fisico:      exameFisico,
-        sinais_vitais:     sinaisVitaisPayload,
-        hipotese_diag:     hipotese,
-        cid,
-        plano_terapeutico: plano,
-        evolucao,
-      }),
-    })
-    setSalvando(false)
-    router.push('/medico/dashboard')
+    try {
+      const res = await fetch('/api/medico/finalizar-atendimento', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          atendimento_id:    id,
+          notas_medico:      notasLegado,
+          queixa_principal:  qp,
+          hda,
+          exame_fisico:      exameFisico,
+          sinais_vitais:     sinaisVitaisPayload,
+          hipotese_diag:     hipotese,
+          cid,
+          plano_terapeutico: plano,
+          evolucao,
+        }),
+      })
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setSalvando(false)
+        setErro(data?.error || 'Falha ao finalizar a consulta. Verifique sua conexão e tente novamente.')
+        return
+      }
+
+      router.push('/medico/dashboard')
+    } catch {
+      setSalvando(false)
+      setErro('Erro de conexão ao finalizar a consulta. Tente novamente.')
+    }
   }
 
   if (carregando) {
@@ -889,7 +902,12 @@ export default function AtendimentoMedico() {
           </div>
 
           {/* ── Salvar e encerrar ── */}
-          <div className="p-4 mt-auto">
+          <div className="p-4 mt-auto space-y-2">
+            {erroFinalizar && (
+              <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-3 py-2">
+                ⚠ {erroFinalizar}
+              </div>
+            )}
             <button
               onClick={finalizarConsulta}
               disabled={salvando}
