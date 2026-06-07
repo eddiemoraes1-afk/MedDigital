@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Loader2, FlaskConical, Download, CheckCircle2, X, AlertCircle, Plus, Trash2 } from 'lucide-react'
 import { imprimirExames, type ExamesHTMLParams } from '@/lib/examesHTML'
+import { type Exame, buscarExames } from '@/lib/exames'
 
 interface SolicitacaoExamesFormProps {
   atendimentoId: string
@@ -73,6 +74,10 @@ export default function SolicitacaoExamesForm({
   const [solicitacaoSalva, setSolicitacaoSalva] = useState<any>(null)
   const [erro, setErro] = useState('')
   const [showSugestoes, setShowSugestoes] = useState(false)
+
+  // Autocomplete por campo de exame
+  const [sugestoesIdx, setSugestoesIdx] = useState<number | null>(null)
+  const [sugestoesExame, setSugestoesExame] = useState<Exame[]>([])
 
   // Normaliza lista de exames para string
   const examesTexto = examesList.filter(e => e.trim()).join('\n')
@@ -251,12 +256,23 @@ export default function SolicitacaoExamesForm({
 
         <div className="space-y-1.5">
           {examesList.map((exame, i) => (
-            <div key={i} className="flex gap-1.5 items-center">
+            <div key={i} className="flex gap-1.5 items-center relative">
               <input
                 type="text"
                 value={exame}
-                onChange={e => updateExame(i, e.target.value)}
+                onChange={e => {
+                  updateExame(i, e.target.value)
+                  if (e.target.value.length >= 2) {
+                    setSugestoesExame(buscarExames(e.target.value))
+                    setSugestoesIdx(i)
+                  } else {
+                    setSugestoesExame([])
+                    setSugestoesIdx(null)
+                  }
+                }}
+                onBlur={() => setTimeout(() => { setSugestoesIdx(null); setSugestoesExame([]) }, 150)}
                 placeholder={`Exame ${i + 1}...`}
+                autoComplete="off"
                 className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
               />
               {examesList.length > 1 && (
@@ -266,6 +282,29 @@ export default function SolicitacaoExamesForm({
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
+              )}
+
+              {/* Dropdown de sugestões */}
+              {sugestoesIdx === i && sugestoesExame.length > 0 && (
+                <div className="absolute z-50 left-0 right-0 top-full mt-0.5 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                  {sugestoesExame.map((ex, j) => (
+                    <button
+                      key={j}
+                      type="button"
+                      onMouseDown={() => {
+                        updateExame(i, ex.nome)
+                        setSugestoesIdx(null)
+                        setSugestoesExame([])
+                        // Se o último campo estiver preenchido, adicionar campo vazio
+                        if (i === examesList.length - 1) addExame()
+                      }}
+                      className="w-full text-left px-4 py-2.5 hover:bg-[#F0F9F5] border-b border-gray-50 last:border-0 text-sm"
+                    >
+                      <p className="font-medium text-[#1A3A2C]">{ex.nome}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{ex.sinonimos?.slice(0, 2).join(', ')}</p>
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
           ))}

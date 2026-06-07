@@ -1,6 +1,7 @@
 // ── examesHTML.ts ────────────────────────────────────────────────────────────
 // Gerador de HTML/PDF para Solicitações de Exames
 import { drTitle } from '@/lib/medico-utils'
+import { agruparExamesPorCategoria } from '@/lib/exames'
 
 export interface ExamesHTMLParams {
   paciente: {
@@ -53,17 +54,100 @@ export function gerarHTMLExames(params: ExamesHTMLParams, inline = true): string
   const urgColor = URGENCIA_COLOR[urgencia ?? 'normal'] ?? '#1A3A2C'
   const urgIsAlt = urgencia === 'urgente' || urgencia === 'emergencia'
 
-  // Formatar lista de exames em itens HTML
-  const examesList = exames
-    .split('\n')
-    .map(l => l.trim())
-    .filter(Boolean)
-    .map(l => `<li>${l}</li>`)
-    .join('\n')
+  // Agrupar exames por categoria — cada grupo vira uma página do documento.
+  // Exames fora da base (texto livre / solicitações antigas) caem em "outros".
+  const nomesExames = exames.split('\n').map(l => l.trim()).filter(Boolean)
+  const grupos = agruparExamesPorCategoria(nomesExames)
 
   const script = inline
     ? `<script>window.onload=()=>setTimeout(()=>window.print(),400)</script>`
     : ''
+
+  // Blocos repetidos em todas as páginas
+  const headerHTML = `
+  <div class="header">
+    <div class="header-left">
+      <div class="logo-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+      </div>
+      <div>
+        <div class="clinic-name">RovarisMed</div>
+        <div class="clinic-sub">Saúde Digital Corporativa</div>
+      </div>
+    </div>
+    <div class="doc-number">
+      Emitido em: ${fmtData(dataSolicitacao)}<br/>
+      Documento médico oficial
+    </div>
+  </div>`
+
+  const pacienteHTML = `
+  <div class="paciente-box">
+    <div class="label">Paciente</div>
+    <div class="nome">${paciente.nome}</div>
+    <div class="info">${[
+      paciente.cpf ? `CPF: ${paciente.cpf}` : '',
+      paciente.data_nascimento ? `Nasc.: ${fmtData(paciente.data_nascimento)}` : '',
+      paciente.sexo ? `Sexo: ${paciente.sexo}` : '',
+    ].filter(Boolean).join(' · ')}</div>
+  </div>`
+
+  const footerHTML = `
+  <div class="footer">
+    <div class="city-date">
+      Data da solicitação:<br/>
+      <strong>${fmtData(dataSolicitacao)}</strong>
+    </div>
+    <div class="signature-block">
+      <div class="sig-line"></div>
+      <div class="sig-name">${drTitle(medico.sexo)} ${medico.nome}</div>
+      ${medico.crm ? `<div class="sig-crm">CRM-${medico.crm_uf ?? 'BR'} ${medico.crm}</div>` : ''}
+      ${medico.especialidade ? `<div class="sig-spec">${medico.especialidade}</div>` : ''}
+    </div>
+  </div>`
+
+  // Uma página por categoria, com quebra entre elas
+  const paginasHTML = grupos.map((grupo, idx) => `
+<div class="page${idx < grupos.length - 1 ? ' quebra-pagina' : ''}">
+  ${headerHTML}
+
+  <!-- Título -->
+  <div class="title-block">
+    <div class="title">Solicitação de Exames</div>
+    <div class="title-line"></div>
+  </div>
+
+  ${urgIsAlt ? `<div style="text-align:center;margin-bottom:16px"><span class="urgencia-badge">⚠ Urgência: ${urgLabel}</span></div>` : ''}
+
+  ${pacienteHTML}
+
+  <!-- Título do grupo (categoria) -->
+  <div class="categoria-titulo">
+    <span>${grupo.label}</span>
+    <span class="pagina-num">Página ${idx + 1} de ${grupos.length}</span>
+  </div>
+
+  <!-- Exames desta categoria -->
+  <div class="exames-lista">
+    ${grupo.exames.map(e => `<div class="exame-item"><span class="rx">℞</span> ${e}</div>`).join('\n    ')}
+  </div>
+
+  ${indicacaoClinica ? `
+  <div class="section-title">Indicação clínica / Hipótese diagnóstica</div>
+  <div class="indicacao-box">${indicacaoClinica}</div>
+  ` : ''}
+
+  ${observacoes ? `
+  <div class="section-title">Orientações e observações</div>
+  <div class="obs-box">${observacoes}</div>
+  ` : ''}
+
+  <div class="spacer"></div>
+
+  ${footerHTML}
+</div>`).join('\n')
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -90,9 +174,12 @@ export function gerarHTMLExames(params: ExamesHTMLParams, inline = true): string
   .paciente-box .nome{font-size:12pt;font-weight:700;color:#1A3A2C}
   .paciente-box .info{font-size:9pt;color:#555;margin-top:2px}
   .section-title{font-size:9pt;font-weight:700;color:#1A3A2C;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;border-bottom:1px solid #E5E7EB;padding-bottom:4px}
-  .exames-list{list-style:none;margin-bottom:20px}
-  .exames-list li{display:flex;align-items:flex-start;gap:10px;padding:8px 12px;border-radius:6px;font-size:11pt;color:#222;margin-bottom:4px;background:#F8F8F8;border:1px solid #E5E7EB}
-  .exames-list li::before{content:"□";font-size:14pt;color:#1A3A2C;margin-top:-1px;flex-shrink:0}
+  .quebra-pagina{page-break-after:always}
+  .categoria-titulo{font-size:13pt;font-weight:700;color:#1A3A2C;border-bottom:2px solid #5BBD9B;padding-bottom:8px;margin-bottom:16px;display:flex;justify-content:space-between}
+  .pagina-num{font-size:8pt;color:#9CA3AF;font-weight:400}
+  .exames-lista{margin-bottom:20px}
+  .exame-item{display:flex;gap:12px;margin-bottom:10px;font-size:11pt}
+  .rx{color:#5BBD9B;font-weight:bold;font-size:13pt}
   .indicacao-box{background:#FFF9F0;border-left:3px solid #D97706;padding:10px 14px;font-size:9.5pt;color:#555;border-radius:0 6px 6px 0;margin-bottom:16px;line-height:1.6}
   .obs-box{background:#F8F8F8;border-left:3px solid #5BBD9B;padding:10px 14px;font-size:9.5pt;color:#555;border-radius:0 6px 6px 0;margin-bottom:20px;line-height:1.6}
   .spacer{flex:1}
@@ -107,78 +194,7 @@ export function gerarHTMLExames(params: ExamesHTMLParams, inline = true): string
 </style>
 </head>
 <body>
-<div class="page">
-
-  <!-- Cabeçalho -->
-  <div class="header">
-    <div class="header-left">
-      <div class="logo-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-        </svg>
-      </div>
-      <div>
-        <div class="clinic-name">RovarisMed</div>
-        <div class="clinic-sub">Saúde Digital Corporativa</div>
-      </div>
-    </div>
-    <div class="doc-number">
-      Emitido em: ${fmtData(dataSolicitacao)}<br/>
-      Documento médico oficial
-    </div>
-  </div>
-
-  <!-- Título -->
-  <div class="title-block">
-    <div class="title">Solicitação de Exames</div>
-    <div class="title-line"></div>
-  </div>
-
-  ${urgIsAlt ? `<div style="text-align:center;margin-bottom:16px"><span class="urgencia-badge">⚠ Urgência: ${urgLabel}</span></div>` : ''}
-
-  <!-- Dados do paciente -->
-  <div class="paciente-box">
-    <div class="label">Paciente</div>
-    <div class="nome">${paciente.nome}</div>
-    <div class="info">${[
-      paciente.cpf ? `CPF: ${paciente.cpf}` : '',
-      paciente.data_nascimento ? `Nasc.: ${fmtData(paciente.data_nascimento)}` : '',
-      paciente.sexo ? `Sexo: ${paciente.sexo}` : '',
-    ].filter(Boolean).join(' · ')}</div>
-  </div>
-
-  <!-- Exames solicitados -->
-  <div class="section-title">Exames solicitados</div>
-  <ul class="exames-list">
-    ${examesList}
-  </ul>
-
-  ${indicacaoClinica ? `
-  <div class="section-title">Indicação clínica / Hipótese diagnóstica</div>
-  <div class="indicacao-box">${indicacaoClinica}</div>
-  ` : ''}
-
-  ${observacoes ? `
-  <div class="section-title">Orientações e observações</div>
-  <div class="obs-box">${observacoes}</div>
-  ` : ''}
-
-  <div class="spacer"></div>
-
-  <!-- Rodapé -->
-  <div class="footer">
-    <div class="city-date">
-      Data da solicitação:<br/>
-      <strong>${fmtData(dataSolicitacao)}</strong>
-    </div>
-    <div class="signature-block">
-      <div class="sig-line"></div>
-      <div class="sig-name">${drTitle(medico.sexo)} ${medico.nome}</div>
-      ${medico.crm ? `<div class="sig-crm">CRM-${medico.crm_uf ?? 'BR'} ${medico.crm}</div>` : ''}
-      ${medico.especialidade ? `<div class="sig-spec">${medico.especialidade}</div>` : ''}
-    </div>
-  </div>
-</div>
+${paginasHTML}
 ${script}
 </body>
 </html>`
