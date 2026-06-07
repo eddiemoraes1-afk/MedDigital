@@ -6,7 +6,7 @@ import {
   Loader2, Phone, FileText, CheckCircle2, ClipboardList,
   ChevronDown, ChevronUp, Video, Pill, FlaskConical, UserPlus,
   Stethoscope, Activity, Heart, Thermometer, AlertTriangle,
-  Edit3, X, ShieldCheck,
+  Edit3, X, ShieldCheck, Maximize2, Minimize2, PanelRight, EyeOff,
 } from 'lucide-react'
 import AtestadoForm from '@/components/AtestadoForm'
 import ReceitaForm from '@/components/ReceitaForm'
@@ -87,6 +87,16 @@ export default function AtendimentoMedico() {
   const [carregando, setCarregando] = useState(true)
   const [salvando, setSalvando]     = useState(false)
   const [entrou, setEntrou]         = useState(false)
+
+  // ── Layout do vídeo / barra lateral ──
+  type LayoutMode = 'grande' | 'medio' | 'pequeno' | 'sem-video'
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>('grande')
+  const sidebarWidth: Record<LayoutMode, string> = {
+    'grande':    'w-80',
+    'medio':     'w-[440px]',
+    'pequeno':   'w-[580px]',
+    'sem-video': 'w-full',
+  }
 
   // ── Contador de tempo da consulta ──
   const [segundos, setSegundos] = useState(0)
@@ -337,6 +347,28 @@ export default function AtendimentoMedico() {
         )}
         {/* Contador de tempo */}
         <div className="flex items-center gap-2">
+          {/* Controle de layout do vídeo */}
+          <div className="flex items-center gap-0.5 bg-[#0F1F33]/50 border border-green-800/40 rounded-lg p-0.5">
+            {([
+              { mode: 'grande',    icon: <Maximize2 className="w-3.5 h-3.5" />, title: 'Vídeo grande' },
+              { mode: 'medio',     icon: <PanelRight className="w-3.5 h-3.5" />, title: 'Vídeo médio' },
+              { mode: 'pequeno',   icon: <Minimize2 className="w-3.5 h-3.5" />, title: 'Vídeo pequeno' },
+              { mode: 'sem-video', icon: <EyeOff className="w-3.5 h-3.5" />, title: 'Ocultar vídeo' },
+            ] as { mode: LayoutMode; icon: React.ReactNode; title: string }[]).map(({ mode, icon, title }) => (
+              <button
+                key={mode}
+                onClick={() => setLayoutMode(mode)}
+                title={title}
+                className={`p-1.5 rounded transition-colors ${
+                  layoutMode === mode
+                    ? 'bg-[#5BBD9B] text-white'
+                    : 'text-green-400 hover:text-green-200'
+                }`}
+              >
+                {icon}
+              </button>
+            ))}
+          </div>
           {entrou && (
             <div className="flex items-center gap-1.5 bg-red-900/40 border border-red-700/50 px-3 py-1.5 rounded-lg">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
@@ -360,7 +392,7 @@ export default function AtendimentoMedico() {
       <div className="flex-1 flex overflow-hidden" style={{ height: 'calc(100vh - 56px)' }}>
 
         {/* Vídeo */}
-        <div className="flex-1 relative">
+        <div className={`relative transition-all duration-300 ${layoutMode === 'sem-video' ? 'hidden' : 'flex-1'}`}>
           {/* Prontuário inline — drawer sobre o vídeo */}
           {showProntuario && paciente && (
             <ProntuarioDrawer
@@ -404,7 +436,7 @@ export default function AtendimentoMedico() {
         </div>
 
         {/* ── Painel lateral ── */}
-        <div className="w-80 bg-[#1A3A2C] flex flex-col shrink-0 overflow-y-auto">
+        <div className={`${sidebarWidth[layoutMode]} bg-[#1A3A2C] flex flex-col shrink-0 overflow-y-auto transition-all duration-300`}>
 
           {/* ── Antecedentes do paciente (editável durante a consulta) ── */}
           <div className="border-b border-amber-800/40">
