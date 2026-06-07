@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
   Loader2, Phone, FileText, CheckCircle2, ClipboardList,
@@ -145,6 +145,40 @@ export default function AtendimentoMedico() {
   const [evolucao,     setEvolucao]     = useState('')
   const [notasLegado,  setNotasLegado]  = useState('')
 
+  // ── Auto-save ──
+  const [autoSalvando,   setAutoSalvando]   = useState(false)
+  const [ultimoSalvo,    setUltimoSalvo]    = useState<string | null>(null)
+  const autoSaveRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const dadosCarregadosRef = useRef(false)
+
+  const autoSalvar = useCallback(async (atendimentoId: string) => {
+    if (!dadosCarregadosRef.current) return
+    setAutoSalvando(true)
+    try {
+      const sinaisVitaisPayload = Object.values(sv).some(v => v.trim())
+        ? sv : null
+      await fetch(`/api/medico/atendimento/${atendimentoId}/rascunho`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          notas_medico:      notasLegado  || null,
+          queixa_principal:  qp           || null,
+          hda:               hda          || null,
+          exame_fisico:      exameFisico  || null,
+          sinais_vitais:     sinaisVitaisPayload,
+          hipotese_diag:     hipotese     || null,
+          cid:               cid          || null,
+          plano_terapeutico: plano        || null,
+          evolucao:          evolucao     || null,
+        }),
+      })
+      const agora = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
+      setUltimoSalvo(agora)
+    } catch { /* silencioso */ } finally {
+      setAutoSalvando(false)
+    }
+  }, [notasLegado, qp, hda, exameFisico, sv, hipotese, cid, plano, evolucao])
+
   useEffect(() => {
     fetch(`/api/medico/atendimento/${id}`)
       .then(r => r.json())
@@ -177,9 +211,20 @@ export default function AtendimentoMedico() {
         setAntFamiliar(d.paciente?.historia_familiar   || '')
         setAntSocial(d.paciente?.historia_social       || '')
         setCarregando(false)
+        dadosCarregadosRef.current = true
       })
       .catch(() => router.push('/medico/dashboard'))
   }, [id])
+
+  // ── Auto-save a cada 30 segundos ──
+  const atendimentoId = typeof id === 'string' ? id : Array.isArray(id) ? id[0] : ''
+  useEffect(() => {
+    if (!atendimentoId) return
+    autoSaveRef.current = setInterval(() => {
+      autoSalvar(atendimentoId)
+    }, 30000)
+    return () => { if (autoSaveRef.current) clearInterval(autoSaveRef.current) }
+  }, [atendimentoId, autoSalvar])
 
   // Inicia/para o timer conforme o médico entra ou sai da sala.
   // Ao entrar, parte do criado_em do banco para nunca zerar ao voltar de outra aba.
@@ -369,6 +414,15 @@ export default function AtendimentoMedico() {
               </button>
             ))}
           </div>
+          {/* Indicador de auto-save */}
+          <div className="flex items-center gap-1 text-[10px]">
+            {autoSalvando
+              ? <span className="text-green-400 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Salvando...</span>
+              : ultimoSalvo
+                ? <span className="text-green-600/70">✓ Salvo às {ultimoSalvo}</span>
+                : null}
+          </div>
+
           {entrou && (
             <div className="flex items-center gap-1.5 bg-red-900/40 border border-red-700/50 px-3 py-1.5 rounded-lg">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shrink-0" />
