@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     (() => {
       let q = admin
         .from('consentimentos')
-        .select('id, paciente_id, tipo, aceito, versao_termo, texto_termo, triagem_id, atendimento_id, criado_em')
+        .select('id, paciente_id, tipo, aceito, versao_termo, texto_termo, triagem_id, atendimento_id, ip_address, criado_em')
         .order('criado_em', { ascending: false })
         .limit(3000)
       if (tsInicio) q = q.gte('criado_em', tsInicio)
@@ -86,6 +86,7 @@ export async function GET(req: NextRequest) {
     texto_termo?: string
     versao_termo?: string
     referencia_id: string
+    ip_address?: string
   }
 
   const registros: RegistroAuditoria[] = []
@@ -118,6 +119,7 @@ export async function GET(req: NextRequest) {
       texto_termo: r.texto_termo,
       versao_termo: r.versao_termo,
       referencia_id: r.triagem_id ?? r.atendimento_id ?? r.id,
+      ip_address: r.ip_address ?? '—',
     })
   }
 
@@ -148,6 +150,7 @@ export async function GET(req: NextRequest) {
       medico_nome: medNome,
       detalhe: `CID: ${r.cid} · Solicitado em ${new Date(r.criado_em).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}`,
       referencia_id: r.id,
+      ip_address: (r as any).ip_address ?? '—',
     })
   }
 

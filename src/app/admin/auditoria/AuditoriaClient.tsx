@@ -17,6 +17,7 @@ type Registro = {
   texto_termo?: string
   versao_termo?: string
   referencia_id: string
+  ip_address?: string
 }
 
 const TIPO_COR: Record<string, string> = {
@@ -75,11 +76,11 @@ export default function AuditoriaClient() {
 
   function exportarCSV() {
     const linhas = [
-      ['Data/Hora', 'Tipo', 'Status', 'Paciente', 'CPF', 'Médico', 'Detalhe', 'Versão Termo'],
+      ['Data/Hora', 'Tipo', 'Status', 'Paciente', 'CPF', 'IP do Paciente', 'Médico', 'Detalhe', 'Versão Termo'],
       ...registros.map(r => [
         fmtDH(r.criado_em), r.tipo_label, r.status_label,
-        r.paciente_nome, r.paciente_cpf, r.medico_nome,
-        r.detalhe, r.versao_termo ?? '—',
+        r.paciente_nome, r.paciente_cpf, r.ip_address ?? '—',
+        r.medico_nome, r.detalhe, r.versao_termo ?? '—',
       ]),
     ]
     const csv = linhas.map(l => l.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
@@ -189,6 +190,7 @@ export default function AuditoriaClient() {
                   <th className="px-4 py-3 text-left">Status</th>
                   <th className="px-4 py-3 text-left">Paciente</th>
                   <th className="px-4 py-3 text-left">CPF</th>
+                  <th className="px-4 py-3 text-left">IP</th>
                   <th className="px-4 py-3 text-left">Médico / Detalhe</th>
                   <th className="px-4 py-3 text-left w-8"></th>
                 </tr>
@@ -208,6 +210,9 @@ export default function AuditoriaClient() {
                       </td>
                       <td className="px-4 py-3 text-xs font-medium text-[#1A3A2C] whitespace-nowrap">{r.paciente_nome}</td>
                       <td className="px-4 py-3 text-xs text-gray-500 font-mono whitespace-nowrap">{r.paciente_cpf}</td>
+                      <td className="px-4 py-3 text-xs text-gray-400 font-mono whitespace-nowrap" title="Endereço IP registrado no momento do consentimento">
+                        {r.ip_address ?? '—'}
+                      </td>
                       <td className="px-4 py-3 text-xs text-gray-500">
                         {r.medico_nome !== '—' && <p className="font-medium text-gray-700">{r.medico_nome}</p>}
                         <p className="text-gray-400">{r.detalhe}</p>
@@ -226,7 +231,7 @@ export default function AuditoriaClient() {
                     </tr>
                     {expandido === r.id && r.texto_termo && (
                       <tr key={`${r.id}-exp`} className="bg-blue-50">
-                        <td colSpan={7} className="px-6 py-4">
+                        <td colSpan={8} className="px-6 py-4">
                           <div className="flex gap-3 items-start">
                             <ShieldCheck className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
                             <div>

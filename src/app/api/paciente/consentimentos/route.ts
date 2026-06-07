@@ -20,6 +20,15 @@ const TEXTOS_CONSENTIMENTO = {
   },
 } as const
 
+/** Extrai IP real do request (suporta proxies Vercel/Cloudflare) */
+function extrairIP(req: NextRequest): string {
+  const forwarded = req.headers.get('x-forwarded-for')
+  if (forwarded) return forwarded.split(',')[0].trim()
+  const realIp = req.headers.get('x-real-ip')
+  if (realIp) return realIp.trim()
+  return '—'
+}
+
 /**
  * POST /api/paciente/consentimentos
  * Salva os consentimentos do paciente ao iniciar a triagem.
@@ -39,6 +48,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'tipos obrigatório' }, { status: 400 })
   }
 
+  const ip    = extrairIP(req)
   const admin = createAdminClient()
 
   const { data: paciente } = await admin
@@ -50,12 +60,13 @@ export async function POST(req: NextRequest) {
   if (!paciente) return NextResponse.json({ error: 'Paciente não encontrado' }, { status: 404 })
 
   const registros = tipos.map(tipo => ({
-    paciente_id: paciente.id,
+    paciente_id:  paciente.id,
     tipo,
-    aceito: true,
+    aceito:       true,
     versao_termo: TEXTOS_CONSENTIMENTO[tipo].versao,
     texto_termo:  TEXTOS_CONSENTIMENTO[tipo].texto,
     triagem_id:   triagem_id ?? null,
+    ip_address:   ip,
   }))
 
   const { error } = await admin.from('consentimentos').insert(registros)
