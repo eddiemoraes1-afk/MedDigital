@@ -1133,15 +1133,28 @@ function TriagemConteudo() {
     return result?.id ?? null
   }
 
+  // Registra os consentimentos aceitos na tabela de auditoria (não bloqueia em caso de erro)
+  function salvarConsentimentos(triagemId: string | null) {
+    fetch('/api/paciente/consentimentos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tipos: ['lgpd_geral', 'telemedicina', 'video_voz'],
+        triagem_id: triagemId,
+      }),
+    }).catch(() => {}) // silencioso
+  }
+
   async function handleFazerTriagem(dados: DadosValidacao) {
     setValidacao(dados)
     const id = await criarTriagemInicial(dados)
     setTriagemId(id)
+    salvarConsentimentos(id)
     irParaEtapa('sintomas')
   }
 
   async function handlePularTriagem(dados: DadosValidacao) {
-    await salvarAPI({
+    const result = await salvarAPI({
       action: 'pular',
       dados: {
         consentimento_lgpd: true,
@@ -1150,6 +1163,7 @@ function TriagemConteudo() {
         telefone_contato: dados.telefone,
       },
     })
+    salvarConsentimentos(result?.id ?? null)
     router.push('/paciente/dashboard')
   }
 

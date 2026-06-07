@@ -5,7 +5,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
  * Textos legais exatos de cada tipo de consentimento.
  * Versionados por data — alterar aqui cria nova versão automaticamente.
  */
-export const TEXTOS_CONSENTIMENTO = {
+const TEXTOS_CONSENTIMENTO = {
   lgpd_geral: {
     versao: '2026-06-07',
     texto: 'Li e aceito a Política de Privacidade da RovarisMed. Autorizo o tratamento dos meus dados pessoais de saúde pela RovarisMed e pelos profissionais de saúde vinculados, exclusivamente para fins de prestação de serviços médicos, conforme a Lei Geral de Proteção de Dados Pessoais (LGPD — Lei nº 13.709/2018) e nos termos do art. 11, II, "a" (proteção da vida ou da incolumidade física do titular).',
