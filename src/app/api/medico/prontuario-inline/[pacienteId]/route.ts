@@ -3,14 +3,14 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { pacienteId: string } }
+  { params }: { params: Promise<{ pacienteId: string }> }
 ) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
   const admin = createAdminClient()
-  const { pacienteId } = params
+  const { pacienteId } = await params
 
   const [
     { data: paciente },
