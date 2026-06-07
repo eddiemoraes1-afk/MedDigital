@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import TemaProvider from './TemaProvider'
 import { getEmpresaPaciente } from '@/lib/getEmpresaPaciente'
+import AutorizacaoCidWatcher from './dashboard/AutorizacaoCidWatcher'
 
 /**
  * Layout compartilhado de toda a área /paciente.
@@ -45,6 +46,8 @@ export default async function PacienteLayout({ children }: { children: React.Rea
       empresaNome={empresaNome}
       pacienteNome={pacienteNome}
     >
+      {/* Watcher global: polling de autorização LGPD de CID em todas as páginas do paciente */}
+      <AutorizacaoCidWatcher />
       {children}
     </TemaProvider>
   )
