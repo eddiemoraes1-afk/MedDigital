@@ -67,8 +67,8 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
     const unidade = unidadeQuantidade(medSelecionado.forma)
     // Campo interno (analytics): nome + concentração + quantidade
     const linhaInterna = `${medSelecionado.principio} ${medSelecionado.concentracao} — ${qtyMed} ${unidade}`
-    // Campo impresso na receita: nome + concentração + posologia
-    const blocoImpresso = `${medSelecionado.principio} ${medSelecionado.concentracao}:\n${posologia.trim()}`
+    // Campo impresso na receita: nome + concentração + quantidade + posologia
+    const blocoImpresso = `${medSelecionado.principio} ${medSelecionado.concentracao} (${qtyMed} ${unidade}):\n${posologia.trim()}`
     setMedicamentos(prev => prev ? `${prev}\n${linhaInterna}` : linhaInterna)
     setInstrucoes(prev => prev ? `${prev}\n\n${blocoImpresso}` : blocoImpresso)
     fecharPainel()
@@ -342,7 +342,7 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
       <div>
         <label className="block text-xs font-medium text-gray-600 mb-1">
           Medicamentos prescritos <span className="text-red-400">*</span>{' '}
-          <span className="text-[10px] text-gray-400 font-normal">(controle interno — não imprime)</span>
+          <span className="text-[10px] text-gray-400 font-normal">(controle interno — não impresso na receita)</span>
         </label>
         <textarea
           value={medicamentos}

@@ -605,9 +605,12 @@ export default function AdminReceitasDashboard() {
                         <div className="flex-1 bg-gray-100 rounded-full h-2">
                           <div className="h-2 rounded-full" style={{ width: `${(m.receitas / max) * 100}%`, backgroundColor: '#8B5CF6' }} />
                         </div>
-                        <span className="text-xs font-semibold text-gray-700 w-20 text-right shrink-0">
-                          {m.receitas} prescr.
-                        </span>
+                        <div className="flex flex-col items-end w-20 shrink-0">
+                          <span className="text-xs font-semibold text-gray-700">{m.receitas} prescr.</span>
+                          {m.totalUnidades > m.receitas && (
+                            <span className="text-[10px] text-gray-400">{m.totalUnidades} unid.</span>
+                          )}
+                        </div>
                       </div>
                     )
                   })}
