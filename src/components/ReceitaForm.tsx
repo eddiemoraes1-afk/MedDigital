@@ -313,6 +313,7 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
               value={posologia}
               onChange={e => setPosologia(e.target.value)}
               placeholder="ou digite a posologia manualmente..."
+              autoComplete="off"
               className="mt-2 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
             />
           </div>
@@ -389,6 +390,7 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
             value={observacoes}
             onChange={e => setObservacoes(e.target.value)}
             placeholder="Observações adicionais..."
+            autoComplete="off"
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
           />
         </div>

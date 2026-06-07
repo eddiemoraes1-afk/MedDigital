@@ -329,7 +329,7 @@ export default function EncaminhamentoForm({ pacienteId, salaVideo, onFechar, on
               placeholder="Buscar por nome ou especialidade..."
               value={busca}
               onChange={e => setBusca(e.target.value)}
-              autoFocus
+              autoComplete="off"
               className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
             />
           </div>
@@ -526,6 +526,7 @@ export default function EncaminhamentoForm({ pacienteId, salaVideo, onFechar, on
               onChange={e => setObservacoes(e.target.value)}
               placeholder="Ex: quadro depressivo, solicitar avaliação psiquiátrica..."
               rows={2}
+              autoComplete="off"
               className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none placeholder-gray-300"
             />
           </div>

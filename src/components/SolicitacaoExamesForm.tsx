@@ -327,6 +327,7 @@ export default function SolicitacaoExamesForm({
           value={indicacaoClinica}
           onChange={e => setIndicacaoClinica(e.target.value)}
           rows={2}
+          autoComplete="off"
           placeholder="Ex: Investigação de diabetes, acompanhamento de dislipidemia..."
           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none"
         />
@@ -341,6 +342,7 @@ export default function SolicitacaoExamesForm({
           value={observacoes}
           onChange={e => setObservacoes(e.target.value)}
           rows={2}
+          autoComplete="off"
           placeholder="Ex: Paciente deve estar em jejum de 8h, trazer resultado anterior..."
           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none"
         />

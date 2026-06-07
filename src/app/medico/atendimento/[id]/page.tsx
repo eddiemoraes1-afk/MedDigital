@@ -754,8 +754,8 @@ export default function AtendimentoMedico() {
               </span>
               {showAtestado ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-            {showAtestado && paciente && (
-              <div className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
+            {paciente && (
+              <div style={{ display: showAtestado ? 'block' : 'none' }} className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
                 <AtestadoForm
                   atendimentoId={atendimento.id}
                   pacienteId={paciente.id}
@@ -784,8 +784,8 @@ export default function AtendimentoMedico() {
               </span>
               {showReceita ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-            {showReceita && paciente && (
-              <div className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
+            {paciente && (
+              <div style={{ display: showReceita ? 'block' : 'none' }} className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
                 <ReceitaForm
                   atendimentoId={atendimento.id}
                   pacienteId={paciente.id}
@@ -814,8 +814,8 @@ export default function AtendimentoMedico() {
               </span>
               {showExames ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-            {showExames && paciente && (
-              <div className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
+            {paciente && (
+              <div style={{ display: showExames ? 'block' : 'none' }} className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
                 <SolicitacaoExamesForm
                   atendimentoId={atendimento.id}
                   pacienteId={paciente.id}
@@ -844,8 +844,8 @@ export default function AtendimentoMedico() {
               </span>
               {showEncaminhamento ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-            {showEncaminhamento && paciente && (
-              <div className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
+            {paciente && (
+              <div style={{ display: showEncaminhamento ? 'block' : 'none' }} className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
                 <EncaminhamentoForm
                   pacienteId={paciente.id}
                   salaVideo={atendimento.sala_video ?? null}
@@ -872,8 +872,8 @@ export default function AtendimentoMedico() {
               </span>
               {showExclusao ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-            {showExclusao && paciente && (
-              <div className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
+            {paciente && (
+              <div style={{ display: showExclusao ? 'block' : 'none' }} className="mt-3 bg-white rounded-2xl p-4 shadow-sm">
                 <p className="text-xs font-bold text-orange-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   Elegibilidade para Atendimento Online

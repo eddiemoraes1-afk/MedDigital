@@ -434,6 +434,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
               <input
                 type="number" min={1} max={365} value={dias}
                 onChange={e => setDias(Math.max(1, parseInt(e.target.value) || 1))}
+                autoComplete="off"
                 className={inputCls}
               />
             </div>
@@ -458,6 +459,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
             <input
               type="text" value={cid}
               disabled={aguardandoAutorizacao}
+              autoComplete="off"
               onChange={e => {
                 const v = e.target.value.toUpperCase()
                 setCid(v)
@@ -519,6 +521,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
             <textarea
               value={textComplementar} onChange={e => setTextComplementar(e.target.value)}
               rows={2}
+              autoComplete="off"
               placeholder="Descrição do diagnóstico ou informações complementares para o atestado..."
               className={`${inputCls} resize-none`}
             />
@@ -549,6 +552,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
             <input
               type="text" value={cid} onChange={e => setCid(e.target.value.toUpperCase())}
               placeholder="Ex: J00, Z76.0, M54.5"
+              autoComplete="off"
               className={`${inputCls} font-mono`}
             />
           </div>
@@ -567,6 +571,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
               type="text" value={nomeAcompanhante}
               onChange={e => setNomeAcompanhante(e.target.value)}
               placeholder="Nome completo do acompanhante"
+              autoComplete="off"
               className={inputCls}
             />
           </div>
@@ -599,6 +604,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
         <textarea
           value={observacoes} onChange={e => setObservacoes(e.target.value)}
           rows={2}
+          autoComplete="off"
           placeholder="Observações que aparecerão no atestado..."
           className={`${inputCls} resize-none`}
         />
