@@ -48,12 +48,13 @@ function labelTipoBadge(tipo: ReceitaHTMLParams['tipo']): string {
   return map[tipo] ?? 'Receita Simples'
 }
 
-// Formata medicamentos: cada linha vira um item com ℞
-function formatMedicamentos(texto: string): string {
+// Formata a prescrição impressa: cada parágrafo (bloco separado por linha em
+// branco) vira um item com ℞. Ex: "Dipirona 500mg:\n1 comprimido de 6/6h"
+function formatPrescricao(texto: string): string {
   return texto
-    .split('\n')
-    .filter(l => l.trim())
-    .map(l => `<div class="med-item"><span class="rx">℞</span><span>${l.trim()}</span></div>`)
+    .split(/\n{2,}/)
+    .filter(b => b.trim())
+    .map(b => `<div class="med-item"><span class="rx">℞</span><span>${b.trim().replace(/\n/g, '<br/>')}</span></div>`)
     .join('')
 }
 
@@ -61,6 +62,11 @@ export function gerarHTMLReceita(p: ReceitaHTMLParams, comAutoprint = false): st
   const { paciente, medico, tipo, medicamentos, instrucoes, observacoes, validade, dataEmissao } = p
   const titulo = labelTipo(tipo)
   const badge = labelTipoBadge(tipo)
+
+  // O campo `medicamentos` é só controle interno (analytics) — NÃO é impresso.
+  // A receita imprime as instruções (nome + posologia); receitas antigas sem
+  // instruções caem no fallback do campo medicamentos.
+  const prescricao = instrucoes?.trim() ? instrucoes : medicamentos
 
   const isEspecial = tipo === 'especial' || tipo === 'antimicrobiano'
   const corTitulo = isEspecial ? '#7C3AED' : '#1A3A2C'
@@ -152,13 +158,8 @@ export function gerarHTMLReceita(p: ReceitaHTMLParams, comAutoprint = false): st
 
   <div class="section-label">Medicamentos prescritos</div>
   <div class="med-list">
-    ${formatMedicamentos(medicamentos)}
+    ${formatPrescricao(prescricao)}
   </div>
-
-  ${instrucoes ? `
-  <div class="section-label">Modo de uso</div>
-  <div class="instrucoes-box">${instrucoes.replace(/\n/g, '<br/>')}</div>
-  ` : ''}
 
   ${validade ? `<div class="validade-box">📅 Válida até: ${fmtData(validade)}</div>` : ''}
 
@@ -223,13 +224,14 @@ export function criarArquivoReceita(params: ReceitaHTMLParams): File {
 export function textoResumidoReceita(params: ReceitaHTMLParams): string {
   const { paciente, medico, tipo, medicamentos, instrucoes } = params
   const badge = labelTipoBadge(tipo)
+  // Mesmo critério do HTML: o campo medicamentos é interno; compartilha a prescrição
+  const prescricao = instrucoes?.trim() ? instrucoes : medicamentos
   return [
     `${badge} — RovarisMed`,
     `Paciente: ${paciente.nome}`,
     `Médico: ${drTitle(medico.sexo)} ${medico.nome}${medico.crm ? ` (CRM-${medico.crm_uf ?? 'BR'} ${medico.crm})` : ''}`,
     '',
-    'Medicamentos:',
-    medicamentos,
-    instrucoes ? `\nModo de uso:\n${instrucoes}` : '',
+    'Prescrição:',
+    prescricao,
   ].filter(s => s !== undefined).join('\n')
 }

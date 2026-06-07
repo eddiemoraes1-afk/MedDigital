@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Loader2, Pill, Download, CheckCircle2, X, AlertCircle } from 'lucide-react'
 import { imprimirReceita, type ReceitaHTMLParams } from '@/lib/receitaHTML'
-import { type Medicamento, buscarMedicamentos, medicamentoLabel } from '@/lib/medicamentos'
+import { type Medicamento, buscarMedicamentos, medicamentoLabel, posologiasSugeridas, unidadeQuantidade } from '@/lib/medicamentos'
 
 interface ReceitaFormProps {
   atendimentoId: string
@@ -47,6 +47,32 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
   const [buscaMed, setBuscaMed] = useState('')
   const [sugestoes, setSugestoes] = useState<Medicamento[]>([])
   const [mostrarSugestoes, setMostrarSugestoes] = useState(false)
+
+  // Painel de posologia do medicamento selecionado
+  const [medSelecionado, setMedSelecionado] = useState<Medicamento | null>(null)
+  const [qtyMed, setQtyMed] = useState(1)
+  const [posologia, setPosologia] = useState('')
+
+  function fecharPainel() {
+    setMedSelecionado(null)
+    setQtyMed(1)
+    setPosologia('')
+    setBuscaMed('')
+    setSugestoes([])
+    setMostrarSugestoes(false)
+  }
+
+  function adicionarMedicamento() {
+    if (!medSelecionado || !posologia.trim()) return
+    const unidade = unidadeQuantidade(medSelecionado.forma)
+    // Campo interno (analytics): nome + concentração + quantidade
+    const linhaInterna = `${medSelecionado.principio} ${medSelecionado.concentracao} — ${qtyMed} ${unidade}`
+    // Campo impresso na receita: nome + concentração + posologia
+    const blocoImpresso = `${medSelecionado.principio} ${medSelecionado.concentracao}:\n${posologia.trim()}`
+    setMedicamentos(prev => prev ? `${prev}\n${linhaInterna}` : linhaInterna)
+    setInstrucoes(prev => prev ? `${prev}\n\n${blocoImpresso}` : blocoImpresso)
+    fecharPainel()
+  }
   const [instrucoes, setInstrucoes] = useState('')
   const [observacoes, setObservacoes] = useState('')
   const [validade, setValidade] = useState('')
@@ -213,9 +239,10 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
                 key={i}
                 type="button"
                 onMouseDown={() => {
-                  // Adiciona o medicamento ao textarea (nova linha)
-                  const linha = medicamentoLabel(med)
-                  setMedicamentos(prev => prev ? `${prev}\n${linha}` : linha)
+                  // Abre o painel de quantidade + posologia
+                  setMedSelecionado(med)
+                  setQtyMed(1)
+                  setPosologia('')
                   setBuscaMed('')
                   setSugestoes([])
                   setMostrarSugestoes(false)
@@ -235,32 +262,110 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
         )}
       </div>
 
+      {/* Painel inline: quantidade + posologia do medicamento selecionado */}
+      {medSelecionado && (
+        <div className="border border-[#5BBD9B] bg-[#F0F9F5] rounded-xl p-3 space-y-3">
+          {/* Medicamento selecionado */}
+          <p className="text-sm font-semibold text-[#1A3A2C]">{medicamentoLabel(medSelecionado)}</p>
+
+          {/* Quantidade */}
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-medium text-gray-600">Quantidade:</label>
+            <button
+              type="button"
+              onClick={() => setQtyMed(q => Math.max(1, q - 1))}
+              className="w-7 h-7 flex items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-600 hover:border-[#5BBD9B] hover:text-[#1A3A2C] text-sm font-bold transition-colors"
+            >
+              −
+            </button>
+            <span className="w-8 text-center text-sm font-bold text-[#1A3A2C] tabular-nums">{qtyMed}</span>
+            <button
+              type="button"
+              onClick={() => setQtyMed(q => q + 1)}
+              className="w-7 h-7 flex items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-600 hover:border-[#5BBD9B] hover:text-[#1A3A2C] text-sm font-bold transition-colors"
+            >
+              +
+            </button>
+            <span className="text-xs text-gray-500">{unidadeQuantidade(medSelecionado.forma)}</span>
+          </div>
+
+          {/* Posologia — chips de sugestão */}
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1.5">Posologia</label>
+            <div className="flex flex-wrap gap-1.5 max-h-[88px] overflow-y-auto pr-1">
+              {posologiasSugeridas(medSelecionado.forma).map(p => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPosologia(p)}
+                  className={`px-2.5 py-1 rounded-full text-[11px] border transition-colors ${
+                    posologia === p
+                      ? 'bg-[#1A3A2C] border-[#1A3A2C] text-white font-semibold'
+                      : 'bg-white border-gray-200 text-gray-600 hover:border-[#1A3A2C] hover:text-[#1A3A2C]'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+            <input
+              type="text"
+              value={posologia}
+              onChange={e => setPosologia(e.target.value)}
+              placeholder="ou digite a posologia manualmente..."
+              className="mt-2 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+            />
+          </div>
+
+          {/* Ações */}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={adicionarMedicamento}
+              disabled={!posologia.trim()}
+              className="flex-1 bg-[#1A3A2C] hover:bg-[#5BBD9B] disabled:opacity-50 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors"
+            >
+              + Adicionar à receita
+            </button>
+            <button
+              type="button"
+              onClick={fecharPainel}
+              className="border border-gray-200 text-gray-500 hover:bg-gray-50 px-3 py-2 rounded-lg text-xs font-semibold transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Medicamentos */}
       <div>
         <label className="block text-xs font-medium text-gray-600 mb-1">
-          Medicamentos <span className="text-red-400">*</span>
+          Medicamentos prescritos <span className="text-red-400">*</span>{' '}
+          <span className="text-[10px] text-gray-400 font-normal">(controle interno — não imprime)</span>
         </label>
         <textarea
           value={medicamentos}
           onChange={e => setMedicamentos(e.target.value)}
           rows={4}
-          placeholder={`Um por linha, ex:\nAmoxicilina 500mg — 21 comprimidos\nIbuprofeno 600mg — 10 comprimidos`}
+          placeholder="Preenchido automaticamente ao adicionar medicamentos acima. Você pode editar."
           className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none font-mono text-xs leading-relaxed ${!medicamentos.trim() ? 'border-red-200 bg-red-50' : 'border-gray-200'}`}
         />
         {!medicamentos.trim() && <p className="text-red-400 text-xs mt-1">Informe ao menos um medicamento</p>}
-        <p className="text-gray-400 text-xs mt-1">Use a busca acima para encontrar medicamentos rapidamente, ou digite livremente um por linha.</p>
+        <p className="text-gray-400 text-xs mt-1">Somente para controle interno e relatórios — não aparece na receita impressa.</p>
       </div>
 
       {/* Instruções */}
       <div>
         <label className="block text-xs font-medium text-gray-600 mb-1">
-          Modo de uso / Instruções <span className="text-gray-400">(opcional)</span>
+          Modo de uso / Instruções{' '}
+          <span className="text-[10px] text-[#5BBD9B] font-normal">(impresso na receita)</span>
         </label>
         <textarea
           value={instrucoes}
           onChange={e => setInstrucoes(e.target.value)}
-          rows={3}
-          placeholder="Ex: Tomar 1 comprimido a cada 8 horas por 7 dias, com alimento..."
+          rows={5}
+          placeholder={`Preenchido automaticamente ao adicionar medicamentos. Ex:\nDipirona Monoidratada 500mg:\n1 comprimido de 6 em 6 horas, por 5 dias`}
           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none"
         />
       </div>
