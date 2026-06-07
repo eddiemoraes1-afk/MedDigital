@@ -10,7 +10,7 @@ export async function GET() {
 
   const { data: atestados } = await admin
     .from('atestados')
-    .select('id, paciente_id, medico_id, data_emissao, data_inicio, data_fim, dias, cid, criado_em')
+    .select('id, paciente_id, medico_id, data_emissao, data_inicio, data_fim, dias, cid, criado_em, tipo, hora_inicio, hora_fim, nome_acompanhante, relacao_acompanhante')
     .eq('empresa_id', empresaId)
     .order('data_emissao', { ascending: false })
 
@@ -67,6 +67,10 @@ export async function GET() {
       inicio_raw: a.data_inicio ?? '',
       fim: fmtDate(a.data_fim),
       fim_raw: a.data_fim ?? '',
+      tipo: a.tipo ?? 'afastamento',
+      hora_inicio: a.hora_inicio ?? null,
+      hora_fim: a.hora_fim ?? null,
+      nome_acompanhante: a.nome_acompanhante ?? null,
     }
   })
 

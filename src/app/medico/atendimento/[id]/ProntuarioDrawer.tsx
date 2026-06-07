@@ -232,20 +232,31 @@ export default function ProntuarioDrawer({ pacienteId, onFechar }: Props) {
             <Secao titulo="Atestados" icone={<ClipboardList className="w-3.5 h-3.5" />} count={dados.atestados?.length}>
               {dados.atestados?.length === 0 ? (
                 <p className="text-xs text-green-500 italic">Nenhum atestado emitido.</p>
-              ) : dados.atestados?.map((a: any) => (
-                <div key={a.id} className="bg-white/5 rounded-xl p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs text-green-400">{fmt(a.data_emissao ?? a.criado_em)}</span>
-                    {a.dias && (
-                      <span className="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full">
-                        {a.dias} {a.dias === 1 ? 'dia' : 'dias'}
+              ) : dados.atestados?.map((a: any) => {
+                const tipoBadge: Record<string, string> = {
+                  afastamento:    'bg-amber-500/20 text-amber-300 border-amber-500/30',
+                  comparecimento: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+                  acompanhamento: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+                }
+                const tipoLabel: Record<string, string> = {
+                  afastamento: `Afastamento · ${a.dias} ${a.dias === 1 ? 'dia' : 'dias'}`,
+                  comparecimento: `Comparecimento · ${a.hora_inicio ?? ''}–${a.hora_fim ?? ''}`,
+                  acompanhamento: `Acompanhamento · ${a.nome_acompanhante ?? ''}`,
+                }
+                const tipo = a.tipo ?? 'afastamento'
+                return (
+                  <div key={a.id} className="bg-white/5 rounded-xl p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-green-400">{fmt(a.data_emissao ?? a.criado_em)}</span>
+                      <span className={`text-xs border px-2 py-0.5 rounded-full ${tipoBadge[tipo] ?? tipoBadge.afastamento}`}>
+                        {tipoLabel[tipo] ?? tipo}
                       </span>
-                    )}
+                    </div>
+                    {a.cid && <p className="text-xs text-blue-200 mt-1">CID: {a.cid}</p>}
+                    {a.medicos?.nome && <p className="text-xs text-green-300 mt-0.5">{a.medicos.nome}</p>}
                   </div>
-                  {a.cid && <p className="text-xs text-blue-200 mt-1">CID: {a.cid}</p>}
-                  {a.medicos?.nome && <p className="text-xs text-green-300 mt-0.5">{a.medicos.nome}</p>}
-                </div>
-              ))}
+                )
+              })}
             </Secao>
 
             {/* Receitas */}

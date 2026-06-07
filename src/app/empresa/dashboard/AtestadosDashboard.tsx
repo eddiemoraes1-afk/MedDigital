@@ -297,9 +297,15 @@ function ListaAtestados({ lista }: { lista: any[] }) {
                       : <span className="text-gray-300 text-xs">—</span>}
                   </td>
                   <td className="px-4 py-2.5 text-center">
-                    {a.dias != null
-                      ? <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${diasCor(a.dias)}`}>{a.dias}d</span>
-                      : <span className="text-gray-300 text-xs">—</span>}
+                    {a.tipo === 'comparecimento' ? (
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Comp.</span>
+                    ) : a.tipo === 'acompanhamento' ? (
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">Acomp.</span>
+                    ) : a.dias != null ? (
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${diasCor(a.dias)}`}>{a.dias}d</span>
+                    ) : (
+                      <span className="text-gray-300 text-xs">—</span>
+                    )}
                   </td>
                 </tr>
               ))}

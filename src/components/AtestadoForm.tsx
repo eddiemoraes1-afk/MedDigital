@@ -263,8 +263,8 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
           atendimento_id: atendimentoId,
           tipo,
           data_emissao: hoje,
-          data_inicio: afast ? dataInicio : hoje,
-          data_fim: afast ? dataFim : hoje,
+          data_inicio: hoje,
+          data_fim: afast ? calcDataFim(hoje, dias) : hoje,
           dias: afast ? dias : 1,
           cid: tipo !== 'acompanhamento' && cid ? cid : null,
           texto_complementar: afast && textComplementar ? textComplementar : null,
@@ -382,18 +382,17 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Data de início *</label>
-              <input
-                type="date" value={dataInicio}
-                onChange={e => setDataInicio(e.target.value)}
-                className={inputCls}
-              />
+              <label className="block text-xs font-medium text-gray-600 mb-1">Data de início</label>
+              <div className={`${inputCls} bg-gray-50 text-gray-500 cursor-not-allowed`}>
+                {fmtData(hoje)}
+              </div>
+              <p className="text-[10px] text-gray-400 mt-0.5">Sempre a data da consulta</p>
             </div>
           </div>
 
           {/* Preview de data fim */}
           <p className="text-xs text-gray-400">
-            Período: <span className="font-medium text-gray-600">{fmtData(dataInicio)}</span> até <span className="font-medium text-gray-600">{fmtData(dataFim)}</span>
+            Período: <span className="font-medium text-gray-600">{fmtData(hoje)}</span> até <span className="font-medium text-gray-600">{fmtData(dataFim)}</span>
           </p>
 
           <div>
@@ -506,11 +505,27 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
         </div>
       )}
 
+      {/* Indicador de campos pendentes */}
+      {!valido && (
+        <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 flex items-center gap-1.5">
+          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+          {tipo === 'afastamento' && !cid.trim() ? 'Preencha o CID-10 para salvar.' : 'Preencha todos os campos obrigatórios (*) para salvar.'}
+        </p>
+      )}
+
       <div className="flex gap-2">
         <button
           onClick={salvar}
           disabled={salvando || !valido}
-          className="flex-1 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
+          className={`flex-1 text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-colors
+            ${!valido || salvando
+              ? 'bg-gray-300 cursor-not-allowed'
+              : tipo === 'afastamento'
+                ? 'bg-[#1A3A2C] hover:bg-[#5BBD9B]'
+                : tipo === 'comparecimento'
+                  ? 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-orange-500 hover:bg-orange-600'
+            }`}
         >
           {salvando ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : <><FileText className="w-4 h-4" /> Salvar atestado</>}
         </button>
