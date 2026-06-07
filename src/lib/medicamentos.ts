@@ -441,6 +441,126 @@ export const MEDICAMENTOS: Medicamento[] = [
   { principio: 'Soro Fisiológico (NaCl 0,9%)', concentracao: '0,9%', forma: 'solução para inalação', comerciais: ['Soro Fisiológico 0,9%'] },
 ]
 
+/** Unidade de quantidade padrão por forma farmacêutica */
+export function unidadeQuantidade(forma: string): string {
+  const f = forma.toLowerCase()
+  if (f.includes('creme') || f.includes('pomada') || f.includes('gel') || f.includes('loção')) return 'bisnaga(s)'
+  if (f.includes('xampu') || f.includes('shampoo')) return 'frasco(s)'
+  if (f.includes('colírio') || f.includes('gotas') || f.includes('solução oral') || f.includes('suspensão')) return 'frasco(s)'
+  if (f.includes('spray') || f.includes('aerossol') || f.includes('inalação')) return 'frasco(s)'
+  if (f.includes('sachê') || f.includes('pó para')) return 'sachê(s)'
+  if (f.includes('injetável') || f.includes('seringa')) return 'ampola(s)/seringa(s)'
+  if (f.includes('cápsula') || f.includes('comprimido')) return 'caixa(s)'
+  return 'unidade(s)'
+}
+
+/** Unidade da dose por forma farmacêutica (para o texto de posologia) */
+function unidadeDose(forma: string): string {
+  const f = forma.toLowerCase()
+  if (f.includes('cápsula'))                    return 'cápsula'
+  if (f.includes('comprimido'))                 return 'comprimido'
+  if (f.includes('gotas') || f.includes('solução oral (gotas)')) return 'gotas'
+  if (f.includes('colírio'))                    return 'gota(s)'
+  if (f.includes('xarope') || f.includes('suspensão oral') || f.includes('solução oral')) return 'ml'
+  if (f.includes('aerossol') || f.includes('spray') || f.includes('inalação')) return 'jato(s)'
+  if (f.includes('sachê') || f.includes('pó para')) return 'sachê'
+  if (f.includes('creme') || f.includes('pomada') || f.includes('gel')) return 'aplicação'
+  return 'dose'
+}
+
+/** Posologias sugeridas por forma farmacêutica */
+export function posologiasSugeridas(forma: string): string[] {
+  const f = forma.toLowerCase()
+  const d = unidadeDose(forma)
+
+  if (f.includes('gotas') && !f.includes('colírio')) {
+    return [
+      `15 ${d} de 6 em 6 horas, por 3 dias`,
+      `15 ${d} de 6 em 6 horas, por 5 dias`,
+      `20 ${d} de 8 em 8 horas, por 3 dias`,
+      `20 ${d} de 8 em 8 horas, por 5 dias`,
+      `20 ${d} de 12 em 12 horas, por 5 dias`,
+      `15 ${d} quando necessário`,
+    ]
+  }
+  if (f.includes('colírio')) {
+    return [
+      `2 ${d} no olho afetado de 6 em 6 horas, por 5 dias`,
+      `2 ${d} em cada olho de 6 em 6 horas, por 7 dias`,
+      `2 ${d} no olho afetado de 8 em 8 horas, por 7 dias`,
+      `1 ${d} em cada olho de 12 em 12 horas, uso contínuo`,
+      `2 ${d} no olho afetado quando necessário`,
+    ]
+  }
+  if (f.includes('xarope') || f.includes('suspensão oral') || (f.includes('solução oral') && !f.includes('gotas'))) {
+    return [
+      `5 ${d} de 8 em 8 horas, por 5 dias`,
+      `5 ${d} de 8 em 8 horas, por 7 dias`,
+      `10 ${d} de 12 em 12 horas, por 5 dias`,
+      `5 ${d} de 12 em 12 horas, por 7 dias`,
+      `10 ${d} de 8 em 8 horas, por 10 dias`,
+      `5 ${d} 1x ao dia, por 5 dias`,
+    ]
+  }
+  if (f.includes('aerossol') || (f.includes('spray') && !f.includes('sublingual')) || f.includes('inalação')) {
+    return [
+      `2 ${d} quando necessário (máx. 4x ao dia)`,
+      `2 ${d} de 12 em 12 horas, uso contínuo`,
+      `2 ${d} de 6 em 6 horas, por 7 dias`,
+      `1 ${d} de 12 em 12 horas, uso contínuo`,
+      `2 ${d} 1x ao dia (manhã), uso contínuo`,
+    ]
+  }
+  if (f.includes('sublingual')) {
+    return [
+      `1 ${d} sublingual quando necessário (máx. 3x ao dia)`,
+      `1 ${d} sublingual de 8 em 8 horas, por 3 dias`,
+      `1 ${d} sublingual de 6 em 6 horas, por 2 dias`,
+    ]
+  }
+  if (f.includes('creme') || f.includes('pomada') || f.includes('gel') || f.includes('loção')) {
+    return [
+      `Aplicar na área afetada 2x ao dia, por 7 dias`,
+      `Aplicar na área afetada 3x ao dia, por 5 dias`,
+      `Aplicar na área afetada 1x ao dia (à noite), por 14 dias`,
+      `Aplicar na área afetada 2x ao dia, por 14 dias`,
+      `Aplicar na área afetada 2x ao dia, uso contínuo`,
+      `Aplicar fina camada na área afetada 2x ao dia, por 7 dias`,
+    ]
+  }
+  if (f.includes('sachê') || f.includes('pó para')) {
+    return [
+      `1 ${d} dissolvido em 200ml de água de 8 em 8 horas, por 5 dias`,
+      `1 ${d} dissolvido em 200ml de água 1x ao dia, por 7 dias`,
+      `1 ${d} dissolvido em 200ml de água de 12 em 12 horas, por 5 dias`,
+      `1 ${d} dissolvido em 200ml de água dose única`,
+    ]
+  }
+  if (f.includes('injetável') || f.includes('seringa')) {
+    return [
+      `Aplicar por via subcutânea 1x ao dia`,
+      `Aplicar por via intramuscular dose única`,
+      `Aplicar por via subcutânea de 12 em 12 horas`,
+    ]
+  }
+
+  // Padrão: comprimido ou cápsula
+  return [
+    `1 ${d} de 6 em 6 horas, por 3 dias`,
+    `1 ${d} de 6 em 6 horas, por 5 dias`,
+    `1 ${d} de 8 em 8 horas, por 5 dias`,
+    `1 ${d} de 8 em 8 horas, por 7 dias`,
+    `1 ${d} de 12 em 12 horas, por 5 dias`,
+    `1 ${d} de 12 em 12 horas, por 7 dias`,
+    `1 ${d} 1x ao dia, por 7 dias`,
+    `1 ${d} 1x ao dia, por 14 dias`,
+    `1 ${d} 1x ao dia, uso contínuo`,
+    `2 ${d} 1x ao dia, uso contínuo`,
+    `1 ${d} à noite, uso contínuo`,
+    `1 ${d} quando necessário`,
+  ]
+}
+
 /** Gera a string de exibição de um medicamento */
 export function medicamentoLabel(m: Medicamento): string {
   return `${m.principio} ${m.concentracao} (${m.forma})`
