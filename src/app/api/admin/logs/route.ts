@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
     { data: examRows },
     { data: triagemRows },
     { data: agendRows },
+    { data: autorizRows },
   ] = await Promise.all([
     // Atendimentos: gera eventos (entrada fila, início, fim, encaminhamento)
     (() => {
@@ -116,17 +117,30 @@ export async function GET(req: NextRequest) {
       if (medicoId) q = q.eq('medico_id', medicoId)
       return q
     })(),
+
+    // Autorizações de CID — LGPD
+    (() => {
+      let q = admin
+        .from('autorizacoes_cid')
+        .select('id, paciente_id, cid, status, criado_em, respondido_em, atendimento_id, atendimentos(medico_id)')
+        .order('criado_em', { ascending: false })
+        .limit(2000)
+      if (tsInicio) q = q.gte('criado_em', tsInicio)
+      if (tsFim)    q = q.lte('criado_em', tsFim)
+      return q
+    })(),
   ])
 
   // ── Lookup de pacientes ───────────────────────────────────────────────────
   const allPacIds = [
     ...new Set([
-      ...(atendRows   ?? []).map((r: any) => r.paciente_id),
-      ...(atestRows   ?? []).map((r: any) => r.paciente_id),
-      ...(recRows     ?? []).map((r: any) => r.paciente_id),
-      ...(examRows    ?? []).map((r: any) => r.paciente_id),
-      ...(triagemRows ?? []).map((r: any) => r.paciente_id),
-      ...(agendRows   ?? []).map((r: any) => r.paciente_id),
+      ...(atendRows    ?? []).map((r: any) => r.paciente_id),
+      ...(atestRows    ?? []).map((r: any) => r.paciente_id),
+      ...(recRows      ?? []).map((r: any) => r.paciente_id),
+      ...(examRows     ?? []).map((r: any) => r.paciente_id),
+      ...(triagemRows  ?? []).map((r: any) => r.paciente_id),
+      ...(agendRows    ?? []).map((r: any) => r.paciente_id),
+      ...(autorizRows  ?? []).map((r: any) => r.paciente_id),
     ].filter(Boolean)),
   ]
 
@@ -420,6 +434,59 @@ export async function GET(req: NextRequest) {
       referencia_id: r.id,
       detalhe: r.classificacao_risco ?? '',
     })
+  }
+
+  // ── Autorizações de CID — LGPD ───────────────────────────────────────────
+  for (const r of autorizRows ?? []) {
+    const pac    = pacMap.get(r.paciente_id) as any
+    const medId  = (r as any).atendimentos?.medico_id ?? null
+    const med    = medId ? medMap.get(medId) as any : null
+    const pacNome = pac?.nome ?? 'Desconhecido'
+    const medNome = med?.nome ?? '—'
+    const medEsp  = med?.especialidade ?? ''
+    const empId   = pacEmpresaId(r.paciente_id)
+    const empNome = pacEmpresaNome(r.paciente_id)
+
+    if (medicoId && medId !== medicoId) continue
+    if (empresaId) {
+      if (empresaId === '__particular__' && empId) continue
+      if (empresaId !== '__particular__' && empId !== empresaId) continue
+    }
+
+    // Evento 1: Médico solicitou autorização
+    logs.push({
+      id: `cid-solic-${r.id}`,
+      criado_em: r.criado_em,
+      tipo: 'cid_solicitacao',
+      tipo_label: 'Autorização CID Solicitada',
+      descricao: `${medNome} solicitou autorização de CID (${r.cid}) ao paciente ${pacNome}`,
+      paciente_nome: pacNome,
+      medico_nome: medNome,
+      medico_esp: medEsp,
+      empresa_nome: empNome,
+      referencia_id: r.id,
+      detalhe: `CID: ${r.cid}`,
+    })
+
+    // Evento 2: Paciente respondeu (se já respondeu)
+    if (r.respondido_em && r.status !== 'pendente') {
+      const autorizado = r.status === 'autorizado'
+      logs.push({
+        id: `cid-resp-${r.id}`,
+        criado_em: r.respondido_em,
+        tipo: autorizado ? 'cid_autorizado' : 'cid_negado',
+        tipo_label: autorizado ? 'CID Autorizado pelo Paciente' : 'CID Recusado pelo Paciente',
+        descricao: autorizado
+          ? `${pacNome} autorizou a inclusão do CID (${r.cid}) no atestado`
+          : `${pacNome} recusou a inclusão do CID (${r.cid}) no atestado`,
+        paciente_nome: pacNome,
+        medico_nome: medNome,
+        medico_esp: medEsp,
+        empresa_nome: empNome,
+        referencia_id: r.id,
+        detalhe: `CID: ${r.cid} · ${autorizado ? '✓ Autorizado' : '✗ Recusado'}`,
+      })
+    }
   }
 
   // ── Ordenar por data desc ─────────────────────────────────────────────────
