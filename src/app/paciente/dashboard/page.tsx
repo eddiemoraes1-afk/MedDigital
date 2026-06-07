@@ -57,19 +57,23 @@ export default async function PacienteDashboard() {
       .eq('paciente_id', paciente?.id),
     adminSupabase
       .from('solicitacoes_exames')
-      .select('id, urgencia')
+      .select('id, urgencia, data_solicitacao')
       .eq('paciente_id', paciente?.id),
   ])
   const atestadosPaciente = atestadosRes.data
   const receitasPaciente = receitasRes.data
   const examesPaciente = examesRes.data
-  const totalAtestados = atestadosPaciente?.length ?? 0
-  const atestadosValidos = (atestadosPaciente ?? []).filter((a: any) => a.data_fim >= hoje).length
-  const totalReceitas = receitasPaciente?.length ?? 0
-  const receitasValidas = (receitasPaciente ?? []).filter((r: any) => !r.validade || r.validade >= hoje).length
-  const totalExames = examesPaciente?.length ?? 0
-  const examesUrgentes = (examesPaciente ?? []).filter((e: any) => e.urgencia === 'urgente' || e.urgencia === 'emergencia').length
-  // Co-participação acumulada do paciente em receitas
+
+  // Badge: só aparece para documentos ainda válidos/ativos
+  const atestadosValidos = (atestadosPaciente ?? []).filter((a: any) => a.data_fim && a.data_fim >= hoje).length
+  const receitasValidas  = (receitasPaciente  ?? []).filter((r: any) => !r.validade || r.validade >= hoje).length
+  const examesValidos    = (examesPaciente    ?? []).filter((e: any) => {
+    if (!e.data_solicitacao) return true   // sem data: considera ativo
+    const expira = new Date(e.data_solicitacao + 'T12:00:00')
+    expira.setDate(expira.getDate() + 90)  // validade de 90 dias
+    return new Date() <= expira
+  }).length
+  // Co-participação acumulada do paciente em receitas (todas, não só válidas)
   const copartReceitas = (receitasPaciente ?? []).reduce((s: number, r: any) => s + (Number(r.valor_coparticipacao) || 0), 0)
 
   // Próximas consultas
@@ -225,9 +229,9 @@ export default async function PacienteDashboard() {
             { icon: Video, label: 'Consulta Agora', href: '/paciente/triagem' },
             { icon: ScrollText, label: 'Renovação de Receita', href: '/paciente/renovacao-receita' },
             { icon: Calendar, label: 'Meus agendamentos', href: '/paciente/agendamentos', badge: totalConsultas > 0 ? totalConsultas : undefined },
-            { icon: FileText, label: 'Atestados', href: '/paciente/atestados', badge: atestadosValidos > 0 ? atestadosValidos : (totalAtestados > 0 ? totalAtestados : undefined), badgeValido: atestadosValidos > 0 },
-            { icon: Pill, label: 'Receitas', href: '/paciente/receitas', badge: receitasValidas > 0 ? receitasValidas : (totalReceitas > 0 ? totalReceitas : undefined), badgeValido: receitasValidas > 0 },
-            { icon: FlaskConical, label: 'Exames', href: '/paciente/exames', badge: examesUrgentes > 0 ? examesUrgentes : (totalExames > 0 ? totalExames : undefined), badgeValido: examesUrgentes > 0 },
+            { icon: FileText, label: 'Atestados', href: '/paciente/atestados', badge: atestadosValidos > 0 ? atestadosValidos : undefined, badgeValido: true },
+            { icon: Pill, label: 'Receitas', href: '/paciente/receitas', badge: receitasValidas > 0 ? receitasValidas : undefined, badgeValido: true },
+            { icon: FlaskConical, label: 'Exames', href: '/paciente/exames', badge: examesValidos > 0 ? examesValidos : undefined, badgeValido: true },
           ].map((item) => (
             <Link key={item.label} href={item.href}
               className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md text-center group relative transition-shadow">
