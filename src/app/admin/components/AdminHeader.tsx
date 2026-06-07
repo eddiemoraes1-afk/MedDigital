@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import { Shield, Building2, Users, Calendar, UserCheck, LogOut, ArrowLeft, BarChart2, Radio } from 'lucide-react'
+import { Shield, Building2, Users, Calendar, UserCheck, LogOut, ArrowLeft, BarChart2, Radio, ShieldCheck } from 'lucide-react'
 
 interface Props {
-  ativo?: 'dashboard' | 'empresas' | 'pacientes' | 'agendamentos' | 'medicos' | 'tempo-real'
+  ativo?: 'dashboard' | 'empresas' | 'pacientes' | 'agendamentos' | 'medicos' | 'tempo-real' | 'auditoria'
   /** Título da tela exibido como badge destacado (ex: "Empresa"). Omitir na navegação principal. */
   titulo?: string
   /** Href do botão Voltar. Quando fornecido, exibe o botão em vez da nav completa. */
@@ -74,6 +74,9 @@ export default function AdminHeader({ ativo, titulo, backHref }: Props) {
               <Radio className="w-4 h-4" />
               <span className="hidden md:inline">Tempo Real</span>
               <span className="absolute -top-1 -right-1.5 w-2 h-2 rounded-full bg-green-400 animate-pulse border border-[#1A3A2C]" />
+            </Link>
+            <Link href="/admin/auditoria" className={`${linkBase} ${ativo === 'auditoria' ? linkAtivo : linkInativo}`}>
+              <ShieldCheck className="w-4 h-4" /> <span className="hidden md:inline">Auditoria</span>
             </Link>
             <form action="/api/auth/signout" method="POST">
               <button type="submit" className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-full text-sm font-medium transition-colors">
