@@ -17,10 +17,25 @@ export async function POST(req: NextRequest) {
   if (!medico) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
   const body = await req.json()
-  const { paciente_id, atendimento_id, data_inicio, data_fim, dias, cid, texto_complementar, observacoes } = body
+  const {
+    paciente_id, atendimento_id, data_inicio, data_fim, dias, cid,
+    texto_complementar, observacoes, tipo,
+    hora_inicio, hora_fim, nome_acompanhante, relacao_acompanhante,
+  } = body
 
-  if (!paciente_id || !data_inicio || !data_fim || !dias) {
+  const tipoAtestado: 'afastamento' | 'comparecimento' | 'acompanhamento' = tipo || 'afastamento'
+
+  if (!paciente_id || !data_inicio || !data_fim) {
     return NextResponse.json({ error: 'Campos obrigatórios ausentes' }, { status: 400 })
+  }
+  if (tipoAtestado === 'afastamento' && !dias) {
+    return NextResponse.json({ error: 'Dias de afastamento é obrigatório' }, { status: 400 })
+  }
+  if (tipoAtestado === 'comparecimento' && (!hora_inicio || !hora_fim)) {
+    return NextResponse.json({ error: 'Hora de entrada e saída são obrigatórias' }, { status: 400 })
+  }
+  if (tipoAtestado === 'acompanhamento' && (!hora_inicio || !hora_fim || !nome_acompanhante || !relacao_acompanhante)) {
+    return NextResponse.json({ error: 'Nome do acompanhante, relação e horários são obrigatórios' }, { status: 400 })
   }
 
   const admin = createAdminClient()
@@ -41,10 +56,15 @@ export async function POST(req: NextRequest) {
     data_emissao: new Date().toISOString().split('T')[0],
     data_inicio,
     data_fim,
-    dias,
+    dias: dias || 1,
     cid: cid || null,
     texto_complementar: texto_complementar || null,
     observacoes: observacoes || null,
+    tipo: tipoAtestado,
+    hora_inicio: hora_inicio || null,
+    hora_fim: hora_fim || null,
+    nome_acompanhante: nome_acompanhante || null,
+    relacao_acompanhante: relacao_acompanhante || null,
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

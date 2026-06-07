@@ -1,8 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, FileText, Download, CheckCircle2, X, AlertCircle } from 'lucide-react'
+import {
+  Loader2, FileText, Download, CheckCircle2, X, AlertCircle,
+  BriefcaseMedical, CalendarCheck, Users,
+} from 'lucide-react'
 import { drTitle } from '@/lib/medico-utils'
+
+type TipoAtestado = 'afastamento' | 'comparecimento' | 'acompanhamento'
 
 interface AtestadoFormProps {
   atendimentoId: string
@@ -22,6 +27,22 @@ interface AtestadoFormProps {
   }
   onFechar?: () => void
   onSalvo?: (atestado: any) => void
+}
+
+const RELACOES = [
+  'Pai',
+  'Mãe',
+  'Cônjuge/Companheiro(a)',
+  'Filho(a)',
+  'Irmão/Irmã',
+  'Responsável Legal',
+  'Outro',
+] as const
+
+const TITULOS_PDF: Record<TipoAtestado, string> = {
+  afastamento:    'Atestado de Afastamento do Trabalho',
+  comparecimento: 'Atestado de Comparecimento',
+  acompanhamento: 'Atestado de Acompanhamento',
 }
 
 function extensoDias(n: number) {
@@ -45,6 +66,7 @@ function calcDataFim(inicio: string, dias: number): string {
 }
 
 function gerarPDF(params: {
+  tipo: TipoAtestado
   paciente: AtestadoFormProps['paciente']
   medico: AtestadoFormProps['medico']
   dias: number
@@ -53,16 +75,46 @@ function gerarPDF(params: {
   cid: string
   textComplementar: string
   observacoes: string
+  horaInicio: string
+  horaFim: string
+  nomeAcompanhante: string
+  relacaoAcompanhante: string
 }) {
-  const { paciente, medico, dias, dataInicio, dataEmissao, cid, textComplementar, observacoes } = params
-  const dataFim = calcDataFim(dataInicio, dias)
-  const diasExt = extensoDias(dias)
+  const {
+    tipo, paciente, medico, dias, dataInicio, dataEmissao, cid, textComplementar,
+    observacoes, horaInicio, horaFim, nomeAcompanhante, relacaoAcompanhante,
+  } = params
 
   const sexoPac = paciente.sexo === 'feminino' ? 'a paciente' : 'o paciente'
-  const artigo = paciente.sexo === 'feminino' ? 'a Sra.' : 'o Sr.'
   const nascFormatado = paciente.data_nascimento
     ? `nascido(a) em ${fmtData(paciente.data_nascimento)}, `
     : ''
+  const cpfTrecho = paciente.cpf ? `, portador(a) do CPF nº <span class="highlight">${paciente.cpf}</span>,` : ','
+
+  let corpo = ''
+  if (tipo === 'afastamento') {
+    const dataFim = calcDataFim(dataInicio, dias)
+    const diasExt = extensoDias(dias)
+    corpo = `
+    Atesto, para os devidos fins, que ${sexoPac} <span class="highlight">${paciente.nome}</span>${cpfTrecho}
+    ${nascFormatado}esteve sob minha assistência médica e encontra-se
+    impossibilitado(a) de comparecer às suas atividades laborais pelo período de
+    <span class="highlight">${dias} (${diasExt}) ${dias === 1 ? 'dia' : 'dias'}</span>,
+    a contar de <span class="highlight">${fmtData(dataInicio)}</span> a <span class="highlight">${fmtData(dataFim)}</span>.`
+  } else if (tipo === 'comparecimento') {
+    corpo = `
+    Atesto, para os devidos fins, que ${sexoPac} <span class="highlight">${paciente.nome}</span>${cpfTrecho}
+    ${nascFormatado}compareceu à consulta médica nesta Unidade no dia
+    <span class="highlight">${fmtData(dataEmissao)}</span>, no período das
+    <span class="highlight">${horaInicio}</span> às <span class="highlight">${horaFim}</span>.`
+  } else {
+    corpo = `
+    Atesto, para os devidos fins, que <span class="highlight">${nomeAcompanhante}</span>,
+    ${relacaoAcompanhante} do(a) paciente <span class="highlight">${paciente.nome}</span>${cpfTrecho}
+    ${nascFormatado}acompanhou o(a) mesmo(a) durante consulta médica realizada nesta Unidade no dia
+    <span class="highlight">${fmtData(dataEmissao)}</span>, no período das
+    <span class="highlight">${horaInicio}</span> às <span class="highlight">${horaFim}</span>.`
+  }
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -119,16 +171,11 @@ function gerarPDF(params: {
   </div>
 
   <div class="title-block">
-    <div class="title">Atestado Médico</div>
+    <div class="title">${TITULOS_PDF[tipo]}</div>
     <div class="title-line"></div>
   </div>
 
-  <p class="body-text">
-    Atesto, para os devidos fins, que ${sexoPac} <span class="highlight">${paciente.nome}</span>${paciente.cpf ? `, portador(a) do CPF nº <span class="highlight">${paciente.cpf}</span>,` : ','} 
-    ${nascFormatado}esteve sob minha assistência médica e encontra-se 
-    impossibilitado(a) de comparecer às suas atividades laborais pelo período de 
-    <span class="highlight">${dias} (${diasExt}) ${dias === 1 ? 'dia' : 'dias'}</span>, 
-    a contar de <span class="highlight">${fmtData(dataInicio)}</span> a <span class="highlight">${fmtData(dataFim)}</span>.
+  <p class="body-text">${corpo}
   </p>
 
   ${cid ? `<div><div class="cid-box">CID-10: ${cid}</div></div>` : ''}
@@ -163,10 +210,22 @@ function gerarPDF(params: {
 export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medico, onFechar, onSalvo }: AtestadoFormProps) {
   const hoje = new Date().toISOString().split('T')[0]
 
+  const [tipo, setTipo] = useState<TipoAtestado>('afastamento')
+
+  // Afastamento
   const [dias, setDias] = useState(1)
   const [dataInicio, setDataInicio] = useState(hoje)
   const [cid, setCid] = useState('')
   const [textComplementar, setTextComplementar] = useState('')
+
+  // Comparecimento / Acompanhamento
+  const [horaInicio, setHoraInicio] = useState('')
+  const [horaFim, setHoraFim] = useState('')
+
+  // Acompanhamento
+  const [nomeAcompanhante, setNomeAcompanhante] = useState('')
+  const [relacaoAcompanhante, setRelacaoAcompanhante] = useState('')
+
   const [observacoes, setObservacoes] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [salvo, setSalvo] = useState(false)
@@ -175,24 +234,45 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
 
   const dataFim = calcDataFim(dataInicio, dias)
 
+  const valido =
+    tipo === 'afastamento'
+      ? !!dias && !!dataInicio && !!cid.trim()
+      : tipo === 'comparecimento'
+        ? !!horaInicio && !!horaFim
+        : !!nomeAcompanhante.trim() && !!relacaoAcompanhante && !!horaInicio && !!horaFim
+
+  function resetar() {
+    setSalvo(false); setAtestadoSalvo(null)
+    setDias(1); setDataInicio(hoje); setCid(''); setTextComplementar('')
+    setHoraInicio(''); setHoraFim('')
+    setNomeAcompanhante(''); setRelacaoAcompanhante('')
+    setObservacoes('')
+  }
+
   async function salvar() {
-    if (!dias || !dataInicio || !cid.trim()) return
+    if (!valido) return
     setSalvando(true)
     setErro('')
     try {
+      const afast = tipo === 'afastamento'
       const res = await fetch('/api/medico/atestados', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           paciente_id: pacienteId,
           atendimento_id: atendimentoId,
+          tipo,
           data_emissao: hoje,
-          data_inicio: dataInicio,
-          data_fim: dataFim,
-          dias,
-          cid: cid || null,
-          texto_complementar: textComplementar || null,
+          data_inicio: afast ? dataInicio : hoje,
+          data_fim: afast ? dataFim : hoje,
+          dias: afast ? dias : 1,
+          cid: tipo !== 'acompanhamento' && cid ? cid : null,
+          texto_complementar: afast && textComplementar ? textComplementar : null,
           observacoes: observacoes || null,
+          hora_inicio: !afast ? horaInicio : null,
+          hora_fim: !afast ? horaFim : null,
+          nome_acompanhante: tipo === 'acompanhamento' ? nomeAcompanhante.trim() : null,
+          relacao_acompanhante: tipo === 'acompanhamento' ? relacaoAcompanhante : null,
         }),
       })
       const data = await res.json()
@@ -208,8 +288,16 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
   }
 
   function baixarPDF() {
-    gerarPDF({ paciente, medico, dias, dataInicio, dataEmissao: hoje, cid, textComplementar, observacoes })
+    gerarPDF({
+      tipo, paciente, medico, dias, dataInicio, dataEmissao: hoje,
+      cid: tipo === 'acompanhamento' ? '' : cid,
+      textComplementar: tipo === 'afastamento' ? textComplementar : '',
+      observacoes, horaInicio, horaFim,
+      nomeAcompanhante: nomeAcompanhante.trim(), relacaoAcompanhante,
+    })
   }
+
+  const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]'
 
   if (salvo) {
     return (
@@ -219,7 +307,9 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
           <p className="font-semibold text-sm">Atestado salvo com sucesso!</p>
         </div>
         <p className="text-xs text-green-600">
-          {dias} dia(s) — de {fmtData(dataInicio)} a {fmtData(dataFim)}
+          {tipo === 'afastamento'
+            ? `${dias} dia(s) — de ${fmtData(dataInicio)} a ${fmtData(dataFim)}`
+            : `${TITULOS_PDF[tipo]} — ${fmtData(hoje)}, das ${horaInicio} às ${horaFim}`}
         </p>
         <div className="flex gap-2 flex-wrap">
           <button
@@ -229,7 +319,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
             <Download className="w-3.5 h-3.5" /> Baixar PDF
           </button>
           <button
-            onClick={() => { setSalvo(false); setAtestadoSalvo(null); setDias(1); setCid(''); setObservacoes(''); setTextComplementar('') }}
+            onClick={resetar}
             className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
           >
             <FileText className="w-3.5 h-3.5" /> Novo atestado
@@ -255,60 +345,150 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
         </div>
       )}
 
+      {/* Seletor de tipo */}
+      <div className="grid grid-cols-3 gap-2">
+        {([
+          { t: 'afastamento',    icon: <BriefcaseMedical className="w-4 h-4" />, label: 'Afastamento',    ativo: 'bg-[#1A3A2C] border-[#1A3A2C] text-white', inativo: 'border-gray-200 text-gray-500 hover:border-[#1A3A2C] hover:text-[#1A3A2C]' },
+          { t: 'comparecimento', icon: <CalendarCheck className="w-4 h-4" />,    label: 'Comparecimento', ativo: 'bg-blue-600 border-blue-600 text-white',   inativo: 'border-gray-200 text-gray-500 hover:border-blue-600 hover:text-blue-600' },
+          { t: 'acompanhamento', icon: <Users className="w-4 h-4" />,            label: 'Acompanhamento', ativo: 'bg-orange-500 border-orange-500 text-white', inativo: 'border-gray-200 text-gray-500 hover:border-orange-500 hover:text-orange-500' },
+        ] as { t: TipoAtestado; icon: React.ReactNode; label: string; ativo: string; inativo: string }[]).map(({ t, icon, label, ativo, inativo }) => (
+          <button
+            key={t}
+            onClick={() => setTipo(t)}
+            className={`flex flex-col items-center gap-1 border rounded-xl px-2 py-2.5 text-[11px] font-semibold transition-colors ${tipo === t ? ativo : inativo}`}
+          >
+            {icon}
+            {label}
+          </button>
+        ))}
+      </div>
+
       {/* Paciente */}
       <div className="bg-[#F0F9F5] rounded-xl px-3 py-2.5">
         <p className="text-xs font-semibold text-[#1A3A2C]">{paciente.nome}</p>
         {paciente.cpf && <p className="text-xs text-gray-500">CPF: {paciente.cpf}</p>}
       </div>
 
-      {/* Campos */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Dias de afastamento *</label>
-          <input
-            type="number" min={1} max={365} value={dias}
-            onChange={e => setDias(Math.max(1, parseInt(e.target.value) || 1))}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Data de início *</label>
-          <input
-            type="date" value={dataInicio}
-            onChange={e => setDataInicio(e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
-          />
-        </div>
-      </div>
+      {/* ── Campos: Afastamento ── */}
+      {tipo === 'afastamento' && (
+        <>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Dias de afastamento *</label>
+              <input
+                type="number" min={1} max={365} value={dias}
+                onChange={e => setDias(Math.max(1, parseInt(e.target.value) || 1))}
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Data de início *</label>
+              <input
+                type="date" value={dataInicio}
+                onChange={e => setDataInicio(e.target.value)}
+                className={inputCls}
+              />
+            </div>
+          </div>
 
-      {/* Preview de data fim */}
-      <p className="text-xs text-gray-400">
-        Período: <span className="font-medium text-gray-600">{fmtData(dataInicio)}</span> até <span className="font-medium text-gray-600">{fmtData(dataFim)}</span>
-      </p>
+          {/* Preview de data fim */}
+          <p className="text-xs text-gray-400">
+            Período: <span className="font-medium text-gray-600">{fmtData(dataInicio)}</span> até <span className="font-medium text-gray-600">{fmtData(dataFim)}</span>
+          </p>
 
-      <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">
-          CID-10 <span className="text-red-400">*</span>
-        </label>
-        <input
-          type="text" value={cid} onChange={e => setCid(e.target.value.toUpperCase())}
-          placeholder="Ex: J00, Z76.0, M54.5"
-          className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] font-mono ${!cid.trim() ? 'border-red-200 bg-red-50' : 'border-gray-200'}`}
-        />
-        {!cid.trim() && <p className="text-red-400 text-xs mt-1">CID-10 é obrigatório</p>}
-      </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              CID-10 <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="text" value={cid} onChange={e => setCid(e.target.value.toUpperCase())}
+              placeholder="Ex: J00, Z76.0, M54.5"
+              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] font-mono ${!cid.trim() ? 'border-red-200 bg-red-50' : 'border-gray-200'}`}
+            />
+            {!cid.trim() && <p className="text-red-400 text-xs mt-1">CID-10 é obrigatório</p>}
+          </div>
 
-      <div>
-        <label className="block text-xs font-medium text-gray-600 mb-1">
-          Motivo / Diagnóstico <span className="text-gray-400">(opcional)</span>
-        </label>
-        <textarea
-          value={textComplementar} onChange={e => setTextComplementar(e.target.value)}
-          rows={2}
-          placeholder="Descrição do diagnóstico ou informações complementares para o atestado..."
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none"
-        />
-      </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              Motivo / Diagnóstico <span className="text-gray-400">(opcional)</span>
+            </label>
+            <textarea
+              value={textComplementar} onChange={e => setTextComplementar(e.target.value)}
+              rows={2}
+              placeholder="Descrição do diagnóstico ou informações complementares para o atestado..."
+              className={`${inputCls} resize-none`}
+            />
+          </div>
+        </>
+      )}
+
+      {/* ── Campos: Comparecimento ── */}
+      {tipo === 'comparecimento' && (
+        <>
+          <p className="text-xs text-gray-400">
+            Data do comparecimento: <span className="font-medium text-gray-600">{fmtData(hoje)}</span> (data da consulta)
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Hora de entrada *</label>
+              <input type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Hora de saída *</label>
+              <input type="time" value={horaFim} onChange={e => setHoraFim(e.target.value)} className={inputCls} />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">
+              CID-10 <span className="text-gray-400">(opcional)</span>
+            </label>
+            <input
+              type="text" value={cid} onChange={e => setCid(e.target.value.toUpperCase())}
+              placeholder="Ex: J00, Z76.0, M54.5"
+              className={`${inputCls} font-mono`}
+            />
+          </div>
+        </>
+      )}
+
+      {/* ── Campos: Acompanhamento ── */}
+      {tipo === 'acompanhamento' && (
+        <>
+          <p className="text-xs text-gray-400">
+            Data do acompanhamento: <span className="font-medium text-gray-600">{fmtData(hoje)}</span> (data da consulta)
+          </p>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Nome do acompanhante *</label>
+            <input
+              type="text" value={nomeAcompanhante}
+              onChange={e => setNomeAcompanhante(e.target.value)}
+              placeholder="Nome completo do acompanhante"
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Relação com o paciente *</label>
+            <select
+              value={relacaoAcompanhante}
+              onChange={e => setRelacaoAcompanhante(e.target.value)}
+              className={`${inputCls} bg-white`}
+            >
+              <option value="">Selecione...</option>
+              {RELACOES.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Hora de entrada *</label>
+              <input type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Hora de saída *</label>
+              <input type="time" value={horaFim} onChange={e => setHoraFim(e.target.value)} className={inputCls} />
+            </div>
+          </div>
+        </>
+      )}
 
       <div>
         <label className="block text-xs font-medium text-gray-600 mb-1">Observações internas <span className="text-gray-400">(opcional)</span></label>
@@ -316,7 +496,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
           value={observacoes} onChange={e => setObservacoes(e.target.value)}
           rows={2}
           placeholder="Observações que aparecerão no atestado..."
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none"
+          className={`${inputCls} resize-none`}
         />
       </div>
 
@@ -329,14 +509,14 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
       <div className="flex gap-2">
         <button
           onClick={salvar}
-          disabled={salvando || !dias || !dataInicio || !cid.trim()}
+          disabled={salvando || !valido}
           className="flex-1 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
         >
           {salvando ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : <><FileText className="w-4 h-4" /> Salvar atestado</>}
         </button>
         <button
           onClick={baixarPDF}
-          disabled={!dias || !dataInicio}
+          disabled={!valido}
           title="Prévia do PDF (sem salvar)"
           className="border border-gray-200 text-gray-500 hover:bg-gray-50 px-3 py-2.5 rounded-xl text-sm transition-colors disabled:opacity-40"
         >
