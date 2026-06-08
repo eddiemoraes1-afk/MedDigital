@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   Loader2, RefreshCw, Pill, Calendar, Users, DollarSign,
-  Search, Filter, X, Download, Printer, Package,
+  Search, Filter, X, Package,
 } from 'lucide-react'
+import ActionButtons from '@/components/ActionButtons'
 import * as XLSX from 'xlsx'
 
 // ── Debounce ──────────────────────────────────────────────────────────────────
@@ -408,33 +409,14 @@ export default function AdminReceitasDashboard() {
           </h2>
           <p className="text-xs text-gray-400 mt-0.5">Receitas emitidas pelos médicos em todas as consultas</p>
         </div>
-        <div className="flex items-center gap-2">
-          {data && (
-            <>
-              <button
-                onClick={() => exportarExcel(data, descricaoFiltros())}
-                disabled={carregando}
-                className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-              >
-                <Download className="w-3.5 h-3.5" /> Excel
-              </button>
-              <button
-                onClick={() => exportarPDF(data, descricaoFiltros())}
-                disabled={carregando}
-                className="flex items-center gap-1.5 text-xs text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-              >
-                <Printer className="w-3.5 h-3.5" /> PDF
-              </button>
-            </>
-          )}
-          <button
-            onClick={carregar}
-            disabled={carregando}
-            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#1A3A2C] border border-gray-200 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${carregando ? 'animate-spin' : ''}`} /> Atualizar
-          </button>
-        </div>
+        <ActionButtons
+          onExcel={data ? () => exportarExcel(data, descricaoFiltros()) : undefined}
+          onPDF={data ? () => exportarPDF(data, descricaoFiltros()) : undefined}
+          onRefresh={carregar}
+          excelDisabled={carregando}
+          pdfDisabled={carregando}
+          loading={carregando}
+        />
       </div>
 
       {/* Barra de filtros */}

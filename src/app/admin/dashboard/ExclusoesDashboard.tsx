@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
-  Search, Loader2, RefreshCw, Download, ShieldCheck,
+  Search, Loader2, RefreshCw, ShieldCheck,
   ShieldX, AlertTriangle, Users, X, ChevronDown, ChevronUp,
-  Building2, Stethoscope, Printer,
+  Building2, Stethoscope,
 } from 'lucide-react'
+import ActionButtons from '@/components/ActionButtons'
 import * as XLSX from 'xlsx'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -577,26 +578,19 @@ export default function AdminExclusoesDashboard() {
           {data.empresas.map(e => <option key={e.id} value={e.id}>{e.nome}</option>)}
         </select>
 
-        <button onClick={handleAtualizar}
-          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium border border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors">
-          <RefreshCw className="w-3.5 h-3.5" /> Atualizar
-        </button>
-
-        {/* Exports */}
-        <div className="ml-auto flex items-center gap-2">
-          <span className="text-xs text-gray-400">
-            <span className="font-semibold text-[#1A3A2C]">{filtradas.length}</span> de {lista.length} protocolos
+        <div className="ml-auto flex items-center gap-3">
+          <span className="text-xs" style={{ color: 'var(--txt-3)' }}>
+            <span className="font-semibold" style={{ color: 'var(--txt-1)' }}>{filtradas.length}</span> de {lista.length} protocolos
           </span>
-          <button onClick={exportarExcel} disabled={exportando || filtradas.length === 0}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 transition-colors">
-            {exportando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-            Excel
-          </button>
-          <button onClick={exportarPdf} disabled={exportandoPdf || filtradas.length === 0}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium bg-red-600 hover:bg-red-700 text-white disabled:opacity-60 transition-colors">
-            {exportandoPdf ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Printer className="w-3.5 h-3.5" />}
-            PDF
-          </button>
+          <ActionButtons
+            onExcel={exportarExcel}
+            onPDF={exportarPdf}
+            onRefresh={handleAtualizar}
+            excelDisabled={exportando || filtradas.length === 0}
+            pdfDisabled={exportandoPdf || filtradas.length === 0}
+            exportando={exportando}
+            exportandoPdf={exportandoPdf}
+          />
         </div>
       </div>
 

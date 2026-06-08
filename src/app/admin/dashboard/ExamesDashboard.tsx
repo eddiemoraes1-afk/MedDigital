@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import {
-  Loader2, RefreshCw, FlaskConical, Calendar, Users,
-  Filter, X, Download, Printer, AlertTriangle,
+  Loader2, FlaskConical, Calendar, Users,
+  Filter, X, AlertTriangle,
 } from 'lucide-react'
+import ActionButtons from '@/components/ActionButtons'
 import * as XLSX from 'xlsx'
 
 // ── Debounce ──────────────────────────────────────────────────────────────────
@@ -371,20 +372,12 @@ export default function ExamesDashboard() {
             </button>
           )}
 
-          <div className="ml-auto flex items-center gap-2">
-            <button onClick={() => exportarExcel(data, inicio, fim)} disabled={!data}
-              className="flex items-center gap-1.5 border border-green-600 text-green-700 hover:bg-green-50 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-40">
-              <Download className="w-3.5 h-3.5" /> Excel
-            </button>
-            <button onClick={() => exportarPDF(data, inicio, fim)} disabled={!data}
-              className="flex items-center gap-1.5 border border-red-500 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-40">
-              <Printer className="w-3.5 h-3.5" /> PDF
-            </button>
-            <button onClick={() => carregar(inicio, fim, empresaId, urgenciaFiltro, dNomePac, dNomeExame)}
-              className="flex items-center gap-1.5 border border-gray-300 text-gray-600 hover:bg-gray-50 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
-              <RefreshCw className="w-3.5 h-3.5" /> Atualizar
-            </button>
-          </div>
+          <ActionButtons
+            className="ml-auto"
+            onExcel={data ? () => exportarExcel(data, inicio, fim) : undefined}
+            onPDF={data ? () => exportarPDF(data, inicio, fim) : undefined}
+            onRefresh={() => carregar(inicio, fim, empresaId, urgenciaFiltro, dNomePac, dNomeExame)}
+          />
         </div>
 
         {/* Filtros ativos */}

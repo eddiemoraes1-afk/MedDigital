@@ -2,7 +2,8 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { FileSpreadsheet, FileText, Search, X } from 'lucide-react'
+import { Search, X } from 'lucide-react'
+import ActionButtons from '@/components/ActionButtons'
 
 interface Empresa {
   id: string
@@ -156,21 +157,12 @@ export default function FiltrosPacientes({ empresas, total, nomeInicial, cadastr
           </button>
         )}
 
-        <span className="text-xs text-gray-400 ml-auto">{total} resultado(s)</span>
+        <span className="text-xs ml-auto" style={{ color: 'var(--txt-3)' }}>{total} resultado(s)</span>
 
-        {/* Exportar */}
-        <button
-          onClick={() => exportar('xlsx')}
-          className="flex items-center gap-1.5 text-sm text-green-700 bg-green-50 hover:bg-green-100 px-3 py-2 rounded-xl transition-colors font-medium"
-        >
-          <FileSpreadsheet className="w-4 h-4" /> Excel
-        </button>
-        <button
-          onClick={() => exportar('pdf')}
-          className="flex items-center gap-1.5 text-sm text-red-700 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-xl transition-colors font-medium"
-        >
-          <FileText className="w-4 h-4" /> PDF
-        </button>
+        <ActionButtons
+          onExcel={() => exportar('xlsx')}
+          onPDF={() => exportar('pdf')}
+        />
       </div>
     </div>
   )

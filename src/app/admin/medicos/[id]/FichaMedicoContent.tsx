@@ -5,9 +5,10 @@ import Link from 'next/link'
 import {
   Activity, Building2, Users, Clock, CheckCircle2,
   Search, X, SlidersHorizontal, DollarSign, TrendingDown,
-  TrendingUp, FileText, ClipboardList, FileSpreadsheet, Printer,
+  TrendingUp, FileText, ClipboardList,
   FlaskConical, ShieldCheck, XCircle,
 } from 'lucide-react'
+import ActionButtons from '@/components/ActionButtons'
 
 // ── Types (exported so page.tsx can build them) ───────────────────────────────
 
@@ -492,14 +493,7 @@ export default function FichaMedicoContent({
                     {custoConsulta > 0 && ` · ${formatBRL(custoConsultas)} custo`}
                   </span>
                 )}
-                <button onClick={exportExcel}
-                  className="flex items-center gap-1 text-xs bg-green-50 hover:bg-green-100 text-green-700 px-2.5 py-1.5 rounded-lg transition-colors font-medium">
-                  <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
-                </button>
-                <button onClick={exportPDF}
-                  className="flex items-center gap-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1.5 rounded-lg transition-colors font-medium">
-                  <Printer className="w-3.5 h-3.5" /> PDF
-                </button>
+                <ActionButtons onExcel={exportExcel} onPDF={exportPDF} />
               </div>
             </div>
 

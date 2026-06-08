@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
-  Loader2, RefreshCw, ScrollText,
-  X, Download, Printer, Search,
+  Loader2, ScrollText,
+  X, Search,
   Stethoscope, FileText, Pill, FlaskConical, ClipboardList, ListCheck,
   ChevronLeft, ChevronRight, UserPlus, SlidersHorizontal,
 } from 'lucide-react'
+import ActionButtons from '@/components/ActionButtons'
 import * as XLSX from 'xlsx'
 import SessoesDashboard from './SessoesDashboard'
 
@@ -373,21 +374,20 @@ ${rows.map(l => `<tr>
           <span className="flex items-center gap-2 text-sm font-semibold text-[#1A3A2C]">
             <SlidersHorizontal className="w-4 h-4" /> Filtros
           </span>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             {temFiltroAtivo && (
               <button onClick={limparFiltros} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs text-red-500 border border-red-200 hover:bg-red-50 transition">
                 <X className="w-3 h-3" /> Limpar
               </button>
             )}
-            <button onClick={fetchData} disabled={loading} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white bg-[#1A3A2C] hover:bg-[#2a5040] transition disabled:opacity-60">
-              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Atualizar
-            </button>
-            <button onClick={exportarExcel} disabled={!logsFiltrados.length} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white bg-emerald-600 hover:bg-emerald-700 transition disabled:opacity-40">
-              <Download className="w-3.5 h-3.5" /> Excel
-            </button>
-            <button onClick={exportarPDF} disabled={!logsFiltrados.length} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-40">
-              <Printer className="w-3.5 h-3.5" /> PDF
-            </button>
+            <ActionButtons
+              onExcel={exportarExcel}
+              onPDF={exportarPDF}
+              onRefresh={fetchData}
+              excelDisabled={!logsFiltrados.length}
+              pdfDisabled={!logsFiltrados.length}
+              loading={loading}
+            />
           </div>
         </div>
 

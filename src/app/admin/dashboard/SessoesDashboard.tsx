@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
-  Loader2, RefreshCw, LogIn, LogOut, Clock, Users,
-  Download, Printer, Search, X, SlidersHorizontal,
+  Loader2, LogIn, LogOut, Clock, Users,
+  Search, X, SlidersHorizontal,
   ChevronLeft, ChevronRight, Wifi, WifiOff, ShieldOff,
 } from 'lucide-react'
+import ActionButtons from '@/components/ActionButtons'
 import * as XLSX from 'xlsx'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -287,15 +288,12 @@ ${rows.map(s => {
           <span className="flex items-center gap-2 text-sm font-semibold text-[#1A3A2C]">
             <SlidersHorizontal className="w-4 h-4" /> Filtros
           </span>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap items-center">
             {temFiltro && (
               <button onClick={limpar} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs text-red-500 border border-red-200 hover:bg-red-50 transition">
                 <X className="w-3 h-3" /> Limpar
               </button>
             )}
-            <button onClick={fetchData} disabled={loading} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white bg-[#1A3A2C] hover:bg-[#2a5040] transition disabled:opacity-60">
-              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />} Atualizar
-            </button>
             <button onClick={fecharSessoesInativas} disabled={limpando} title="Encerrar sessões sem logout há mais de 4 horas"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white bg-amber-600 hover:bg-amber-700 transition disabled:opacity-60">
               {limpando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldOff className="w-3.5 h-3.5" />} Fechar inativas
@@ -305,12 +303,14 @@ ${rows.map(s => {
                 {msgCleanup}
               </span>
             )}
-            <button onClick={exportarExcel} disabled={!sessoesFiltradas.length} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white bg-emerald-600 hover:bg-emerald-700 transition disabled:opacity-40">
-              <Download className="w-3.5 h-3.5" /> Excel
-            </button>
-            <button onClick={exportarPDF} disabled={!sessoesFiltradas.length} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-white bg-red-600 hover:bg-red-700 transition disabled:opacity-40">
-              <Printer className="w-3.5 h-3.5" /> PDF
-            </button>
+            <ActionButtons
+              onExcel={exportarExcel}
+              onPDF={exportarPDF}
+              onRefresh={fetchData}
+              excelDisabled={!sessoesFiltradas.length}
+              pdfDisabled={!sessoesFiltradas.length}
+              loading={loading}
+            />
           </div>
         </div>
 

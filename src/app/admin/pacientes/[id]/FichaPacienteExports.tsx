@@ -1,6 +1,6 @@
 'use client'
 
-import { FileSpreadsheet, Printer } from 'lucide-react'
+import ActionButtons from '@/components/ActionButtons'
 
 export interface AtendimentoExport {
   data: string
@@ -268,20 +268,5 @@ export default function FichaPacienteExports({
     if (w) { w.document.write(html); w.document.close() }
   }
 
-  return (
-    <div className="flex items-center gap-2">
-      <button
-        onClick={exportExcel}
-        className="flex items-center gap-1.5 text-xs bg-green-50 hover:bg-green-100 text-green-700 px-3 py-2 rounded-xl transition-colors font-medium shadow-sm"
-      >
-        <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
-      </button>
-      <button
-        onClick={exportPDF}
-        className="flex items-center gap-1.5 text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-2 rounded-xl transition-colors font-medium shadow-sm"
-      >
-        <Printer className="w-3.5 h-3.5" /> PDF
-      </button>
-    </div>
-  )
+  return <ActionButtons onExcel={exportExcel} onPDF={exportPDF} />
 }
