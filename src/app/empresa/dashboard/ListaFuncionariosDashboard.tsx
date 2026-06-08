@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react'
 import {
   Search, CheckCircle2, XCircle, Loader2,
-  Download, Users, X, RefreshCw,
+  Users, X, RefreshCw,
 } from 'lucide-react'
+import ActionButtons from '@/components/ActionButtons'
 
 interface Funcionario {
   id: string
@@ -160,14 +161,11 @@ export default function ListaFuncionariosDashboard() {
           Funcionários
           <span className="text-xs font-normal text-gray-400">({vinculos.length})</span>
         </h2>
-        <button
-          onClick={exportarExcel}
-          disabled={exportando || filtrados.length === 0}
-          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 transition-colors"
-        >
-          {exportando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-          Exportar Excel
-        </button>
+        <ActionButtons
+          onExcel={exportarExcel}
+          excelDisabled={exportando || filtrados.length === 0}
+          exportando={exportando}
+        />
       </div>
 
       {/* Barra de filtros */}

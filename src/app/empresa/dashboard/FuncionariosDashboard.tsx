@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { Users, Loader2, RefreshCw, BarChart2, Download, Search, X, FileText } from 'lucide-react'
+import { Users, Loader2, RefreshCw, BarChart2, Search, X } from 'lucide-react'
+import ActionButtons from '@/components/ActionButtons'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface KPIs {
@@ -754,22 +755,12 @@ export default function FuncionariosDashboard() {
                 } · Clique em uma linha para ver dependentes
               </p>
             </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
-                onClick={() => exportarExcel(data, setExportandoExcel)}
-                disabled={exportandoExcel}
-                className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-60 transition-colors"
-              >
-                {exportandoExcel ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-                Excel
-              </button>
-              <button
-                onClick={() => exportarPDF(titularesFiltrados, 'Custo por Funcionário')}
-                className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-              >
-                <FileText className="w-3.5 h-3.5" /> PDF
-              </button>
-            </div>
+            <ActionButtons
+              onExcel={() => exportarExcel(data, setExportandoExcel)}
+              onPDF={() => exportarPDF(titularesFiltrados, 'Custo por Funcionário')}
+              excelDisabled={exportandoExcel}
+              exportando={exportandoExcel}
+            />
           </div>
 
           {/* Filtros */}

@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
-  Search, Loader2, RefreshCw, Download, ShieldCheck,
+  Search, Loader2, RefreshCw, ShieldCheck,
   ShieldX, AlertTriangle, Users, X, ChevronDown, ChevronUp,
 } from 'lucide-react'
+import ActionButtons from '@/components/ActionButtons'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 interface ExclusaoItem {
@@ -406,11 +407,11 @@ export default function ExclusoesDashboard() {
           <span className="text-xs text-gray-400">
             <span className="font-semibold text-[#1A3A2C]">{filtradas.length}</span> de {lista.length} protocolos
           </span>
-          <button onClick={exportarExcel} disabled={exportando || filtradas.length === 0}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-60 transition-colors">
-            {exportando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-            Excel
-          </button>
+          <ActionButtons
+            onExcel={exportarExcel}
+            excelDisabled={exportando || filtradas.length === 0}
+            exportando={exportando}
+          />
         </div>
       </div>
 

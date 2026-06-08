@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   BarChart2, TrendingDown, Building2, DollarSign,
-  Download, Printer, Loader2, Activity, Users, RefreshCw, UserCheck, FileText,
+  Loader2, Activity, Users, RefreshCw, UserCheck, FileText,
 } from 'lucide-react'
+import ActionButtons from '@/components/ActionButtons'
 
 // ============================================================
 // TYPES
@@ -574,20 +575,13 @@ export default function EmpresaDashboardClient() {
           </div>
         )}
 
-        <div className="ml-auto flex gap-2">
-          <button onClick={() => exportarExcel(data, setExportandoExcel)} disabled={exportandoExcel}
-            className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-lg font-medium disabled:opacity-60 transition-colors"
-            style={{ background: 'var(--success-bg)', color: 'var(--success)', border: '1px solid color-mix(in srgb, var(--success) 25%, transparent)' }}>
-            {exportandoExcel ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-            Excel
-          </button>
-          <button onClick={() => exportarPDF(data)}
-            className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-lg font-medium transition-colors"
-            style={{ background: 'var(--danger-bg)', color: 'var(--danger)', border: '1px solid color-mix(in srgb, var(--danger) 25%, transparent)' }}>
-            <Printer className="w-3.5 h-3.5" />
-            PDF
-          </button>
-        </div>
+        <ActionButtons
+          className="ml-auto"
+          onExcel={() => exportarExcel(data, setExportandoExcel)}
+          onPDF={() => exportarPDF(data)}
+          excelDisabled={exportandoExcel}
+          exportando={exportandoExcel}
+        />
       </div>
 
       {/* ---- KPIs ---- */}

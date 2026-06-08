@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { BarChart2, Loader2, RefreshCw, FileText, Calendar, Users, Clock, Filter, X } from 'lucide-react'
 import { CidBadgePill, CidBadgeTable, GrupoLabel } from '@/components/CidTooltip'
+import ActionButtons from '@/components/ActionButtons'
 
 const COLORS = ['#5BBD9B','#3B82F6','#F59E0B','#8B5CF6','#EF4444','#14B8A6','#EC4899','#6366F1']
 
@@ -363,9 +364,7 @@ export default function AtestadosDashboard() {
           <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2"><FileText className="w-4 h-4 text-[#5BBD9B]" /> Dashboard de Atestados</h2>
           <p className="text-xs text-gray-400 mt-0.5">Afastamentos médicos dos funcionários</p>
         </div>
-        <button onClick={carregar} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#1A3A2C] border border-gray-200 px-3 py-1.5 rounded-lg transition-colors">
-          <RefreshCw className="w-3.5 h-3.5" /> Atualizar
-        </button>
+        <ActionButtons onRefresh={carregar} />
       </div>
 
       {/* KPIs */}
