@@ -36,11 +36,16 @@ function formatData(iso: string | null): string {
   return d.toLocaleDateString('pt-BR', { timeZone: 'UTC' })
 }
 
+const POR_PAGINA = 50
+
 export default function ListaFuncionariosDashboard() {
   const [vinculos, setVinculos] = useState<Funcionario[]>([])
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
   const [exportando, setExportando] = useState(false)
+
+  // Paginação
+  const [pagina, setPagina] = useState(1)
 
   // Filtros
   const [busca, setBusca] = useState('')
@@ -79,6 +84,15 @@ export default function ListaFuncionariosDashboard() {
   })
 
   const temFiltro = busca || buscaCpf || filtroAtivo !== 'todos' || filtroCadastro !== 'todos'
+
+  // ── Paginação ────────────────────────────────────────────────────────────────
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA))
+  const paginaAtual = Math.min(pagina, totalPaginas)
+  const paginados = filtrados.slice((paginaAtual - 1) * POR_PAGINA, paginaAtual * POR_PAGINA)
+
+  function mudarFiltro<T>(setter: (v: T) => void) {
+    return (v: T) => { setter(v); setPagina(1) }
+  }
 
   // ── Exportar Excel ───────────────────────────────────────────────────────────
   async function exportarExcel() {
@@ -163,7 +177,7 @@ export default function ListaFuncionariosDashboard() {
           <input
             type="text"
             value={busca}
-            onChange={e => setBusca(e.target.value)}
+            onChange={e => mudarFiltro(setBusca)(e.target.value)}
             placeholder="Buscar por nome..."
             className="w-full pl-9 pr-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40"
           />
@@ -174,7 +188,7 @@ export default function ListaFuncionariosDashboard() {
           <input
             type="text"
             value={buscaCpf}
-            onChange={e => setBuscaCpf(e.target.value)}
+            onChange={e => mudarFiltro(setBuscaCpf)(e.target.value)}
             placeholder="Buscar por CPF..."
             className="w-full pl-9 pr-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40"
           />
@@ -182,7 +196,7 @@ export default function ListaFuncionariosDashboard() {
 
         <select
           value={filtroAtivo}
-          onChange={e => setFiltroAtivo(e.target.value as typeof filtroAtivo)}
+          onChange={e => mudarFiltro(setFiltroAtivo)(e.target.value as typeof filtroAtivo)}
           className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-white text-gray-700"
         >
           <option value="todos">Todos os status</option>
@@ -192,7 +206,7 @@ export default function ListaFuncionariosDashboard() {
 
         <select
           value={filtroCadastro}
-          onChange={e => setFiltroCadastro(e.target.value as typeof filtroCadastro)}
+          onChange={e => mudarFiltro(setFiltroCadastro)(e.target.value as typeof filtroCadastro)}
           className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-white text-gray-700"
         >
           <option value="todos">Plataforma: todos</option>
@@ -202,7 +216,7 @@ export default function ListaFuncionariosDashboard() {
 
         {temFiltro && (
           <button
-            onClick={() => { setBusca(''); setBuscaCpf(''); setFiltroAtivo('todos'); setFiltroCadastro('todos') }}
+            onClick={() => { setBusca(''); setBuscaCpf(''); setFiltroAtivo('todos'); setFiltroCadastro('todos'); setPagina(1) }}
             className="text-xs text-gray-400 hover:text-gray-600 px-2 flex items-center gap-1"
           >
             <X className="w-3 h-3" /> Limpar
@@ -240,7 +254,7 @@ export default function ListaFuncionariosDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filtrados.map(v => (
+              {paginados.map(v => (
                 <tr key={v.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
                     <p className="font-medium text-[#1A3A2C] text-sm">{v.nome_completo}</p>
@@ -280,6 +294,53 @@ export default function ListaFuncionariosDashboard() {
               ))}
             </tbody>
           </table>
+
+          {/* Paginação */}
+          {totalPaginas > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 text-xs text-gray-500">
+              <span>
+                Exibindo {(paginaAtual - 1) * POR_PAGINA + 1}–{Math.min(paginaAtual * POR_PAGINA, filtrados.length)} de {filtrados.length}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setPagina(p => Math.max(1, p - 1))}
+                  disabled={paginaAtual === 1}
+                  className="px-2.5 py-1 rounded-lg border border-gray-200 disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                >
+                  ‹ Anterior
+                </button>
+                {Array.from({ length: totalPaginas }, (_, i) => i + 1)
+                  .filter(p => p === 1 || p === totalPaginas || Math.abs(p - paginaAtual) <= 2)
+                  .reduce<(number | '…')[]>((acc, p, i, arr) => {
+                    if (i > 0 && (arr[i - 1] as number) + 1 < p) acc.push('…')
+                    acc.push(p)
+                    return acc
+                  }, [])
+                  .map((p, i) =>
+                    p === '…'
+                      ? <span key={`e${i}`} className="px-1">…</span>
+                      : <button
+                          key={p}
+                          onClick={() => setPagina(p as number)}
+                          className={`w-8 h-7 rounded-lg border text-xs font-medium transition-colors ${
+                            paginaAtual === p
+                              ? 'bg-[#1A3A2C] border-[#1A3A2C] text-white'
+                              : 'border-gray-200 hover:bg-gray-50'
+                          }`}
+                        >
+                          {p}
+                        </button>
+                  )}
+                <button
+                  onClick={() => setPagina(p => Math.min(totalPaginas, p + 1))}
+                  disabled={paginaAtual === totalPaginas}
+                  className="px-2.5 py-1 rounded-lg border border-gray-200 disabled:opacity-40 hover:bg-gray-50 transition-colors"
+                >
+                  Próxima ›
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
