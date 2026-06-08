@@ -402,13 +402,14 @@ export default function ProducaoListasClient({
   function SearchInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
     return (
       <div className="relative">
-        <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+        <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--txt-3)' }} />
         <input
           type="text"
           placeholder="Buscar paciente…"
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="text-xs border border-gray-200 rounded-lg pl-7 pr-3 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 w-44"
+          className="text-xs rounded-lg pl-7 pr-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 w-44"
+          style={{ border: '1px solid var(--border-2)', background: 'var(--surface-2)', color: 'var(--txt-1)' }}
         />
       </div>
     )
@@ -419,29 +420,31 @@ export default function ProducaoListasClient({
 
       {/* Cabeçalho com botões de download */}
       <div className="flex items-center justify-between">
-        <h2 className="font-bold text-[#1A3A2C] text-sm px-1">Histórico Detalhado</h2>
+        <h2 className="font-bold text-sm px-1" style={{ color: 'var(--txt-1)' }}>Histórico Detalhado</h2>
         <div className="flex items-center gap-2">
           <button
             onClick={baixarCSV}
-            className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:bg-gray-50 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors"
+            style={{ background: 'var(--success-bg)', color: 'var(--success)', border: '1px solid color-mix(in srgb, var(--success) 25%, transparent)' }}
           >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-green-600" /> Excel
+            <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
           </button>
           <button
             onClick={imprimir}
-            className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:bg-gray-50 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors"
+            style={{ background: 'var(--danger-bg)', color: 'var(--danger)', border: '1px solid color-mix(in srgb, var(--danger) 25%, transparent)' }}
           >
-            <Printer className="w-3.5 h-3.5 text-blue-600" /> PDF
+            <Printer className="w-3.5 h-3.5" /> PDF
           </button>
         </div>
       </div>
 
       {/* ── Consultas ── */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
+      <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+        <div className="px-6 py-4 flex items-center justify-between gap-4" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-[#5BBD9B]" />
-            <h3 className="font-bold text-[#1A3A2C] text-sm">
+            <h3 className="font-bold text-sm" style={{ color: 'var(--txt-1)' }}>
               Consultas ({consultasFiltradas.length}{buscaC ? ` de ${consultas.length}` : ''})
             </h3>
           </div>
@@ -449,20 +452,20 @@ export default function ProducaoListasClient({
         </div>
 
         {consultasFiltradas.length === 0 ? (
-          <div className="py-10 text-center text-gray-400 text-sm">
+          <div className="py-10 text-center text-sm" style={{ color: 'var(--txt-3)' }}>
             {buscaC ? 'Nenhum paciente encontrado com esse nome' : 'Nenhuma consulta no período'}
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div>
             {consultasFiltradas.map((c, idx) => (
-              <div key={c.id} className="px-6 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
-                <span className="text-xs text-gray-300 font-mono w-5 text-right shrink-0">{idx + 1}</span>
-                <span className="text-xs text-gray-400 font-mono shrink-0 w-28">
+              <div key={c.id} className="px-6 py-3 flex items-center gap-3 transition-colors" style={{ borderTop: '1px solid var(--border)' }}>
+                <span className="text-xs font-mono w-5 text-right shrink-0" style={{ color: 'var(--txt-3)' }}>{idx + 1}</span>
+                <span className="text-xs font-mono shrink-0 w-28" style={{ color: 'var(--txt-3)' }}>
                   {fmtData(c.finalizado_em)} {fmtHora(c.finalizado_em)}
                 </span>
                 <Link
                   href={`/medico/pacientes/${c.paciente_id}?back=${encodeURIComponent('/medico/producao')}`}
-                  className="flex-1 text-sm font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
+                  className="flex-1 text-sm font-semibold hover:underline transition-colors" style={{ color: 'var(--txt-1)' }}
                 >
                   {c.paciente_nome}
                 </Link>
@@ -486,8 +489,8 @@ export default function ProducaoListasClient({
               </div>
             ))}
             {custoConsulta > 0 && consultasFiltradas.length > 0 && (
-              <div className="px-6 py-3 flex items-center justify-between bg-green-50">
-                <span className="text-xs font-bold text-[#1A3A2C]">
+              <div className="px-6 py-3 flex items-center justify-between" style={{ background: 'var(--success-bg)', borderTop: '1px solid var(--border)' }}>
+                <span className="text-xs font-bold" style={{ color: 'var(--txt-1)' }}>
                   Subtotal ({consultasFiltradas.length} consulta{consultasFiltradas.length !== 1 ? 's' : ''})
                 </span>
                 <span className="text-sm font-bold text-green-700">
@@ -500,11 +503,11 @@ export default function ProducaoListasClient({
       </div>
 
       {/* ── Atestados ── */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
+      <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+        <div className="px-6 py-4 flex items-center justify-between gap-4" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2">
             <FileText className="w-4 h-4 text-amber-500" />
-            <h3 className="font-bold text-[#1A3A2C] text-sm">
+            <h3 className="font-bold text-sm" style={{ color: 'var(--txt-1)' }}>
               Atestados ({atestadosFiltrados.length}{buscaA ? ` de ${atestados.length}` : ''})
             </h3>
           </div>
@@ -512,18 +515,18 @@ export default function ProducaoListasClient({
         </div>
 
         {atestadosFiltrados.length === 0 ? (
-          <div className="py-10 text-center text-gray-400 text-sm">
+          <div className="py-10 text-center text-sm" style={{ color: 'var(--txt-3)' }}>
             {buscaA ? 'Nenhum paciente encontrado com esse nome' : 'Nenhum atestado no período'}
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div>
             {atestadosFiltrados.map((a, idx) => (
-              <div key={a.id} className="px-6 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
-                <span className="text-xs text-gray-300 font-mono w-5 text-right shrink-0">{idx + 1}</span>
-                <span className="text-xs text-gray-400 shrink-0">{fmtData(a.criado_em)}</span>
+              <div key={a.id} className="px-6 py-3 flex items-center gap-3 transition-colors" style={{ borderTop: '1px solid var(--border)' }}>
+                <span className="text-xs font-mono w-5 text-right shrink-0" style={{ color: 'var(--txt-3)' }}>{idx + 1}</span>
+                <span className="text-xs shrink-0" style={{ color: 'var(--txt-3)' }}>{fmtData(a.criado_em)}</span>
                 <Link
                   href={`/medico/pacientes/${a.paciente_id}?back=${encodeURIComponent('/medico/producao')}`}
-                  className="flex-1 text-sm font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
+                  className="flex-1 text-sm font-semibold hover:underline transition-colors" style={{ color: 'var(--txt-1)' }}
                 >
                   {a.paciente_nome}
                 </Link>
@@ -542,11 +545,11 @@ export default function ProducaoListasClient({
       </div>
 
       {/* ── Receitas ── */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
+      <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+        <div className="px-6 py-4 flex items-center justify-between gap-4" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2">
             <ClipboardList className="w-4 h-4 text-purple-500" />
-            <h3 className="font-bold text-[#1A3A2C] text-sm">
+            <h3 className="font-bold text-sm" style={{ color: 'var(--txt-1)' }}>
               Receitas ({receitasFiltradas.length}{buscaR ? ` de ${receitas.length}` : ''})
             </h3>
           </div>
@@ -554,23 +557,23 @@ export default function ProducaoListasClient({
         </div>
 
         {receitasFiltradas.length === 0 ? (
-          <div className="py-10 text-center text-gray-400 text-sm">
+          <div className="py-10 text-center text-sm" style={{ color: 'var(--txt-3)' }}>
             {buscaR ? 'Nenhum paciente encontrado com esse nome' : 'Nenhuma receita no período'}
           </div>
         ) : (() => {
           const totalGanhoRenovacoes = receitasFiltradas.reduce((s, r) => s + (Number(r.valor_medico) || 0), 0)
           const qtdRenovacoes = receitasFiltradas.filter(r => (r.valor_medico ?? 0) > 0).length
           return (
-            <div className="divide-y divide-gray-50">
+            <div>
               {receitasFiltradas.map((r, idx) => {
                 const isRenovacao = Number(r.valor_medico ?? 0) > 0
                 return (
-                  <div key={r.id} className="px-6 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
-                    <span className="text-xs text-gray-300 font-mono w-5 text-right shrink-0">{idx + 1}</span>
-                    <span className="text-xs text-gray-400 w-20 shrink-0">{fmtData(r.criado_em)}</span>
+                  <div key={r.id} className="px-6 py-3 flex items-center gap-3 transition-colors" style={{ borderTop: '1px solid var(--border)' }}>
+                    <span className="text-xs font-mono w-5 text-right shrink-0" style={{ color: 'var(--txt-3)' }}>{idx + 1}</span>
+                    <span className="text-xs w-20 shrink-0" style={{ color: 'var(--txt-3)' }}>{fmtData(r.criado_em)}</span>
                     <Link
                       href={`/medico/pacientes/${r.paciente_id}?back=${encodeURIComponent('/medico/producao')}`}
-                      className="flex-1 text-sm font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
+                      className="flex-1 text-sm font-semibold hover:underline transition-colors" style={{ color: 'var(--txt-1)' }}
                     >
                       {r.paciente_nome}
                     </Link>
@@ -580,7 +583,7 @@ export default function ProducaoListasClient({
                           Renovação
                         </span>
                       ) : (
-                        <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-full font-medium">
+                        <span className="text-xs px-2.5 py-0.5 rounded-full font-medium" style={{ background: 'var(--surface-3)', color: 'var(--txt-3)' }}>
                           Em consulta
                         </span>
                       )}
@@ -597,15 +600,15 @@ export default function ProducaoListasClient({
                     <span className="w-20 text-right shrink-0">
                       {isRenovacao
                         ? <span className="text-sm font-bold text-green-600">{formatBRL(Number(r.valor_medico))}</span>
-                        : <span className="text-gray-300 text-sm">—</span>
+                        : <span className="text-sm" style={{ color: 'var(--border-2)' }}>—</span>
                       }
                     </span>
                   </div>
                 )
               })}
               {totalGanhoRenovacoes > 0 && (
-                <div className="px-6 py-3 flex items-center justify-between bg-purple-50">
-                  <span className="text-xs font-bold text-[#1A3A2C]">
+                <div className="px-6 py-3 flex items-center justify-between" style={{ background: 'var(--info-bg)', borderTop: '1px solid var(--border)' }}>
+                  <span className="text-xs font-bold" style={{ color: 'var(--txt-1)' }}>
                     Subtotal renovações ({qtdRenovacoes})
                   </span>
                   <span className="text-sm font-bold text-green-700">
@@ -619,11 +622,11 @@ export default function ProducaoListasClient({
       </div>
 
       {/* ── Exames ── */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
+      <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+        <div className="px-6 py-4 flex items-center justify-between gap-4" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2">
             <FlaskConical className="w-4 h-4 text-blue-500" />
-            <h3 className="font-bold text-[#1A3A2C] text-sm">
+            <h3 className="font-bold text-sm" style={{ color: 'var(--txt-1)' }}>
               Exames ({examesFiltrados.length}{buscaE ? ` de ${exames.length}` : ''})
             </h3>
           </div>
@@ -631,28 +634,28 @@ export default function ProducaoListasClient({
         </div>
 
         {examesFiltrados.length === 0 ? (
-          <div className="py-10 text-center text-gray-400 text-sm">
+          <div className="py-10 text-center text-sm" style={{ color: 'var(--txt-3)' }}>
             {buscaE ? 'Nenhum paciente encontrado com esse nome' : 'Nenhuma solicitação de exames no período'}
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div>
             {examesFiltrados.map((e, idx) => {
               const lista = e.exames.split('\n').map((l: string) => l.trim()).filter(Boolean)
               const isUrgente = e.urgencia === 'urgente' || e.urgencia === 'emergencia'
               return (
-                <div key={e.id} className="px-6 py-3 flex items-start gap-3 hover:bg-gray-50 transition-colors">
-                  <span className="text-xs text-gray-300 font-mono w-5 text-right shrink-0 mt-0.5">{idx + 1}</span>
-                  <span className="text-xs text-gray-400 shrink-0 mt-0.5">
+                <div key={e.id} className="px-6 py-3 flex items-start gap-3 transition-colors" style={{ borderTop: '1px solid var(--border)' }}>
+                  <span className="text-xs font-mono w-5 text-right shrink-0 mt-0.5" style={{ color: 'var(--txt-3)' }}>{idx + 1}</span>
+                  <span className="text-xs shrink-0 mt-0.5" style={{ color: 'var(--txt-3)' }}>
                     {e.data_solicitacao.slice(8, 10)}/{e.data_solicitacao.slice(5, 7)}
                   </span>
                   <Link
                     href={`/medico/pacientes/${e.paciente_id}?back=${encodeURIComponent('/medico/producao')}`}
-                    className="text-sm font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors shrink-0"
+                    className="text-sm font-semibold hover:underline transition-colors shrink-0" style={{ color: 'var(--txt-1)' }}
                   >
                     {e.paciente_nome}
                   </Link>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-500 truncate">{lista.join(' · ')}</p>
+                    <p className="text-xs truncate" style={{ color: 'var(--txt-3)' }}>{lista.join(' · ')}</p>
                   </div>
                   {isUrgente && (
                     <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${
@@ -669,11 +672,11 @@ export default function ProducaoListasClient({
       </div>
 
       {/* ── Protocolos de Exclusão ── */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-4">
+      <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+        <div className="px-6 py-4 flex items-center justify-between gap-4" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-teal-600" />
-            <h3 className="font-bold text-[#1A3A2C] text-sm">
+            <h3 className="font-bold text-sm" style={{ color: 'var(--txt-1)' }}>
               Prot. Exclusão ({exclusoesFiltradas.length}{buscaX ? ` de ${exclusoes.length}` : ''})
             </h3>
           </div>
@@ -681,27 +684,27 @@ export default function ProducaoListasClient({
         </div>
 
         {exclusoesFiltradas.length === 0 ? (
-          <div className="py-10 text-center text-gray-400 text-sm">
+          <div className="py-10 text-center text-sm" style={{ color: 'var(--txt-3)' }}>
             {buscaX ? 'Nenhum paciente encontrado com esse nome' : 'Nenhum protocolo de exclusão no período'}
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div>
             {exclusoesFiltradas.map((ex, idx) => (
-              <div key={ex.id} className="px-6 py-3 flex items-start gap-3 hover:bg-gray-50 transition-colors">
-                <span className="text-xs text-gray-300 font-mono w-5 text-right shrink-0 mt-0.5">{idx + 1}</span>
-                <span className="text-xs text-gray-400 shrink-0 mt-0.5">
+              <div key={ex.id} className="px-6 py-3 flex items-start gap-3 transition-colors" style={{ borderTop: '1px solid var(--border)' }}>
+                <span className="text-xs font-mono w-5 text-right shrink-0 mt-0.5" style={{ color: 'var(--txt-3)' }}>{idx + 1}</span>
+                <span className="text-xs shrink-0 mt-0.5" style={{ color: 'var(--txt-3)' }}>
                   {new Date(ex.criado_em).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', timeZone: 'America/Sao_Paulo' })}
                 </span>
                 <Link
                   href={`/medico/pacientes/${ex.paciente_id}?back=${encodeURIComponent('/medico/producao')}`}
-                  className="text-sm font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors shrink-0"
+                  className="text-sm font-semibold hover:underline transition-colors shrink-0" style={{ color: 'var(--txt-1)' }}
                 >
                   {ex.paciente_nome}
                 </Link>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-500 line-clamp-1">{ex.conduta}</p>
+                  <p className="text-xs line-clamp-1" style={{ color: 'var(--txt-3)' }}>{ex.conduta}</p>
                   {ex.motivos.length > 0 && (
-                    <p className="text-[10px] text-gray-300 mt-0.5">
+                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--txt-3)' }}>
                       {ex.motivos.length} motivo{ex.motivos.length !== 1 ? 's' : ''} · {ex.motivos[0]}{ex.motivos.length > 1 ? '…' : ''}
                     </p>
                   )}

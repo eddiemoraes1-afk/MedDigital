@@ -28,15 +28,15 @@ export default async function MedicoDashboard() {
 
   if (medico.status !== 'aprovado') {
     return (
-      <div className="min-h-screen bg-[#F3FAF7] flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl p-8 max-w-md text-center shadow-sm">
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: 'var(--bg)' }}>
+        <div className="rounded-2xl p-8 max-w-md text-center" style={{ background: 'var(--surface)', boxShadow: 'var(--shadow-md)', border: '1px solid var(--border)' }}>
           <AlertTriangle className="w-14 h-14 text-amber-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-[#1A3A2C] mb-2">Cadastro em análise</h2>
-          <p className="text-gray-500 text-sm mb-4">
+          <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--txt-1)' }}>Cadastro em análise</h2>
+          <p className="text-sm mb-4" style={{ color: 'var(--txt-3)' }}>
             Seu cadastro está sendo verificado pela nossa equipe. Você receberá um e-mail assim que for aprovado.
           </p>
-          <p className="text-xs text-gray-400">Status: <strong>{medico.status}</strong></p>
-          <Link href="/login" className="mt-4 inline-block text-[#5BBD9B] text-sm">Sair</Link>
+          <p className="text-xs" style={{ color: 'var(--txt-3)' }}>Status: <strong>{medico.status}</strong></p>
+          <Link href="/login" className="mt-4 inline-block text-sm" style={{ color: 'var(--brand-2)' }}>Sair</Link>
         </div>
       </div>
     )
@@ -210,7 +210,7 @@ export default async function MedicoDashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7] scroll-smooth">
+    <div className="min-h-screen scroll-smooth" style={{ background: 'var(--bg)' }}>
       <PingMedico />
       <MedicoHeader titulo="Painel do Médico" medicoNome={medico.nome} medicoSexo={medico.sexo} medicoFotoUrl={medico.foto_url} />
 
@@ -225,8 +225,8 @@ export default async function MedicoDashboard() {
             </div>
           )}
           <div>
-            <h1 className="text-2xl font-bold text-[#1A3A2C]">{saudacao}, {titulo} {medico.nome}!</h1>
-            <p className="text-gray-500 mt-1">{medico.especialidade} — CRM {medico.crm}/{medico.crm_uf}</p>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--txt-1)' }}>{saudacao}, {titulo} {medico.nome}!</h1>
+            <p className="mt-1 text-sm" style={{ color: 'var(--txt-3)' }}>{medico.especialidade} — CRM {medico.crm}/{medico.crm_uf}</p>
           </div>
         </div>
 
@@ -236,18 +236,20 @@ export default async function MedicoDashboard() {
             <a
               key={k.href}
               href={k.href}
-              className={`group rounded-2xl p-5 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 cursor-pointer ${
-                k.dark ? 'bg-[#1A3A2C] hover:bg-[#122a1f]' : 'bg-white border border-gray-50 hover:border-gray-200'
-              }`}
+              className="group rounded-2xl p-5 transition-all hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
+              style={k.dark
+                ? { background: 'var(--brand)', boxShadow: 'var(--shadow-md)' }
+                : { background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }
+              }
             >
               <div className="flex items-start justify-between mb-3">
                 <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${k.bgIcon}`}>
                   <k.icon className={`w-5 h-5 ${k.iconColor}`} />
                 </div>
-                <ChevronRight className={`w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity ${k.dark ? 'text-green-300' : 'text-gray-300'}`} />
+                <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: k.dark ? 'rgba(134,239,172,.7)' : 'var(--txt-3)' }} />
               </div>
-              <div className={`text-3xl font-bold ${k.dark ? 'text-white' : 'text-[#1A3A2C]'}`}>{k.count}</div>
-              <div className={`text-sm mt-1 ${k.dark ? 'text-green-300' : 'text-gray-400'}`}>{k.label}</div>
+              <div className="text-3xl font-bold" style={{ color: k.dark ? '#FFFFFF' : 'var(--txt-1)' }}>{k.count}</div>
+              <div className="text-sm mt-1" style={{ color: k.dark ? 'rgba(134,239,172,.85)' : 'var(--txt-3)' }}>{k.label}</div>
             </a>
           ))}
         </div>
@@ -255,50 +257,54 @@ export default async function MedicoDashboard() {
         {/* ── Atalhos ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Link href="/medico/producao"
-            className="bg-[#1A3A2C] rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow">
+            className="rounded-2xl p-5 flex items-center gap-4 transition-all hover:shadow-lg hover:-translate-y-0.5"
+            style={{ background: 'var(--brand)', boxShadow: 'var(--shadow-md)' }}>
             <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center shrink-0">
-              <BarChart2 className="w-5 h-5 text-[#5BBD9B]" />
+              <BarChart2 className="w-5 h-5" style={{ color: 'var(--brand-2)' }} />
             </div>
             <div>
               <p className="font-semibold text-white text-sm">Minha Produção</p>
-              <p className="text-xs text-green-300">Ver ganhos e histórico</p>
+              <p className="text-xs" style={{ color: 'rgba(134,239,172,.8)' }}>Ver ganhos e histórico</p>
             </div>
           </Link>
           <Link href="/medico/pacientes"
-            className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow">
-            <div className="w-10 h-10 bg-[#1A3A2C]/10 rounded-xl flex items-center justify-center shrink-0">
-              <Stethoscope className="w-5 h-5 text-[#1A3A2C]" />
+            className="rounded-2xl p-5 flex items-center gap-4 transition-all hover:shadow-lg hover:-translate-y-0.5"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'var(--brand-light)' }}>
+              <Stethoscope className="w-5 h-5" style={{ color: 'var(--brand)' }} />
             </div>
             <div>
-              <p className="font-semibold text-[#1A3A2C] text-sm">Prontuários</p>
-              <p className="text-xs text-gray-400">Ver todos os pacientes</p>
+              <p className="font-semibold text-sm" style={{ color: 'var(--txt-1)' }}>Prontuários</p>
+              <p className="text-xs" style={{ color: 'var(--txt-3)' }}>Ver todos os pacientes</p>
             </div>
           </Link>
           <Link href="/medico/disponibilidade"
-            className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow">
+            className="rounded-2xl p-5 flex items-center gap-4 transition-all hover:shadow-lg hover:-translate-y-0.5"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
             <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center shrink-0">
               <Clock className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <p className="font-semibold text-[#1A3A2C] text-sm">Disponibilidade</p>
-              <p className="text-xs text-gray-400">Gerenciar horários</p>
+              <p className="font-semibold text-sm" style={{ color: 'var(--txt-1)' }}>Disponibilidade</p>
+              <p className="text-xs" style={{ color: 'var(--txt-3)' }}>Gerenciar horários</p>
             </div>
           </Link>
           <Link href="/medico/agendamentos"
-            className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md flex items-center gap-4 transition-shadow group">
+            className="rounded-2xl p-5 flex items-center gap-4 transition-all hover:shadow-lg hover:-translate-y-0.5 group"
+            style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
             <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
               <Calendar className="w-5 h-5 text-green-600" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className="font-semibold text-[#1A3A2C] text-sm">Agenda</p>
+                <p className="font-semibold text-sm" style={{ color: 'var(--txt-1)' }}>Agenda</p>
                 {totalAgendamentos > 0 && (
                   <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-0.5 rounded-full shrink-0">
                     {totalAgendamentos}
                   </span>
                 )}
               </div>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs" style={{ color: 'var(--txt-3)' }}>
                 {totalAgendamentos === 0
                   ? 'Nenhuma consulta agendada'
                   : `${totalAgendamentos} consulta${totalAgendamentos !== 1 ? 's' : ''} futura${totalAgendamentos !== 1 ? 's' : ''}`}
@@ -311,11 +317,11 @@ export default async function MedicoDashboard() {
         <FilaVirtualRealtime />
 
         {/* ── Renovações de Receita Pendentes ── */}
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+        <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+          <div className="px-6 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)' }}>
             <div className="flex items-center gap-3">
               <ScrollText className="w-5 h-5 text-purple-500" />
-              <h2 className="font-bold text-[#1A3A2C]">Renovações de Receita</h2>
+              <h2 className="font-bold" style={{ color: 'var(--txt-1)' }}>Renovações de Receita</h2>
             </div>
             {renovacoes.length > 0 && (
               <span className="bg-purple-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
@@ -326,12 +332,12 @@ export default async function MedicoDashboard() {
 
           {renovacoes.length === 0 ? (
             <div className="py-12 text-center">
-              <ScrollText className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-              <p className="text-gray-400 font-medium text-sm">Nenhuma renovação pendente</p>
-              <p className="text-gray-300 text-sm mt-1">Pedidos de renovação de receita aparecerão aqui</p>
+              <ScrollText className="w-10 h-10 mx-auto mb-3" style={{ color: 'var(--border-2)' }} />
+              <p className="font-medium text-sm" style={{ color: 'var(--txt-3)' }}>Nenhuma renovação pendente</p>
+              <p className="text-sm mt-1" style={{ color: 'var(--txt-3)' }}>Pedidos de renovação de receita aparecerão aqui</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-50">
+            <div>
               {renovacoes.map((r: any) => {
                 const LABEL_TIPO: Record<string, string> = {
                   simples: 'Receita Simples', especial: 'Receita Especial', antimicrobiano: 'Antimicrobiano',
@@ -340,23 +346,23 @@ export default async function MedicoDashboard() {
                   simples: 'bg-green-100 text-green-700', especial: 'bg-purple-100 text-purple-700', antimicrobiano: 'bg-blue-100 text-blue-700',
                 }
                 return (
-                  <div key={r.id} className="px-6 py-4 flex items-center gap-4 hover:bg-gray-50">
+                  <div key={r.id} className="px-6 py-4 flex items-center gap-4" style={{ borderBottom: '1px solid var(--border)' }}>
                     <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">
                       <ScrollText className="w-5 h-5 text-purple-500" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                        <span className="font-semibold text-[#1A3A2C] text-sm">
+                        <span className="font-semibold text-sm" style={{ color: 'var(--txt-1)' }}>
                           {(r.pacientes as any)?.nome ?? 'Paciente'}
                         </span>
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium shrink-0 ${COR_TIPO[r.tipo_receita] ?? 'bg-gray-100 text-gray-600'}`}>
                           {LABEL_TIPO[r.tipo_receita] ?? r.tipo_receita}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-400 font-mono line-clamp-1">
+                      <p className="text-xs font-mono line-clamp-1" style={{ color: 'var(--txt-3)' }}>
                         {r.medicamentos?.split('\n')[0] ?? '—'}
                       </p>
-                      <p className="text-xs text-gray-300 mt-0.5">
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--txt-3)' }}>
                         Solicitado às {formatarHora(r.criado_em)}
                       </p>
                     </div>
@@ -375,18 +381,18 @@ export default async function MedicoDashboard() {
         </div>
 
         {/* ── Atendidos hoje — Consultas ── */}
-        <div id="atendidos" className="bg-white rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-            <CheckCircle2 className="w-4 h-4 text-[#5BBD9B]" />
-            <h2 className="font-bold text-[#1A3A2C] text-sm">
+        <div id="atendidos" className="rounded-2xl overflow-hidden scroll-mt-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+          <div className="px-6 py-4 flex items-center gap-3" style={{ borderBottom: '1px solid var(--border)' }}>
+            <CheckCircle2 className="w-4 h-4" style={{ color: 'var(--brand-2)' }} />
+            <h2 className="font-bold text-sm" style={{ color: 'var(--txt-1)' }}>
               Atendidos Hoje — Consultas
-              <span className="ml-2 text-xs text-gray-400 font-normal">({atendidos.length})</span>
+              <span className="ml-2 text-xs font-normal" style={{ color: 'var(--txt-3)' }}>({atendidos.length})</span>
             </h2>
           </div>
           {atendidos.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-xs text-gray-400 font-medium uppercase tracking-wide">
+                <thead className="text-xs font-medium uppercase tracking-wide" style={{ background: 'var(--surface-2)', color: 'var(--txt-3)' }}>
                   <tr>
                     <th className="px-5 py-3 text-left">Horário</th>
                     <th className="px-5 py-3 text-left">Paciente</th>
@@ -395,7 +401,7 @@ export default async function MedicoDashboard() {
                     <th className="px-5 py-3 text-right">Ganho</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody>
                   {atendidos.map((a: any) => {
                     const risco = a.triagens?.classificacao_risco
                     const enc = (a.notas_medico ?? '').match(/\[Encaminhado por (.+?)\]/)
@@ -407,12 +413,13 @@ export default async function MedicoDashboard() {
                         ? { label: 'Agendada',  cls: 'bg-purple-50 text-purple-700' }
                         : { label: 'Virtual',   cls: 'bg-green-50 text-green-700' }
                     return (
-                      <tr key={a.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-5 py-3 text-xs text-gray-500 whitespace-nowrap">{formatarHora(a.finalizado_em)}</td>
+                      <tr key={a.id} className="transition-colors" style={{ borderTop: '1px solid var(--border)' }}>
+                        <td className="px-5 py-3 text-xs whitespace-nowrap" style={{ color: 'var(--txt-3)' }}>{formatarHora(a.finalizado_em)}</td>
                         <td className="px-5 py-3">
                           <Link
                             href={`/medico/pacientes/${a.pacientes?.id}?back=${encodeURIComponent('/medico/dashboard')}`}
-                            className="font-medium text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
+                            className="font-medium hover:underline transition-colors"
+                            style={{ color: 'var(--txt-1)' }}
                           >
                             {a.pacientes?.nome || '—'}
                           </Link>
@@ -430,21 +437,21 @@ export default async function MedicoDashboard() {
                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${corRisco[risco] || corRisco.default}`}>
                               {labelRisco[risco] || risco}
                             </span>
-                          ) : <span className="text-gray-200 text-xs">—</span>}
+                          ) : <span className="text-xs" style={{ color: 'var(--border-2)' }}>—</span>}
                         </td>
                         <td className="px-5 py-3 text-right text-sm font-semibold">
                           {custoConsulta > 0
                             ? <span className="text-green-600">{formatBRL(custoConsulta)}</span>
-                            : <span className="text-gray-300">—</span>}
+                            : <span style={{ color: 'var(--border-2)' }}>—</span>}
                         </td>
                       </tr>
                     )
                   })}
                 </tbody>
                 {custoConsulta > 0 && (
-                  <tfoot className="bg-gray-50 border-t-2 border-gray-100">
+                  <tfoot style={{ background: 'var(--surface-2)', borderTop: '2px solid var(--border-2)' }}>
                     <tr>
-                      <td colSpan={4} className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      <td colSpan={4} className="px-5 py-3 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--txt-3)' }}>
                         Total ({atendidos.length} {atendidos.length === 1 ? 'consulta' : 'consultas'})
                       </td>
                       <td className="px-5 py-3 text-right text-sm font-bold text-green-600">
@@ -457,25 +464,25 @@ export default async function MedicoDashboard() {
             </div>
           ) : (
             <div className="py-10 text-center">
-              <CheckCircle2 className="w-9 h-9 text-gray-200 mx-auto mb-2" />
-              <p className="text-sm text-gray-400">Nenhum atendimento concluído hoje</p>
+              <CheckCircle2 className="w-9 h-9 mx-auto mb-2" style={{ color: 'var(--border-2)' }} />
+              <p className="text-sm" style={{ color: 'var(--txt-3)' }}>Nenhum atendimento concluído hoje</p>
             </div>
           )}
         </div>
 
         {/* ── Atestados emitidos hoje ── */}
-        <div id="atestados" className="bg-white rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+        <div id="atestados" className="rounded-2xl overflow-hidden scroll-mt-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+          <div className="px-6 py-4 flex items-center gap-3" style={{ borderBottom: '1px solid var(--border)' }}>
             <FileText className="w-4 h-4 text-amber-500" />
-            <h2 className="font-bold text-[#1A3A2C] text-sm">
+            <h2 className="font-bold text-sm" style={{ color: 'var(--txt-1)' }}>
               Atestados emitidos hoje
-              <span className="ml-2 text-xs text-gray-400 font-normal">({atestados.length})</span>
+              <span className="ml-2 text-xs font-normal" style={{ color: 'var(--txt-3)' }}>({atestados.length})</span>
             </h2>
           </div>
           {atestados.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-xs text-gray-400 font-medium uppercase tracking-wide">
+                <thead className="text-xs font-medium uppercase tracking-wide" style={{ background: 'var(--surface-2)', color: 'var(--txt-3)' }}>
                   <tr>
                     <th className="px-5 py-3 text-left">Horário</th>
                     <th className="px-5 py-3 text-left">Paciente</th>
@@ -483,14 +490,15 @@ export default async function MedicoDashboard() {
                     <th className="px-5 py-3 text-left">CID</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody>
                   {atestados.map((a: any) => (
-                    <tr key={a.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-5 py-3 text-xs text-gray-500">{formatarHora(a.criado_em)}</td>
+                    <tr key={a.id} className="transition-colors" style={{ borderTop: '1px solid var(--border)' }}>
+                      <td className="px-5 py-3 text-xs" style={{ color: 'var(--txt-3)' }}>{formatarHora(a.criado_em)}</td>
                       <td className="px-5 py-3">
                         <Link
                           href={`/medico/pacientes/${a.pacientes?.id}?back=${encodeURIComponent('/medico/dashboard')}`}
-                          className="font-medium text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
+                          className="font-medium hover:underline transition-colors"
+                          style={{ color: 'var(--txt-1)' }}
                         >
                           {a.pacientes?.nome || '—'}
                         </Link>
@@ -500,7 +508,7 @@ export default async function MedicoDashboard() {
                           {a.dias ?? '—'} dias
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-xs text-gray-500 font-mono">{a.cid || '—'}</td>
+                      <td className="px-5 py-3 text-xs font-mono" style={{ color: 'var(--txt-3)' }}>{a.cid || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -508,25 +516,25 @@ export default async function MedicoDashboard() {
             </div>
           ) : (
             <div className="py-10 text-center">
-              <FileText className="w-9 h-9 text-gray-200 mx-auto mb-2" />
-              <p className="text-sm text-gray-400">Nenhum atestado emitido hoje</p>
+              <FileText className="w-9 h-9 mx-auto mb-2" style={{ color: 'var(--border-2)' }} />
+              <p className="text-sm" style={{ color: 'var(--txt-3)' }}>Nenhum atestado emitido hoje</p>
             </div>
           )}
         </div>
 
         {/* ── Receitas emitidas hoje ── */}
-        <div id="receitas" className="bg-white rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+        <div id="receitas" className="rounded-2xl overflow-hidden scroll-mt-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+          <div className="px-6 py-4 flex items-center gap-3" style={{ borderBottom: '1px solid var(--border)' }}>
             <ClipboardList className="w-4 h-4 text-purple-500" />
-            <h2 className="font-bold text-[#1A3A2C] text-sm">
+            <h2 className="font-bold text-sm" style={{ color: 'var(--txt-1)' }}>
               Receitas emitidas hoje
-              <span className="ml-2 text-xs text-gray-400 font-normal">({receitas.length})</span>
+              <span className="ml-2 text-xs font-normal" style={{ color: 'var(--txt-3)' }}>({receitas.length})</span>
             </h2>
           </div>
           {receitas.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-xs text-gray-400 font-medium uppercase tracking-wide">
+                <thead className="text-xs font-medium uppercase tracking-wide" style={{ background: 'var(--surface-2)', color: 'var(--txt-3)' }}>
                   <tr>
                     <th className="px-5 py-3 text-left">Horário</th>
                     <th className="px-5 py-3 text-left">Paciente</th>
@@ -534,16 +542,17 @@ export default async function MedicoDashboard() {
                     <th className="px-5 py-3 text-right">Ganho</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody>
                   {receitas.map((r: any) => {
                     const isRenovacao = Number(r.valor_medico) > 0
                     return (
-                      <tr key={r.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-5 py-3 text-xs text-gray-500">{formatarHora(r.criado_em)}</td>
+                      <tr key={r.id} className="transition-colors" style={{ borderTop: '1px solid var(--border)' }}>
+                        <td className="px-5 py-3 text-xs" style={{ color: 'var(--txt-3)' }}>{formatarHora(r.criado_em)}</td>
                         <td className="px-5 py-3">
                           <Link
                             href={`/medico/pacientes/${r.pacientes?.id}?back=${encodeURIComponent('/medico/dashboard')}`}
-                            className="font-medium text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
+                            className="font-medium hover:underline transition-colors"
+                            style={{ color: 'var(--txt-1)' }}
                           >
                             {r.pacientes?.nome || '—'}
                           </Link>
@@ -554,7 +563,7 @@ export default async function MedicoDashboard() {
                               Renovação
                             </span>
                           ) : (
-                            <span className="text-xs bg-gray-100 text-gray-500 px-2.5 py-0.5 rounded-full font-medium">
+                            <span className="text-xs px-2.5 py-0.5 rounded-full font-medium" style={{ background: 'var(--surface-3)', color: 'var(--txt-3)' }}>
                               Em consulta
                             </span>
                           )}
@@ -562,7 +571,7 @@ export default async function MedicoDashboard() {
                         <td className="px-5 py-3 text-right text-sm font-semibold">
                           {isRenovacao
                             ? <span className="text-green-600">{formatBRL(Number(r.valor_medico))}</span>
-                            : <span className="text-gray-300">—</span>
+                            : <span style={{ color: 'var(--border-2)' }}>—</span>
                           }
                         </td>
                       </tr>
@@ -570,9 +579,9 @@ export default async function MedicoDashboard() {
                   })}
                 </tbody>
                 {totalGanhoRenovacoes > 0 && (
-                  <tfoot className="bg-gray-50 border-t-2 border-gray-100">
+                  <tfoot style={{ background: 'var(--surface-2)', borderTop: '2px solid var(--border-2)' }}>
                     <tr>
-                      <td colSpan={3} className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      <td colSpan={3} className="px-5 py-3 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--txt-3)' }}>
                         Total renovações ({receitasRenovacao.length})
                       </td>
                       <td className="px-5 py-3 text-right text-sm font-bold text-green-600">
@@ -585,38 +594,38 @@ export default async function MedicoDashboard() {
             </div>
           ) : (
             <div className="py-10 text-center">
-              <ClipboardList className="w-9 h-9 text-gray-200 mx-auto mb-2" />
-              <p className="text-sm text-gray-400">Nenhuma receita emitida hoje</p>
+              <ClipboardList className="w-9 h-9 mx-auto mb-2" style={{ color: 'var(--border-2)' }} />
+              <p className="text-sm" style={{ color: 'var(--txt-3)' }}>Nenhuma receita emitida hoje</p>
             </div>
           )}
         </div>
 
         {/* ── Exames pedidos hoje ── */}
-        <div id="exames" className="bg-white rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+        <div id="exames" className="rounded-2xl overflow-hidden scroll-mt-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+          <div className="px-6 py-4 flex items-center gap-3" style={{ borderBottom: '1px solid var(--border)' }}>
             <FlaskConical className="w-4 h-4 text-blue-500" />
-            <h2 className="font-bold text-[#1A3A2C] text-sm">
+            <h2 className="font-bold text-sm" style={{ color: 'var(--txt-1)' }}>
               Exames pedidos hoje
-              <span className="ml-2 text-xs text-gray-400 font-normal">({exames.length})</span>
+              <span className="ml-2 text-xs font-normal" style={{ color: 'var(--txt-3)' }}>({exames.length})</span>
             </h2>
           </div>
           {exames.length === 0 ? (
             <div className="py-10 text-center">
-              <FlaskConical className="w-9 h-9 text-gray-200 mx-auto mb-2" />
-              <p className="text-sm text-gray-400">Nenhum exame pedido hoje</p>
+              <FlaskConical className="w-9 h-9 mx-auto mb-2" style={{ color: 'var(--border-2)' }} />
+              <p className="text-sm" style={{ color: 'var(--txt-3)' }}>Nenhum exame pedido hoje</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-50">
+            <div>
               {(exames as any[]).map((ex: any) => {
                 const lista = ex.exames?.split('\n').map((l: string) => l.trim()).filter(Boolean) ?? []
                 const isUrgente = ex.urgencia === 'urgente' || ex.urgencia === 'emergencia'
                 return (
-                  <div key={ex.id} className="px-6 py-3 flex items-start justify-between gap-4">
+                  <div key={ex.id} className="px-6 py-3 flex items-start justify-between gap-4" style={{ borderTop: '1px solid var(--border)' }}>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#1A3A2C]">
+                      <p className="text-sm font-medium" style={{ color: 'var(--txt-1)' }}>
                         {(ex.pacientes as any)?.nome ?? 'Paciente'}
                       </p>
-                      <p className="text-xs text-gray-500 mt-0.5 truncate">{lista.join(' · ')}</p>
+                      <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--txt-3)' }}>{lista.join(' · ')}</p>
                     </div>
                     {isUrgente && (
                       <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${
@@ -636,30 +645,31 @@ export default async function MedicoDashboard() {
 
 
         {/* ── Protocolos de Exclusão hoje ── */}
-        <div id="exclusoes" className="bg-white rounded-2xl shadow-sm overflow-hidden scroll-mt-6">
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+        <div id="exclusoes" className="rounded-2xl overflow-hidden scroll-mt-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+          <div className="px-6 py-4 flex items-center gap-3" style={{ borderBottom: '1px solid var(--border)' }}>
             <ShieldCheck className="w-4 h-4 text-teal-600" />
-            <h2 className="font-bold text-[#1A3A2C] text-sm">
+            <h2 className="font-bold text-sm" style={{ color: 'var(--txt-1)' }}>
               Protocolos de Exclusão hoje
-              <span className="ml-2 text-xs text-gray-400 font-normal">({exclusoes.length})</span>
+              <span className="ml-2 text-xs font-normal" style={{ color: 'var(--txt-3)' }}>({exclusoes.length})</span>
             </h2>
           </div>
           {exclusoes.length === 0 ? (
             <div className="py-10 text-center">
-              <ShieldCheck className="w-9 h-9 text-gray-200 mx-auto mb-2" />
-              <p className="text-sm text-gray-400">Nenhum protocolo de exclusão registrado hoje</p>
+              <ShieldCheck className="w-9 h-9 mx-auto mb-2" style={{ color: 'var(--border-2)' }} />
+              <p className="text-sm" style={{ color: 'var(--txt-3)' }}>Nenhum protocolo de exclusão registrado hoje</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-50">
+            <div>
               {(exclusoes as any[]).map((ex: any) => {
                 const motivos: string[] = Array.isArray(ex.motivos) ? ex.motivos : []
                 return (
-                  <div key={ex.id} className="px-6 py-3 flex items-start gap-4 hover:bg-gray-50 transition-colors">
+                  <div key={ex.id} className="px-6 py-3 flex items-start gap-4 transition-colors" style={{ borderTop: '1px solid var(--border)' }}>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-0.5">
                         <Link
                           href={`/medico/pacientes/${(ex.pacientes as any)?.id}?back=${encodeURIComponent('/medico/dashboard')}`}
-                          className="text-sm font-semibold text-[#1A3A2C] hover:text-[#5BBD9B] hover:underline transition-colors"
+                          className="text-sm font-semibold hover:underline transition-colors"
+                          style={{ color: 'var(--txt-1)' }}
                         >
                           {(ex.pacientes as any)?.nome ?? '—'}
                         </Link>
@@ -667,14 +677,14 @@ export default async function MedicoDashboard() {
                           {STATUS_EXCL_LABEL[ex.status] ?? ex.status}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500 line-clamp-1">{ex.conduta}</p>
+                      <p className="text-xs line-clamp-1" style={{ color: 'var(--txt-3)' }}>{ex.conduta}</p>
                       {motivos.length > 0 && (
-                        <p className="text-[10px] text-gray-300 mt-0.5">
+                        <p className="text-[10px] mt-0.5" style={{ color: 'var(--txt-3)' }}>
                           {motivos.length} motivo{motivos.length !== 1 ? 's' : ''}: {motivos.slice(0, 2).join(', ')}{motivos.length > 2 ? '…' : ''}
                         </p>
                       )}
                     </div>
-                    <span className="text-xs text-gray-300 shrink-0 pt-0.5">{formatarHora(ex.criado_em)}</span>
+                    <span className="text-xs shrink-0 pt-0.5" style={{ color: 'var(--txt-3)' }}>{formatarHora(ex.criado_em)}</span>
                   </div>
                 )
               })}
@@ -684,9 +694,9 @@ export default async function MedicoDashboard() {
 
         {/* ── Resumo do Dia ── */}
         {(atendidos.length > 0 || receitas.length > 0 || atestados.length > 0) && (
-          <div className="bg-[#1A3A2C] rounded-2xl shadow-sm p-6">
+          <div className="rounded-2xl p-6" style={{ background: 'var(--brand)', boxShadow: 'var(--shadow-md)' }}>
             <h2 className="font-bold text-white text-sm mb-5 flex items-center gap-2">
-              <BarChart2 className="w-4 h-4 text-[#5BBD9B]" />
+              <BarChart2 className="w-4 h-4" style={{ color: 'var(--brand-2)' }} />
               Resumo do Dia
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">

@@ -24,28 +24,30 @@ export default function ProducaoFiltroClient({ dataIni, dataFim, label }: Props)
   }
 
   return (
-    <div className="bg-white rounded-2xl px-6 py-4 shadow-sm flex flex-wrap items-end gap-4">
+    <div className="rounded-2xl px-6 py-4 flex flex-wrap items-end gap-4" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
       <div>
-        <label className="text-xs text-gray-400 block mb-1">De</label>
+        <label className="text-xs block mb-1" style={{ color: 'var(--txt-3)' }}>De</label>
         <input
           ref={deRef}
           type="date"
           defaultValue={dataIni}
           onChange={navegar}
-          className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40"
+          className="text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40"
+          style={{ border: '1px solid var(--border-2)', background: 'var(--surface-2)', color: 'var(--txt-1)' }}
         />
       </div>
       <div>
-        <label className="text-xs text-gray-400 block mb-1">Até</label>
+        <label className="text-xs block mb-1" style={{ color: 'var(--txt-3)' }}>Até</label>
         <input
           ref={ateRef}
           type="date"
           defaultValue={dataFim}
           onChange={navegar}
-          className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40"
+          className="text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40"
+          style={{ border: '1px solid var(--border-2)', background: 'var(--surface-2)', color: 'var(--txt-1)' }}
         />
       </div>
-      <span className="text-xs text-gray-400 self-center">
+      <span className="text-xs self-center" style={{ color: 'var(--txt-3)' }}>
         <Calendar className="w-3.5 h-3.5 inline mr-1" />
         {label}
       </span>

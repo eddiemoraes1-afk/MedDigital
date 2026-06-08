@@ -134,9 +134,9 @@ export default async function PacienteDashboard() {
       <main className="max-w-5xl mx-auto px-6 py-8">
         {/* Saudação */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[#1A3A2C]">{saudacao}, {primeiroNome}! 👋</h1>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--txt-1)' }}>{saudacao}, {primeiroNome}! 👋</h1>
           <div className="flex items-center gap-3 mt-1 flex-wrap">
-            <p className="text-gray-500">Como você está se sentindo hoje?</p>
+            <p style={{ color: 'var(--txt-3)' }}>Como você está se sentindo hoje?</p>
             {(idade !== null || paciente?.sexo) && (
               <div className="flex items-center gap-2">
                 {idade !== null && (
@@ -157,10 +157,10 @@ export default async function PacienteDashboard() {
 
         {/* Próximas consultas */}
         {totalConsultas > 0 && (
-          <div className="bg-white border rounded-2xl p-5 mb-6 shadow-sm"
-            style={{ borderColor: `rgba(${tema.corRgb},0.15)` }}>
+          <div className="rounded-2xl p-5 mb-6"
+            style={{ background: 'var(--surface)', border: `1px solid rgba(${tema.corRgb},0.20)`, boxShadow: 'var(--shadow-sm)' }}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
+              <h2 className="font-bold flex items-center gap-2" style={{ color: 'var(--txt-1)' }}>
                 <Calendar className="w-4 h-4" style={{ color: tema.corPrimaria }} />
                 Próximas consultas
                 <span className="text-xs font-medium text-white px-2 py-0.5 rounded-full"
@@ -185,14 +185,14 @@ export default async function PacienteDashboard() {
                       <User className="w-4 h-4" style={{ color: tema.corPrimaria }} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#1A3A2C] truncate">{drTitle(medico?.sexo)} {medico?.nome || 'Médico'}</p>
-                      <p className="text-xs text-gray-400">{medico?.especialidade}</p>
+                      <p className="text-sm font-semibold truncate" style={{ color: 'var(--txt-1)' }}>{drTitle(medico?.sexo)} {medico?.nome || 'Médico'}</p>
+                      <p className="text-xs" style={{ color: 'var(--txt-3)' }}>{medico?.especialidade}</p>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-xs font-semibold" style={{ color: tema.corPrimaria }}>
                         {dataHora.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', timeZone: 'America/Sao_Paulo' })}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs" style={{ color: 'var(--txt-3)' }}>
                         {dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}
                       </p>
                     </div>
@@ -216,8 +216,8 @@ export default async function PacienteDashboard() {
             </div>
           </div>
           <Link href="/paciente/triagem"
-            className="inline-flex items-center gap-2 bg-white hover:bg-gray-50 px-6 py-3 rounded-xl font-semibold text-sm transition-colors"
-            style={{ color: tema.corPrimaria }}>
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-colors"
+            style={{ background: 'var(--surface)', color: tema.corPrimaria }}>
             Consulta Agora
             <ChevronRight className="w-4 h-4" />
           </Link>
@@ -234,7 +234,8 @@ export default async function PacienteDashboard() {
             { icon: FlaskConical, label: 'Exames', href: '/paciente/exames', badge: examesValidos > 0 ? examesValidos : undefined, badgeValido: true },
           ].map((item) => (
             <Link key={item.label} href={item.href}
-              className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md text-center group relative transition-shadow">
+              className="rounded-2xl p-5 text-center group relative transition-all hover:shadow-lg hover:-translate-y-0.5"
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
               {(item as any).badge && (
                 <span className={`absolute top-3 right-3 w-5 h-5 text-white text-xs font-bold rounded-full flex items-center justify-center ${(item as any).badgeValido ? 'bg-green-500' : ''}`}
                   style={(item as any).badgeValido ? {} : { backgroundColor: tema.corPrimaria }}>
@@ -245,7 +246,7 @@ export default async function PacienteDashboard() {
                 style={{ backgroundColor: tema.corBgCard }}>
                 <item.icon className="w-5 h-5" style={{ color: tema.corPrimaria }} />
               </div>
-              <span className="text-sm font-medium text-[#1A3A2C]">{item.label}</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--txt-1)' }}>{item.label}</span>
             </Link>
           ))}
         </div>
@@ -273,19 +274,19 @@ export default async function PacienteDashboard() {
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Últimas triagens */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
+          <div className="rounded-2xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-[#1A3A2C]">Últimas triagens</h3>
+              <h3 className="font-bold" style={{ color: 'var(--txt-1)' }}>Últimas triagens</h3>
               <Link href="/paciente/triagens" className="text-xs hover:underline font-medium"
                 style={{ color: tema.corPrimaria }}>Ver todas</Link>
             </div>
             {triagens && triagens.length > 0 ? (
               <div className="space-y-3">
                 {triagens.map((t: any) => (
-                  <div key={t.id} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+                  <div key={t.id} className="flex items-center justify-between py-3 last:border-0" style={{ borderBottom: '1px solid var(--border)' }}>
                     <div>
-                      <p className="text-sm font-medium text-gray-700 line-clamp-1">{t.resumo_ia || 'Triagem realizada'}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{new Date(t.criado_em).toLocaleDateString('pt-BR')}</p>
+                      <p className="text-sm font-medium line-clamp-1" style={{ color: 'var(--txt-2)' }}>{t.resumo_ia || 'Triagem realizada'}</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--txt-3)' }}>{new Date(t.criado_em).toLocaleDateString('pt-BR')}</p>
                     </div>
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${corRisco[t.classificacao_risco] || 'bg-gray-100 text-gray-600'}`}>
                       {labelRisco[t.classificacao_risco] || t.classificacao_risco}
@@ -295,8 +296,8 @@ export default async function PacienteDashboard() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <Clock className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                <p className="text-sm text-gray-400">Nenhuma triagem realizada ainda</p>
+                <Clock className="w-10 h-10 mx-auto mb-3" style={{ color: 'var(--border-2)' }} />
+                <p className="text-sm" style={{ color: 'var(--txt-3)' }}>Nenhuma triagem realizada ainda</p>
                 <Link href="/paciente/triagem" className="text-sm font-medium mt-2 inline-block hover:underline"
                   style={{ color: tema.corPrimaria }}>
                   Fazer primeira triagem →
@@ -306,18 +307,18 @@ export default async function PacienteDashboard() {
           </div>
 
           {/* Histórico de Consultas */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
+          <div className="rounded-2xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
             <div className="flex items-center justify-between mb-5">
-              <h3 className="font-bold text-[#1A3A2C]">Histórico de Consultas</h3>
+              <h3 className="font-bold" style={{ color: 'var(--txt-1)' }}>Histórico de Consultas</h3>
               <Link href="/paciente/atendimentos" className="text-xs hover:underline"
                 style={{ color: tema.corPrimaria }}>Ver todos</Link>
             </div>
             {atendimentos && atendimentos.length > 0 ? (
               <div className="space-y-3">
                 {atendimentos.map((a: any) => (
-                  <div key={a.id} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+                  <div key={a.id} className="flex items-center justify-between py-3 last:border-0" style={{ borderBottom: '1px solid var(--border)' }}>
                     <div>
-                      <p className="text-sm font-medium text-gray-700">
+                      <p className="text-sm font-medium" style={{ color: 'var(--txt-2)' }}>
                         {(() => {
                           const enc = (a.notas_medico ?? '').match(/\[Encaminhado por (.+?)\]/)
                           if (enc) return `↗ Encaminhamento · Por ${enc[1]}`
@@ -325,7 +326,7 @@ export default async function PacienteDashboard() {
                           return '📹 Consulta virtual'
                         })()}
                       </p>
-                      <p className="text-xs text-gray-400 mt-0.5">{new Date(a.criado_em).toLocaleDateString('pt-BR')}</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--txt-3)' }}>{new Date(a.criado_em).toLocaleDateString('pt-BR')}</p>
                     </div>
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${
                       a.status === 'concluido' ? 'bg-green-100 text-green-700' :
@@ -341,8 +342,8 @@ export default async function PacienteDashboard() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <Video className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                <p className="text-sm text-gray-400">Nenhum atendimento realizado ainda</p>
+                <Video className="w-10 h-10 mx-auto mb-3" style={{ color: 'var(--border-2)' }} />
+                <p className="text-sm" style={{ color: 'var(--txt-3)' }}>Nenhum atendimento realizado ainda</p>
               </div>
             )}
           </div>

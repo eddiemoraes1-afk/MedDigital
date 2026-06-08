@@ -1,21 +1,167 @@
 @import "tailwindcss";
 
+/* ─── Dark mode variant (Tailwind v4) ──────────────────────── */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─── Design tokens — Light mode ───────────────────────────── */
 :root {
-  --background: #F4F7FB;
-  --foreground: #222222;
-  --azul-principal: #1A3A5C;
-  --azul-claro: #2E75B6;
-  --verde-saude: #1A7340;
-  --vermelho-urgente: #C0392B;
-  --amarelo-alerta: #F39C12;
+  /* Background layers */
+  --bg:           #EFF7F3;
+  --surface:      #FFFFFF;
+  --surface-2:    #F5FAF7;
+  --surface-3:    #EBF5EF;
+
+  /* Borders */
+  --border:       #D8EDE3;
+  --border-2:     #B8D9C7;
+
+  /* Text */
+  --txt-1:        #0D2B1E;
+  --txt-2:        #3D6652;
+  --txt-3:        #7A9E8C;
+
+  /* Brand */
+  --brand:        #1A3A2C;
+  --brand-2:      #5BBD9B;
+  --brand-light:  #E6F5EE;
+  --brand-glow:   rgba(91,189,155,.18);
+
+  /* Semantic */
+  --danger:       #DC2626;
+  --danger-bg:    #FEF2F2;
+  --warning:      #D97706;
+  --warning-bg:   #FFFBEB;
+  --info:         #2563EB;
+  --info-bg:      #EFF6FF;
+  --success:      #059669;
+  --success-bg:   #ECFDF5;
+
+  /* Header */
+  --header-bg:    #1A3A2C;
+  --header-txt:   #FFFFFF;
+
+  /* Shadows */
+  --shadow-xs:    0 1px 2px rgba(0,0,0,.05);
+  --shadow-sm:    0 1px 4px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:    0 4px 16px rgba(0,0,0,.09), 0 2px 4px rgba(0,0,0,.05);
+  --shadow-lg:    0 8px 32px rgba(0,0,0,.11), 0 4px 8px rgba(0,0,0,.07);
+
+  /* Chart palette */
+  --c1:  #5BBD9B;
+  --c2:  #3B82F6;
+  --c3:  #F59E0B;
+  --c4:  #8B5CF6;
+  --c5:  #EF4444;
+  --c6:  #14B8A6;
+  --c7:  #EC4899;
+  --c8:  #6366F1;
+  --chart-grid:   #E2EFE9;
+  --chart-txt:    #4B6B5A;
+  --chart-bg:     rgba(91,189,155,.08);
 }
 
+/* ─── Design tokens — Dark mode ────────────────────────────── */
+.dark {
+  --bg:           #07120D;
+  --surface:      #0D1F17;
+  --surface-2:    #112419;
+  --surface-3:    #16301F;
+
+  --border:       #1C3527;
+  --border-2:     #2A4D3A;
+
+  --txt-1:        #E2F5EB;
+  --txt-2:        #7BB899;
+  --txt-3:        #3E6650;
+
+  --brand:        #5BBD9B;
+  --brand-2:      #3D9E7A;
+  --brand-light:  rgba(91,189,155,.14);
+  --brand-glow:   rgba(91,189,155,.24);
+
+  --danger:       #F87171;
+  --danger-bg:    rgba(248,113,113,.12);
+  --warning:      #FBB040;
+  --warning-bg:   rgba(251,176,64,.12);
+  --info:         #60A5FA;
+  --info-bg:      rgba(96,165,250,.12);
+  --success:      #34D399;
+  --success-bg:   rgba(52,211,153,.12);
+
+  --header-bg:    #0D1F17;
+  --header-txt:   #E2F5EB;
+
+  --shadow-xs:    0 1px 2px rgba(0,0,0,.4);
+  --shadow-sm:    0 1px 4px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.3);
+  --shadow-md:    0 4px 16px rgba(0,0,0,.5), 0 2px 4px rgba(0,0,0,.35);
+  --shadow-lg:    0 8px 32px rgba(0,0,0,.6), 0 4px 8px rgba(0,0,0,.4);
+
+  --c1:  #5BBD9B;
+  --c2:  #60A5FA;
+  --c3:  #FBB040;
+  --c4:  #A78BFA;
+  --c5:  #F87171;
+  --c6:  #2DD4BF;
+  --c7:  #F472B6;
+  --c8:  #818CF8;
+  --chart-grid:   #1C3527;
+  --chart-txt:    #7BB899;
+  --chart-bg:     rgba(91,189,155,.10);
+}
+
+/* ─── Base ──────────────────────────────────────────────────── */
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg);
+  color: var(--txt-1);
   font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  transition: background-color .2s ease, color .2s ease;
 }
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: #f1f1f1; }
-::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+/* ─── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--txt-3); }
+
+/* ─── Utility aliases (CSS-only, no dark: needed) ───────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-sm);
+}
+.card-2 {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: .75rem;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-md);
+  padding: 1.25rem 1.5rem;
+  transition: box-shadow .2s ease, transform .15s ease;
+}
+.kpi-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+
+/* ─── SVG chart helpers (CSS overrides SVG presentation attrs) ─ */
+.svg-lbl        { fill: var(--chart-txt); font-family: system-ui, sans-serif; }
+.svg-lbl-strong { fill: var(--txt-1); font-family: system-ui, sans-serif; }
+.svg-grid       { stroke: var(--chart-grid); }
+.svg-axis       { stroke: var(--border-2); }
+.svg-track-fill { fill: var(--surface-3); }
+.svg-track-str  { stroke: var(--surface-3); stroke-width: 24; fill: none; }
+.svg-dot        { fill: var(--surface); }
+
+/* ─── Theme transition (smooth colour changes) ──────────────── */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: .18s;
+  transition-timing-function: ease;
+}
+/* Don't transition transforms (breaks animations) */
+[class*="animate-"] { transition: none !important; }

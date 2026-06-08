@@ -1,13 +1,13 @@
 import { requireEmpresa } from '@/lib/auth-sistema'
 import { createAdminClient } from '@/lib/supabase/server'
-import Link from 'next/link'
 import {
   Building2, LogOut, Users, Calendar,
   TrendingUp, CheckCircle2,
-  AlertCircle, UserX,
+  AlertCircle,
 } from 'lucide-react'
 import { gerarTema } from '@/lib/tema'
 import EmpresaTabs from './EmpresaTabs'
+import ThemeToggle from '@/components/ThemeToggle'
 
 interface Props {
   searchParams: Promise<{ departamento?: string; status?: string }>
@@ -85,35 +85,37 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
 
 
   return (
-    <div className="min-h-screen" style={{ ...tema.vars, backgroundColor: tema.corBgPagina }}>
+    <div className="min-h-screen" style={{ ...tema.vars, background: 'var(--bg)' }}>
       {/* Header com cor da empresa */}
-      <header style={{ backgroundColor: tema.corPrimaria }} className="px-6 py-4">
+      <header
+        style={{ backgroundColor: tema.corPrimaria, borderBottom: '1px solid rgba(255,255,255,0.08)' }}
+        className="px-6 py-3"
+      >
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             {empresa?.logo_url ? (
-              <div className="h-10 w-10 rounded-xl bg-white flex items-center justify-center p-1 shrink-0 shadow-sm">
-                <img
-                  src={empresa.logo_url}
-                  alt={empresa?.nome || 'Logo'}
-                  className="h-full w-full object-contain rounded-lg"
-                />
+              <div className="h-9 w-9 rounded-xl bg-white flex items-center justify-center p-1 shrink-0 shadow-sm">
+                <img src={empresa.logo_url} alt={empresa?.nome || 'Logo'} className="h-full w-full object-contain rounded-lg" />
               </div>
             ) : (
-              <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
+              <img src="/logo-branca.svg" alt="RovarisMed" className="h-8" />
             )}
-            <span className="text-xs ml-1" style={{ color: tema.corTextoSuave }}>Portal {empresa?.nome}</span>
+            <span className="text-xs font-semibold ml-1 px-2 py-0.5 rounded-full" style={{ color: tema.corTextoSuave, background: 'rgba(255,255,255,0.10)' }}>
+              Portal {empresa?.nome}
+            </span>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm flex items-center gap-1.5" style={{ color: tema.corTextoSuave }}>
+          <div className="flex items-center gap-2">
+            <span className="text-sm hidden sm:flex items-center gap-1.5" style={{ color: tema.corTextoSuave }}>
               <Building2 className="w-4 h-4" /> {empresa?.nome}
             </span>
+            <ThemeToggle />
             <form action="/api/auth/signout" method="POST">
               <button
                 type="submit"
-                className="text-sm flex items-center gap-1.5 transition-opacity hover:opacity-80"
-                style={{ color: tema.corTextoSuave }}
+                className="text-sm flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-opacity hover:opacity-80"
+                style={{ color: tema.corTextoSuave, background: 'rgba(255,255,255,0.10)' }}
               >
-                <LogOut className="w-4 h-4" /> Sair
+                <LogOut className="w-4 h-4" /> <span className="hidden sm:inline text-xs">Sair</span>
               </button>
             </form>
           </div>
@@ -121,80 +123,52 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-8">
-        {/* Cabeçalho com logo da empresa */}
+        {/* Cabeçalho */}
         <div className="mb-6 flex items-center gap-4">
           {empresa?.logo_url && (
-            <img
-              src={empresa.logo_url}
-              alt={empresa.nome}
-              className="h-12 w-auto object-contain rounded-xl bg-white p-1.5 shadow-sm"
-            />
+            <img src={empresa.logo_url} alt={empresa.nome} className="h-12 w-auto object-contain rounded-xl p-1.5 shadow-sm" style={{ background: 'var(--surface)' }} />
           )}
           <div>
-            <h1 className="text-2xl font-bold text-[#1A3A2C]">Gestão Digital Assistencial e Regulação Clínica</h1>
-            <p className="text-gray-500 text-sm mt-1">{empresa?.nome} · {empresa?.cnpj || 'CNPJ não informado'}</p>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--txt-1)' }}>Gestão Digital Assistencial</h1>
+            <p className="text-sm mt-1" style={{ color: 'var(--txt-3)' }}>{empresa?.nome} · {empresa?.cnpj || 'CNPJ não informado'}</p>
           </div>
         </div>
 
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <Users className="w-5 h-5" style={{ color: tema.corPrimaria }} />
-              <span className="text-xs text-gray-400">funcionários</span>
+          {[
+            { icon: Users, value: totalAtivos, label: 'na empresa', tag: 'funcionários', color: tema.corPrimaria },
+            { icon: CheckCircle2, value: totalVinculados, label: 'usam a plataforma', tag: 'usando', color: '#059669' },
+            { icon: Calendar, value: totalConsultasMes, label: 'consultas', tag: 'este mês', color: '#D97706' },
+            { icon: TrendingUp, value: `${totalAtivos > 0 ? Math.round((totalVinculados / totalAtivos) * 100) : 0}%`, label: 'da equipe', tag: 'adesão', color: '#7C3AED' },
+          ].map(({ icon: Icon, value, label, tag, color }) => (
+            <div key={tag} className="rounded-2xl p-5 transition-all hover:-translate-y-0.5" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-md)' }}>
+              <div className="flex items-center justify-between mb-3">
+                <Icon className="w-5 h-5" style={{ color }} />
+                <span className="text-xs" style={{ color: 'var(--txt-3)' }}>{tag}</span>
+              </div>
+              <p className="text-3xl font-bold" style={{ color: 'var(--txt-1)' }}>{value}</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--txt-3)' }}>{label}</p>
             </div>
-            <p className="text-3xl font-bold text-[#1A3A2C]">{totalAtivos}</p>
-            <p className="text-xs text-gray-500 mt-1">na empresa</p>
-          </div>
-
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <CheckCircle2 className="w-5 h-5 text-green-500" />
-              <span className="text-xs text-gray-400">usando</span>
-            </div>
-            <p className="text-3xl font-bold text-green-600">{totalVinculados}</p>
-            <p className="text-xs text-gray-500 mt-1">usam a plataforma</p>
-          </div>
-
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <Calendar className="w-5 h-5 text-orange-500" />
-              <span className="text-xs text-gray-400">este mês</span>
-            </div>
-            <p className="text-3xl font-bold text-orange-500">{totalConsultasMes}</p>
-            <p className="text-xs text-gray-500 mt-1">consultas</p>
-          </div>
-
-          <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <TrendingUp className="w-5 h-5 text-purple-500" />
-              <span className="text-xs text-gray-400">adesão</span>
-            </div>
-            <p className="text-3xl font-bold text-purple-600">
-              {totalAtivos > 0 ? Math.round((totalVinculados / totalAtivos) * 100) : 0}%
-            </p>
-            <p className="text-xs text-gray-500 mt-1">da equipe</p>
-          </div>
+          ))}
         </div>
 
         {/* Alerta de não ativação */}
         {naoAtivaram > 0 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-5 py-4 flex items-center gap-3 mb-6">
-            <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
+          <div className="rounded-2xl px-5 py-4 flex items-center gap-3 mb-6" style={{ background: 'var(--warning-bg)', border: '1px solid color-mix(in srgb, var(--warning) 30%, transparent)' }}>
+            <AlertCircle className="w-5 h-5 shrink-0" style={{ color: 'var(--warning)' }} />
             <div>
-              <p className="text-sm font-medium text-amber-800">
+              <p className="text-sm font-medium" style={{ color: 'var(--txt-1)' }}>
                 {naoAtivaram} funcionário{naoAtivaram > 1 ? 's ainda não ativaram' : ' ainda não ativou'} a conta
               </p>
-              <p className="text-xs text-amber-600 mt-0.5">
+              <p className="text-xs mt-0.5" style={{ color: 'var(--txt-2)' }}>
                 Compartilhe o link <strong>med-digital.vercel.app/cadastro</strong> com eles para que se cadastrem.
               </p>
             </div>
           </div>
         )}
 
-        {/* Tabs: Relatório de Cobrança / Dashboard de Gastos / Funcionários / Atestados */}
         <EmpresaTabs />
-
       </main>
     </div>
   )

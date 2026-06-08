@@ -163,28 +163,28 @@ function DonutChart({ slices, formatValue, centerLabel }: {
     <div className="flex flex-col items-center gap-4">
       <svg viewBox="-95 -95 190 190" className="w-48 h-48 drop-shadow-sm">
         {/* Track de fundo */}
-        <circle cx="0" cy="0" r="78" fill="none" stroke="#F3F4F6" strokeWidth="24" />
+        <circle cx="0" cy="0" r="78" className="svg-track-str" />
         {sectors.map((s, i) => (
-          <path key={i} d={s.path} fill={s.color} stroke="white" strokeWidth="2.5" strokeLinejoin="round">
+          <path key={i} d={s.path} fill={s.color} stroke="var(--surface)" strokeWidth="2.5" strokeLinejoin="round">
             <title>{s.label}: {formatValue ? formatValue(s.value) : s.value}</title>
           </path>
         ))}
         {/* Centro */}
         {isCurrency ? (
           <>
-            <text x="0" y="-10" textAnchor="middle" fontSize="8" fill="#9CA3AF" letterSpacing="1" fontWeight="500">TOTAL</text>
-            <text x="0" y="6" textAnchor="middle" fontSize="13" fontWeight="700" fill="#1A3A2C">{rawCenter}</text>
+            <text x="0" y="-10" textAnchor="middle" fontSize="8" className="svg-lbl" letterSpacing="1" fontWeight="500">TOTAL</text>
+            <text x="0" y="6" textAnchor="middle" fontSize="13" fontWeight="700" className="svg-lbl-strong">{rawCenter}</text>
           </>
         ) : (
           <>
-            <text x="0" y="6" textAnchor="middle" fontSize="22" fontWeight="800" fill="#1A3A2C">{rawCenter}</text>
-            <text x="0" y="20" textAnchor="middle" fontSize="8" fill="#9CA3AF" letterSpacing="0.5">TOTAL</text>
+            <text x="0" y="6" textAnchor="middle" fontSize="22" fontWeight="800" className="svg-lbl-strong">{rawCenter}</text>
+            <text x="0" y="20" textAnchor="middle" fontSize="8" className="svg-lbl" letterSpacing="0.5">TOTAL</text>
           </>
         )}
       </svg>
       <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 max-w-xs">
         {slices.map((s, i) => (
-          <div key={i} className="flex items-center gap-1.5 text-xs text-gray-600">
+          <div key={i} className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--txt-2)' }}>
             <span className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: s.color }} />
             <span className="truncate max-w-[90px]" title={s.label}>{s.label}</span>
             <span className="font-bold" style={{ color: s.color }}>{Math.round(s.value / total * 100)}%</span>
@@ -260,8 +260,9 @@ function BarChartSVG({
         return (
           <g key={i}>
             <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y}
-              stroke={i === 0 ? '#E5E7EB' : '#F3F4F6'} strokeWidth={i === 0 ? 1.5 : 1} strokeDasharray={i > 0 ? '4 4' : undefined} />
-            <text x={PAD.left - 7} y={y + 3.5} textAnchor="end" fontSize="9" fill="#9CA3AF" fontFamily="system-ui">{fmtTick(tv)}</text>
+              className={i === 0 ? 'svg-axis' : 'svg-grid'}
+              strokeWidth={i === 0 ? 1.5 : 1} strokeDasharray={i > 0 ? '4 4' : undefined} />
+            <text x={PAD.left - 7} y={y + 3.5} textAnchor="end" fontSize="9" className="svg-lbl">{fmtTick(tv)}</text>
           </g>
         )
       })}
@@ -280,15 +281,12 @@ function BarChartSVG({
 
         return (
           <g key={i}>
-            {/* Primary bar */}
             <rect x={x1} y={PAD.top + plotH - bh1} width={barW} height={bh1}
               fill={`url(#${gradId})`} rx="5" ry="5">
               <title>{rawLabel}: {formatValue(v1)}</title>
             </rect>
-            {/* Topo sólido da barra principal */}
             <rect x={x1} y={PAD.top + plotH - bh1} width={barW} height={Math.min(bh1, 5)}
               fill={color} rx="5" ry="5" />
-            {/* Secondary bar */}
             {secondKey && (
               <>
                 <rect x={x2} y={PAD.top + plotH - bh2} width={barW} height={bh2}
@@ -299,8 +297,7 @@ function BarChartSVG({
                   fill={secondColor} rx="5" ry="5" />
               </>
             )}
-            {/* X label */}
-            <text x={cx} y={PAD.top + plotH + 16} textAnchor="middle" fontSize="9.5" fill="#6B7280" fontFamily="system-ui"
+            <text x={cx} y={PAD.top + plotH + 16} textAnchor="middle" fontSize="9.5" className="svg-lbl"
               transform={n > 7 ? `rotate(-35,${cx},${PAD.top + plotH + 16})` : ''}>
               {lbl}
             </text>
@@ -308,8 +305,7 @@ function BarChartSVG({
         )
       })}
 
-      {/* X axis line */}
-      <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} stroke="#E5E7EB" strokeWidth="1.5" />
+      <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} className="svg-axis" strokeWidth="1.5" />
     </svg>
   )
 }
@@ -364,19 +360,16 @@ function HBarChart({
           <g key={i}>
             {/* Highlight row for #1 */}
             {isTop && <rect x={0} y={y + 3} width={W} height={ROW - 6} fill={`${color}12`} rx="6" />}
-            {/* Label */}
-            <text x={4} y={y + ROW / 2 + 4.5} fontSize="10" fill={isTop ? '#1A3A2C' : '#374151'}
-              fontWeight={isTop ? '700' : '400'} fontFamily="system-ui">
+            <text x={4} y={y + ROW / 2 + 4.5} fontSize="10"
+              className={isTop ? 'svg-lbl-strong' : 'svg-lbl'}
+              fontWeight={isTop ? '700' : '400'}>
               {isTop ? `🥇 ${truncated}` : truncated}
             </text>
-            {/* Track */}
-            <rect x={LABEL_W} y={y + 11} width={BAR_AREA} height={18} fill="#F3F4F6" rx="9" />
-            {/* Bar */}
+            <rect x={LABEL_W} y={y + 11} width={BAR_AREA} height={18} className="svg-track-fill" rx="9" />
             <rect x={LABEL_W} y={y + 11} width={bw} height={18} fill={`url(#${gradId})`} rx="9">
               <title>{d[labelKey]}: {formatValue(val)}</title>
             </rect>
-            {/* Value label */}
-            <text x={LABEL_W + bw + 8} y={y + ROW / 2 + 4.5} fontSize="9.5" fill="#6B7280" fontFamily="system-ui">
+            <text x={LABEL_W + bw + 8} y={y + ROW / 2 + 4.5} fontSize="9.5" className="svg-lbl">
               {formatValue(val)}
             </text>
           </g>
@@ -458,36 +451,32 @@ function LineChartSVG({
         return (
           <g key={i}>
             <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y}
-              stroke={i === 0 ? '#E5E7EB' : '#F3F4F6'} strokeWidth={i === 0 ? 1.5 : 1} strokeDasharray={i > 0 ? '4 4' : undefined} />
-            <text x={PAD.left - 7} y={y + 3.5} textAnchor="end" fontSize="9" fill="#9CA3AF" fontFamily="system-ui">{fmtTick(tv)}</text>
+              className={i === 0 ? 'svg-axis' : 'svg-grid'}
+              strokeWidth={i === 0 ? 1.5 : 1} strokeDasharray={i > 0 ? '4 4' : undefined} />
+            <text x={PAD.left - 7} y={y + 3.5} textAnchor="end" fontSize="9" className="svg-lbl">{fmtTick(tv)}</text>
           </g>
         )
       })}
 
-      {/* Area fill */}
       <path d={areaPath} fill={`url(#${gradId})`} />
-
-      {/* Smooth line */}
       <path d={linePath} fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
 
-      {/* Dots */}
       {pts.map((p, i) => (
         <g key={i}>
           <circle cx={p.x} cy={p.y} r="6" fill={`${color}20`} />
-          <circle cx={p.x} cy={p.y} r="3.5" fill="white" stroke={color} strokeWidth="2.5">
+          <circle cx={p.x} cy={p.y} r="3.5" className="svg-dot" stroke={color} strokeWidth="2.5">
             <title>{p.label}: {formatValue(p.value)}</title>
           </circle>
         </g>
       ))}
 
-      {/* X labels */}
       {pts.map((p, i) => (
-        <text key={i} x={p.x} y={PAD.top + plotH + 18} textAnchor="middle" fontSize="9.5" fill="#9CA3AF" fontFamily="system-ui">
+        <text key={i} x={p.x} y={PAD.top + plotH + 18} textAnchor="middle" fontSize="9.5" className="svg-lbl">
           {p.label.length > 7 ? p.label.slice(0, 6) : p.label}
         </text>
       ))}
 
-      <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} stroke="#E5E7EB" strokeWidth="1.5" />
+      <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} className="svg-axis" strokeWidth="1.5" />
     </svg>
   )
 }
@@ -512,75 +501,76 @@ function TitularTableAdmin({ titulares }: { titulares: TitularItemAdmin[] }) {
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-gray-100">
-            <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-2 w-6">#</th>
-            <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Titular / Funcionário</th>
-            <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Empresa</th>
-            <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Registro</th>
-            <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Próprias</th>
-            <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Depend.</th>
-            <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Total</th>
-            <th className="text-right text-xs text-gray-400 font-medium pb-2">Custo Total</th>
+          <tr style={{ borderBottom: '1px solid var(--border)' }}>
+            {['#','Titular / Funcionário','Empresa','Registro','Próprias','Depend.','Total','Custo Total'].map((h,i) => (
+              <th key={h} className={`text-xs font-medium pb-2 ${i >= 4 ? 'text-right' : 'text-left'} ${i > 0 && i < 7 ? 'pr-3' : ''}`} style={{ color: 'var(--txt-3)' }}>{h}</th>
+            ))}
           </tr>
         </thead>
         <tbody>
           {titulares.map((t, i) => (
             <React.Fragment key={i}>
               <tr
-                className={`border-b border-gray-50 cursor-pointer transition-colors ${i === 0 ? 'bg-amber-50' : 'hover:bg-gray-50'} ${expandido === i ? 'bg-green-50' : ''}`}
+                className="cursor-pointer transition-colors"
+                style={{
+                  borderBottom: '1px solid var(--border)',
+                  background: expandido === i ? 'var(--brand-light)' : i === 0 ? 'var(--warning-bg)' : 'transparent',
+                }}
                 onClick={() => setExpandido(expandido === i ? null : i)}
+                onMouseEnter={e => { if (expandido !== i && i !== 0) (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)' }}
+                onMouseLeave={e => { if (expandido !== i) (e.currentTarget as HTMLElement).style.background = i === 0 ? 'var(--warning-bg)' : 'transparent' }}
               >
-                <td className="py-2.5 pr-2 text-xs text-gray-400 font-medium">{i + 1}</td>
+                <td className="py-2.5 pr-2 text-xs font-medium" style={{ color: 'var(--txt-3)' }}>{i + 1}</td>
                 <td className="py-2.5 pr-3">
-                  <div className="font-medium text-[#1A3A2C] text-sm">{t.nome}</div>
+                  <div className="font-medium text-sm" style={{ color: 'var(--txt-1)' }}>{t.nome}</div>
                   {t.dependentes.length > 0 && (
                     <div className="flex items-center gap-1 mt-0.5">
-                      <span className="text-xs text-blue-600 font-medium">{t.dependentes.length} dependente{t.dependentes.length !== 1 ? 's' : ''}</span>
-                      <span className="text-xs text-gray-300">{expandido === i ? '▲' : '▼'}</span>
+                      <span className="text-xs font-medium" style={{ color: 'var(--info)' }}>{t.dependentes.length} dependente{t.dependentes.length !== 1 ? 's' : ''}</span>
+                      <span className="text-xs" style={{ color: 'var(--txt-3)' }}>{expandido === i ? '▲' : '▼'}</span>
                     </div>
                   )}
                 </td>
-                <td className="py-2.5 pr-3 text-xs text-gray-500">{t.empresa}</td>
-                <td className="py-2.5 pr-3 text-xs text-gray-500 font-mono">{t.registroFuncional !== '—' ? t.registroFuncional : '—'}</td>
-                <td className="py-2.5 pr-3 text-sm text-right text-gray-600">{t.consultasProprias}</td>
+                <td className="py-2.5 pr-3 text-xs" style={{ color: 'var(--txt-2)' }}>{t.empresa}</td>
+                <td className="py-2.5 pr-3 text-xs font-mono" style={{ color: 'var(--txt-2)' }}>{t.registroFuncional !== '—' ? t.registroFuncional : '—'}</td>
+                <td className="py-2.5 pr-3 text-sm text-right" style={{ color: 'var(--txt-2)' }}>{t.consultasProprias}</td>
                 <td className="py-2.5 pr-3 text-sm text-right">
                   {t.consultasDependentes > 0
-                    ? <span className="text-blue-600 font-medium">{t.consultasDependentes}</span>
-                    : <span className="text-gray-300">—</span>
+                    ? <span className="font-medium" style={{ color: 'var(--info)' }}>{t.consultasDependentes}</span>
+                    : <span style={{ color: 'var(--txt-3)' }}>—</span>
                   }
                 </td>
-                <td className="py-2.5 pr-3 text-sm text-right font-semibold text-[#1A3A2C]">{t.totalConsultas}</td>
+                <td className="py-2.5 pr-3 text-sm text-right font-semibold" style={{ color: 'var(--txt-1)' }}>{t.totalConsultas}</td>
                 <td className="py-2.5 text-sm text-right">
-                  <div className="font-bold text-[#1A3A2C]">{fmtBRL(t.totalValor)}</div>
+                  <div className="font-bold" style={{ color: 'var(--brand)' }}>{fmtBRL(t.totalValor)}</div>
                   {t.valorDependentes > 0 && (
-                    <div className="text-xs text-blue-500">{fmtBRL(t.valorDependentes)} dep.</div>
+                    <div className="text-xs" style={{ color: 'var(--info)' }}>{fmtBRL(t.valorDependentes)} dep.</div>
                   )}
                 </td>
               </tr>
               {expandido === i && t.dependentes.map((dep, di) => (
-                <tr key={`dep-${i}-${di}`} className="border-b border-blue-50 bg-blue-50/40">
+                <tr key={`dep-${i}-${di}`} style={{ borderBottom: '1px solid var(--border)', background: 'var(--info-bg)' }}>
                   <td className="py-2 pr-2"></td>
                   <td className="py-2 pr-3 pl-4">
                     <div className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
-                      <span className="text-sm text-gray-700">{dep.nome}</span>
+                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: 'var(--info)' }} />
+                      <span className="text-sm" style={{ color: 'var(--txt-1)' }}>{dep.nome}</span>
                     </div>
                   </td>
                   <td className="py-2 pr-3">
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium capitalize">{dep.relacao}</span>
+                    <span className="text-xs font-medium px-2 py-0.5 rounded-full capitalize" style={{ background: 'var(--info-bg)', color: 'var(--info)' }}>{dep.relacao}</span>
                   </td>
-                  <td className="py-2 pr-3 text-xs text-gray-400">dependente</td>
-                  <td className="py-2 pr-3 text-sm text-right text-gray-400">—</td>
-                  <td className="py-2 pr-3 text-sm text-right text-blue-600 font-medium">{dep.consultas}</td>
-                  <td className="py-2 pr-3 text-sm text-right text-blue-600 font-medium">{dep.consultas}</td>
-                  <td className="py-2 text-sm text-right text-blue-600 font-semibold">{fmtBRL(dep.valor)}</td>
+                  <td className="py-2 pr-3 text-xs" style={{ color: 'var(--txt-3)' }}>dependente</td>
+                  <td className="py-2 pr-3 text-sm text-right" style={{ color: 'var(--txt-3)' }}>—</td>
+                  <td className="py-2 pr-3 text-sm text-right font-medium" style={{ color: 'var(--info)' }}>{dep.consultas}</td>
+                  <td className="py-2 pr-3 text-sm text-right font-medium" style={{ color: 'var(--info)' }}>{dep.consultas}</td>
+                  <td className="py-2 text-sm text-right font-semibold" style={{ color: 'var(--info)' }}>{fmtBRL(dep.valor)}</td>
                 </tr>
               ))}
             </React.Fragment>
           ))}
         </tbody>
       </table>
-      <p className="text-xs text-gray-400 mt-3">* Clique em uma linha para ver os dependentes. O custo total do titular inclui suas próprias consultas e as dos seus dependentes.</p>
+      <p className="text-xs mt-3" style={{ color: 'var(--txt-3)' }}>* Clique em uma linha para ver os dependentes. O custo total do titular inclui suas próprias consultas e as dos seus dependentes.</p>
     </div>
   )
 }
@@ -635,8 +625,9 @@ function GroupedBarChart({
           return (
             <g key={i}>
               <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y}
-                stroke={i === 0 ? '#E5E7EB' : '#F3F4F6'} strokeWidth={i === 0 ? 1.5 : 1} strokeDasharray={i > 0 ? '4 4' : undefined} />
-              <text x={PAD.left - 7} y={y + 3.5} textAnchor="end" fontSize="9" fill="#9CA3AF" fontFamily="system-ui">{fmtTick(tv)}</text>
+                className={i === 0 ? 'svg-axis' : 'svg-grid'}
+                strokeWidth={i === 0 ? 1.5 : 1} strokeDasharray={i > 0 ? '4 4' : undefined} />
+              <text x={PAD.left - 7} y={y + 3.5} textAnchor="end" fontSize="9" className="svg-lbl">{fmtTick(tv)}</text>
             </g>
           )
         })}
@@ -663,14 +654,14 @@ function GroupedBarChart({
                   </g>
                 )
               })}
-              <text x={cx} y={PAD.top + plotH + 16} textAnchor="middle" fontSize="9.5" fill="#6B7280" fontFamily="system-ui"
+              <text x={cx} y={PAD.top + plotH + 16} textAnchor="middle" fontSize="9.5" className="svg-lbl"
                 transform={n > 6 ? `rotate(-35,${cx},${PAD.top + plotH + 16})` : ''}>
                 {lbl}
               </text>
             </g>
           )
         })}
-        <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} stroke="#E5E7EB" strokeWidth="1.5" />
+        <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} className="svg-axis" strokeWidth="1.5" />
       </svg>
       <div className="flex justify-center gap-5 mt-2">
         {keys.map((k, i) => (
@@ -689,10 +680,13 @@ function ChartCard({ title, subtitle, children, className = '' }: {
   title: string; subtitle?: string; children: React.ReactNode; className?: string
 }) {
   return (
-    <div className={`bg-white rounded-2xl p-5 shadow-sm border border-gray-50 ${className}`}>
+    <div
+      className={`rounded-2xl p-5 ${className}`}
+      style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}
+    >
       <div className="mb-4">
-        <h3 className="font-bold text-[#1A3A2C] text-sm">{title}</h3>
-        {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
+        <h3 className="font-bold text-sm" style={{ color: 'var(--txt-1)' }}>{title}</h3>
+        {subtitle && <p className="text-xs mt-0.5" style={{ color: 'var(--txt-3)' }}>{subtitle}</p>}
       </div>
       {children}
     </div>
@@ -704,14 +698,20 @@ function KpiCard({ label, value, sub, icon: Icon, color, highlight }: {
   label: string; value: string; sub?: string; icon: React.ElementType; color: string; highlight?: boolean
 }) {
   return (
-    <div className={`rounded-2xl p-5 shadow-sm border ${highlight ? 'bg-[#1A3A2C] border-[#1A3A2C]' : 'bg-white border-gray-50'}`}>
+    <div
+      className="rounded-2xl p-5 transition-all hover:-translate-y-0.5"
+      style={highlight
+        ? { background: 'var(--brand)', border: '1px solid var(--brand)', boxShadow: '0 4px 16px var(--brand-glow)' }
+        : { background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-md)' }
+      }
+    >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className={`text-xs font-medium ${highlight ? 'text-green-300' : 'text-gray-400'}`}>{label}</p>
-          <p className={`text-xl font-bold mt-1 leading-tight ${highlight ? 'text-white' : 'text-[#1A3A2C]'}`}>{value}</p>
-          {sub && <p className={`text-xs mt-0.5 ${highlight ? 'text-green-300' : 'text-gray-400'}`}>{sub}</p>}
+          <p className="text-xs font-medium" style={{ color: highlight ? 'rgba(255,255,255,0.7)' : 'var(--txt-3)' }}>{label}</p>
+          <p className="text-xl font-bold mt-1 leading-tight" style={{ color: highlight ? '#fff' : 'var(--txt-1)' }}>{value}</p>
+          {sub && <p className="text-xs mt-0.5" style={{ color: highlight ? 'rgba(255,255,255,0.6)' : 'var(--txt-3)' }}>{sub}</p>}
         </div>
-        <div className="p-2.5 rounded-xl shrink-0" style={{ backgroundColor: highlight ? 'rgba(255,255,255,0.15)' : `${color}20` }}>
+        <div className="p-2.5 rounded-xl shrink-0" style={{ backgroundColor: highlight ? 'rgba(255,255,255,0.15)' : `${color}1a` }}>
           <Icon className="w-5 h-5" style={{ color: highlight ? '#5BBD9B' : color }} />
         </div>
       </div>
@@ -1007,18 +1007,18 @@ export default function DashboardClient() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-3">
-        <Loader2 className="w-9 h-9 animate-spin text-[#5BBD9B]" />
-        <p className="text-gray-400 text-sm">Carregando analytics...</p>
+        <Loader2 className="w-9 h-9 animate-spin" style={{ color: 'var(--brand-2)' }} />
+        <p className="text-sm" style={{ color: 'var(--txt-3)' }}>Carregando analytics...</p>
       </div>
     )
   }
 
   if (!data) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 gap-3 text-gray-400">
+      <div className="flex flex-col items-center justify-center py-32 gap-3" style={{ color: 'var(--txt-3)' }}>
         <BarChart2 className="w-10 h-10 opacity-30" />
         <p className="text-sm">Erro ao carregar dados.</p>
-        <button onClick={() => carregar(inicio, fim)} className="text-[#5BBD9B] text-sm flex items-center gap-1.5 hover:underline">
+        <button onClick={() => carregar(inicio, fim)} className="text-sm flex items-center gap-1.5 hover:underline" style={{ color: 'var(--brand-2)' }}>
           <RefreshCw className="w-3.5 h-3.5" /> Tentar novamente
         </button>
       </div>
@@ -1031,22 +1031,27 @@ export default function DashboardClient() {
     <div className="space-y-6">
 
       {/* ---- Filter bar ---- */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
+      <div
+        className="rounded-2xl p-4"
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}
+      >
         <div className="flex items-center gap-2 mb-3">
-          <Filter className="w-3.5 h-3.5 text-[#5BBD9B]" />
-          <span className="text-xs font-semibold text-[#1A3A2C] uppercase tracking-wide">Filtros</span>
+          <Filter className="w-3.5 h-3.5" style={{ color: 'var(--brand-2)' }} />
+          <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--txt-1)' }}>Filtros</span>
           <div className="ml-auto flex gap-2">
             <button
               onClick={() => exportarExcel(data, setExportandoExcel)}
               disabled={exportandoExcel}
-              className="flex items-center gap-1.5 text-xs text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              style={{ color: 'var(--success)', background: 'var(--success-bg)', border: '1px solid color-mix(in srgb, var(--success) 20%, transparent)' }}
             >
               {exportandoExcel ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
               Excel
             </button>
             <button
               onClick={() => exportarPDF(data)}
-              className="flex items-center gap-1.5 text-xs text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors"
+              style={{ color: 'var(--danger)', background: 'var(--danger-bg)', border: '1px solid color-mix(in srgb, var(--danger) 20%, transparent)' }}
             >
               <Printer className="w-3.5 h-3.5" />
               PDF
@@ -1054,7 +1059,8 @@ export default function DashboardClient() {
             <button
               onClick={() => carregar(inicio, fim)}
               disabled={loading}
-              className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#1A3A2C] border border-gray-200 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              style={{ color: 'var(--txt-2)', border: '1px solid var(--border)' }}
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
               Atualizar
@@ -1063,23 +1069,25 @@ export default function DashboardClient() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Data início</label>
+            <label className="block text-xs mb-1" style={{ color: 'var(--txt-3)' }}>Data início</label>
             <input
               type="date" value={inicio} onChange={e => setInicio(e.target.value)}
-              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700"
+              className="w-full text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2"
+              style={{ border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--txt-1)' }}
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-400 mb-1">Data fim</label>
+            <label className="block text-xs mb-1" style={{ color: 'var(--txt-3)' }}>Data fim</label>
             <input
               type="date" value={fim} onChange={e => setFim(e.target.value)}
-              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700"
+              className="w-full text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2"
+              style={{ border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--txt-1)' }}
             />
           </div>
         </div>
-        <div className="mt-2 pt-2 border-t border-gray-100 flex items-center gap-2">
-          <span className="text-xs text-[#5BBD9B] font-semibold">Período:</span>
-          <span className="text-xs text-gray-500">{fmtDate(inicio)} – {fmtDate(fim)}</span>
+        <div className="mt-2 pt-2 flex items-center gap-2" style={{ borderTop: '1px solid var(--border)' }}>
+          <span className="text-xs font-semibold" style={{ color: 'var(--brand-2)' }}>Período:</span>
+          <span className="text-xs" style={{ color: 'var(--txt-2)' }}>{fmtDate(inicio)} – {fmtDate(fim)}</span>
         </div>
       </div>
 
@@ -1272,17 +1280,17 @@ export default function DashboardClient() {
             labelKey="nome"
             valueKey="funcionarios"
             secondKey="consultas"
-            color="#1A3A2C"
+            color="#6366F1"
             secondColor="#5BBD9B"
             firstLabel="Funcionários"
             secondLabel="Consultas"
           />
           <div className="flex gap-5 justify-center mt-2">
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <span className="w-3 h-3 rounded-sm inline-block bg-[#1A3A2C]" /> Funcionários
+            <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--txt-2)' }}>
+              <span className="w-3 h-3 rounded-sm inline-block" style={{ background: '#6366F1' }} /> Funcionários
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <span className="w-3 h-3 rounded-sm inline-block bg-[#5BBD9B]" /> Consultas
+            <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--txt-2)' }}>
+              <span className="w-3 h-3 rounded-sm inline-block" style={{ background: '#5BBD9B' }} /> Consultas
             </div>
           </div>
         </ChartCard>
@@ -1303,27 +1311,27 @@ export default function DashboardClient() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-4">#</th>
-                <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-4">Paciente</th>
-                <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-4">Empresa</th>
-                <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-4">Consultas</th>
-                <th className="text-right text-xs text-gray-400 font-medium pb-2">Total Gasto</th>
+              <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                <th className="text-left text-xs font-medium pb-2 pr-4" style={{ color: 'var(--txt-3)' }}>#</th>
+                <th className="text-left text-xs font-medium pb-2 pr-4" style={{ color: 'var(--txt-3)' }}>Paciente</th>
+                <th className="text-left text-xs font-medium pb-2 pr-4" style={{ color: 'var(--txt-3)' }}>Empresa</th>
+                <th className="text-right text-xs font-medium pb-2 pr-4" style={{ color: 'var(--txt-3)' }}>Consultas</th>
+                <th className="text-right text-xs font-medium pb-2" style={{ color: 'var(--txt-3)' }}>Total Gasto</th>
               </tr>
             </thead>
             <tbody>
               {data.topPacientes.map((p, i) => (
-                <tr key={i} className={`border-b border-gray-50 ${i === 0 ? 'bg-amber-50' : ''}`}>
-                  <td className="py-2.5 pr-4 text-xs text-gray-400 font-medium">{i + 1}</td>
-                  <td className="py-2.5 pr-4 text-sm font-medium text-[#1A3A2C]">{p.nome}</td>
-                  <td className="py-2.5 pr-4 text-xs text-gray-500">{p.empresa}</td>
-                  <td className="py-2.5 pr-4 text-sm text-right text-gray-600">{p.consultas}</td>
-                  <td className="py-2.5 text-sm text-right font-semibold text-[#1A3A2C]">{formatBRL(p.valor)}</td>
+                <tr key={i} style={{ borderBottom: '1px solid var(--border)', background: i === 0 ? 'var(--warning-bg)' : 'transparent' }}>
+                  <td className="py-2.5 pr-4 text-xs font-medium" style={{ color: 'var(--txt-3)' }}>{i + 1}</td>
+                  <td className="py-2.5 pr-4 text-sm font-medium" style={{ color: 'var(--txt-1)' }}>{p.nome}</td>
+                  <td className="py-2.5 pr-4 text-xs" style={{ color: 'var(--txt-2)' }}>{p.empresa}</td>
+                  <td className="py-2.5 pr-4 text-sm text-right" style={{ color: 'var(--txt-2)' }}>{p.consultas}</td>
+                  <td className="py-2.5 text-sm text-right font-semibold" style={{ color: 'var(--brand)' }}>{formatBRL(p.valor)}</td>
                 </tr>
               ))}
               {data.topPacientes.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-8 text-center text-gray-300 text-sm">Sem dados no período</td>
+                  <td colSpan={5} className="py-8 text-center text-sm" style={{ color: 'var(--txt-3)' }}>Sem dados no período</td>
                 </tr>
               )}
             </tbody>
@@ -1332,14 +1340,14 @@ export default function DashboardClient() {
       </ChartCard>
 
       {/* ===== SEÇÃO: FUNCIONÁRIOS & DEPENDENTES (visão global) ===== */}
-      <div className="border-t-2 border-[#5BBD9B] pt-6">
+      <div className="pt-6" style={{ borderTop: '2px solid var(--brand-2)' }}>
         <div className="flex items-center gap-3 mb-5">
-          <div className="w-9 h-9 bg-[#1A3A2C] rounded-xl flex items-center justify-center">
-            <Users className="w-5 h-5 text-[#5BBD9B]" />
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'var(--brand)' }}>
+            <Users className="w-5 h-5" style={{ color: 'var(--brand-2)' }} />
           </div>
           <div>
-            <h2 className="font-bold text-[#1A3A2C] text-base">Funcionários & Dependentes — Visão Global</h2>
-            <p className="text-xs text-gray-400">Consolidado de todas as empresas: distribuição de vínculos e utilização por tipo de beneficiário</p>
+            <h2 className="font-bold text-base" style={{ color: 'var(--txt-1)' }}>Funcionários & Dependentes — Visão Global</h2>
+            <p className="text-xs" style={{ color: 'var(--txt-3)' }}>Consolidado de todas as empresas: distribuição de vínculos e utilização por tipo de beneficiário</p>
           </div>
         </div>
 
@@ -1347,23 +1355,30 @@ export default function DashboardClient() {
         {data.distribuicaoRelacaoGlobal && data.distribuicaoRelacaoGlobal.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {data.distribuicaoRelacaoGlobal.map(r => (
-              <div key={r.categoria} className={`rounded-2xl p-4 border-2 ${r.categoria === 'Funcionário' ? 'border-[#5BBD9B] bg-green-50' : 'border-blue-200 bg-blue-50'}`}>
-                <p className={`text-xs font-bold uppercase tracking-wide mb-2 ${r.categoria === 'Funcionário' ? 'text-[#1A3A2C]' : 'text-blue-700'}`}>
+              <div
+                key={r.categoria}
+                className="rounded-2xl p-4"
+                style={{
+                  border: `2px solid ${r.categoria === 'Funcionário' ? 'var(--brand-2)' : 'var(--info)'}`,
+                  background: r.categoria === 'Funcionário' ? 'var(--brand-light)' : 'var(--info-bg)',
+                }}
+              >
+                <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: r.categoria === 'Funcionário' ? 'var(--brand)' : 'var(--info)' }}>
                   {r.categoria}
                 </p>
                 <div className="flex justify-between items-end">
                   <div>
-                    <p className="text-2xl font-bold text-[#1A3A2C]">{r.cadastros}</p>
-                    <p className="text-xs text-gray-500">cadastros</p>
+                    <p className="text-2xl font-bold" style={{ color: 'var(--txt-1)' }}>{r.cadastros}</p>
+                    <p className="text-xs" style={{ color: 'var(--txt-3)' }}>cadastros</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-bold text-[#1A3A2C]">{r.consultas}</p>
-                    <p className="text-xs text-gray-500">consultas</p>
+                    <p className="text-lg font-bold" style={{ color: 'var(--txt-1)' }}>{r.consultas}</p>
+                    <p className="text-xs" style={{ color: 'var(--txt-3)' }}>consultas</p>
                   </div>
                 </div>
-                <div className="mt-2 pt-2 border-t border-white/60">
-                  <p className="text-xs text-gray-500">Taxa de uso: <span className={`font-bold ${r.categoria === 'Funcionário' ? 'text-[#1A3A2C]' : 'text-blue-700'}`}>{r.taxaUso}%</span></p>
-                  <p className="text-xs text-gray-400">{r.pacientesAtivos} ativaram app</p>
+                <div className="mt-2 pt-2" style={{ borderTop: '1px solid rgba(255,255,255,0.4)' }}>
+                  <p className="text-xs" style={{ color: 'var(--txt-2)' }}>Taxa de uso: <span className="font-bold" style={{ color: r.categoria === 'Funcionário' ? 'var(--brand)' : 'var(--info)' }}>{r.taxaUso}%</span></p>
+                  <p className="text-xs" style={{ color: 'var(--txt-3)' }}>{r.pacientesAtivos} ativaram app</p>
                 </div>
               </div>
             ))}
@@ -1388,7 +1403,7 @@ export default function DashboardClient() {
               slices={(data.distribuicaoRelacaoGlobal ?? []).filter(d => d.consultas > 0).map(d => ({
                 label: d.categoria,
                 value: d.consultas,
-                color: d.categoria === 'Funcionário' ? '#1A3A2C' : '#3B82F6',
+                color: d.categoria === 'Funcionário' ? '#5BBD9B' : '#3B82F6',
               }))}
               formatValue={v => `${v} consultas`}
             />
@@ -1414,29 +1429,34 @@ export default function DashboardClient() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Relação</th>
-                  <th className="text-left text-xs text-gray-400 font-medium pb-2 pr-3">Categoria</th>
-                  <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Cadastros</th>
-                  <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Ativaram App</th>
-                  <th className="text-right text-xs text-gray-400 font-medium pb-2 pr-3">Consultas</th>
-                  <th className="text-right text-xs text-gray-400 font-medium pb-2">Taxa de Uso</th>
+                <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                  {['Relação','Categoria','Cadastros','Ativaram App','Consultas','Taxa de Uso'].map((h,i) => (
+                    <th key={h} className={`text-xs font-medium pb-2 ${i >= 2 ? 'text-right' : 'text-left'} ${i < 5 ? 'pr-3' : ''}`} style={{ color: 'var(--txt-3)' }}>{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {(data.detalheRelacaoGlobal ?? []).map((r, i) => (
-                  <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="py-2.5 pr-3 text-sm font-medium text-[#1A3A2C] capitalize">{r.relacao}</td>
+                  <tr key={i} className="transition-colors" style={{ borderBottom: '1px solid var(--border)' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--surface-2)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <td className="py-2.5 pr-3 text-sm font-medium capitalize" style={{ color: 'var(--txt-1)' }}>{r.relacao}</td>
                     <td className="py-2.5 pr-3">
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${r.categoria === 'Funcionário' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                        style={r.categoria === 'Funcionário'
+                          ? { background: 'var(--brand-light)', color: 'var(--brand)' }
+                          : { background: 'var(--info-bg)', color: 'var(--info)' }
+                        }
+                      >
                         {r.categoria}
                       </span>
                     </td>
-                    <td className="py-2.5 pr-3 text-sm text-right text-gray-600">{r.cadastros}</td>
-                    <td className="py-2.5 pr-3 text-sm text-right text-gray-600">{r.pacientesAtivos}</td>
-                    <td className="py-2.5 pr-3 text-sm text-right font-semibold text-[#1A3A2C]">{r.consultas}</td>
+                    <td className="py-2.5 pr-3 text-sm text-right" style={{ color: 'var(--txt-2)' }}>{r.cadastros}</td>
+                    <td className="py-2.5 pr-3 text-sm text-right" style={{ color: 'var(--txt-2)' }}>{r.pacientesAtivos}</td>
+                    <td className="py-2.5 pr-3 text-sm text-right font-semibold" style={{ color: 'var(--txt-1)' }}>{r.consultas}</td>
                     <td className="py-2.5 text-sm text-right">
-                      <span className={`font-bold ${r.taxaUso >= 50 ? 'text-green-600' : r.taxaUso > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
+                      <span className="font-bold" style={{ color: r.taxaUso >= 50 ? 'var(--success)' : r.taxaUso > 0 ? 'var(--warning)' : 'var(--txt-3)' }}>
                         {r.taxaUso}%
                       </span>
                     </td>
@@ -1444,7 +1464,7 @@ export default function DashboardClient() {
                 ))}
                 {(!data.detalheRelacaoGlobal || data.detalheRelacaoGlobal.length === 0) && (
                   <tr>
-                    <td colSpan={6} className="py-10 text-center text-gray-300 text-sm">
+                    <td colSpan={6} className="py-10 text-center text-sm" style={{ color: 'var(--txt-3)' }}>
                       Sem dados de relação cadastrados
                     </td>
                   </tr>

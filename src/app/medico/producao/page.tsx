@@ -33,7 +33,7 @@ function labelDDMM(isoDate: string): string {
 function BarChartSVG({
   data,
   barColor = '#5BBD9B',
-  todayColor = '#1A3A2C',
+  todayColor = '#5BBD9B',
 }: {
   data: { date: string; count: number }[]
   barColor?: string
@@ -66,7 +66,8 @@ function BarChartSVG({
           <g key={d.date}>
             <rect
               x={x} y={y} width={barW} height={barH} rx="2"
-              fill={d.count === 0 ? '#e5e7eb' : isToday ? todayColor : barColor}
+              className={d.count === 0 ? 'svg-track-fill' : undefined}
+              fill={d.count === 0 ? undefined : isToday ? todayColor : barColor}
             />
             {d.count > 0 && barH > 16 && (
               <text
@@ -79,7 +80,8 @@ function BarChartSVG({
             {showLabels && (i === 0 || i === Math.floor(data.length / 2) || i === data.length - 1) && (
               <text
                 x={x + barW / 2} y={H + LABEL_H - 4}
-                textAnchor="middle" fontSize="9" fill="#9ca3af"
+                textAnchor="middle" fontSize="9"
+                className="svg-lbl"
               >
                 {labelDDMM(d.date)}
               </text>
@@ -105,13 +107,13 @@ function ChartCard({
   todayColor?: string
 }) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-        <h2 className="font-bold text-[#1A3A2C] text-sm flex items-center gap-2">
+    <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+      <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)' }}>
+        <h2 className="font-bold text-sm flex items-center gap-2" style={{ color: 'var(--txt-1)' }}>
           {icon}
           {title}
         </h2>
-        <span className="text-xs text-gray-400">Média: {avg} por dia ativo</span>
+        <span className="text-xs" style={{ color: 'var(--txt-3)' }}>Média: {avg} por dia ativo</span>
       </div>
       <div className="px-6 py-4">
         <BarChartSVG data={data} barColor={barColor} todayColor={todayColor} />
@@ -337,15 +339,15 @@ export default async function ProducaoMedicoPage({
   const periodoTexto = `${dataIni} a ${dataFim}`
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <MedicoHeader titulo="Minha Produção" backHref="/medico/dashboard" medicoNome={medico.nome} medicoSexo={medico.sexo} medicoFotoUrl={medico.foto_url} />
 
       <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
 
         {/* Cabeçalho */}
         <div>
-          <h1 className="text-2xl font-bold text-[#1A3A2C]">Minha Produção</h1>
-          <p className="text-gray-500 mt-1 text-sm">
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--txt-1)' }}>Minha Produção</h1>
+          <p className="mt-1 text-sm" style={{ color: 'var(--txt-3)' }}>
             {medico.sexo === 'feminino' ? 'Dra.' : medico.sexo === 'masculino' ? 'Dr.' : 'Dr(a).'} {medico.nome} · {medico.especialidade} · CRM {medico.crm}/{medico.crm_uf}
           </p>
         </div>
@@ -355,95 +357,76 @@ export default async function ProducaoMedicoPage({
 
         {/* ── KPIs ── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          <div className="bg-[#1A3A2C] rounded-2xl p-5 shadow-sm">
+          <div className="rounded-2xl p-5 transition-all hover:-translate-y-0.5" style={{ background: 'var(--brand)', boxShadow: 'var(--shadow-md)' }}>
             <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center mb-3">
-              <CheckCircle2 className="w-5 h-5 text-[#5BBD9B]" />
+              <CheckCircle2 className="w-5 h-5" style={{ color: 'var(--brand-2)' }} />
             </div>
             <div className="text-3xl font-bold text-white">{ats.length}</div>
-            <div className="text-sm text-green-300 mt-1">Consultas</div>
+            <div className="text-sm mt-1" style={{ color: 'rgba(134,239,172,.85)' }}>Consultas</div>
           </div>
 
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50">
-            <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center mb-3">
-              <FileText className="w-5 h-5 text-amber-500" />
+          {[
+            { icon: <FileText className="w-5 h-5 text-amber-500" />, bg: 'bg-amber-50', count: atests.length, label: 'Atestados' },
+            { icon: <ClipboardList className="w-5 h-5 text-purple-500" />, bg: 'bg-purple-50', count: recs.length, label: 'Receitas' },
+            { icon: <FlaskConical className="w-5 h-5 text-blue-500" />, bg: 'bg-blue-50', count: exams.length, label: 'Exames pedidos' },
+            { icon: <ShieldCheck className="w-5 h-5 text-teal-600" />, bg: 'bg-teal-50', count: exclArr.length, label: 'Prot. Exclusão' },
+          ].map(({ icon, bg, count, label }) => (
+            <div key={label} className="rounded-2xl p-5 transition-all hover:-translate-y-0.5" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+              <div className={`w-9 h-9 rounded-xl ${bg} flex items-center justify-center mb-3`}>{icon}</div>
+              <div className="text-3xl font-bold" style={{ color: 'var(--txt-1)' }}>{count}</div>
+              <div className="text-sm mt-1" style={{ color: 'var(--txt-3)' }}>{label}</div>
             </div>
-            <div className="text-3xl font-bold text-[#1A3A2C]">{atests.length}</div>
-            <div className="text-sm text-gray-400 mt-1">Atestados</div>
-          </div>
+          ))}
 
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50">
-            <div className="w-9 h-9 rounded-xl bg-purple-50 flex items-center justify-center mb-3">
-              <ClipboardList className="w-5 h-5 text-purple-500" />
-            </div>
-            <div className="text-3xl font-bold text-[#1A3A2C]">{recs.length}</div>
-            <div className="text-sm text-gray-400 mt-1">Receitas</div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center mb-3">
-              <FlaskConical className="w-5 h-5 text-blue-500" />
-            </div>
-            <div className="text-3xl font-bold text-[#1A3A2C]">{exams.length}</div>
-            <div className="text-sm text-gray-400 mt-1">Exames pedidos</div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50">
-            <div className="w-9 h-9 rounded-xl bg-teal-50 flex items-center justify-center mb-3">
-              <ShieldCheck className="w-5 h-5 text-teal-600" />
-            </div>
-            <div className="text-3xl font-bold text-[#1A3A2C]">{exclArr.length}</div>
-            <div className="text-sm text-gray-400 mt-1">Prot. Exclusão</div>
-          </div>
-
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50">
+          <div className="rounded-2xl p-5 transition-all hover:-translate-y-0.5" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
             <div className="w-9 h-9 rounded-xl bg-green-50 flex items-center justify-center mb-3">
               <DollarSign className="w-5 h-5 text-green-600" />
             </div>
-            <div className={`text-2xl font-bold leading-tight mt-1 ${valorConfigurado ? 'text-green-600' : 'text-gray-300'}`}>
+            <div className={`text-2xl font-bold leading-tight mt-1 ${valorConfigurado ? 'text-green-600' : ''}`} style={!valorConfigurado ? { color: 'var(--border-2)' } : {}}>
               {valorConfigurado ? formatBRL(totalGanho) : '—'}
             </div>
-            <div className="text-sm text-gray-400 mt-1">Total a receber</div>
+            <div className="text-sm mt-1" style={{ color: 'var(--txt-3)' }}>Total a receber</div>
           </div>
         </div>
 
         {/* ── Detalhamento de ganhos ── */}
         {valorConfigurado ? (
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
+          <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
+            <div className="px-6 py-4 flex items-center gap-2" style={{ borderBottom: '1px solid var(--border)' }}>
               <TrendingUp className="w-4 h-4 text-green-600" />
-              <h2 className="font-bold text-[#1A3A2C] text-sm">Detalhamento de Ganhos</h2>
+              <h2 className="font-bold text-sm" style={{ color: 'var(--txt-1)' }}>Detalhamento de Ganhos</h2>
             </div>
             <div className="px-6 py-5 space-y-3">
               {custoConsulta > 0 && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">
+                  <span style={{ color: 'var(--txt-3)' }}>
                     Consultas concluídas
-                    <span className="ml-2 text-gray-400 text-xs">({ats.length} × {formatBRL(custoConsulta)})</span>
+                    <span className="ml-2 text-xs" style={{ color: 'var(--txt-3)' }}>({ats.length} × {formatBRL(custoConsulta)})</span>
                   </span>
-                  <span className="font-bold text-[#1A3A2C]">{formatBRL(ganhoConsultas)}</span>
+                  <span className="font-bold" style={{ color: 'var(--txt-1)' }}>{formatBRL(ganhoConsultas)}</span>
                 </div>
               )}
               {ganhoReceitas > 0 && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">
+                  <span style={{ color: 'var(--txt-3)' }}>
                     Renovações de receita
-                    <span className="ml-2 text-gray-400 text-xs">({renovacoesRecs.length} × {formatBRL(custoReceita)})</span>
+                    <span className="ml-2 text-xs" style={{ color: 'var(--txt-3)' }}>({renovacoesRecs.length} × {formatBRL(custoReceita)})</span>
                   </span>
-                  <span className="font-bold text-[#1A3A2C]">{formatBRL(ganhoReceitas)}</span>
+                  <span className="font-bold" style={{ color: 'var(--txt-1)' }}>{formatBRL(ganhoReceitas)}</span>
                 </div>
               )}
-              <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
-                <span className="font-bold text-[#1A3A2C]">Total a receber no período</span>
+              <div className="pt-3 flex items-center justify-between" style={{ borderTop: '1px solid var(--border)' }}>
+                <span className="font-bold" style={{ color: 'var(--txt-1)' }}>Total a receber no período</span>
                 <span className="text-xl font-bold text-green-600">{formatBRL(totalGanho)}</span>
               </div>
             </div>
           </div>
         ) : (
-          <div className="bg-amber-50 border border-amber-100 rounded-2xl px-6 py-4 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+          <div className="rounded-2xl px-6 py-4 flex items-start gap-3" style={{ background: 'var(--warning-bg)', border: '1px solid color-mix(in srgb, var(--warning) 30%, transparent)' }}>
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--warning)' }} />
             <div>
-              <p className="text-sm font-semibold text-amber-800">Valores de remuneração não configurados</p>
-              <p className="text-xs text-amber-600 mt-0.5">
+              <p className="text-sm font-semibold" style={{ color: 'var(--txt-1)' }}>Valores de remuneração não configurados</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--txt-2)' }}>
                 O administrador ainda não cadastrou o valor por consulta e por receita para o seu perfil.
                 Quando configurado, você verá aqui o total a receber no período.
               </p>
@@ -459,7 +442,7 @@ export default async function ProducaoMedicoPage({
           avg={calcMedia(ats.length, atsChart)}
           data={atsChart}
           barColor="#5BBD9B"
-          todayColor="#1A3A2C"
+          todayColor="#5BBD9B"
         />
 
         <ChartCard

@@ -112,19 +112,19 @@ function DonutChart({ slices, formatValue, formatCenter }: { slices: DonutSlice[
     <div className="flex flex-col items-center gap-3">
       <svg viewBox="-95 -95 190 190" className="w-44 h-44">
         {sectors.map((s, i) => (
-          <path key={i} d={s.path} fill={s.color} stroke="white" strokeWidth="2">
+          <path key={i} d={s.path} fill={s.color} stroke="var(--surface)" strokeWidth="2">
             <title>{s.label}: {formatValue ? formatValue(s.value) : s.value}</title>
           </path>
         ))}
-        <text x="0" y="-6" textAnchor="middle" fontSize={centerFontSize} fontWeight="bold" fill="#1A3A2C">{centerLabel}</text>
-        <text x="0" y="10" textAnchor="middle" fontSize="8" fill="#9CA3AF">total</text>
+        <text x="0" y="-6" textAnchor="middle" fontSize={centerFontSize} fontWeight="bold" className="svg-lbl-strong">{centerLabel}</text>
+        <text x="0" y="10" textAnchor="middle" fontSize="8" className="svg-lbl">total</text>
       </svg>
       <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 max-w-xs">
         {slices.map((s, i) => (
-          <div key={i} className="flex items-center gap-1.5 text-xs text-gray-600">
+          <div key={i} className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--txt-2)' }}>
             <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
             <span className="truncate max-w-[90px]" title={s.label}>{s.label}</span>
-            <span className="font-semibold text-gray-700">{Math.round(s.value / total * 100)}%</span>
+            <span className="font-semibold">{Math.round(s.value / total * 100)}%</span>
           </div>
         ))}
       </div>
@@ -164,8 +164,8 @@ function BarChartSVG({
         const y = PAD.top + plotH - (tv / maxVal) * plotH
         return (
           <g key={i}>
-            <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="#F3F4F6" strokeWidth="1" />
-            <text x={PAD.left - 5} y={y + 3.5} textAnchor="end" fontSize="9" fill="#9CA3AF">{fmtTick(tv)}</text>
+            <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} className="svg-grid" strokeWidth="1" />
+            <text x={PAD.left - 5} y={y + 3.5} textAnchor="end" fontSize="9" className="svg-lbl">{fmtTick(tv)}</text>
           </g>
         )
       })}
@@ -180,14 +180,14 @@ function BarChartSVG({
             <rect x={cx - barW / 2} y={PAD.top + plotH - bh} width={barW} height={bh} fill={color} rx="3">
               <title>{rawLabel}: {formatValue(v)}</title>
             </rect>
-            <text x={cx} y={PAD.top + plotH + 14} textAnchor="middle" fontSize="9" fill="#6B7280"
+            <text x={cx} y={PAD.top + plotH + 14} textAnchor="middle" fontSize="9" className="svg-lbl"
               transform={n > 7 ? `rotate(-35,${cx},${PAD.top + plotH + 14})` : ''}>
               {lbl}
             </text>
           </g>
         )
       })}
-      <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} stroke="#E5E7EB" strokeWidth="1" />
+      <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} className="svg-axis" strokeWidth="1" />
     </svg>
   )
 }
@@ -215,14 +215,14 @@ function HBarChart({
         const truncated = label.length > 24 ? label.slice(0, 22) + '…' : label
         return (
           <g key={i}>
-            {i === 0 && <rect x={0} y={y + 2} width={W} height={ROW - 4} fill="#F9FAFB" rx="4" />}
-            <text x={0} y={y + ROW / 2 + 4} fontSize="10" fill={i === 0 ? '#1A3A2C' : '#374151'} fontWeight={i === 0 ? 'bold' : 'normal'}>
+            {i === 0 && <rect x={0} y={y + 2} width={W} height={ROW - 4} className="svg-track-fill" rx="4" />}
+            <text x={0} y={y + ROW / 2 + 4} fontSize="10" className={i === 0 ? 'svg-lbl-strong' : 'svg-lbl'} fontWeight={i === 0 ? 'bold' : 'normal'}>
               {truncated}
             </text>
             <rect x={LABEL_W} y={y + 8} width={bw} height={22} fill={color} rx="4" opacity={i === 0 ? 1 : 0.85}>
               <title>{d[labelKey]}: {formatValue(d[valueKey] ?? 0)}</title>
             </rect>
-            <text x={LABEL_W + bw + 7} y={y + ROW / 2 + 4} fontSize="9" fill="#6B7280">
+            <text x={LABEL_W + bw + 7} y={y + ROW / 2 + 4} fontSize="9" className="svg-lbl">
               {formatValue(d[valueKey] ?? 0)}
             </text>
           </g>
@@ -272,24 +272,24 @@ function LineChartSVG({
         const tv = (i / 4) * maxVal; const y = PAD.top + plotH - (tv / maxVal) * plotH
         return (
           <g key={i}>
-            <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="#F3F4F6" strokeWidth="1" />
-            <text x={PAD.left - 4} y={y + 3.5} textAnchor="end" fontSize="9" fill="#9CA3AF">{fmtTick(tv)}</text>
+            <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} className="svg-grid" strokeWidth="1" />
+            <text x={PAD.left - 4} y={y + 3.5} textAnchor="end" fontSize="9" className="svg-lbl">{fmtTick(tv)}</text>
           </g>
         )
       })}
       <path d={area} fill={`url(#${gradId})`} />
       <polyline points={polyline} fill="none" stroke={color} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
       {pts.map((p, i) => (
-        <circle key={i} cx={p.x} cy={p.y} r="4.5" fill="white" stroke={color} strokeWidth="2.5">
+        <circle key={i} cx={p.x} cy={p.y} r="4.5" className="svg-dot" stroke={color} strokeWidth="2.5">
           <title>{p.label}: {formatValue(p.value)}</title>
         </circle>
       ))}
       {pts.map((p, i) => (
-        <text key={i} x={p.x} y={PAD.top + plotH + 16} textAnchor="middle" fontSize="9" fill="#9CA3AF">
+        <text key={i} x={p.x} y={PAD.top + plotH + 16} textAnchor="middle" fontSize="9" className="svg-lbl">
           {p.label.length > 7 ? p.label.slice(0, 6) : p.label}
         </text>
       ))}
-      <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} stroke="#E5E7EB" strokeWidth="1" />
+      <line x1={PAD.left} y1={PAD.top + plotH} x2={W - PAD.right} y2={PAD.top + plotH} className="svg-axis" strokeWidth="1" />
     </svg>
   )
 }
@@ -298,10 +298,13 @@ function ChartCard({ title, subtitle, children, className = '' }: {
   title: string; subtitle?: string; children: React.ReactNode; className?: string
 }) {
   return (
-    <div className={`bg-white rounded-2xl p-5 shadow-sm border border-gray-50 ${className}`}>
+    <div
+      className={`rounded-2xl p-5 ${className}`}
+      style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}
+    >
       <div className="mb-4">
-        <h3 className="font-bold text-[#1A3A2C] text-sm">{title}</h3>
-        {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
+        <h3 className="font-bold text-sm" style={{ color: 'var(--txt-1)' }}>{title}</h3>
+        {subtitle && <p className="text-xs mt-0.5" style={{ color: 'var(--txt-3)' }}>{subtitle}</p>}
       </div>
       {children}
     </div>
@@ -311,31 +314,22 @@ function ChartCard({ title, subtitle, children, className = '' }: {
 function KpiCard({ label, value, sub, icon: Icon, color, highlight }: {
   label: string; value: string; sub?: string; icon: React.ElementType; color: string; highlight?: boolean
 }) {
-  if (highlight) {
-    return (
-      <div className="rounded-2xl p-5 shadow-sm border border-[#1A3A2C] col-span-1"
-        style={{ background: 'linear-gradient(135deg, #1A3A2C 60%, #2d5c42)' }}>
-        <div className="flex items-center gap-2 mb-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(91,189,155,0.25)' }}>
-            <Icon className="w-4 h-4" style={{ color: '#5BBD9B' }} />
-          </div>
-          <p className="text-xs font-semibold text-green-300 uppercase tracking-wide">{label}</p>
-        </div>
-        <p className="text-2xl font-bold text-white leading-none">{value}</p>
-        {sub && <p className="text-xs text-green-300 mt-1.5">{sub}</p>}
-      </div>
-    )
-  }
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 col-span-1">
+    <div
+      className="rounded-2xl p-5 transition-all hover:-translate-y-0.5 col-span-1"
+      style={highlight
+        ? { background: 'var(--brand)', border: '1px solid var(--brand)', boxShadow: '0 4px 16px var(--brand-glow)' }
+        : { background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-md)' }
+      }
+    >
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: `${color}18` }}>
-          <Icon className="w-4 h-4" style={{ color }} />
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: highlight ? 'rgba(255,255,255,0.15)' : `${color}18` }}>
+          <Icon className="w-4 h-4" style={{ color: highlight ? '#5BBD9B' : color }} />
         </div>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide truncate">{label}</p>
+        <p className="text-xs font-semibold uppercase tracking-wide truncate" style={{ color: highlight ? 'rgba(255,255,255,0.7)' : 'var(--txt-3)' }}>{label}</p>
       </div>
-      <p className="text-2xl font-bold text-[#1A3A2C] leading-none">{value}</p>
-      {sub && <p className="text-xs text-gray-400 mt-1.5">{sub}</p>}
+      <p className="text-2xl font-bold leading-none" style={{ color: highlight ? '#fff' : 'var(--txt-1)' }}>{value}</p>
+      {sub && <p className="text-xs mt-1.5" style={{ color: highlight ? 'rgba(255,255,255,0.6)' : 'var(--txt-3)' }}>{sub}</p>}
     </div>
   )
 }
@@ -521,18 +515,18 @@ export default function EmpresaDashboardClient() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-32 gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
-        <p className="text-gray-400 text-sm">Carregando analytics de gastos...</p>
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--brand-2)' }} />
+        <p className="text-sm" style={{ color: 'var(--txt-3)' }}>Carregando analytics de gastos...</p>
       </div>
     )
   }
 
   if (!data) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 gap-3 text-gray-400">
+      <div className="flex flex-col items-center justify-center py-24 gap-3" style={{ color: 'var(--txt-3)' }}>
         <BarChart2 className="w-10 h-10 opacity-30" />
         <p className="text-sm">Erro ao carregar dados.</p>
-        <button onClick={() => carregar(periodo)} className="text-[#5BBD9B] text-sm flex items-center gap-1.5 hover:underline">
+        <button onClick={() => carregar(periodo)} className="text-sm flex items-center gap-1.5 hover:underline" style={{ color: 'var(--brand-2)' }}>
           <RefreshCw className="w-3.5 h-3.5" /> Tentar novamente
         </button>
       </div>
@@ -545,11 +539,19 @@ export default function EmpresaDashboardClient() {
     <div className="space-y-6">
 
       {/* ---- Filter bar ---- */}
-      <div className="bg-white rounded-2xl px-5 py-3.5 shadow-sm flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+      <div
+        className="rounded-2xl px-5 py-3.5 flex flex-wrap items-center gap-3"
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}
+      >
+        <div className="flex items-center gap-1 rounded-xl p-1" style={{ background: 'var(--surface-2)' }}>
           {PERIODOS.map(p => (
             <button key={p.v} onClick={() => handlePeriodo(p.v)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${periodo === p.v ? 'bg-[#1A3A2C] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
+              style={periodo === p.v
+                ? { background: 'var(--brand)', color: '#fff', boxShadow: 'var(--shadow-sm)' }
+                : { color: 'var(--txt-2)' }
+              }
+            >
               {p.l}
             </button>
           ))}
@@ -558,12 +560,15 @@ export default function EmpresaDashboardClient() {
         {periodo === 'custom' && (
           <div className="flex items-center gap-2 flex-wrap">
             <input type="date" value={inicio} onChange={e => setInicio(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40" />
-            <span className="text-gray-400 text-xs">até</span>
+              className="text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2"
+              style={{ border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--txt-1)' }} />
+            <span className="text-xs" style={{ color: 'var(--txt-3)' }}>até</span>
             <input type="date" value={fim} onChange={e => setFim(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40" />
+              className="text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2"
+              style={{ border: '1px solid var(--border)', background: 'var(--surface-2)', color: 'var(--txt-1)' }} />
             <button onClick={handleCustomApply}
-              className="bg-[#5BBD9B] text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-[#4aab8a] transition-colors">
+              className="text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              style={{ background: 'var(--brand-2)' }}>
               Aplicar
             </button>
           </div>
@@ -571,12 +576,14 @@ export default function EmpresaDashboardClient() {
 
         <div className="ml-auto flex gap-2">
           <button onClick={() => exportarExcel(data, setExportandoExcel)} disabled={exportandoExcel}
-            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-medium disabled:opacity-60 transition-colors">
+            className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-lg font-medium disabled:opacity-60 transition-colors"
+            style={{ background: 'var(--success-bg)', color: 'var(--success)', border: '1px solid color-mix(in srgb, var(--success) 25%, transparent)' }}>
             {exportandoExcel ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
             Excel
           </button>
           <button onClick={() => exportarPDF(data)}
-            className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors">
+            className="flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-lg font-medium transition-colors"
+            style={{ background: 'var(--danger-bg)', color: 'var(--danger)', border: '1px solid color-mix(in srgb, var(--danger) 25%, transparent)' }}>
             <Printer className="w-3.5 h-3.5" />
             PDF
           </button>
@@ -603,7 +610,7 @@ export default function EmpresaDashboardClient() {
             <BarChartSVG data={data.gastosPorMes.map(d => ({ ...d, mes: formatMes(d.mes) }))}
               labelKey="mes" valueKey="valorTotal" color="#5BBD9B" formatValue={formatBRL} />
             {data.gastosPorMes.some(d => d.valorRenovacoes > 0) && (
-              <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+              <div className="flex items-center gap-4 mt-2 text-xs" style={{ color: 'var(--txt-3)' }}>
                 <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-[#5BBD9B] inline-block" /> Total (consultas + renovações)</span>
               </div>
             )}

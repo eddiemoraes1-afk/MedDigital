@@ -16,61 +16,46 @@ type Aba = 'relatorio' | 'dashboard' | 'funcionarios' | 'consultas' | 'atestados
 export default function EmpresaTabs() {
   const [aba, setAba] = useState<Aba>('relatorio')
 
-  const btnClass = (a: Aba) =>
-    `flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all border ${
-      aba === a
-        ? 'bg-[#1A3A2C] text-white border-[#1A3A2C] shadow-sm'
-        : 'bg-white text-gray-500 border-gray-200 hover:border-[#5BBD9B] hover:text-[#1A3A2C]'
-    }`
-
   return (
     <div className="mt-8">
       {/* Tab bar */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        <button onClick={() => setAba('relatorio')} className={btnClass('relatorio')}>
-          <Receipt className="w-4 h-4" />
-          Relatório de Cobrança
-        </button>
-
-        <button onClick={() => setAba('dashboard')} className={btnClass('dashboard')}>
-          <BarChart2 className="w-4 h-4" />
-          Dashboard de Gastos
-        </button>
-
-        <button onClick={() => setAba('funcionarios')} className={btnClass('funcionarios')}>
-          <Users className="w-4 h-4" />
-          Funcionários
-        </button>
-
-        <button onClick={() => setAba('consultas')} className={btnClass('consultas')}>
-          <Stethoscope className="w-4 h-4" />
-          Consultas
-        </button>
-
-        <button onClick={() => setAba('atestados')} className={btnClass('atestados')}>
-          <FileText className="w-4 h-4" />
-          Atestados
-        </button>
-
-        <button onClick={() => setAba('exames')} className={btnClass('exames')}>
-          <FlaskConical className="w-4 h-4" />
-          Exames
-        </button>
-
-        <button onClick={() => setAba('exclusoes')} className={btnClass('exclusoes')}>
-          <ShieldCheck className="w-4 h-4" />
-          Protocolo de Exclusões
-        </button>
-
-        <button onClick={() => setAba('lista')} className={btnClass('lista')}>
-          <List className="w-4 h-4" />
-          Lista de Funcionários
-        </button>
+      <div
+        className="flex flex-wrap gap-2 mb-6 p-1.5 rounded-2xl"
+        style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-xs)' }}
+      >
+        {([
+          { id: 'relatorio',    icon: Receipt,     label: 'Cobrança' },
+          { id: 'dashboard',   icon: BarChart2,    label: 'Dashboard' },
+          { id: 'funcionarios', icon: Users,        label: 'Funcionários' },
+          { id: 'consultas',   icon: Stethoscope,  label: 'Consultas' },
+          { id: 'atestados',   icon: FileText,     label: 'Atestados' },
+          { id: 'exames',      icon: FlaskConical, label: 'Exames' },
+          { id: 'exclusoes',   icon: ShieldCheck,  label: 'Exclusões' },
+          { id: 'lista',       icon: List,         label: 'Lista' },
+        ] as const).map(({ id, icon: Icon, label }) => {
+          const active = aba === id
+          return (
+            <button
+              key={id}
+              onClick={() => setAba(id)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
+              style={active
+                ? { background: 'var(--brand)', color: '#fff', boxShadow: 'var(--shadow-sm)' }
+                : { background: 'transparent', color: 'var(--txt-2)' }
+              }
+              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--surface-2)' }}
+              onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+            >
+              <Icon className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">{label}</span>
+            </button>
+          )
+        })}
       </div>
 
       {/* Tab content */}
       {aba === 'relatorio' && (
-        <div className="bg-white rounded-2xl p-6 shadow-sm">
+        <div className="rounded-2xl p-6" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
           <RelatorioEmpresa
             apiUrl="/api/empresa/relatorio"
             titulo="Relatório de Utilização e Cobrança"
@@ -78,33 +63,13 @@ export default function EmpresaTabs() {
         </div>
       )}
 
-      {aba === 'dashboard' && (
-        <EmpresaDashboardClient />
-      )}
-
-      {aba === 'funcionarios' && (
-        <FuncionariosDashboard />
-      )}
-
-      {aba === 'consultas' && (
-        <ConsultasDashboard />
-      )}
-
-      {aba === 'atestados' && (
-        <AtestadosDashboard />
-      )}
-
-      {aba === 'exames' && (
-        <ExamesDashboard />
-      )}
-
-      {aba === 'exclusoes' && (
-        <ExclusoesDashboard />
-      )}
-
-      {aba === 'lista' && (
-        <ListaFuncionariosDashboard />
-      )}
+      {aba === 'dashboard'    && <EmpresaDashboardClient />}
+      {aba === 'funcionarios' && <FuncionariosDashboard />}
+      {aba === 'consultas'    && <ConsultasDashboard />}
+      {aba === 'atestados'    && <AtestadosDashboard />}
+      {aba === 'exames'       && <ExamesDashboard />}
+      {aba === 'exclusoes'    && <ExclusoesDashboard />}
+      {aba === 'lista'        && <ListaFuncionariosDashboard />}
     </div>
   )
 }
