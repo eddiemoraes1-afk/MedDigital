@@ -64,17 +64,18 @@ export async function GET(req: NextRequest) {
   })
 
   // Atestados vinculados aos atendimentos
+  // LGPD: CID não é retornado — evita reidentificação (nome + diagnóstico juntos)
   const { data: atestadosData } = atIds.length > 0
     ? await admin
         .from('atestados')
-        .select('id, atendimento_id, dias, cid, data_inicio, data_fim')
+        .select('id, atendimento_id, dias, data_inicio, data_fim')
         .in('atendimento_id', atIds)
     : { data: [] }
-  const atestadosByAt: Record<string, Array<{ dias: number; cid: string | null }>> = {}
+  const atestadosByAt: Record<string, Array<{ dias: number }>> = {}
   ;(atestadosData ?? []).forEach(a => {
     if (a.atendimento_id) {
       if (!atestadosByAt[a.atendimento_id]) atestadosByAt[a.atendimento_id] = []
-      atestadosByAt[a.atendimento_id].push({ dias: a.dias ?? 0, cid: a.cid ?? null })
+      atestadosByAt[a.atendimento_id].push({ dias: a.dias ?? 0 })
     }
   })
 
@@ -99,7 +100,7 @@ export async function GET(req: NextRequest) {
       receitas,
       atestados: atestados.length,
       atestado_dias: atestados.reduce((s, x) => s + (x.dias ?? 0), 0),
-      atestado_cid: atestados.map(x => x.cid).filter(Boolean).join(', ') || null,
+      // CID removido intencionalmente — exibir nome + CID juntos viola LGPD (reidentificação)
     }
   })
 

@@ -19,7 +19,7 @@ interface Consulta {
   receitas: number
   atestados: number
   atestado_dias: number
-  atestado_cid: string | null
+  // atestado_cid removido — exibir nome + CID juntos viola LGPD (reidentificação)
 }
 
 const PERIODOS = [
@@ -156,12 +156,12 @@ export default function ConsultasDashboard() {
         'Receitas emitidas': c.receitas,
         'Atestados': c.atestados,
         'Dias atestado': c.atestado_dias || '',
-        'CID': c.atestado_cid || '',
+        // Coluna CID removida — exportar nome + CID viola LGPD (reidentificação)
       }))
       const ws = XLSX.utils.json_to_sheet(linhas)
       ws['!cols'] = [
         { wch: 18 }, { wch: 10 }, { wch: 30 }, { wch: 14 }, { wch: 22 }, { wch: 20 },
-        { wch: 28 }, { wch: 22 }, { wch: 8 }, { wch: 8 }, { wch: 10 }, { wch: 12 },
+        { wch: 28 }, { wch: 22 }, { wch: 8 }, { wch: 8 }, { wch: 10 },
       ]
       const wb = XLSX.utils.book_new()
       XLSX.utils.book_append_sheet(wb, ws, 'Consultas')
@@ -374,15 +374,10 @@ export default function ConsultasDashboard() {
                     </td>
                     <td className="px-3 py-3 text-center">
                       {c.atestados > 0 ? (
-                        <div className="flex flex-col items-center gap-0.5">
-                          <span className="inline-flex items-center gap-1 text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-semibold">
-                            <ClipboardList className="w-3 h-3" />
-                            {c.atestado_dias > 0 ? `${c.atestado_dias}d` : '✓'}
-                          </span>
-                          {c.atestado_cid && (
-                            <span className="text-xs text-gray-400">{c.atestado_cid}</span>
-                          )}
-                        </div>
+                        <span className="inline-flex items-center gap-1 text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-semibold">
+                          <ClipboardList className="w-3 h-3" />
+                          {c.atestado_dias > 0 ? `${c.atestado_dias}d` : '✓'}
+                        </span>
                       ) : (
                         <span className="text-gray-200 text-xs">—</span>
                       )}
