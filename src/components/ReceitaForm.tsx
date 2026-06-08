@@ -41,6 +41,9 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
   const hoje = new Date().toISOString().split('T')[0]
 
   const [tipo, setTipo] = useState<TipoReceita>('simples')
+  // Tipo forçado por medicamento controlado detectado via autocomplete
+  // 'especial' tem prioridade sobre 'antimicrobiano'
+  const [tipoForcado, setTipoForcado] = useState<TipoReceita | null>(null)
   const [medicamentos, setMedicamentos] = useState('')
 
   // Autocomplete de medicamentos
@@ -64,6 +67,18 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
 
   function adicionarMedicamento() {
     if (!medSelecionado || !posologia.trim()) return
+
+    // ── Detectar medicamento controlado e forçar tipo correto ────────────────
+    if (medSelecionado.controle) {
+      // 'especial' tem prioridade máxima; 'antimicrobiano' só se não há especial
+      const novoForcado: TipoReceita =
+        medSelecionado.controle === 'especial' ? 'especial'
+        : tipoForcado === 'especial' ? 'especial'
+        : 'antimicrobiano'
+      setTipoForcado(novoForcado)
+      setTipo(novoForcado)
+    }
+
     const unidade = unidadeQuantidade(medSelecionado.forma)
     // Campo interno (analytics): nome + concentração + quantidade
     const linhaInterna = `${medSelecionado.principio} ${medSelecionado.concentracao} — ${qtyMed} ${unidade}`
@@ -102,6 +117,7 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
           paciente_id: pacienteId,
           atendimento_id: atendimentoId,
           tipo,
+          tem_controlado: tipoForcado !== null,
           medicamentos: medicamentos.trim(),
           instrucoes: instrucoes.trim() || null,
           observacoes: observacoes.trim() || null,
@@ -178,25 +194,61 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
       {/* Tipo */}
       <div>
         <label className="block text-xs font-medium text-gray-600 mb-2">Tipo de receita</label>
+
+        {/* Banner: medicamento controlado detectado */}
+        {tipoForcado === 'especial' && (
+          <div className="mb-2 flex items-start gap-2 bg-red-50 border border-red-300 rounded-xl px-3 py-2.5">
+            <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-red-700">Medicamento controlado detectado</p>
+              <p className="text-xs text-red-600 mt-0.5">
+                Portaria 344/98 — exige <strong>Receita de Controle Especial (2 vias)</strong>. Receita Simples não é permitida.
+              </p>
+            </div>
+          </div>
+        )}
+        {tipoForcado === 'antimicrobiano' && (
+          <div className="mb-2 flex items-start gap-2 bg-amber-50 border border-amber-300 rounded-xl px-3 py-2.5">
+            <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-amber-700">Antimicrobiano detectado</p>
+              <p className="text-xs text-amber-600 mt-0.5">
+                RDC 20/2011 — exige <strong>Receita de Antimicrobiano (2 vias)</strong>. Receita Simples não é permitida.
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 gap-1.5">
-          {TIPOS.map(t => (
-            <button
-              key={t.value}
-              type="button"
-              onClick={() => setTipo(t.value)}
-              className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border text-left transition-colors ${
-                tipo === t.value
-                  ? 'bg-[#1A3A2C] border-[#1A3A2C] text-white'
-                  : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
-              }`}
-            >
-              <div className={`w-3 h-3 rounded-full border-2 shrink-0 ${tipo === t.value ? 'bg-white border-white' : 'border-gray-300'}`} />
-              <div>
-                <p className={`text-xs font-semibold ${tipo === t.value ? 'text-white' : 'text-gray-700'}`}>{t.label}</p>
-                <p className={`text-xs ${tipo === t.value ? 'text-green-200' : 'text-gray-400'}`}>{t.desc}</p>
-              </div>
-            </button>
-          ))}
+          {TIPOS.map(t => {
+            // Bloquear opções incompatíveis com o tipo forçado pelo medicamento
+            const bloqueado =
+              tipoForcado === 'especial' ? t.value !== 'especial'
+              : tipoForcado === 'antimicrobiano' ? t.value === 'simples'
+              : false
+            return (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => { if (!bloqueado) setTipo(t.value) }}
+                disabled={bloqueado}
+                title={bloqueado ? 'Não permitido com o medicamento selecionado' : undefined}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl border text-left transition-colors ${
+                  bloqueado
+                    ? 'opacity-40 cursor-not-allowed bg-gray-50 border-gray-100 text-gray-400'
+                    : tipo === t.value
+                    ? 'bg-[#1A3A2C] border-[#1A3A2C] text-white'
+                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                <div className={`w-3 h-3 rounded-full border-2 shrink-0 ${tipo === t.value && !bloqueado ? 'bg-white border-white' : 'border-gray-300'}`} />
+                <div>
+                  <p className={`text-xs font-semibold ${tipo === t.value && !bloqueado ? 'text-white' : 'text-gray-700'}`}>{t.label}</p>
+                  <p className={`text-xs ${tipo === t.value && !bloqueado ? 'text-green-200' : 'text-gray-400'}`}>{t.desc}</p>
+                </div>
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -266,7 +318,19 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
       {medSelecionado && (
         <div className="border border-[#5BBD9B] bg-[#F0F9F5] rounded-xl p-3 space-y-3">
           {/* Medicamento selecionado */}
-          <p className="text-sm font-semibold text-[#1A3A2C]">{medicamentoLabel(medSelecionado)}</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-sm font-semibold text-[#1A3A2C]">{medicamentoLabel(medSelecionado)}</p>
+            {medSelecionado.controle === 'especial' && (
+              <span className="text-[10px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full border border-red-200">
+                ⚠ CONTROLADO — Receita Especial
+              </span>
+            )}
+            {medSelecionado.controle === 'antimicrobiano' && (
+              <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full border border-amber-200">
+                ⚠ ANTIMICROBIANO — 2 vias
+              </span>
+            )}
+          </div>
 
           {/* Quantidade */}
           <div className="flex items-center gap-2">
