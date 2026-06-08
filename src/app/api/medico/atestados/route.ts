@@ -41,6 +41,31 @@ export async function POST(req: NextRequest) {
 
   const admin = createAdminClient()
 
+  // ── Validação IDOR: atendimento_id deve pertencer a este médico e paciente ──
+  if (atendimento_id) {
+    const { data: atendimento } = await admin
+      .from('atendimentos')
+      .select('id, paciente_id, medico_id')
+      .eq('id', atendimento_id)
+      .maybeSingle()
+
+    if (!atendimento) {
+      return NextResponse.json({ error: 'Atendimento não encontrado' }, { status: 404 })
+    }
+    if (atendimento.paciente_id !== paciente_id) {
+      return NextResponse.json(
+        { error: 'Atendimento não pertence a este paciente' },
+        { status: 403 }
+      )
+    }
+    if (atendimento.medico_id !== medico.id) {
+      return NextResponse.json(
+        { error: 'Não autorizado: o atendimento foi realizado por outro médico' },
+        { status: 403 }
+      )
+    }
+  }
+
   // Buscar empresa vinculada ao paciente
   const { data: pac } = await admin.from('pacientes').select('cpf').eq('id', paciente_id).single()
   let empresa_id: string | null = null
