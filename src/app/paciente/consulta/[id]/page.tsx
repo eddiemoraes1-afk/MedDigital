@@ -91,6 +91,7 @@ export default function ConsultaPaciente() {
   const [encaminhado,   setEncaminhado]    = useState(false)
   const [posicaoInfo,   setPosicaoInfo]    = useState<PosicaoInfo | null>(null)
   const [confirmarSaida, setConfirmarSaida] = useState(false)
+  const [reconectando,  setReconectando]    = useState(false)
 
   // Refs: acessados dentro do polling sem stale closure
   const atendimentoIdRef = useRef<string>(id as string)
@@ -128,7 +129,10 @@ export default function ConsultaPaciente() {
 
     channel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
+        setReconectando(false)
         await channel.track({ user: 'paciente', at: Date.now() })
+      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        if (!encerradoRef.current) setReconectando(true)
       }
     })
 
@@ -137,6 +141,18 @@ export default function ConsultaPaciente() {
       channel.untrack().finally(() => supabase.removeChannel(channel))
     }
   }, [id])
+
+  // Detecta perda de conexão de rede via eventos do browser
+  useEffect(() => {
+    const onOffline = () => { if (!encerradoRef.current) setReconectando(true) }
+    const onOnline  = () => setReconectando(false)
+    window.addEventListener('offline', onOffline)
+    window.addEventListener('online',  onOnline)
+    return () => {
+      window.removeEventListener('offline', onOffline)
+      window.removeEventListener('online',  onOnline)
+    }
+  }, [])
 
   async function poll() {
     if (encerradoRef.current) return
@@ -494,6 +510,42 @@ export default function ConsultaPaciente() {
           style={{ minHeight: 'calc(100vh - 56px)' }}
         />
       </div>
+
+      {/* ── Overlay de reconexão ──────────────────────────────────────────── */}
+      {reconectando && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(6px)' }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-8 text-center shadow-2xl"
+            style={{ background: '#0D2416', border: '1px solid #2A4D3A' }}
+          >
+            {/* Ícone de alerta com spinner */}
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
+              style={{ background: 'rgba(251,146,60,0.15)' }}
+            >
+              <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
+            </div>
+
+            <h3 className="text-white text-xl font-bold mb-2">Conexão perdida</h3>
+            <p className="text-sm leading-relaxed mb-7" style={{ color: 'rgba(167,243,208,0.75)' }}>
+              Sua conexão com a consulta foi interrompida. Tentando reconectar automaticamente...
+            </p>
+
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full font-bold py-3.5 rounded-xl text-sm text-white transition-colors"
+              style={{ background: '#5BBD9B' }}
+              onMouseEnter={e => (e.currentTarget.style.background = '#4aab8a')}
+              onMouseLeave={e => (e.currentTarget.style.background = '#5BBD9B')}
+            >
+              Recarregar página
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Modal de confirmação de saída ─────────────────────────────────── */}
       {confirmarSaida && (

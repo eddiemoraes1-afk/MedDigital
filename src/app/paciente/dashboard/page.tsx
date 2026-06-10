@@ -44,6 +44,16 @@ export default async function PacienteDashboard() {
     .order('criado_em', { ascending: false })
     .limit(3)
 
+  // Consulta ativa — para mostrar banner de reconexão no dashboard
+  const { data: consultaAtiva } = await adminSupabase
+    .from('atendimentos')
+    .select('id, status')
+    .eq('paciente_id', paciente?.id)
+    .in('status', ['aguardando', 'em_andamento'])
+    .order('criado_em', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
   // Atestados, receitas e exames do paciente
   const hoje = new Date().toISOString().slice(0, 10)
   const [atestadosRes, receitasRes, examesRes] = await Promise.all([
@@ -132,6 +142,44 @@ export default async function PacienteDashboard() {
       <PacienteHeader />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
+
+        {/* Banner: consulta ativa — paciente pode ter saído acidentalmente */}
+        {consultaAtiva && (
+          <div
+            className="rounded-2xl px-5 py-4 mb-6 flex items-center gap-4"
+            style={{
+              background: 'rgba(91,189,155,0.12)',
+              border: '1.5px solid #5BBD9B',
+              boxShadow: '0 0 0 4px rgba(91,189,155,0.07)',
+            }}
+          >
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: 'rgba(91,189,155,0.2)' }}
+            >
+              <Video className="w-5 h-5" style={{ color: '#5BBD9B' }} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-sm" style={{ color: 'var(--txt-1)' }}>
+                {consultaAtiva.status === 'em_andamento'
+                  ? 'Consulta em andamento'
+                  : 'Você está na fila de atendimento'}
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--txt-3)' }}>
+                Sua sessão ainda está ativa. Volte à sala para continuar.
+              </p>
+            </div>
+            <Link
+              href={`/paciente/consulta/${consultaAtiva.id}`}
+              className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white transition-colors"
+              style={{ background: '#5BBD9B' }}
+            >
+              Voltar à sala
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+        )}
+
         {/* Saudação */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold" style={{ color: 'var(--txt-1)' }}>{saudacao}, {primeiroNome}! 👋</h1>
