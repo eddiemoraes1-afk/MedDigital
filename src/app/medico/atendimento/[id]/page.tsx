@@ -16,6 +16,7 @@ import SolicitacaoExamesForm from '@/components/SolicitacaoExamesForm'
 import EncaminhamentoForm from '@/components/EncaminhamentoForm'
 import ExclusaoTelemedicinaForm from '@/components/ExclusaoTelemedicinaForm'
 import ProntuarioDrawer from './ProntuarioDrawer'
+import CidAutocomplete from '@/components/CidAutocomplete'
 
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 
@@ -803,12 +804,11 @@ export default function AtendimentoMedico() {
                   />
                   <div className="mt-2">
                     <label className="block text-[10px] text-green-400 mb-0.5">CID-10</label>
-                    <input
-                      type="text"
+                    <CidAutocomplete
                       value={cid}
-                      onChange={e => setCid(e.target.value.toUpperCase())}
+                      onChange={setCid}
+                      dark
                       placeholder="Ex: J06.9, M54.5"
-                      className="w-full bg-[#0F1F33] border border-[#2A4A3C] text-blue-100 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#5BBD9B] placeholder-blue-900 uppercase"
                     />
                   </div>
                 </SecaoAnamnese>

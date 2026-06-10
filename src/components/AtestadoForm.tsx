@@ -6,6 +6,7 @@ import {
   BriefcaseMedical, CalendarCheck, Users,
 } from 'lucide-react'
 import { drTitle } from '@/lib/medico-utils'
+import CidAutocomplete from '@/components/CidAutocomplete'
 
 type TipoAtestado = 'afastamento' | 'comparecimento' | 'acompanhamento'
 
@@ -456,24 +457,16 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
             <label className="block text-xs font-medium text-gray-600 mb-1">
               CID-10 <span className="text-red-400">*</span>
             </label>
-            <input
-              type="text" value={cid}
+            <CidAutocomplete
+              value={cid}
               disabled={aguardandoAutorizacao}
-              autoComplete="off"
-              onChange={e => {
-                const v = e.target.value.toUpperCase()
+              error={!cid.trim() || cidAutorizado === false}
+              onChange={v => {
                 setCid(v)
                 // Limpou ou alterou o CID após pedir autorização → reseta o fluxo LGPD
                 if (!v.trim() || cidAutorizado !== null) resetarAutorizacao()
               }}
               placeholder="Ex: J00, Z76.0, M54.5"
-              className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] font-mono disabled:opacity-60 ${
-                !cid.trim()
-                  ? 'border-red-200 bg-red-50'
-                  : cidAutorizado === false
-                    ? 'border-red-400 border-dashed bg-red-50'
-                    : 'border-gray-200'
-              }`}
             />
             {!cid.trim() && <p className="text-red-400 text-xs mt-1">CID-10 é obrigatório</p>}
 
@@ -549,11 +542,10 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
             <label className="block text-xs font-medium text-gray-600 mb-1">
               CID-10 <span className="text-gray-400">(opcional)</span>
             </label>
-            <input
-              type="text" value={cid} onChange={e => setCid(e.target.value.toUpperCase())}
+            <CidAutocomplete
+              value={cid}
+              onChange={v => setCid(v)}
               placeholder="Ex: J00, Z76.0, M54.5"
-              autoComplete="off"
-              className={`${inputCls} font-mono`}
             />
           </div>
         </>
