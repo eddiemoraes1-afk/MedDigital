@@ -1,19 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Loader2, Phone, User, Calendar, Clock, FileText, ChevronDown, ChevronUp } from 'lucide-react'
+import { Loader2, Phone, User, Calendar, Clock, FileText, ChevronDown, ChevronUp, AlertTriangle, X, MessageCircle } from 'lucide-react'
 import AtestadoForm from '@/components/AtestadoForm'
+import { createClient } from '@/lib/supabase/client'
 
 export default function ConsultaMedico() {
   const { id } = useParams()
   const router = useRouter()
   const [atendimento, setAtendimento] = useState<any>(null)
-  const [paciente, setPaciente] = useState<any>(null)
-  const [medico, setMedico] = useState<any>(null)
+  const [paciente,    setPaciente]    = useState<any>(null)
+  const [medico,      setMedico]      = useState<any>(null)
   const [agendamento, setAgendamento] = useState<any>(null)
-  const [carregando, setCarregando] = useState(true)
+  const [carregando,  setCarregando]  = useState(true)
   const [showAtestado, setShowAtestado] = useState(false)
+  const [aviso, setAviso] = useState<'caiu' | 'encerrado' | null>(null)
+
+  // Ref para acessar paciente dentro dos callbacks do Presence sem stale closure
+  const pacienteRef = useRef<any>(null)
 
   useEffect(() => {
     if (!id) return
@@ -23,12 +28,44 @@ export default function ConsultaMedico() {
         if (data.atendimento) {
           setAtendimento(data.atendimento)
           setPaciente(data.paciente ?? null)
+          pacienteRef.current = data.paciente ?? null
           setMedico(data.medico ?? null)
           setAgendamento(data.agendamento ?? null)
         }
       })
       .catch(console.error)
       .finally(() => setCarregando(false))
+  }, [id])
+
+  // ── Supabase Presence — detecta se o paciente caiu ────────────────────────
+  useEffect(() => {
+    if (!id) return
+    const supabase = createClient()
+    const channel  = supabase.channel(`consulta:${id}`)
+
+    channel
+      .on('presence', { event: 'leave' }, async ({ leftPresences }) => {
+        const saindoPaciente = (leftPresences as any[]).some(p => p.user === 'paciente')
+        if (!saindoPaciente) return
+
+        // Verifica se foi saída intencional (status já = concluido)
+        const { data } = await supabase
+          .from('atendimentos')
+          .select('status')
+          .eq('id', id as string)
+          .single()
+
+        if (data?.status === 'concluido') {
+          // Consulta encerrada corretamente — sem aviso de queda
+          return
+        }
+
+        // Paciente caiu ou saiu sem encerrar formalmente
+        setAviso('caiu')
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
   }, [id])
 
   async function concluirConsulta() {
@@ -102,6 +139,52 @@ export default function ConsultaMedico() {
           </button>
         </div>
       </div>
+
+      {/* ── Banner: paciente saiu / caiu ─────────────────────────────────── */}
+      {aviso === 'caiu' && (
+        <div className="shrink-0 flex items-center gap-3 px-5 py-3"
+          style={{ background: '#7C2D12', borderBottom: '1px solid rgba(251,146,60,0.3)' }}>
+          <AlertTriangle className="w-4 h-4 text-orange-300 shrink-0" />
+          <p className="text-orange-100 text-sm font-medium flex-1">
+            <span className="font-bold">
+              {pacienteRef.current?.nome
+                ? `${pacienteRef.current.nome.split(' ')[0]} saiu`
+                : 'Paciente saiu'} da sala
+            </span>
+            {' '}— conexão interrompida ou aba fechada.
+          </p>
+
+          {/* WhatsApp — só exibe se tiver telefone */}
+          {pacienteRef.current?.telefone && (() => {
+            const tel = pacienteRef.current.telefone.replace(/\D/g, '')
+            const numero = tel.startsWith('55') ? tel : `55${tel}`
+            const msg = encodeURIComponent(
+              `Olá! Sua consulta ainda está aberta. Precisa de ajuda para reconectar?`
+            )
+            return (
+              <a
+                href={`https://wa.me/${numero}?text=${msg}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors shrink-0"
+                style={{ background: '#16a34a', color: '#fff' }}
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                WhatsApp
+              </a>
+            )
+          })()}
+
+          <button
+            onClick={() => setAviso(null)}
+            className="shrink-0 p-1 rounded-lg opacity-70 hover:opacity-100 transition-opacity"
+            style={{ color: '#fed7aa' }}
+            title="Dispensar aviso"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Corpo */}
       <div className="flex-1 flex overflow-hidden">

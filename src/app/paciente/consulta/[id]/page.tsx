@@ -119,6 +119,25 @@ export default function ConsultaPaciente() {
     return () => window.removeEventListener('beforeunload', handler)
   }, [])
 
+  // Supabase Presence — anuncia a presença do paciente na sala
+  // O médico recebe presence.leave se a conexão cair
+  useEffect(() => {
+    if (!id) return
+    const supabase = createClient()
+    const channel  = supabase.channel(`consulta:${id}`)
+
+    channel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await channel.track({ user: 'paciente', at: Date.now() })
+      }
+    })
+
+    return () => {
+      // untrack antes de remover — sinaliza saída limpa para o servidor
+      channel.untrack().finally(() => supabase.removeChannel(channel))
+    }
+  }, [id])
+
   async function poll() {
     if (encerradoRef.current) return
 
