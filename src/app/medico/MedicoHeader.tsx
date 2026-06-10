@@ -51,7 +51,7 @@ export default function MedicoHeader({ titulo, backHref, onBack, medicoNome, med
 
           <img src="/logo-branca.svg" alt="RovarisMed" className="h-8 shrink-0" />
           <div className="h-5 w-px bg-white/15 shrink-0" />
-          <span className="text-xs font-semibold text-white/90 bg-white/10 px-3 py-1 rounded-full whitespace-nowrap border border-white/10">
+          <span className="text-xs font-semibold text-white/90 bg-white/10 px-3 py-1 rounded-full border border-white/10 max-w-[180px] truncate" title={titulo}>
             {titulo}
           </span>
         </div>

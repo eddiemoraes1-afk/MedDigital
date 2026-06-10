@@ -148,7 +148,7 @@ export default async function LogsMedicoPage({
                 className="px-3 py-1.5 rounded-full text-xs font-medium border transition-colors"
                 style={
                   ativo
-                    ? { background: 'var(--primary)', color: '#fff', borderColor: 'var(--primary)' }
+                    ? { background: '#1A3A2C', color: '#fff', borderColor: '#1A3A2C' }
                     : { background: 'var(--surface)', color: 'var(--txt-2)', borderColor: 'var(--border)' }
                 }
               >
