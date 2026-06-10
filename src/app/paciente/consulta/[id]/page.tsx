@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2, Clock, Phone, Video, CheckCircle2, ArrowRight, Users } from 'lucide-react'
+import { Loader2, Clock, Phone, Video, CheckCircle2, ArrowRight, Users, AlertTriangle } from 'lucide-react'
 import { drTitle } from '@/lib/medico-utils'
 
 // ── Helpers de áudio ──────────────────────────────────────────────────────────
@@ -83,13 +83,14 @@ export default function ConsultaPaciente() {
   const { id } = useParams()
   const router  = useRouter()
 
-  const [atendimento,  setAtendimento]  = useState<any>(null)
-  const [pacienteNome, setPacienteNome] = useState('')
-  const [carregando,   setCarregando]   = useState(true)
-  const [entrou,       setEntrou]       = useState(false)
-  const [encerrado,    setEncerrado]    = useState(false)
-  const [encaminhado,  setEncaminhado]  = useState(false)
-  const [posicaoInfo,  setPosicaoInfo]  = useState<PosicaoInfo | null>(null)
+  const [atendimento,    setAtendimento]    = useState<any>(null)
+  const [pacienteNome,  setPacienteNome]   = useState('')
+  const [carregando,    setCarregando]     = useState(true)
+  const [entrou,        setEntrou]         = useState(false)
+  const [encerrado,     setEncerrado]      = useState(false)
+  const [encaminhado,   setEncaminhado]    = useState(false)
+  const [posicaoInfo,   setPosicaoInfo]    = useState<PosicaoInfo | null>(null)
+  const [confirmarSaida, setConfirmarSaida] = useState(false)
 
   // Refs: acessados dentro do polling sem stale closure
   const atendimentoIdRef = useRef<string>(id as string)
@@ -104,6 +105,18 @@ export default function ConsultaPaciente() {
     const interval = setInterval(poll, 5000)
     return () => clearInterval(interval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Avisa o browser se o paciente tentar fechar a aba / navegar enquanto na consulta
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (!encerradoRef.current) {
+        e.preventDefault()
+        e.returnValue = ''   // Chrome/Edge exigem isso para mostrar o diálogo nativo
+      }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
   }, [])
 
   async function poll() {
@@ -325,8 +338,8 @@ export default function ConsultaPaciente() {
             </div>
           )}
           <button
-            onClick={encerrarConsulta}
-            className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium"
+            onClick={() => setConfirmarSaida(true)}
+            className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
           >
             <Phone className="w-3.5 h-3.5 rotate-[135deg]" />
             Encerrar
@@ -462,6 +475,63 @@ export default function ConsultaPaciente() {
           style={{ minHeight: 'calc(100vh - 56px)' }}
         />
       </div>
+
+      {/* ── Modal de confirmação de saída ─────────────────────────────────── */}
+      {confirmarSaida && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-7 text-center shadow-2xl"
+            style={{ background: '#0D2416', border: '1px solid #2A4D3A' }}
+          >
+            {/* Ícone de alerta */}
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
+              style={{ background: 'rgba(239,68,68,0.15)' }}
+            >
+              <AlertTriangle className="w-8 h-8 text-red-400" />
+            </div>
+
+            <h3 className="text-white text-xl font-bold mb-2">
+              Sair da consulta?
+            </h3>
+            <p className="text-sm leading-relaxed mb-7" style={{ color: 'rgba(167,243,208,0.75)' }}>
+              Se você sair agora a consulta será encerrada e o médico será avisado.
+              Tem certeza que deseja sair?
+            </p>
+
+            <div className="flex flex-col gap-3">
+              {/* Botão primário — continuar (mais destacado) */}
+              <button
+                onClick={() => setConfirmarSaida(false)}
+                className="w-full font-bold py-3.5 rounded-xl text-sm transition-colors text-white"
+                style={{ background: '#5BBD9B' }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#4aab8a')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#5BBD9B')}
+              >
+                Não, continuar na consulta
+              </button>
+
+              {/* Botão secundário — encerrar (menos destacado) */}
+              <button
+                onClick={encerrarConsulta}
+                className="w-full font-medium py-3 rounded-xl text-sm transition-colors"
+                style={{
+                  color: '#F87171',
+                  background: 'rgba(239,68,68,0.12)',
+                  border: '1px solid rgba(239,68,68,0.25)',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.22)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(239,68,68,0.12)')}
+              >
+                Sim, encerrar consulta
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
