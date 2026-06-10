@@ -1,9 +1,11 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowLeft, LogOut, LayoutDashboard, BarChart2, User2 } from 'lucide-react'
+import { ArrowLeft, LayoutDashboard, BarChart2, User2, History } from 'lucide-react'
 import { drTitle } from '@/lib/medico-utils'
 import ThemeToggle from '@/components/ThemeToggle'
+import SessaoTimer from './SessaoTimer'
+import BotaoSair from './BotaoSair'
 
 // Re-exporta para quem já importava daqui
 export { drTitle }
@@ -70,6 +72,13 @@ export default function MedicoHeader({ titulo, backHref, onBack, medicoNome, med
             <BarChart2 className="w-3.5 h-3.5" />
             <span className="hidden md:inline">Minha Produção</span>
           </Link>
+          <Link
+            href="/medico/logs"
+            className="flex items-center gap-1.5 text-green-200/80 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+          >
+            <History className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Histórico</span>
+          </Link>
 
           {titulo_dr && (
             <div className="hidden lg:flex items-center gap-2 px-2">
@@ -88,17 +97,12 @@ export default function MedicoHeader({ titulo, backHref, onBack, medicoNome, med
           )}
 
           <div className="w-px h-5 bg-white/15 mx-1" />
+          <SessaoTimer />
+          <div className="w-px h-5 bg-white/15 mx-1" />
           <ThemeToggle />
-
-          <form action="/api/auth/signout" method="POST" className="ml-0.5">
-            <button
-              type="submit"
-              className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-xl text-sm font-medium transition-all"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline text-xs">Sair</span>
-            </button>
-          </form>
+          <div className="ml-0.5">
+            <BotaoSair />
+          </div>
         </div>
       </div>
     </header>

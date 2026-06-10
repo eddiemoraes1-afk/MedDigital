@@ -28,10 +28,10 @@ export async function POST(req: NextRequest) {
 
   const adminSupabase = createAdminClient()
 
-  // Buscar atendimento
+  // Buscar atendimento (inclui iniciado_em para calcular duração no log)
   const { data: atendimento } = await adminSupabase
     .from('atendimentos')
-    .select('id, paciente_id, agendamento_id, medico_id')
+    .select('id, paciente_id, agendamento_id, medico_id, iniciado_em')
     .eq('id', atendimento_id)
     .single()
 
@@ -95,6 +95,52 @@ export async function POST(req: NextRequest) {
       .from('agendamentos')
       .update({ status: 'concluido' })
       .eq('id', atendimento.agendamento_id)
+  }
+
+  // ── Log de encerramento (fire-and-forget) ────────────────────────────────
+  {
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim()
+      || req.headers.get('x-real-ip')
+      || 'desconhecido'
+
+    const duracaoSegundos = atendimento.iniciado_em
+      ? Math.max(0, Math.floor((Date.now() - new Date(atendimento.iniciado_em).getTime()) / 1000))
+      : null
+
+    const formatarDur = (s: number) => {
+      const h = Math.floor(s / 3600)
+      const m = Math.floor((s % 3600) / 60)
+      const seg = s % 60
+      if (h > 0) return `${h}h ${m}min ${seg}s`
+      if (m > 0) return `${m}min ${seg}s`
+      return `${seg}s`
+    }
+
+    adminSupabase
+      .from('atendimentos')
+      .select('pacientes(nome), medicos(id)')
+      .eq('id', atendimento_id)
+      .single()
+      .then(({ data }) => {
+        const nomePaciente   = (data as any)?.pacientes?.nome ?? 'paciente'
+        const medicoIdLog    = (data as any)?.medicos?.id ?? atendimento.medico_id
+        if (!medicoIdLog) return
+
+        return adminSupabase.from('logs_sessao_medico').insert({
+          medico_id: medicoIdLog,
+          tipo:      'encerrou_consulta',
+          descricao: duracaoSegundos !== null
+            ? `Encerrou consulta de ${nomePaciente} (duração: ${formatarDur(duracaoSegundos)})`
+            : `Encerrou consulta de ${nomePaciente}`,
+          ip,
+          dados: {
+            atendimento_id,
+            duracao_segundos: duracaoSegundos,
+            valor_cobrado:    valorCobrado,
+          },
+        })
+      })
+      .catch(() => {})
   }
 
   return NextResponse.json({ ok: true, valor_cobrado: valorCobrado })

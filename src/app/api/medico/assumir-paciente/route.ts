@@ -134,5 +134,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Paciente já foi assumido por outro médico' }, { status: 409 })
   }
 
+  // ── Log de evento (fire-and-forget) ──────────────────────────────────────
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim()
+    || req.headers.get('x-real-ip')
+    || 'desconhecido'
+
+  // Buscar nome do paciente para enriquecer o log
+  admin
+    .from('atendimentos')
+    .select('pacientes(nome)')
+    .eq('id', atendimento_id)
+    .single()
+    .then(({ data }) => {
+      const nomePaciente = (data as any)?.pacientes?.nome ?? 'paciente'
+      return admin.from('logs_sessao_medico').insert({
+        medico_id: medico.id,
+        tipo:      'assumiu_paciente',
+        descricao: `Assumiu ${nomePaciente} para atendimento`,
+        ip,
+        dados:     { atendimento_id },
+      })
+    })
+    .catch(() => {})
+
   return NextResponse.json({ ok: true })
 }
