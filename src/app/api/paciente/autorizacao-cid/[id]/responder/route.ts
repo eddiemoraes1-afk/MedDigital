@@ -27,9 +27,18 @@ export async function PATCH(
     .from('pacientes').select('id').eq('usuario_id', user.id).single()
   if (!paciente) return NextResponse.json({ error: 'Não autorizado' }, { status: 403 })
 
+  // Captura IP do paciente para evidência do consentimento digital (LGPD)
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim()
+    ?? req.headers.get('x-real-ip')
+    ?? null
+
   const { error } = await admin
     .from('autorizacoes_cid')
-    .update({ status: resposta, respondido_em: new Date().toISOString() })
+    .update({
+      status: resposta,
+      respondido_em: new Date().toISOString(),
+      ip_paciente: ip,
+    })
     .eq('id', id)
     .eq('paciente_id', paciente.id)
     .eq('status', 'pendente')

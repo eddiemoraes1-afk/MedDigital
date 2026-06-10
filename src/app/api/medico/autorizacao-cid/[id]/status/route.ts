@@ -18,10 +18,14 @@ export async function GET(
 
   const { data, error } = await admin
     .from('autorizacoes_cid')
-    .select('id, status, respondido_em')
+    .select('id, status, respondido_em, ip_paciente')
     .eq('id', id)
     .single()
 
   if (error || !data) return NextResponse.json({ error: 'Não encontrado' }, { status: 404 })
-  return NextResponse.json({ status: data.status, respondido_em: data.respondido_em })
+  return NextResponse.json({
+    status: data.status,
+    respondido_em: data.respondido_em,
+    ip_paciente: data.ip_paciente,
+  })
 }

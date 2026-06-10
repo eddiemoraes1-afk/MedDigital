@@ -66,6 +66,17 @@ function calcDataFim(inicio: string, dias: number): string {
   return d.toISOString().split('T')[0]
 }
 
+function formatarAutorizacaoLGPD(respondidoEm: string, ip: string | null | undefined): string {
+  const d = new Date(respondidoEm)
+  const data = d.toLocaleDateString('pt-BR', {
+    day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'America/Sao_Paulo',
+  })
+  const hora = d.toLocaleTimeString('pt-BR', {
+    hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'America/Sao_Paulo',
+  })
+  return ip ? `${data} às ${hora} (IP: ${ip})` : `${data} às ${hora}`
+}
+
 function gerarPDF(params: {
   tipo: TipoAtestado
   paciente: AtestadoFormProps['paciente']
@@ -75,6 +86,8 @@ function gerarPDF(params: {
   dataEmissao: string
   cid: string
   cidAutorizado: boolean | null
+  cidAutorizadoEm?: string | null
+  cidAutorizadoIp?: string | null
   textComplementar: string
   observacoes: string
   horaInicio: string
@@ -83,8 +96,9 @@ function gerarPDF(params: {
   relacaoAcompanhante: string
 }) {
   const {
-    tipo, paciente, medico, dias, dataInicio, dataEmissao, cid, cidAutorizado, textComplementar,
-    observacoes, horaInicio, horaFim, nomeAcompanhante, relacaoAcompanhante,
+    tipo, paciente, medico, dias, dataInicio, dataEmissao, cid, cidAutorizado,
+    cidAutorizadoEm, cidAutorizadoIp,
+    textComplementar, observacoes, horaInicio, horaFim, nomeAcompanhante, relacaoAcompanhante,
   } = params
 
   // LGPD: para afastamento, o CID só entra no documento se o paciente não tiver negado
@@ -142,7 +156,8 @@ function gerarPDF(params: {
   .title-line{width:60px;height:3px;background:#5BBD9B;margin:8px auto 0}
   .body-text{font-size:11pt;line-height:1.9;text-align:justify;color:#333;margin-bottom:20px}
   .highlight{font-weight:600;color:#1A3A2C}
-  .cid-box{display:inline-block;background:#F0F9F5;border:1px solid #5BBD9B;border-radius:6px;padding:4px 12px;font-size:9pt;color:#1A3A2C;font-weight:600;margin-bottom:16px}
+  .cid-box{display:inline-block;background:#F0F9F5;border:1px solid #5BBD9B;border-radius:6px;padding:4px 12px;font-size:9pt;color:#1A3A2C;font-weight:600;margin-bottom:8px}
+  .lgpd-line{font-size:7.5pt;color:#888;border-top:1px dashed #ddd;padding-top:7px;margin-top:0;margin-bottom:16px;line-height:1.5}
   .obs-box{background:#F8F8F8;border-left:3px solid #5BBD9B;padding:10px 14px;font-size:9.5pt;color:#555;border-radius:0 6px 6px 0;margin-bottom:20px;line-height:1.6}
   .spacer{flex:1}
   .footer{border-top:1px solid #E5E7EB;padding-top:24px;display:flex;justify-content:space-between;align-items:flex-end}
@@ -183,7 +198,14 @@ function gerarPDF(params: {
   <p class="body-text">${corpo}
   </p>
 
-  ${mostrarCid ? `<div><div class="cid-box">CID-10: ${cid}</div></div>` : ''}
+  ${mostrarCid ? `
+  <div>
+    <div class="cid-box">CID-10: ${cid}</div>
+    ${cidAutorizado === true && cidAutorizadoEm
+      ? `<p class="lgpd-line">Divulgação do CID autorizada de forma digital pelo paciente em ${formatarAutorizacaoLGPD(cidAutorizadoEm, cidAutorizadoIp)}</p>`
+      : ''
+    }
+  </div>` : ''}
 
   ${textComplementar ? `<p class="body-text">${textComplementar}</p>` : ''}
 
@@ -239,6 +261,8 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
 
   // Autorização LGPD do CID (null = ainda não perguntado)
   const [cidAutorizado, setCidAutorizado] = useState<boolean | null>(null)
+  const [cidAutorizadoEm, setCidAutorizadoEm] = useState<string | null>(null)
+  const [cidAutorizadoIp, setCidAutorizadoIp] = useState<string | null>(null)
   const [autorizacaoId, setAutorizacaoId] = useState<string | null>(null)
   const [aguardandoAutorizacao, setAguardandoAutorizacao] = useState(false)
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -250,6 +274,8 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
   function resetarAutorizacao() {
     pararPolling()
     setCidAutorizado(null)
+    setCidAutorizadoEm(null)
+    setCidAutorizadoIp(null)
     setAutorizacaoId(null)
     setAguardandoAutorizacao(false)
   }
@@ -278,6 +304,10 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
             pararPolling()
             setAguardandoAutorizacao(false)
             setCidAutorizado(d.status === 'autorizado')
+            if (d.status === 'autorizado') {
+              setCidAutorizadoEm(d.respondido_em ?? null)
+              setCidAutorizadoIp(d.ip_paciente ?? null)
+            }
           }
         } catch { /* tenta de novo no próximo ciclo */ }
       }, 3000)
@@ -348,6 +378,8 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
       tipo, paciente, medico, dias, dataInicio, dataEmissao: hoje,
       cid: tipo === 'acompanhamento' ? '' : cid,
       cidAutorizado,
+      cidAutorizadoEm,
+      cidAutorizadoIp,
       textComplementar: tipo === 'afastamento' ? textComplementar : '',
       observacoes, horaInicio, horaFim,
       nomeAcompanhante: nomeAcompanhante.trim(), relacaoAcompanhante,
