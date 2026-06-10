@@ -263,7 +263,11 @@ export default function ConsultaPaciente() {
     const supabase = createClient()
     await supabase
       .from('atendimentos')
-      .update({ status: 'concluido', finalizado_em: new Date().toISOString() })
+      .update({
+        status:              'concluido',
+        finalizado_em:       new Date().toISOString(),
+        paciente_encerrou:   true,   // registra que foi o paciente quem encerrou
+      })
       .eq('id', atendimentoIdRef.current)
     encerradoRef.current = true
     router.push('/paciente/dashboard')

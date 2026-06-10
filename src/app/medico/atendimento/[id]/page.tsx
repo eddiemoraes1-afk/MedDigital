@@ -7,7 +7,9 @@ import {
   ChevronDown, ChevronUp, Video, Pill, FlaskConical, UserPlus,
   Stethoscope, Activity, Heart, Thermometer, AlertTriangle,
   Edit3, X, ShieldCheck, Maximize2, Minimize2, PanelRight, EyeOff,
+  MessageCircle, UserX,
 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 import AtestadoForm from '@/components/AtestadoForm'
 import ReceitaForm from '@/components/ReceitaForm'
 import SolicitacaoExamesForm from '@/components/SolicitacaoExamesForm'
@@ -88,6 +90,10 @@ export default function AtendimentoMedico() {
   const [salvando, setSalvando]     = useState(false)
   const [entrou, setEntrou]         = useState(false)
   const [erroFinalizar, setErro]    = useState('')
+  const [aviso, setAviso]           = useState<'caiu' | 'encerrado' | null>(null)
+
+  // Ref para acessar dados do paciente dentro dos callbacks do Presence (evita stale closure)
+  const pacienteRef = useRef<any>(null)
 
   // ── Layout do vídeo / barra lateral ──
   type LayoutMode = 'grande' | 'medio' | 'pequeno' | 'sem-video'
@@ -186,6 +192,7 @@ export default function AtendimentoMedico() {
       .then(d => {
         if (d.error) { router.push('/medico/dashboard'); return }
         setDados(d)
+        pacienteRef.current = d.paciente ?? null
         const a = d.atendimento
         setNotasLegado(a.notas_medico   || '')
         setQp(a.queixa_principal        || '')
@@ -226,6 +233,34 @@ export default function AtendimentoMedico() {
     }, 30000)
     return () => { if (autoSaveRef.current) clearInterval(autoSaveRef.current) }
   }, [atendimentoId, autoSalvar])
+
+  // ── Supabase Presence — detecta saída/queda do paciente ────────────────────
+  const avisoRef = useRef<'caiu' | 'encerrado' | null>(null)
+  useEffect(() => {
+    if (!atendimentoId) return
+    const supabase = createClient()
+    const channel  = supabase.channel(`consulta:${atendimentoId}`)
+
+    channel
+      .on('presence', { event: 'leave' }, async ({ leftPresences }) => {
+        const saindoPaciente = (leftPresences as any[]).some(p => p.user === 'paciente')
+        if (!saindoPaciente || avisoRef.current) return
+
+        // Verifica se o paciente encerrou intencionalmente (status = concluido)
+        const { data } = await supabase
+          .from('atendimentos')
+          .select('status')
+          .eq('id', atendimentoId)
+          .single()
+
+        const tipo: 'caiu' | 'encerrado' = data?.status === 'concluido' ? 'encerrado' : 'caiu'
+        avisoRef.current = tipo
+        setAviso(tipo)
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [atendimentoId])
 
   // Inicia/para o timer conforme o médico entra ou sai da sala.
   // Usa iniciado_em (momento em que o médico abriu a sala) para não incluir
@@ -456,6 +491,66 @@ export default function AtendimentoMedico() {
           </button>
         </div>
       </div>
+
+      {/* ── Banner: paciente caiu / conexão perdida ─────────────────────── */}
+      {aviso === 'caiu' && (
+        <div className="shrink-0 flex items-center gap-3 px-5 py-3"
+          style={{ background: '#7C2D12', borderBottom: '1px solid rgba(251,146,60,0.3)' }}>
+          <AlertTriangle className="w-4 h-4 text-orange-300 shrink-0" />
+          <p className="text-orange-100 text-sm font-medium flex-1">
+            <span className="font-bold">
+              {pacienteRef.current?.nome
+                ? `${pacienteRef.current.nome.split(' ')[0]} saiu`
+                : 'Paciente saiu'} da sala
+            </span>
+            {' '}— conexão interrompida ou aba fechada.
+          </p>
+          {pacienteRef.current?.telefone && (() => {
+            const tel    = pacienteRef.current.telefone.replace(/\D/g, '')
+            const numero = tel.startsWith('55') ? tel : `55${tel}`
+            const msg    = encodeURIComponent('Olá! Sua consulta ainda está aberta. Precisa de ajuda para reconectar?')
+            return (
+              <a href={`https://wa.me/${numero}?text=${msg}`} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium shrink-0"
+                style={{ background: '#16a34a', color: '#fff' }}>
+                <MessageCircle className="w-3.5 h-3.5" />WhatsApp
+              </a>
+            )
+          })()}
+          <button onClick={() => { setAviso(null); avisoRef.current = null }}
+            className="shrink-0 p-1 rounded-lg opacity-70 hover:opacity-100 transition-opacity"
+            style={{ color: '#fed7aa' }} title="Dispensar aviso">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* ── Banner: paciente encerrou conscientemente ────────────────────── */}
+      {aviso === 'encerrado' && (
+        <div className="shrink-0 flex items-center gap-3 px-5 py-3"
+          style={{ background: '#0C2A4A', borderBottom: '1px solid rgba(96,165,250,0.3)' }}>
+          <UserX className="w-4 h-4 text-blue-300 shrink-0" />
+          <p className="text-blue-100 text-sm font-medium flex-1">
+            <span className="font-bold">
+              {pacienteRef.current?.nome
+                ? `${pacienteRef.current.nome.split(' ')[0]} encerrou`
+                : 'Paciente encerrou'} a consulta
+            </span>
+            {' '}— saída confirmada pelo paciente. Salve suas anotações e finalize.
+          </p>
+          <button
+            onClick={finalizarConsulta}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold shrink-0"
+            style={{ background: '#2563eb', color: '#fff' }}>
+            <CheckCircle2 className="w-3.5 h-3.5" />Finalizar
+          </button>
+          <button onClick={() => { setAviso(null); avisoRef.current = null }}
+            className="shrink-0 p-1 rounded-lg opacity-70 hover:opacity-100 transition-opacity"
+            style={{ color: '#bfdbfe' }} title="Dispensar aviso">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* ── Layout: vídeo + painel lateral ── */}
       <div className="flex-1 flex overflow-hidden" style={{ height: 'calc(100vh - 56px)' }}>
