@@ -228,12 +228,14 @@ export default function AtendimentoMedico() {
   }, [atendimentoId, autoSalvar])
 
   // Inicia/para o timer conforme o médico entra ou sai da sala.
-  // Ao entrar, parte do criado_em do banco para nunca zerar ao voltar de outra aba.
-  const atendimentoCriadoEm = dados?.atendimento?.criado_em ?? null
+  // Usa iniciado_em (momento em que o médico abriu a sala) para não incluir
+  // o tempo de espera na fila. criado_em continua sendo usado nos dashboards
+  // de analytics para medir o tempo de espera do paciente.
+  const atendimentoIniciadoEm = dados?.atendimento?.iniciado_em ?? dados?.atendimento?.criado_em ?? null
   useEffect(() => {
     if (entrou) {
-      if (atendimentoCriadoEm) {
-        const inicioMs = new Date(atendimentoCriadoEm).getTime()
+      if (atendimentoIniciadoEm) {
+        const inicioMs = new Date(atendimentoIniciadoEm).getTime()
         setSegundos(Math.max(0, Math.floor((Date.now() - inicioMs) / 1000)))
       }
       timerRef.current = setInterval(() => setSegundos(s => s + 1), 1000)
@@ -241,7 +243,7 @@ export default function AtendimentoMedico() {
       if (timerRef.current) clearInterval(timerRef.current)
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
-  }, [entrou, atendimentoCriadoEm])
+  }, [entrou, atendimentoIniciadoEm])
 
   function formatarTempo(s: number): string {
     const h = Math.floor(s / 3600)
