@@ -93,8 +93,10 @@ export default function ConsultaPaciente() {
   const [confirmarSaida,  setConfirmarSaida]  = useState(false)
   const [reconectando,   setReconectando]    = useState(false)
   const [encaminhamentoModal, setEncaminhamentoModal] = useState(false)
-  const [encaminhamentoConfirmado, setEncaminhamentoConfirmado] = useState(false)
   const [confirmandoEnc, setConfirmandoEnc] = useState(false)
+
+  // Ref para evitar stale closure no poll (mesmo padrão do encerradoRef)
+  const encaminhamentoConfirmadoRef = useRef(false)
 
   // Refs: acessados dentro do polling sem stale closure
   const atendimentoIdRef = useRef<string>(id as string)
@@ -262,13 +264,15 @@ export default function ConsultaPaciente() {
     setCarregando(false)
 
     // ── Detectar flag de encaminhamento aguardando confirmação ───────────────
-    if (data.encaminhamento_aguardando_confirmacao && !encaminhamentoConfirmado) {
+    if (data.encaminhamento_aguardando_confirmacao && !encaminhamentoConfirmadoRef.current) {
       setEncaminhamentoModal(true)
     }
   }
 
   async function confirmarEncaminhamento() {
     setConfirmandoEnc(true)
+    // Marca o ref IMEDIATAMENTE para que o próximo poll não reabra o modal
+    encaminhamentoConfirmadoRef.current = true
     try {
       await fetch('/api/paciente/confirmar-encaminhamento', {
         method: 'POST',
@@ -276,7 +280,6 @@ export default function ConsultaPaciente() {
         body: JSON.stringify({ atendimento_id: atendimentoIdRef.current }),
       })
     } finally {
-      setEncaminhamentoConfirmado(true)
       setEncaminhamentoModal(false)
       setConfirmandoEnc(false)
     }
