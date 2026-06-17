@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Receipt, BarChart2, FileText, Users, List, Stethoscope, FlaskConical, ShieldCheck } from 'lucide-react'
+import { Receipt, BarChart2, FileText, Users, List, Stethoscope, FlaskConical, ShieldCheck, ShieldAlert } from 'lucide-react'
 import RelatorioEmpresa from '@/components/RelatorioEmpresa'
 import EmpresaDashboardClient from './EmpresaDashboardClient'
 import AtestadosDashboard from './AtestadosDashboard'
@@ -10,8 +10,9 @@ import ListaFuncionariosDashboard from './ListaFuncionariosDashboard'
 import ConsultasDashboard from './ConsultasDashboard'
 import ExamesDashboard from './ExamesDashboard'
 import ExclusoesDashboard from './ExclusoesDashboard'
+import Nr1Dashboard from './Nr1Dashboard'
 
-type Aba = 'relatorio' | 'dashboard' | 'funcionarios' | 'consultas' | 'atestados' | 'exames' | 'exclusoes' | 'lista'
+type Aba = 'relatorio' | 'dashboard' | 'funcionarios' | 'consultas' | 'atestados' | 'exames' | 'exclusoes' | 'lista' | 'nr1'
 
 export default function EmpresaTabs() {
   const [aba, setAba] = useState<Aba>('relatorio')
@@ -32,6 +33,7 @@ export default function EmpresaTabs() {
           { id: 'exames',      icon: FlaskConical, label: 'Exames' },
           { id: 'exclusoes',   icon: ShieldCheck,  label: 'Exclusões' },
           { id: 'lista',       icon: List,         label: 'Lista' },
+          { id: 'nr1',         icon: ShieldAlert,  label: 'NR-1' },
         ] as const).map(({ id, icon: Icon, label }) => {
           const active = aba === id
           return (
@@ -70,6 +72,7 @@ export default function EmpresaTabs() {
       {aba === 'exames'       && <ExamesDashboard />}
       {aba === 'exclusoes'    && <ExclusoesDashboard />}
       {aba === 'lista'        && <ListaFuncionariosDashboard />}
+      {aba === 'nr1'          && <Nr1Dashboard />}
     </div>
   )
 }
