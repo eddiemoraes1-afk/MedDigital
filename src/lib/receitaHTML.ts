@@ -20,7 +20,6 @@ export interface ReceitaHTMLParams {
   medicamentos: string
   instrucoes: string
   observacoes?: string | null
-  validade?: string | null
   dataEmissao: string
 }
 
@@ -59,7 +58,7 @@ function formatPrescricao(texto: string): string {
 }
 
 export function gerarHTMLReceita(p: ReceitaHTMLParams, comAutoprint = false): string {
-  const { paciente, medico, tipo, medicamentos, instrucoes, observacoes, validade, dataEmissao } = p
+  const { paciente, medico, tipo, medicamentos, instrucoes, observacoes, dataEmissao } = p
   const titulo = labelTipo(tipo)
   const badge = labelTipoBadge(tipo)
 
@@ -105,7 +104,6 @@ export function gerarHTMLReceita(p: ReceitaHTMLParams, comAutoprint = false): st
   .rx{font-size:14pt;font-weight:700;color:${corLinha};line-height:1;flex-shrink:0;width:20px}
   .instrucoes-box{background:#F8F8F8;border-left:3px solid ${corLinha};padding:10px 14px;font-size:10pt;color:#374151;border-radius:0 6px 6px 0;margin-bottom:16px;line-height:1.7;white-space:pre-line}
   .obs-box{background:#FFF9C4;border-left:3px solid #F59E0B;padding:10px 14px;font-size:9.5pt;color:#555;border-radius:0 6px 6px 0;margin-bottom:16px;line-height:1.6}
-  .validade-box{display:inline-flex;align-items:center;gap:6px;font-size:9pt;color:${isEspecial ? '#7C3AED' : '#1A3A2C'};background:${isEspecial ? '#EDE9FE' : '#F0F9F5'};padding:5px 12px;border-radius:20px;font-weight:600;margin-bottom:16px}
   ${isEspecial ? `.aviso-box{background:#FFF3CD;border:1px solid #F59E0B;border-radius:8px;padding:10px 14px;font-size:9pt;color:#92400E;margin-bottom:16px}` : ''}
   .spacer{flex:1}
   .footer{border-top:1px solid #E5E7EB;padding-top:24px;display:flex;justify-content:space-between;align-items:flex-end}
@@ -160,8 +158,6 @@ export function gerarHTMLReceita(p: ReceitaHTMLParams, comAutoprint = false): st
   <div class="med-list">
     ${formatPrescricao(prescricao)}
   </div>
-
-  ${validade ? `<div class="validade-box">📅 Válida até: ${fmtData(validade)}</div>` : ''}
 
   ${observacoes ? `
   <div class="obs-box"><strong>Observações:</strong> ${observacoes}</div>

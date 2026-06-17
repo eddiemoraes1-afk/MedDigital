@@ -79,7 +79,8 @@ export default function ExclusaoTelemedicinaForm({ atendimentoId, pacienteId, on
   }
 
   async function salvar() {
-    if (!status)        { setErro('Selecione o status de elegibilidade.'); return }
+    if (!status)         { setErro('Selecione o status de elegibilidade.'); return }
+    if (!ciente)         { setErro('É obrigatório confirmar que o paciente está ciente da decisão médica antes de registrar.'); return }
     if (!conduta.trim()) { setErro('A conduta médica é obrigatória.');       return }
     setErro('')
     setSalvando(true)
@@ -232,15 +233,22 @@ export default function ExclusaoTelemedicinaForm({ atendimentoId, pacienteId, on
         />
       </div>
 
-      {/* Ciente do paciente */}
-      <label className="flex items-center gap-2 cursor-pointer select-none">
+      {/* Ciente do paciente — OBRIGATÓRIO */}
+      <label className={`flex items-start gap-2 cursor-pointer select-none rounded-xl px-3 py-2.5 border-2 transition-colors ${
+        ciente ? 'bg-green-50 border-green-400' : 'bg-orange-50 border-orange-300'
+      }`}>
         <input
           type="checkbox"
           checked={ciente}
           onChange={e => setCiente(e.target.checked)}
-          className="rounded border-gray-300 text-green-600 focus:ring-green-400 cursor-pointer"
+          className="mt-0.5 rounded border-gray-300 text-green-600 focus:ring-green-400 cursor-pointer shrink-0"
         />
-        <span className="text-xs text-gray-700">Paciente ciente da decisão médica</span>
+        <div>
+          <span className={`text-xs font-semibold ${ciente ? 'text-green-800' : 'text-orange-800'}`}>
+            Paciente ciente da decisão médica <span className="text-red-500">*</span>
+          </span>
+          <p className="text-[10px] text-gray-500 mt-0.5">Obrigatório confirmar antes de registrar o protocolo.</p>
+        </div>
       </label>
 
       {/* Observações */}

@@ -56,6 +56,8 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
   const [qtyMed, setQtyMed] = useState(1)
   const [posologia, setPosologia] = useState('')
 
+  const [conflito, setConflito] = useState<string | null>(null)
+
   function fecharPainel() {
     setMedSelecionado(null)
     setQtyMed(1)
@@ -63,10 +65,30 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
     setBuscaMed('')
     setSugestoes([])
     setMostrarSugestoes(false)
+    setConflito(null)
   }
 
   function adicionarMedicamento() {
     if (!medSelecionado || !posologia.trim()) return
+
+    const novoControle = medSelecionado.controle ?? null
+
+    // ── Bloquear conflito: controlado + antimicrobiano = receitas separadas ──
+    if (tipoForcado === 'especial' && novoControle === 'antimicrobiano') {
+      setConflito(
+        'Medicamento controlado e antimicrobiano não podem estar na mesma receita ' +
+        '(Portaria 344/98 + RDC 20/2011). Emita receitas separadas.'
+      )
+      return
+    }
+    if (tipoForcado === 'antimicrobiano' && novoControle === 'especial') {
+      setConflito(
+        'Medicamento controlado e antimicrobiano não podem estar na mesma receita ' +
+        '(Portaria 344/98 + RDC 20/2011). Emita receitas separadas.'
+      )
+      return
+    }
+    setConflito(null)
 
     // ── Detectar medicamento controlado e forçar tipo correto ────────────────
     if (medSelecionado.controle) {
@@ -90,7 +112,6 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
   }
   const [instrucoes, setInstrucoes] = useState('')
   const [observacoes, setObservacoes] = useState('')
-  const [validade, setValidade] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [salvo, setSalvo] = useState(false)
   const [receitaSalva, setReceitaSalva] = useState<any>(null)
@@ -101,7 +122,6 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
     medicamentos: medicamentos || '(sem medicamentos)',
     instrucoes,
     observacoes: observacoes || null,
-    validade: validade || null,
     dataEmissao: hoje,
   }
 
@@ -121,7 +141,6 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
           medicamentos: medicamentos.trim(),
           instrucoes: instrucoes.trim() || null,
           observacoes: observacoes.trim() || null,
-          validade: validade || null,
           data_emissao: hoje,
         }),
       })
@@ -159,7 +178,7 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
             <Download className="w-3.5 h-3.5" /> Imprimir / Baixar
           </button>
           <button
-            onClick={() => { setSalvo(false); setMedicamentos(''); setInstrucoes(''); setObservacoes(''); setValidade('') }}
+            onClick={() => { setSalvo(false); setMedicamentos(''); setInstrucoes(''); setObservacoes(''); setConflito(null); setTipoForcado(null); setTipo('simples') }}
             className="flex items-center gap-1.5 border border-gray-200 text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
           >
             <Pill className="w-3.5 h-3.5" /> Nova receita
@@ -382,6 +401,17 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
             />
           </div>
 
+          {/* Conflito: controlado + antimicrobiano */}
+          {conflito && (
+            <div className="flex items-start gap-2 bg-red-50 border border-red-300 rounded-xl px-3 py-2.5">
+              <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-semibold text-red-700">Receitas separadas obrigatórias</p>
+                <p className="text-xs text-red-600 mt-0.5">{conflito}</p>
+              </div>
+            </div>
+          )}
+
           {/* Ações */}
           <div className="flex gap-2">
             <button
@@ -435,29 +465,17 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
         />
       </div>
 
-      {/* Validade + Observações */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Validade <span className="text-gray-400">(opcional)</span></label>
-          <input
-            type="date"
-            value={validade}
-            min={hoje}
-            onChange={e => setValidade(e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-600 mb-1">Observações <span className="text-gray-400">(opcional)</span></label>
-          <input
-            type="text"
-            value={observacoes}
-            onChange={e => setObservacoes(e.target.value)}
-            placeholder="Observações adicionais..."
-            autoComplete="off"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
-          />
-        </div>
+      {/* Observações */}
+      <div>
+        <label className="block text-xs font-medium text-gray-600 mb-1">Observações <span className="text-gray-400">(opcional)</span></label>
+        <input
+          type="text"
+          value={observacoes}
+          onChange={e => setObservacoes(e.target.value)}
+          placeholder="Observações adicionais..."
+          autoComplete="off"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+        />
       </div>
 
       {erro && (

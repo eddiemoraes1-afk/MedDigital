@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Loader2, Clock, Phone, Video, CheckCircle2, ArrowRight, Users, AlertTriangle } from 'lucide-react'
+import { Loader2, Clock, Phone, Video, CheckCircle2, ArrowRight, Users, AlertTriangle, MapPin } from 'lucide-react'
 import { drTitle } from '@/lib/medico-utils'
 
 // ── Helpers de áudio ──────────────────────────────────────────────────────────
@@ -90,8 +90,11 @@ export default function ConsultaPaciente() {
   const [encerrado,     setEncerrado]      = useState(false)
   const [encaminhado,   setEncaminhado]    = useState(false)
   const [posicaoInfo,   setPosicaoInfo]    = useState<PosicaoInfo | null>(null)
-  const [confirmarSaida, setConfirmarSaida] = useState(false)
-  const [reconectando,  setReconectando]    = useState(false)
+  const [confirmarSaida,  setConfirmarSaida]  = useState(false)
+  const [reconectando,   setReconectando]    = useState(false)
+  const [encaminhamentoModal, setEncaminhamentoModal] = useState(false)
+  const [encaminhamentoConfirmado, setEncaminhamentoConfirmado] = useState(false)
+  const [confirmandoEnc, setConfirmandoEnc] = useState(false)
 
   // Refs: acessados dentro do polling sem stale closure
   const atendimentoIdRef = useRef<string>(id as string)
@@ -257,6 +260,26 @@ export default function ConsultaPaciente() {
 
     setAtendimento(data)
     setCarregando(false)
+
+    // ── Detectar flag de encaminhamento aguardando confirmação ───────────────
+    if (data.encaminhamento_aguardando_confirmacao && !encaminhamentoConfirmado) {
+      setEncaminhamentoModal(true)
+    }
+  }
+
+  async function confirmarEncaminhamento() {
+    setConfirmandoEnc(true)
+    try {
+      await fetch('/api/paciente/confirmar-encaminhamento', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ atendimento_id: atendimentoIdRef.current }),
+      })
+    } finally {
+      setEncaminhamentoConfirmado(true)
+      setEncaminhamentoModal(false)
+      setConfirmandoEnc(false)
+    }
   }
 
   async function encerrarConsulta() {
@@ -546,6 +569,56 @@ export default function ConsultaPaciente() {
               onMouseLeave={e => (e.currentTarget.style.background = '#5BBD9B')}
             >
               Recarregar página
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal de ciência de encaminhamento presencial ─────────────────── */}
+      {encaminhamentoModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-4"
+          style={{ background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(6px)' }}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl p-8 text-center shadow-2xl"
+            style={{ background: '#1A0A0A', border: '2px solid #DC2626' }}
+          >
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
+              style={{ background: 'rgba(220,38,38,0.18)' }}
+            >
+              <MapPin className="w-8 h-8 text-red-400" />
+            </div>
+
+            <h3 className="text-white text-xl font-bold mb-3">Orientação Médica</h3>
+
+            <p className="text-sm leading-relaxed mb-3" style={{ color: 'rgba(252,165,165,0.9)' }}>
+              O médico avaliou o seu caso e identificou a necessidade de atendimento <strong className="text-red-300">presencial</strong>.
+            </p>
+
+            <div
+              className="rounded-xl px-4 py-4 mb-6 text-left"
+              style={{ background: 'rgba(220,38,38,0.12)', border: '1px solid rgba(220,38,38,0.3)' }}
+            >
+              <p className="text-sm font-semibold text-white leading-relaxed">
+                "Estou ciente e fui informado(a) e orientado(a) de que devo procurar atendimento presencial."
+              </p>
+            </div>
+
+            <p className="text-xs text-gray-400 mb-6">
+              Ao clicar em confirmar, seu aceite será registrado e salvo no prontuário.
+            </p>
+
+            <button
+              onClick={confirmarEncaminhamento}
+              disabled={confirmandoEnc}
+              className="w-full font-bold py-3.5 rounded-xl text-sm text-white transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+              style={{ background: '#DC2626' }}
+            >
+              {confirmandoEnc
+                ? <><Loader2 className="w-4 h-4 animate-spin" /> Registrando...</>
+                : <><CheckCircle2 className="w-4 h-4" /> Estou ciente — Confirmar</>}
             </button>
           </div>
         </div>

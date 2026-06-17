@@ -92,12 +92,13 @@ export async function GET(req: NextRequest) {
   const registros: RegistroAuditoria[] = []
 
   const TIPO_LABEL: Record<string, string> = {
-    lgpd_geral:    '🔒 LGPD — Dados Pessoais de Saúde',
-    telemedicina:  '💊 Autorização de Telemedicina',
-    video_voz:     '🎥 Autorização de Vídeo e Voz',
-    cid_autorizado: '✅ CID Autorizado no Atestado',
-    cid_negado:     '❌ CID Recusado no Atestado',
-    cid_pendente:   '⏳ CID — Aguardando Resposta',
+    lgpd_geral:               '🔒 LGPD — Dados Pessoais de Saúde',
+    telemedicina:             '💊 Autorização de Telemedicina',
+    video_voz:                '🎥 Autorização de Vídeo e Voz',
+    encaminhamento_presencial:'🏥 Ciência de Encaminhamento Presencial',
+    cid_autorizado:           '✅ CID Autorizado no Atestado',
+    cid_negado:               '❌ CID Recusado no Atestado',
+    cid_pendente:             '⏳ CID — Aguardando Resposta',
   }
 
   // Consentimentos

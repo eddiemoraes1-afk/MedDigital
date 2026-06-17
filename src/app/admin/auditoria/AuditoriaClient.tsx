@@ -22,12 +22,13 @@ type Registro = {
 }
 
 const TIPO_COR: Record<string, string> = {
-  lgpd_geral:    'bg-blue-100 text-blue-700 border-blue-200',
-  telemedicina:  'bg-teal-100 text-teal-700 border-teal-200',
-  video_voz:     'bg-purple-100 text-purple-700 border-purple-200',
-  cid_autorizado:'bg-green-100 text-green-700 border-green-200',
-  cid_negado:    'bg-red-100 text-red-700 border-red-200',
-  cid_pendente:  'bg-yellow-100 text-yellow-700 border-yellow-200',
+  lgpd_geral:               'bg-blue-100 text-blue-700 border-blue-200',
+  telemedicina:             'bg-teal-100 text-teal-700 border-teal-200',
+  video_voz:                'bg-purple-100 text-purple-700 border-purple-200',
+  encaminhamento_presencial:'bg-red-100 text-red-700 border-red-200',
+  cid_autorizado:           'bg-green-100 text-green-700 border-green-200',
+  cid_negado:               'bg-red-100 text-red-700 border-red-200',
+  cid_pendente:             'bg-yellow-100 text-yellow-700 border-yellow-200',
 }
 
 const STATUS_COR: Record<string, string> = {
@@ -121,14 +122,15 @@ export default function AuditoriaClient() {
   return (
     <div className="space-y-5">
       {/* Cards de contagem */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         {[
-          { tipo: 'lgpd_geral',    label: 'LGPD Geral',       cor: 'bg-blue-50 border-blue-200 text-blue-700' },
-          { tipo: 'telemedicina',  label: 'Telemedicina',      cor: 'bg-teal-50 border-teal-200 text-teal-700' },
-          { tipo: 'video_voz',     label: 'Vídeo e Voz',       cor: 'bg-purple-50 border-purple-200 text-purple-700' },
-          { tipo: 'cid_autorizado',label: 'CID Autorizado',    cor: 'bg-green-50 border-green-200 text-green-700' },
-          { tipo: 'cid_negado',    label: 'CID Recusado',      cor: 'bg-red-50 border-red-200 text-red-700' },
-          { tipo: 'cid_pendente',  label: 'CID Pendente',      cor: 'bg-yellow-50 border-yellow-200 text-yellow-700' },
+          { tipo: 'lgpd_geral',               label: 'LGPD Geral',         cor: 'bg-blue-50 border-blue-200 text-blue-700' },
+          { tipo: 'telemedicina',              label: 'Telemedicina',        cor: 'bg-teal-50 border-teal-200 text-teal-700' },
+          { tipo: 'video_voz',                 label: 'Vídeo e Voz',         cor: 'bg-purple-50 border-purple-200 text-purple-700' },
+          { tipo: 'encaminhamento_presencial', label: 'Encaminhamento',      cor: 'bg-red-50 border-red-200 text-red-700' },
+          { tipo: 'cid_autorizado',            label: 'CID Autorizado',      cor: 'bg-green-50 border-green-200 text-green-700' },
+          { tipo: 'cid_negado',                label: 'CID Recusado',        cor: 'bg-red-50 border-red-200 text-red-700' },
+          { tipo: 'cid_pendente',              label: 'CID Pendente',        cor: 'bg-yellow-50 border-yellow-200 text-yellow-700' },
         ].map(c => (
           <button
             key={c.tipo}

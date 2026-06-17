@@ -43,6 +43,15 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // ── Se emergência + ciente: sinaliza para a tela do paciente ──────────────
+  if (status === 'emergencia' && ciente_paciente && atendimento_id) {
+    await admin
+      .from('atendimentos')
+      .update({ encaminhamento_aguardando_confirmacao: true })
+      .eq('id', atendimento_id)
+  }
+
   return NextResponse.json(data)
 }
 
