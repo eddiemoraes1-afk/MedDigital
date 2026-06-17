@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
   Loader2, CheckCircle2, AlertTriangle, AlertCircle,
   Video, Calendar, Shield, Phone, FileText, XCircle, ChevronRight,
-  SkipForward, Stethoscope,
+  Stethoscope,
 } from 'lucide-react'
 import PacienteHeader from '../PacienteHeader'
 
@@ -193,13 +193,12 @@ function SimNao({ valor, onChange }: { valor: boolean | null; onChange: (v: bool
 
 function EtapaValidacao({
   nomeInicial, cpfInicial, telefoneInicial,
-  onFazerTriagem, onPularTriagem,
+  onFazerTriagem,
 }: {
   nomeInicial: string
   cpfInicial: string
   telefoneInicial: string
   onFazerTriagem: (dados: DadosValidacao) => void
-  onPularTriagem: (dados: DadosValidacao) => void
 }) {
   const cpf = cpfInicial ? formatarCPF(cpfInicial) : ''
   const [telefone, setTelefone] = useState(telefoneInicial ? formatarTelefone(telefoneInicial) : '')
@@ -210,7 +209,6 @@ function EtapaValidacao({
   const [tsLgpd, setTsLgpd] = useState('')
   const [tsTelemedicina, setTsTelemedicina] = useState('')
   const [tsGravacao, setTsGravacao] = useState('')
-  const [confirmandoPular, setConfirmandoPular] = useState(false)
   const [erro, setErro] = useState('')
 
   const todosAceitos = aceito && aceitoTelemedicina && aceitoGravacao
@@ -458,8 +456,8 @@ function EtapaValidacao({
           </>
         )}
 
-        {/* ── ETAPA D: Todos aceitos → Fazer Triagem / Pular ── */}
-        {todosAceitos && !confirmandoPular && (
+        {/* ── ETAPA D: Todos aceitos → Fazer Triagem ── */}
+        {todosAceitos && (
           <div className="space-y-3">
             <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 mb-1">
               <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
@@ -486,30 +484,6 @@ function EtapaValidacao({
               className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
               <Stethoscope className="w-4 h-4" /> Fazer Triagem
             </button>
-            <button onClick={() => setConfirmandoPular(true)}
-              className="w-full border border-gray-200 hover:bg-gray-50 text-gray-500 py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
-              <SkipForward className="w-4 h-4" /> Pular Triagem
-            </button>
-          </div>
-        )}
-
-        {/* Confirmação de pular */}
-        {todosAceitos && confirmandoPular && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
-            <p className="text-sm font-semibold text-amber-800 mb-1">Confirma que vai pular a triagem?</p>
-            <p className="text-xs text-amber-600 mb-4">
-              Você poderá iniciar uma consulta virtual ou agendar uma consulta diretamente pelo painel.
-            </p>
-            <div className="flex gap-3">
-              <button onClick={() => onPularTriagem(dadosValidacao())}
-                className="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
-                Sim, pular
-              </button>
-              <button onClick={() => setConfirmandoPular(false)}
-                className="flex-1 border border-gray-200 hover:bg-white text-gray-600 py-2.5 rounded-xl text-sm font-semibold transition-colors">
-                Cancelar
-              </button>
-            </div>
           </div>
         )}
       </div>
@@ -1161,20 +1135,6 @@ function TriagemConteudo() {
     irParaEtapa('sintomas')
   }
 
-  async function handlePularTriagem(dados: DadosValidacao) {
-    const result = await salvarAPI({
-      action: 'pular',
-      dados: {
-        consentimento_lgpd: true,
-        consentimento_em: dados.consentimentoEm,
-        cpf_confirmado: dados.cpf,
-        telefone_contato: dados.telefone,
-      },
-    })
-    await salvarConsentimentos(result?.id ?? null)
-    router.push('/paciente/dashboard')
-  }
-
   async function handleSintomas(dados: DadosSintomas) {
     setSintomas(dados)
     if (triagemId) {
@@ -1295,7 +1255,7 @@ function TriagemConteudo() {
       {etapa === 'validacao' && (
         <EtapaValidacao
           nomeInicial={nomeInicial} cpfInicial={cpfInicial} telefoneInicial={telefoneInicial}
-          onFazerTriagem={handleFazerTriagem} onPularTriagem={handlePularTriagem}
+          onFazerTriagem={handleFazerTriagem}
         />
       )}
 

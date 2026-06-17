@@ -20,10 +20,16 @@ export default async function PacienteReceitasPage() {
 
   if (!paciente) redirect('/paciente/dashboard')
 
+  // Receitas ficam disponíveis por 30 dias a partir da emissão
+  const trintaDiasAtras = new Date()
+  trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30)
+  const limiteData = trintaDiasAtras.toISOString()
+
   const { data: receitas } = await admin
     .from('receitas')
     .select('id, criado_em, tipo, medicamentos, instrucoes, observacoes, validade, data_emissao, medicos(nome, crm, crm_uf, especialidade, sexo)')
     .eq('paciente_id', paciente.id)
+    .gte('criado_em', limiteData)
     .order('criado_em', { ascending: false })
 
   const hoje = new Date().toISOString().slice(0, 10)
@@ -61,12 +67,14 @@ export default async function PacienteReceitasPage() {
         </div>
 
         {/* Legenda */}
-        {receitasComStatus.length > 0 && (
-          <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-6 text-xs text-blue-700">
-            <strong>Receitas válidas</strong> (dentro da validade ou sem data de expiração) permitem imprimir, baixar e encaminhar.{' '}
-            <strong>Receitas expiradas</strong> ficam disponíveis apenas para visualização.
-          </div>
-        )}
+        <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-6 text-xs text-blue-700">
+          As receitas ficam disponíveis por <strong>30 dias</strong> a partir da data de emissão.{' '}
+          <strong>Receitas válidas</strong> (dentro da validade) permitem imprimir, baixar e encaminhar.{' '}
+          {receitasComStatus.length === 0
+            ? 'Nenhuma receita emitida nos últimos 30 dias.'
+            : <><strong>Receitas expiradas</strong> ficam disponíveis apenas para visualização.</>
+          }
+        </div>
 
         <ReceitasListaClient
           receitas={receitasComStatus as any}
