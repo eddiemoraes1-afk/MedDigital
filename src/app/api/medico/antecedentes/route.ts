@@ -23,18 +23,26 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { paciente_id, alergias, hpp, medicamentos_em_uso, historia_familiar, historia_social } = body
+  const {
+    paciente_id, alergias, hpp, medicamentos_em_uso,
+    historia_familiar, historia_social,
+    comorbidades, antecedentes_cirurgicos, imunizacoes, historico_ginecologico,
+  } = body
 
   if (!paciente_id) return NextResponse.json({ error: 'paciente_id obrigatório' }, { status: 400 })
 
   const { error } = await admin
     .from('pacientes')
     .update({
-      alergias:            alergias            ?? null,
-      hpp:                 hpp                 ?? null,
-      medicamentos_em_uso: medicamentos_em_uso ?? null,
-      historia_familiar:   historia_familiar   ?? null,
-      historia_social:     historia_social     ?? null,
+      alergias:                 alergias                 ?? null,
+      hpp:                      hpp                      ?? null,
+      medicamentos_em_uso:      medicamentos_em_uso      ?? null,
+      historia_familiar:        historia_familiar        ?? null,
+      historia_social:          historia_social          ?? null,
+      comorbidades:             comorbidades             ?? null,
+      antecedentes_cirurgicos:  antecedentes_cirurgicos  ?? null,
+      imunizacoes:              imunizacoes              ?? null,
+      historico_ginecologico:   historico_ginecologico   ?? null,
     })
     .eq('id', paciente_id)
 

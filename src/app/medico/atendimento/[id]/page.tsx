@@ -33,30 +33,33 @@ interface SinaisVitais {
 // ── Pequeno componente de seção do accordion ───────────────────────────────────
 
 function SecaoAnamnese({
-  titulo, icone, aberta, onToggle, children,
+  titulo, icone, aberta, onToggle, children, disabled = false,
 }: {
   titulo: string
   icone: React.ReactNode
   aberta: boolean
   onToggle: () => void
   children: React.ReactNode
+  disabled?: boolean
 }) {
   return (
-    <div className="border-b border-[#2A4A3C] last:border-0">
+    <div className={`border-b border-[#2A4A3C] last:border-0 ${disabled ? 'opacity-40' : ''}`}>
       <button
         type="button"
-        onClick={onToggle}
-        className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-white/5 transition-colors"
+        onClick={disabled ? undefined : onToggle}
+        disabled={disabled}
+        className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-white/5 transition-colors disabled:cursor-not-allowed"
       >
         <span className="flex items-center gap-2 text-xs font-semibold text-green-200">
           {icone}
           {titulo}
+          {disabled && <span className="text-[9px] text-green-600/80 font-normal italic ml-0.5">indisponível em telemedicina</span>}
         </span>
-        {aberta
+        {!disabled && (aberta
           ? <ChevronUp className="w-3.5 h-3.5 text-green-400 shrink-0" />
-          : <ChevronDown className="w-3.5 h-3.5 text-green-400 shrink-0" />}
+          : <ChevronDown className="w-3.5 h-3.5 text-green-400 shrink-0" />)}
       </button>
-      {aberta && <div className="px-3 pb-3">{children}</div>}
+      {aberta && !disabled && <div className="px-3 pb-3">{children}</div>}
     </div>
   )
 }
@@ -128,14 +131,18 @@ export default function AtendimentoMedico() {
   const [showProntuario, setShowProntuario] = useState(false)
 
   // ── Antecedentes do paciente (editáveis durante a consulta) ──
-  const [antEditando,     setAntEditando]     = useState(false)
-  const [antSalvando,     setAntSalvando]     = useState(false)
-  const [antSalvo,        setAntSalvo]        = useState(false)
-  const [antAlergias,     setAntAlergias]     = useState('')
-  const [antHpp,          setAntHpp]          = useState('')
-  const [antMedicamentos, setAntMedicamentos] = useState('')
-  const [antFamiliar,     setAntFamiliar]     = useState('')
-  const [antSocial,       setAntSocial]       = useState('')
+  const [antEditando,       setAntEditando]       = useState(false)
+  const [antSalvando,       setAntSalvando]       = useState(false)
+  const [antSalvo,          setAntSalvo]          = useState(false)
+  const [antAlergias,       setAntAlergias]       = useState('')
+  const [antHpp,            setAntHpp]            = useState('')
+  const [antMedicamentos,   setAntMedicamentos]   = useState('')
+  const [antFamiliar,       setAntFamiliar]       = useState('')
+  const [antSocial,         setAntSocial]         = useState('')
+  const [antComorbidades,   setAntComorbidades]   = useState('')
+  const [antCirurgicos,     setAntCirurgicos]     = useState('')
+  const [antImunizacoes,    setAntImunizacoes]    = useState('')
+  const [antGinecologico,   setAntGinecologico]   = useState('')
 
   // ── Anamnese estruturada ──
   const [showAnamnese,  setShowAnamnese]  = useState(true)
@@ -214,11 +221,15 @@ export default function AtendimentoMedico() {
             altura:   a.sinais_vitais.altura   || '',
           })
         }
-        setAntAlergias(d.paciente?.alergias            || '')
-        setAntHpp(d.paciente?.hpp                      || '')
-        setAntMedicamentos(d.paciente?.medicamentos_em_uso || '')
-        setAntFamiliar(d.paciente?.historia_familiar   || '')
-        setAntSocial(d.paciente?.historia_social       || '')
+        setAntAlergias(d.paciente?.alergias                     || '')
+        setAntHpp(d.paciente?.hpp                             || '')
+        setAntMedicamentos(d.paciente?.medicamentos_em_uso    || '')
+        setAntFamiliar(d.paciente?.historia_familiar          || '')
+        setAntSocial(d.paciente?.historia_social              || '')
+        setAntComorbidades(d.paciente?.comorbidades           || '')
+        setAntCirurgicos(d.paciente?.antecedentes_cirurgicos  || '')
+        setAntImunizacoes(d.paciente?.imunizacoes             || '')
+        setAntGinecologico(d.paciente?.historico_ginecologico || '')
         setCarregando(false)
         dadosCarregadosRef.current = true
       })
@@ -296,12 +307,16 @@ export default function AtendimentoMedico() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        paciente_id:         dados.paciente.id,
-        alergias:            antAlergias.trim()     || null,
-        hpp:                 antHpp.trim()          || null,
-        medicamentos_em_uso: antMedicamentos.trim() || null,
-        historia_familiar:   antFamiliar.trim()     || null,
-        historia_social:     antSocial.trim()       || null,
+        paciente_id:                dados.paciente.id,
+        alergias:                   antAlergias.trim()     || null,
+        hpp:                        antHpp.trim()          || null,
+        medicamentos_em_uso:        antMedicamentos.trim() || null,
+        historia_familiar:          antFamiliar.trim()     || null,
+        historia_social:            antSocial.trim()       || null,
+        comorbidades:               antComorbidades.trim() || null,
+        antecedentes_cirurgicos:    antCirurgicos.trim()   || null,
+        imunizacoes:                antImunizacoes.trim()  || null,
+        historico_ginecologico:     antGinecologico.trim() || null,
       }),
     })
     setAntSalvando(false)
@@ -614,6 +629,12 @@ export default function AtendimentoMedico() {
                     <span><strong>Alergias:</strong> {antAlergias}</span>
                   </p>
                 ) : null}
+                {antComorbidades ? (
+                  <p className="text-xs text-amber-200 flex items-start gap-1.5 mb-0.5">
+                    <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0 opacity-60" />
+                    <span><strong>Comorbidades:</strong> {antComorbidades}</span>
+                  </p>
+                ) : null}
                 {antHpp ? (
                   <p className="text-xs text-amber-200 flex items-start gap-1.5 mb-0.5">
                     <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0 opacity-60" />
@@ -621,13 +642,37 @@ export default function AtendimentoMedico() {
                   </p>
                 ) : null}
                 {antMedicamentos ? (
-                  <p className="text-xs text-amber-200 flex items-start gap-1.5">
+                  <p className="text-xs text-amber-200 flex items-start gap-1.5 mb-0.5">
                     <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0 opacity-60" />
-                    <span><strong>Uso contínuo:</strong> {antMedicamentos}</span>
+                    <span><strong>Medicamentos:</strong> {antMedicamentos}</span>
                   </p>
                 ) : null}
-                {!antAlergias && !antHpp && !antMedicamentos && (
-                  <p className="text-xs text-amber-600 italic">Nenhum antecedente registrado.</p>
+                {antCirurgicos ? (
+                  <p className="text-xs text-amber-200 flex items-start gap-1.5 mb-0.5">
+                    <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0 opacity-60" />
+                    <span><strong>Cirurgias:</strong> {antCirurgicos}</span>
+                  </p>
+                ) : null}
+                {antImunizacoes ? (
+                  <p className="text-xs text-amber-200 flex items-start gap-1.5 mb-0.5">
+                    <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0 opacity-60" />
+                    <span><strong>Imunizações:</strong> {antImunizacoes}</span>
+                  </p>
+                ) : null}
+                {antGinecologico ? (
+                  <p className="text-xs text-amber-200 flex items-start gap-1.5 mb-0.5">
+                    <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0 opacity-60" />
+                    <span><strong>Ginecológico:</strong> {antGinecologico}</span>
+                  </p>
+                ) : null}
+                {!antAlergias && !antHpp && !antMedicamentos && !antComorbidades && !antCirurgicos && !antImunizacoes && !antGinecologico && (
+                  <button
+                    onClick={() => setAntEditando(true)}
+                    className="text-xs text-amber-400 font-semibold hover:text-amber-200 transition-colors flex items-center gap-1.5 text-left"
+                  >
+                    <AlertTriangle className="w-3 h-3 shrink-0" />
+                    <span>Nenhum antecedente registrado. <span className="underline">Registre aqui</span></span>
+                  </button>
                 )}
               </div>
               <button
@@ -643,11 +688,15 @@ export default function AtendimentoMedico() {
             {antEditando && (
               <div className="bg-amber-950/40 px-3 pb-3 pt-2 space-y-2">
                 {[
-                  { label: 'Alergias', value: antAlergias, onChange: setAntAlergias, placeholder: 'Penicilina, dipirona, frutos do mar...' },
-                  { label: 'HPP — História Patológica Pregressa', value: antHpp, onChange: setAntHpp, placeholder: 'Diabetes, HAS, cirurgias, internações...' },
-                  { label: 'Medicamentos de uso contínuo', value: antMedicamentos, onChange: setAntMedicamentos, placeholder: 'Metformina 850mg, Losartana 50mg...' },
-                  { label: 'História familiar', value: antFamiliar, onChange: setAntFamiliar, placeholder: 'Doenças hereditárias em pais/irmãos...' },
-                  { label: 'História social', value: antSocial, onChange: setAntSocial, placeholder: 'Tabagismo, etilismo, profissão...' },
+                  { label: 'Alergias e Reações Adversas', value: antAlergias, onChange: setAntAlergias, placeholder: 'Penicilina, dipirona, frutos do mar...' },
+                  { label: 'Comorbidades / Doenças Ativas', value: antComorbidades, onChange: setAntComorbidades, placeholder: 'HAS, DM tipo 2, hipotireoidismo...' },
+                  { label: 'HPP — História Patológica Pregressa', value: antHpp, onChange: setAntHpp, placeholder: 'Doenças anteriores, internações...' },
+                  { label: 'Antecedentes Cirúrgicos', value: antCirurgicos, onChange: setAntCirurgicos, placeholder: 'Apendicectomia 2010, colecistectomia 2018...' },
+                  { label: 'Medicamentos em Uso', value: antMedicamentos, onChange: setAntMedicamentos, placeholder: 'Metformina 850mg, Losartana 50mg...' },
+                  { label: 'Antecedentes Familiares', value: antFamiliar, onChange: setAntFamiliar, placeholder: 'Doenças hereditárias em pais/irmãos...' },
+                  { label: 'Hábitos de Vida', value: antSocial, onChange: setAntSocial, placeholder: 'Tabagismo, etilismo, atividade física, profissão...' },
+                  { label: 'Imunizações', value: antImunizacoes, onChange: setAntImunizacoes, placeholder: 'Influenza 2024, COVID-19 completo, HPV...' },
+                  { label: 'Histórico Ginecológico e Obstétrico (quando aplicável)', value: antGinecologico, onChange: setAntGinecologico, placeholder: 'G2P2A0, última menstruação, anticoncepcional, mamografia...' },
                 ].map(f => (
                   <div key={f.label}>
                     <label className="block text-[10px] text-amber-400 mb-0.5 font-semibold">{f.label}</label>
@@ -747,7 +796,8 @@ export default function AtendimentoMedico() {
                 <SecaoAnamnese
                   titulo="Sinais Vitais"
                   icone={<Activity className="w-3 h-3" />}
-                  aberta={secaoAberta === 'sv'}
+                  aberta={false}
+                  disabled
                   onToggle={() => toggleSecao('sv')}
                 >
                   <div className="grid grid-cols-2 gap-2">
@@ -778,7 +828,8 @@ export default function AtendimentoMedico() {
                 <SecaoAnamnese
                   titulo="Exame Físico"
                   icone={<Heart className="w-3 h-3" />}
-                  aberta={secaoAberta === 'ef'}
+                  aberta={false}
+                  disabled
                   onToggle={() => toggleSecao('ef')}
                 >
                   <DarkTextarea

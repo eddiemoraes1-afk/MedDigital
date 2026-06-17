@@ -382,11 +382,15 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
               <AntecedentesForm
                 pacienteId={id}
                 inicial={{
-                  alergias:            paciente.alergias            ?? null,
-                  hpp:                 paciente.hpp                 ?? null,
-                  medicamentos_em_uso: paciente.medicamentos_em_uso ?? null,
-                  historia_familiar:   paciente.historia_familiar   ?? null,
-                  historia_social:     paciente.historia_social     ?? null,
+                  alergias:                paciente.alergias                ?? null,
+                  hpp:                     paciente.hpp                     ?? null,
+                  medicamentos_em_uso:     paciente.medicamentos_em_uso     ?? null,
+                  historia_familiar:       paciente.historia_familiar       ?? null,
+                  historia_social:         paciente.historia_social         ?? null,
+                  comorbidades:            paciente.comorbidades            ?? null,
+                  antecedentes_cirurgicos: paciente.antecedentes_cirurgicos ?? null,
+                  imunizacoes:             paciente.imunizacoes             ?? null,
+                  historico_ginecologico:  paciente.historico_ginecologico  ?? null,
                 }}
               />
             </div>

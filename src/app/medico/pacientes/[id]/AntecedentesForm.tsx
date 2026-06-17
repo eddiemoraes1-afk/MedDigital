@@ -6,11 +6,15 @@ import { CheckCircle2, Loader2, Edit3, X } from 'lucide-react'
 interface Props {
   pacienteId: string
   inicial: {
-    alergias:            string | null
-    hpp:                 string | null
-    medicamentos_em_uso: string | null
-    historia_familiar:   string | null
-    historia_social:     string | null
+    alergias:                string | null
+    hpp:                     string | null
+    medicamentos_em_uso:     string | null
+    historia_familiar:       string | null
+    historia_social:         string | null
+    comorbidades:            string | null
+    antecedentes_cirurgicos: string | null
+    imunizacoes:             string | null
+    historico_ginecologico:  string | null
   }
 }
 
@@ -20,11 +24,15 @@ export default function AntecedentesForm({ pacienteId, inicial }: Props) {
   const [salvo,    setSalvo]    = useState(false)
   const [erro,     setErro]     = useState('')
 
-  const [alergias,          setAlergias]          = useState(inicial.alergias            || '')
-  const [hpp,               setHpp]               = useState(inicial.hpp                 || '')
-  const [medicamentos,      setMedicamentos]      = useState(inicial.medicamentos_em_uso || '')
-  const [historiaFamiliar,  setHistoriaFamiliar]  = useState(inicial.historia_familiar   || '')
-  const [historiaSocial,    setHistoriaSocial]    = useState(inicial.historia_social     || '')
+  const [alergias,          setAlergias]          = useState(inicial.alergias                || '')
+  const [hpp,               setHpp]               = useState(inicial.hpp                     || '')
+  const [medicamentos,      setMedicamentos]      = useState(inicial.medicamentos_em_uso      || '')
+  const [historiaFamiliar,  setHistoriaFamiliar]  = useState(inicial.historia_familiar        || '')
+  const [historiaSocial,    setHistoriaSocial]    = useState(inicial.historia_social          || '')
+  const [comorbidades,      setComorbidades]      = useState(inicial.comorbidades             || '')
+  const [cirurgicos,        setCirurgicos]        = useState(inicial.antecedentes_cirurgicos  || '')
+  const [imunizacoes,       setImunizacoes]       = useState(inicial.imunizacoes              || '')
+  const [ginecologico,      setGinecologico]      = useState(inicial.historico_ginecologico   || '')
 
   // Valores salvos (para exibição no modo leitura)
   const [saved, setSaved] = useState(inicial)
@@ -37,21 +45,29 @@ export default function AntecedentesForm({ pacienteId, inicial }: Props) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          paciente_id:         pacienteId,
-          alergias:            alergias.trim()         || null,
-          hpp:                 hpp.trim()              || null,
-          medicamentos_em_uso: medicamentos.trim()     || null,
-          historia_familiar:   historiaFamiliar.trim() || null,
-          historia_social:     historiaSocial.trim()   || null,
+          paciente_id:              pacienteId,
+          alergias:                 alergias.trim()         || null,
+          hpp:                      hpp.trim()              || null,
+          medicamentos_em_uso:      medicamentos.trim()     || null,
+          historia_familiar:        historiaFamiliar.trim() || null,
+          historia_social:          historiaSocial.trim()   || null,
+          comorbidades:             comorbidades.trim()     || null,
+          antecedentes_cirurgicos:  cirurgicos.trim()       || null,
+          imunizacoes:              imunizacoes.trim()      || null,
+          historico_ginecologico:   ginecologico.trim()     || null,
         }),
       })
       if (!res.ok) throw new Error('Erro ao salvar')
       setSaved({
-        alergias:            alergias.trim()         || null,
-        hpp:                 hpp.trim()              || null,
-        medicamentos_em_uso: medicamentos.trim()     || null,
-        historia_familiar:   historiaFamiliar.trim() || null,
-        historia_social:     historiaSocial.trim()   || null,
+        alergias:                alergias.trim()         || null,
+        hpp:                     hpp.trim()              || null,
+        medicamentos_em_uso:     medicamentos.trim()     || null,
+        historia_familiar:       historiaFamiliar.trim() || null,
+        historia_social:         historiaSocial.trim()   || null,
+        comorbidades:            comorbidades.trim()     || null,
+        antecedentes_cirurgicos: cirurgicos.trim()       || null,
+        imunizacoes:             imunizacoes.trim()      || null,
+        historico_ginecologico:  ginecologico.trim()     || null,
       })
       setSalvo(true)
       setEditando(false)
@@ -63,21 +79,29 @@ export default function AntecedentesForm({ pacienteId, inicial }: Props) {
   }
 
   function cancelar() {
-    setAlergias(saved.alergias            || '')
-    setHpp(saved.hpp                      || '')
+    setAlergias(saved.alergias               || '')
+    setHpp(saved.hpp                         || '')
     setMedicamentos(saved.medicamentos_em_uso || '')
-    setHistoriaFamiliar(saved.historia_familiar   || '')
-    setHistoriaSocial(saved.historia_social     || '')
+    setHistoriaFamiliar(saved.historia_familiar || '')
+    setHistoriaSocial(saved.historia_social   || '')
+    setComorbidades(saved.comorbidades        || '')
+    setCirurgicos(saved.antecedentes_cirurgicos || '')
+    setImunizacoes(saved.imunizacoes          || '')
+    setGinecologico(saved.historico_ginecologico || '')
     setEditando(false)
     setErro('')
   }
 
   const campos = [
-    { label: 'Alergias', value: saved.alergias,            cor: 'bg-red-50 border-red-200 text-red-800' },
-    { label: 'HPP — História Patológica Pregressa', value: saved.hpp, cor: 'bg-amber-50 border-amber-200 text-amber-800' },
-    { label: 'Medicamentos de uso contínuo', value: saved.medicamentos_em_uso, cor: 'bg-blue-50 border-blue-200 text-blue-800' },
-    { label: 'História familiar', value: saved.historia_familiar, cor: 'bg-purple-50 border-purple-200 text-purple-800' },
-    { label: 'História social', value: saved.historia_social, cor: 'bg-gray-50 border-gray-200 text-gray-700' },
+    { label: 'Alergias e Reações Adversas',                    value: saved.alergias,                cor: 'bg-red-50 border-red-200 text-red-800' },
+    { label: 'Comorbidades / Doenças Ativas',                  value: saved.comorbidades,            cor: 'bg-orange-50 border-orange-200 text-orange-800' },
+    { label: 'HPP — História Patológica Pregressa',            value: saved.hpp,                     cor: 'bg-amber-50 border-amber-200 text-amber-800' },
+    { label: 'Antecedentes Cirúrgicos',                        value: saved.antecedentes_cirurgicos, cor: 'bg-yellow-50 border-yellow-200 text-yellow-800' },
+    { label: 'Medicamentos em Uso',                            value: saved.medicamentos_em_uso,     cor: 'bg-blue-50 border-blue-200 text-blue-800' },
+    { label: 'Antecedentes Familiares',                        value: saved.historia_familiar,       cor: 'bg-purple-50 border-purple-200 text-purple-800' },
+    { label: 'Hábitos de Vida',                                value: saved.historia_social,         cor: 'bg-gray-50 border-gray-200 text-gray-700' },
+    { label: 'Imunizações',                                    value: saved.imunizacoes,             cor: 'bg-green-50 border-green-200 text-green-800' },
+    { label: 'Histórico Ginecológico e Obstétrico',            value: saved.historico_ginecologico,  cor: 'bg-pink-50 border-pink-200 text-pink-800' },
   ]
 
   // Modo leitura
@@ -131,11 +155,15 @@ export default function AntecedentesForm({ pacienteId, inicial }: Props) {
       </div>
 
       {[
-        { label: 'Alergias (medicamentos, alimentos, látex, etc.)', value: alergias, onChange: setAlergias, placeholder: 'Ex: Penicilina, dipirona, frutos do mar...', rows: 2 },
-        { label: 'HPP — História Patológica Pregressa', value: hpp, onChange: setHpp, placeholder: 'Doenças anteriores, cirurgias, internações, diabetes, HAS, etc.', rows: 3 },
-        { label: 'Medicamentos de uso contínuo', value: medicamentos, onChange: setMedicamentos, placeholder: 'Ex: Metformina 850mg 2x/dia, Losartana 50mg/dia...', rows: 2 },
-        { label: 'História familiar', value: historiaFamiliar, onChange: setHistoriaFamiliar, placeholder: 'Doenças em pais, irmãos, avós com impacto hereditário...', rows: 2 },
-        { label: 'História social (tabagismo, etilismo, atividade física, profissão)', value: historiaSocial, onChange: setHistoriaSocial, placeholder: 'Ex: Tabagista 10 anos, etilismo social, sedentário, escriturário...', rows: 2 },
+        { label: 'Alergias e Reações Adversas', value: alergias, onChange: setAlergias, placeholder: 'Ex: Penicilina, dipirona, frutos do mar, látex...', rows: 2 },
+        { label: 'Comorbidades / Doenças Ativas', value: comorbidades, onChange: setComorbidades, placeholder: 'Ex: HAS, DM tipo 2, hipotireoidismo, asma...', rows: 2 },
+        { label: 'HPP — História Patológica Pregressa', value: hpp, onChange: setHpp, placeholder: 'Doenças anteriores, internações, etc.', rows: 2 },
+        { label: 'Antecedentes Cirúrgicos', value: cirurgicos, onChange: setCirurgicos, placeholder: 'Ex: Apendicectomia 2010, colecistectomia 2018...', rows: 2 },
+        { label: 'Medicamentos em Uso', value: medicamentos, onChange: setMedicamentos, placeholder: 'Ex: Metformina 850mg 2x/dia, Losartana 50mg/dia...', rows: 2 },
+        { label: 'Antecedentes Familiares', value: historiaFamiliar, onChange: setHistoriaFamiliar, placeholder: 'Doenças em pais, irmãos, avós com impacto hereditário...', rows: 2 },
+        { label: 'Hábitos de Vida', value: historiaSocial, onChange: setHistoriaSocial, placeholder: 'Ex: Tabagista 10 anos, etilismo social, sedentário, escriturário...', rows: 2 },
+        { label: 'Imunizações', value: imunizacoes, onChange: setImunizacoes, placeholder: 'Ex: Influenza 2024, COVID-19 completo, HPV, hepatite B...', rows: 2 },
+        { label: 'Histórico Ginecológico e Obstétrico (quando aplicável)', value: ginecologico, onChange: setGinecologico, placeholder: 'Ex: G2P2A0, última menstruação, anticoncepcional, mamografia...', rows: 2 },
       ].map(f => (
         <div key={f.label}>
           <label className="block text-xs font-semibold text-gray-600 mb-1">{f.label}</label>
