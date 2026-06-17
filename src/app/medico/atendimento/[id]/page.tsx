@@ -17,6 +17,7 @@ import EncaminhamentoForm from '@/components/EncaminhamentoForm'
 import ExclusaoTelemedicinaForm from '@/components/ExclusaoTelemedicinaForm'
 import ProntuarioDrawer from './ProntuarioDrawer'
 import CidAutocomplete from '@/components/CidAutocomplete'
+import MedicamentosUsoAutocomplete from '@/components/MedicamentosUsoAutocomplete'
 
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 
@@ -692,7 +693,6 @@ export default function AtendimentoMedico() {
                   { label: 'Comorbidades / Doenças Ativas', value: antComorbidades, onChange: setAntComorbidades, placeholder: 'HAS, DM tipo 2, hipotireoidismo...' },
                   { label: 'HPP — História Patológica Pregressa', value: antHpp, onChange: setAntHpp, placeholder: 'Doenças anteriores, internações...' },
                   { label: 'Antecedentes Cirúrgicos', value: antCirurgicos, onChange: setAntCirurgicos, placeholder: 'Apendicectomia 2010, colecistectomia 2018...' },
-                  { label: 'Medicamentos em Uso', value: antMedicamentos, onChange: setAntMedicamentos, placeholder: 'Metformina 850mg, Losartana 50mg...' },
                   { label: 'Antecedentes Familiares', value: antFamiliar, onChange: setAntFamiliar, placeholder: 'Doenças hereditárias em pais/irmãos...' },
                   { label: 'Hábitos de Vida', value: antSocial, onChange: setAntSocial, placeholder: 'Tabagismo, etilismo, atividade física, profissão...' },
                   { label: 'Imunizações', value: antImunizacoes, onChange: setAntImunizacoes, placeholder: 'Influenza 2024, COVID-19 completo, HPV...' },
@@ -703,6 +703,21 @@ export default function AtendimentoMedico() {
                     <DarkTextarea value={f.value} onChange={f.onChange} placeholder={f.placeholder} rows={2} />
                   </div>
                 ))}
+
+                {/* Medicamentos em Uso — com autocomplete da base ANVISA */}
+                <div>
+                  <label className="block text-[10px] text-amber-400 mb-0.5 font-semibold">
+                    Medicamentos em Uso
+                    <span className="ml-1.5 text-amber-600 font-normal normal-case">(autocomplete disponível)</span>
+                  </label>
+                  <MedicamentosUsoAutocomplete
+                    value={antMedicamentos}
+                    onChange={setAntMedicamentos}
+                    dark
+                    placeholder="Digite para buscar... ex: losart, metformin, omepraz"
+                    rows={2}
+                  />
+                </div>
                 <div className="flex gap-2 pt-1">
                   <button
                     onClick={salvarAntecedentes}
