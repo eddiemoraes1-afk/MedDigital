@@ -140,22 +140,22 @@ export async function POST(req: NextRequest) {
     || 'desconhecido'
 
   // Buscar nome do paciente para enriquecer o log
-  admin
-    .from('atendimentos')
-    .select('pacientes(nome)')
-    .eq('id', atendimento_id)
-    .single()
-    .then(({ data }) => {
-      const nomePaciente = (data as any)?.pacientes?.nome ?? 'paciente'
-      return admin.from('logs_sessao_medico').insert({
-        medico_id: medico.id,
-        tipo:      'assumiu_paciente',
-        descricao: `Assumiu ${nomePaciente} para atendimento`,
-        ip,
-        dados:     { atendimento_id },
-      })
+  Promise.resolve(
+    admin
+      .from('atendimentos')
+      .select('pacientes(nome)')
+      .eq('id', atendimento_id)
+      .single()
+  ).then(({ data }) => {
+    const nomePaciente = (data as any)?.pacientes?.nome ?? 'paciente'
+    return admin.from('logs_sessao_medico').insert({
+      medico_id: medico.id,
+      tipo:      'assumiu_paciente',
+      descricao: `Assumiu ${nomePaciente} para atendimento`,
+      ip,
+      dados:     { atendimento_id },
     })
-    .catch(() => {})
+  }).catch(() => {})
 
   return NextResponse.json({ ok: true })
 }

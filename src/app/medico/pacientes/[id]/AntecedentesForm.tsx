@@ -1,7 +1,17 @@
 'use client'
 
 import { useState } from 'react'
-import { CheckCircle2, Loader2, Edit3, X } from 'lucide-react'
+import { CheckCircle2, Loader2, Edit3, X, Clock, ChevronDown, ChevronUp } from 'lucide-react'
+
+// ── Tipos ──────────────────────────────────────────────────────────────────────
+
+interface LogAntecedente {
+  id: string
+  criado_em: string
+  campos_alterados: { campo: string; de: string | null; para: string | null }[]
+  ip_address: string | null
+  medicos: { id: string; nome: string; crm?: string | null; crm_uf?: string | null; sexo?: string | null } | null
+}
 
 interface Props {
   pacienteId: string
@@ -16,23 +26,58 @@ interface Props {
     imunizacoes:             string | null
     historico_ginecologico:  string | null
   }
+  logsIniciais?: LogAntecedente[]
 }
 
-export default function AntecedentesForm({ pacienteId, inicial }: Props) {
+// ── Labels legíveis para campos ────────────────────────────────────────────────
+
+const CAMPO_LABEL: Record<string, string> = {
+  alergias:                'Alergias e Reações Adversas',
+  hpp:                     'HPP — História Patológica Pregressa',
+  medicamentos_em_uso:     'Medicamentos em Uso',
+  historia_familiar:       'Antecedentes Familiares',
+  historia_social:         'Hábitos de Vida',
+  comorbidades:            'Comorbidades / Doenças Ativas',
+  antecedentes_cirurgicos: 'Antecedentes Cirúrgicos',
+  imunizacoes:             'Imunizações',
+  historico_ginecologico:  'Histórico Ginecológico e Obstétrico',
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+
+function fmtDH(iso: string): { data: string; hora: string } {
+  const s = iso.endsWith('Z') || iso.includes('+') ? iso : iso + 'Z'
+  const d = new Date(s)
+  if (isNaN(d.getTime())) return { data: '—', hora: '—' }
+  return {
+    data: d.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: 'numeric' }),
+    hora: d.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+  }
+}
+
+function prefixo(sexo: string | null | undefined) {
+  return sexo === 'feminino' ? 'Dra.' : 'Dr.'
+}
+
+// ── Componente ─────────────────────────────────────────────────────────────────
+
+export default function AntecedentesForm({ pacienteId, inicial, logsIniciais = [] }: Props) {
   const [editando, setEditando] = useState(false)
   const [salvando, setSalvando] = useState(false)
   const [salvo,    setSalvo]    = useState(false)
   const [erro,     setErro]     = useState('')
+  const [logs,     setLogs]     = useState<LogAntecedente[]>(logsIniciais)
+  const [expandido, setExpandido] = useState<string | null>(null)
 
-  const [alergias,          setAlergias]          = useState(inicial.alergias                || '')
-  const [hpp,               setHpp]               = useState(inicial.hpp                     || '')
-  const [medicamentos,      setMedicamentos]      = useState(inicial.medicamentos_em_uso      || '')
-  const [historiaFamiliar,  setHistoriaFamiliar]  = useState(inicial.historia_familiar        || '')
-  const [historiaSocial,    setHistoriaSocial]    = useState(inicial.historia_social          || '')
-  const [comorbidades,      setComorbidades]      = useState(inicial.comorbidades             || '')
-  const [cirurgicos,        setCirurgicos]        = useState(inicial.antecedentes_cirurgicos  || '')
-  const [imunizacoes,       setImunizacoes]       = useState(inicial.imunizacoes              || '')
-  const [ginecologico,      setGinecologico]      = useState(inicial.historico_ginecologico   || '')
+  const [alergias,         setAlergias]         = useState(inicial.alergias                || '')
+  const [hpp,              setHpp]              = useState(inicial.hpp                     || '')
+  const [medicamentos,     setMedicamentos]     = useState(inicial.medicamentos_em_uso      || '')
+  const [historiaFamiliar, setHistoriaFamiliar] = useState(inicial.historia_familiar        || '')
+  const [historiaSocial,   setHistoriaSocial]   = useState(inicial.historia_social          || '')
+  const [comorbidades,     setComorbidades]     = useState(inicial.comorbidades             || '')
+  const [cirurgicos,       setCirurgicos]       = useState(inicial.antecedentes_cirurgicos  || '')
+  const [imunizacoes,      setImunizacoes]      = useState(inicial.imunizacoes              || '')
+  const [ginecologico,     setGinecologico]     = useState(inicial.historico_ginecologico   || '')
 
   // Valores salvos (para exibição no modo leitura)
   const [saved, setSaved] = useState(inicial)
@@ -58,6 +103,7 @@ export default function AntecedentesForm({ pacienteId, inicial }: Props) {
         }),
       })
       if (!res.ok) throw new Error('Erro ao salvar')
+
       setSaved({
         alergias:                alergias.trim()         || null,
         hpp:                     hpp.trim()              || null,
@@ -72,6 +118,13 @@ export default function AntecedentesForm({ pacienteId, inicial }: Props) {
       setSalvo(true)
       setEditando(false)
       setTimeout(() => setSalvo(false), 3000)
+
+      // Refetch histórico de edições
+      const logsRes = await fetch(`/api/medico/antecedentes?paciente_id=${pacienteId}`)
+      if (logsRes.ok) {
+        const data = await logsRes.json()
+        setLogs(data.logs ?? [])
+      }
     } catch {
       setErro('Erro ao salvar antecedentes. Tente novamente.')
     }
@@ -104,11 +157,13 @@ export default function AntecedentesForm({ pacienteId, inicial }: Props) {
     { label: 'Histórico Ginecológico e Obstétrico',            value: saved.historico_ginecologico,  cor: 'bg-pink-50 border-pink-200 text-pink-800' },
   ]
 
-  // Modo leitura
+  // ── Modo leitura ──────────────────────────────────────────────────────────
+
   if (!editando) {
     const temDados = campos.some(c => c.value)
     return (
       <div>
+        {/* Cabeçalho com botão Editar */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             {salvo && (
@@ -126,6 +181,7 @@ export default function AntecedentesForm({ pacienteId, inicial }: Props) {
           </button>
         </div>
 
+        {/* Dados atuais */}
         {!temDados ? (
           <p className="text-sm text-gray-400 italic">
             Nenhum antecedente registrado. Clique em "Preencher antecedentes" para adicionar.
@@ -140,11 +196,98 @@ export default function AntecedentesForm({ pacienteId, inicial }: Props) {
             ) : null)}
           </div>
         )}
+
+        {/* ── Histórico de Edições ───────────────────────────────────────── */}
+        {logs.length > 0 && (
+          <div className="mt-6 border-t border-gray-100 pt-5">
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="w-4 h-4 text-gray-400" />
+              <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                Histórico de Edições ({logs.length})
+              </h4>
+            </div>
+            <div className="space-y-2">
+              {logs.map(log => {
+                const { data, hora } = fmtDH(log.criado_em)
+                const medInfo = log.medicos
+                return (
+                  <div key={log.id} className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
+                    {/* Cabeçalho do log */}
+                    <button
+                      onClick={() => setExpandido(expandido === log.id ? null : log.id)}
+                      className="w-full flex items-center justify-between px-4 py-2.5 text-left hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
+                        {/* Médico */}
+                        <span className="text-xs font-semibold text-[#1A3A2C] truncate">
+                          {medInfo
+                            ? `${prefixo(medInfo.sexo)} ${medInfo.nome}`
+                            : 'Médico desconhecido'}
+                        </span>
+                        {medInfo?.crm && (
+                          <span className="text-[10px] text-gray-400 font-mono">
+                            CRM-{medInfo.crm_uf ?? 'BR'} {medInfo.crm}
+                          </span>
+                        )}
+                        {/* Data / Hora */}
+                        <span className="text-[10px] text-gray-400 font-mono whitespace-nowrap">
+                          {data} às {hora}
+                        </span>
+                        {/* IP */}
+                        {log.ip_address && (
+                          <span className="text-[10px] text-gray-400 font-mono">
+                            IP: {log.ip_address}
+                          </span>
+                        )}
+                        {/* Qtd de campos */}
+                        <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-medium">
+                          {log.campos_alterados.length} campo{log.campos_alterados.length !== 1 ? 's' : ''} alterado{log.campos_alterados.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                      {expandido === log.id
+                        ? <ChevronUp className="w-4 h-4 text-gray-400 shrink-0 ml-2" />
+                        : <ChevronDown className="w-4 h-4 text-gray-400 shrink-0 ml-2" />
+                      }
+                    </button>
+
+                    {/* Detalhe dos campos */}
+                    {expandido === log.id && (
+                      <div className="border-t border-gray-200 px-4 py-3 space-y-2.5">
+                        {log.campos_alterados.map((item, i) => (
+                          <div key={i} className="text-xs">
+                            <p className="font-semibold text-gray-600 mb-1">
+                              {CAMPO_LABEL[item.campo] ?? item.campo}
+                            </p>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="bg-red-50 border border-red-100 rounded-lg px-2.5 py-1.5">
+                                <p className="text-[10px] font-bold text-red-400 uppercase mb-0.5">Antes</p>
+                                <p className="text-red-700 whitespace-pre-wrap">
+                                  {item.de ?? <em className="opacity-50">vazio</em>}
+                                </p>
+                              </div>
+                              <div className="bg-green-50 border border-green-100 rounded-lg px-2.5 py-1.5">
+                                <p className="text-[10px] font-bold text-green-400 uppercase mb-0.5">Depois</p>
+                                <p className="text-green-700 whitespace-pre-wrap">
+                                  {item.para ?? <em className="opacity-50">vazio</em>}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
     )
   }
 
-  // Modo edição
+  // ── Modo edição ───────────────────────────────────────────────────────────
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">

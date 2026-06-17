@@ -58,7 +58,6 @@ function toParams(r: ReceitaItem, paciente: Paciente): ReceitaHTMLParams | null 
     medicamentos: r.medicamentos,
     instrucoes: r.instrucoes ?? '',
     observacoes: r.observacoes,
-    validade: r.validade,
     dataEmissao: r.data_emissao,
   }
 }

@@ -11,6 +11,7 @@ import {
 import MedicoHeader from '../../MedicoHeader'
 import AtestadosMedicoClient from './AtestadosMedicoClient'
 import ReceitasMedicoClient from './ReceitasMedicoClient'
+import ExamesMedicoClient from './ExamesMedicoClient'
 import AntecedentesForm from './AntecedentesForm'
 import { CidBadge, CidBadgeTable } from '@/components/CidTooltip'
 
@@ -221,9 +222,17 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
 
   const { data: exames } = await admin
     .from('solicitacoes_exames')
-    .select('id, criado_em, exames, urgencia, observacoes, atendimento_id, medico_id')
+    .select('id, criado_em, exames, urgencia, observacoes, atendimento_id, medico_id, medicos(nome, crm, crm_uf, especialidade, sexo)')
     .eq('paciente_id', id)
     .order('criado_em', { ascending: false })
+
+  // ── Logs de edição de antecedentes ──
+  const { data: logsAntecedentes } = await admin
+    .from('logs_antecedentes')
+    .select('id, criado_em, campos_alterados, ip_address, medicos(id, nome, crm, crm_uf, sexo)')
+    .eq('paciente_id', id)
+    .order('criado_em', { ascending: false })
+    .limit(50)
 
   // ── Protocolos de exclusão de telemedicina ──
   const { data: exclusoes } = await admin
@@ -392,6 +401,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                   imunizacoes:             paciente.imunizacoes             ?? null,
                   historico_ginecologico:  paciente.historico_ginecologico  ?? null,
                 }}
+                logsIniciais={(logsAntecedentes ?? []) as any}
               />
             </div>
           </div>
@@ -920,39 +930,11 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                 <span className="text-sm text-gray-400 font-normal">({exames?.length ?? 0})</span>
               </h2>
               {exames && exames.length > 0 ? (
-                <div className="space-y-3">
-                  {(exames as any[]).map(e => {
-                    const { data, hora } = fmtDH(e.criado_em)
-                    const lista = Array.isArray(e.exames) ? e.exames as string[] : []
-                    return (
-                      <div key={e.id} className="bg-white rounded-2xl shadow-sm p-5">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar className="w-4 h-4 text-gray-400" />
-                            <span className="text-gray-500">{data} às {hora}</span>
-                          </div>
-                          {e.urgencia && (
-                            <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                              e.urgencia === 'urgente' ? 'bg-red-100 text-red-700' :
-                              e.urgencia === 'normal'  ? 'bg-green-100 text-green-700' :
-                              'bg-blue-100 text-blue-700'
-                            }`}>
-                              {e.urgencia}
-                            </span>
-                          )}
-                        </div>
-                        {lista.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5">
-                            {lista.map((ex: string) => (
-                              <span key={ex} className="text-xs bg-orange-50 text-orange-700 border border-orange-200 px-2.5 py-1 rounded-full">{ex}</span>
-                            ))}
-                          </div>
-                        )}
-                        {e.observacoes && <p className="text-xs text-gray-400 mt-2 italic">"{e.observacoes}"</p>}
-                      </div>
-                    )
-                  })}
-                </div>
+                <ExamesMedicoClient
+                  exames={exames as any}
+                  paciente={{ nome: paciente.nome, cpf: paciente.cpf ?? null, data_nascimento: paciente.data_nascimento ?? null, sexo: paciente.sexo ?? null }}
+                  medicoId={medico.id}
+                />
               ) : (
                 <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
                   <FlaskConical className="w-10 h-10 text-gray-200 mx-auto mb-3" />

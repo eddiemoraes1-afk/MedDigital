@@ -116,31 +116,31 @@ export async function POST(req: NextRequest) {
       return `${seg}s`
     }
 
-    adminSupabase
-      .from('atendimentos')
-      .select('pacientes(nome), medicos(id)')
-      .eq('id', atendimento_id)
-      .single()
-      .then(({ data }) => {
-        const nomePaciente   = (data as any)?.pacientes?.nome ?? 'paciente'
-        const medicoIdLog    = (data as any)?.medicos?.id ?? atendimento.medico_id
-        if (!medicoIdLog) return
+    Promise.resolve(
+      adminSupabase
+        .from('atendimentos')
+        .select('pacientes(nome), medicos(id)')
+        .eq('id', atendimento_id)
+        .single()
+    ).then(({ data }) => {
+      const nomePaciente   = (data as any)?.pacientes?.nome ?? 'paciente'
+      const medicoIdLog    = (data as any)?.medicos?.id ?? atendimento.medico_id
+      if (!medicoIdLog) return
 
-        return adminSupabase.from('logs_sessao_medico').insert({
-          medico_id: medicoIdLog,
-          tipo:      'encerrou_consulta',
-          descricao: duracaoSegundos !== null
-            ? `Encerrou consulta de ${nomePaciente} (duração: ${formatarDur(duracaoSegundos)})`
-            : `Encerrou consulta de ${nomePaciente}`,
-          ip,
-          dados: {
-            atendimento_id,
-            duracao_segundos: duracaoSegundos,
-            valor_cobrado:    valorCobrado,
-          },
-        })
+      return adminSupabase.from('logs_sessao_medico').insert({
+        medico_id: medicoIdLog,
+        tipo:      'encerrou_consulta',
+        descricao: duracaoSegundos !== null
+          ? `Encerrou consulta de ${nomePaciente} (duração: ${formatarDur(duracaoSegundos)})`
+          : `Encerrou consulta de ${nomePaciente}`,
+        ip,
+        dados: {
+          atendimento_id,
+          duracao_segundos: duracaoSegundos,
+          valor_cobrado:    valorCobrado,
+        },
       })
-      .catch(() => {})
+    }).catch(() => {})
   }
 
   return NextResponse.json({ ok: true, valor_cobrado: valorCobrado })
