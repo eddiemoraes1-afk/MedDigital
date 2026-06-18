@@ -173,18 +173,35 @@ export default async function PgrImprimirPage() {
       <style>{`
         * { box-sizing: border-box; }
         body { margin: 0; padding: 0; font-family: -apple-system, Helvetica, Arial, sans-serif; }
+
         @media screen {
           body { background: #F3F4F6; }
           #pgr-doc { max-width: 800px; margin: 24px auto; background: white; padding: 48px; box-shadow: 0 4px 32px rgba(0,0,0,0.12); border-radius: 12px; }
         }
+
         @media print {
+          /* Força o browser a imprimir cores de fundo e texto colorido */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
           .no-print { display: none !important; }
-          body { background: white; }
-          #pgr-doc { margin: 0; padding: 0; box-shadow: none; border-radius: 0; }
-          .page-break { page-break-before: always; }
-          @page { margin: 15mm 15mm 15mm 15mm; size: A4; }
-          table { page-break-inside: auto; }
-          tr { page-break-inside: avoid; }
+          body { background: white !important; margin: 0 !important; padding: 0 !important; }
+          /* Remove max-width para caber na página A4 */
+          #pgr-doc {
+            max-width: none !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            background: white !important;
+          }
+          .page-break { page-break-before: always; break-before: page; }
+          @page { margin: 12mm 14mm; size: A4; }
+          table { page-break-inside: auto; border-collapse: collapse; width: 100%; }
+          tr { page-break-inside: avoid; break-inside: avoid; }
           thead { display: table-header-group; }
         }
       `}</style>
@@ -213,44 +230,51 @@ export default async function PgrImprimirPage() {
           </div>
         </div>
 
-        {/* Dados da empresa */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
-          <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '16px 20px' }}>
-            <div style={{ fontSize: 10, color: '#6B7280', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Identificação da Empresa
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#1A3A2C', marginBottom: 4 }}>
-              {empresa?.razao_social || empresa?.nome || '—'}
-            </div>
-            {empresa?.nome && empresa?.razao_social && empresa.nome !== empresa.razao_social && (
-              <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>Nome fantasia: {empresa.nome}</div>
-            )}
-            <div style={{ fontSize: 11, color: '#6B7280' }}>CNPJ: {empresa?.cnpj || '—'}</div>
-            <div style={{ fontSize: 11, color: '#6B7280', marginTop: 4 }}>
-              {totalFuncionarios ?? 0} funcionário(s) ativo(s)
-            </div>
-          </div>
-
-          <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '16px 20px' }}>
-            <div style={{ fontSize: 10, color: '#6B7280', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Informações do Documento
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#1A3A2C', marginBottom: 4 }}>
-              {versaoVigente ? `Versão ${versaoVigente.versao}` : 'Versão 1'}
-            </div>
-            <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>
-              Gerado em: {versaoVigente ? fmtData(versaoVigente.gerado_em) : hoje}
-            </div>
-            {versaoVigente?.assinante_nome && (
-              <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 1 }}>
-                Responsável: {versaoVigente.assinante_nome}
-              </div>
-            )}
-            {versaoVigente?.assinante_cargo && (
-              <div style={{ fontSize: 11, color: '#6B7280' }}>{versaoVigente.assinante_cargo}</div>
-            )}
-          </div>
-        </div>
+        {/* Dados da empresa — usando tabela para compatibilidade máxima de impressão */}
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 24 }}>
+          <tbody>
+            <tr>
+              <td style={{ width: '50%', verticalAlign: 'top', paddingRight: 12 }}>
+                <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '16px 20px', border: '1px solid #E5E7EB' }}>
+                  <div style={{ fontSize: 10, color: '#6B7280', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Identificação da Empresa
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#1A3A2C', marginBottom: 4 }}>
+                    {empresa?.razao_social || empresa?.nome || '—'}
+                  </div>
+                  {empresa?.nome && empresa?.razao_social && empresa.nome !== empresa.razao_social && (
+                    <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>Nome fantasia: {empresa.nome}</div>
+                  )}
+                  <div style={{ fontSize: 11, color: '#6B7280' }}>CNPJ: {empresa?.cnpj || '—'}</div>
+                  <div style={{ fontSize: 11, color: '#6B7280', marginTop: 4 }}>
+                    {totalFuncionarios ?? 0} funcionário(s) ativo(s)
+                  </div>
+                </div>
+              </td>
+              <td style={{ width: '50%', verticalAlign: 'top', paddingLeft: 12 }}>
+                <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '16px 20px', border: '1px solid #E5E7EB' }}>
+                  <div style={{ fontSize: 10, color: '#6B7280', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Informações do Documento
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#1A3A2C', marginBottom: 4 }}>
+                    {versaoVigente ? `Versão ${versaoVigente.versao}` : 'Versão 1'}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>
+                    Gerado em: {versaoVigente ? fmtData(versaoVigente.gerado_em) : hoje}
+                  </div>
+                  {versaoVigente?.assinante_nome && (
+                    <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 1 }}>
+                      Responsável: {versaoVigente.assinante_nome}
+                    </div>
+                  )}
+                  {versaoVigente?.assinante_cargo && (
+                    <div style={{ fontSize: 11, color: '#6B7280' }}>{versaoVigente.assinante_cargo}</div>
+                  )}
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
         {/* Hash SHA-256 */}
         {versaoVigente?.hash_sha256 && (
@@ -415,21 +439,25 @@ export default async function PgrImprimirPage() {
           com definição de responsáveis, prazos e resultados esperados.
         </p>
 
-        {/* Cards de resumo */}
+        {/* Cards de resumo — tabela para compatibilidade de impressão */}
         {totalAcoes > 0 && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 12 }}>
-            {[
-              { label: 'Total de ações', val: totalAcoes, bg: '#F0FBF7', color: '#1A3A2C' },
-              { label: 'Concluídas', val: acoesConcluidas, bg: '#ECFDF5', color: '#065F46' },
-              { label: 'Em andamento', val: acoesEmAndamento, bg: '#EFF6FF', color: '#1E40AF' },
-              { label: 'Pendentes', val: acoesPendentes, bg: '#FFFBEB', color: '#92400E' },
-            ].map(c => (
-              <div key={c.label} style={{ background: c.bg, borderRadius: 8, padding: '12px 14px', textAlign: 'center' }}>
-                <div style={{ fontSize: 22, fontWeight: 800, color: c.color, lineHeight: 1 }}>{c.val}</div>
-                <div style={{ fontSize: 9, color: '#6B7280', marginTop: 4 }}>{c.label}</div>
-              </div>
-            ))}
-          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 12 }}>
+            <tbody>
+              <tr>
+                {[
+                  { label: 'Total de ações', val: totalAcoes, bg: '#F0FBF7', color: '#1A3A2C' },
+                  { label: 'Concluídas', val: acoesConcluidas, bg: '#ECFDF5', color: '#065F46' },
+                  { label: 'Em andamento', val: acoesEmAndamento, bg: '#EFF6FF', color: '#1E40AF' },
+                  { label: 'Pendentes', val: acoesPendentes, bg: '#FFFBEB', color: '#92400E' },
+                ].map(c => (
+                  <td key={c.label} style={{ width: '25%', textAlign: 'center', padding: '12px 14px', background: c.bg, borderRadius: 8, border: '1px solid #E5E7EB' }}>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: c.color, lineHeight: 1 }}>{c.val}</div>
+                    <div style={{ fontSize: 9, color: '#6B7280', marginTop: 4 }}>{c.label}</div>
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
         )}
 
         {planosArr.length > 0 ? (
@@ -513,26 +541,30 @@ export default async function PgrImprimirPage() {
 
         {/* ── RODAPÉ LEGAL ──────────────────────────────────────────────── */}
         <div style={{ marginTop: 40, borderTop: '1px solid #E5E7EB', paddingTop: 16 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
-            <div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: '#6B7280', marginBottom: 4 }}>BASE LEGAL</div>
-              <div style={{ fontSize: 9, color: '#9CA3AF', lineHeight: 1.5 }}>
-                NR-1 · Portaria MTE 1.419, de 28 de novembro de 2024 · Lei 13.709/2018 (LGPD)
-              </div>
-              <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>
-                Os dados individuais dos funcionários são protegidos e não constam neste documento.
-              </div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 9, color: '#6B7280' }}>Documento gerado em {hoje}</div>
-              {versaoVigente && (
-                <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>
-                  {versaoVigente.assinante_nome && `${versaoVigente.assinante_nome} · `}
-                  {versaoVigente.assinante_cargo || ''}
-                </div>
-              )}
-            </div>
-          </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <tbody>
+              <tr>
+                <td style={{ verticalAlign: 'top' }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: '#6B7280', marginBottom: 4 }}>BASE LEGAL</div>
+                  <div style={{ fontSize: 9, color: '#9CA3AF', lineHeight: 1.5 }}>
+                    NR-1 · Portaria MTE 1.419, de 28 de novembro de 2024 · Lei 13.709/2018 (LGPD)
+                  </div>
+                  <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>
+                    Os dados individuais dos funcionários são protegidos e não constam neste documento.
+                  </div>
+                </td>
+                <td style={{ verticalAlign: 'top', textAlign: 'right', paddingLeft: 16, whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: 9, color: '#6B7280' }}>Documento gerado em {hoje}</div>
+                  {versaoVigente && (
+                    <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>
+                      {versaoVigente.assinante_nome && `${versaoVigente.assinante_nome} · `}
+                      {versaoVigente.assinante_cargo || ''}
+                    </div>
+                  )}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
         {/* Espaço extra no final para a tela (o botão flutuante não cobre) */}
