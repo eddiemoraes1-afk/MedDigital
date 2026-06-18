@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { ScrollText, Clock, FileText, Calendar, Video, ChevronRight, User, Pill, FlaskConical } from 'lucide-react'
+import { ScrollText, Clock, FileText, Calendar, Video, ChevronRight, User, Pill, FlaskConical, Heart } from 'lucide-react'
 import { gerarTema } from '@/lib/tema'
 import { getEmpresaPaciente } from '@/lib/getEmpresaPaciente'
 import PacienteHeader from '../PacienteHeader'
@@ -53,6 +53,22 @@ export default async function PacienteDashboard() {
     .order('criado_em', { ascending: false })
     .limit(1)
     .maybeSingle()
+
+  // Triagem psicossocial — verificar se funcionário de empresa precisa responder
+  let precisaTriagemPsicossocial = false
+  if (paciente?.id && empresaData.empresaId) {
+    const seisM = new Date()
+    seisM.setDate(seisM.getDate() - 180)
+    const { data: ultimaTriagem } = await adminSupabase
+      .from('triagem_psicossocial')
+      .select('id')
+      .eq('paciente_id', paciente.id)
+      .eq('empresa_id', empresaData.empresaId)
+      .gte('data_resposta', seisM.toISOString())
+      .limit(1)
+      .maybeSingle()
+    precisaTriagemPsicossocial = !ultimaTriagem
+  }
 
   // Atestados, receitas e exames do paciente
   const hoje = new Date().toISOString().slice(0, 10)
@@ -175,6 +191,36 @@ export default async function PacienteDashboard() {
               style={{ background: '#5BBD9B' }}
             >
               Voltar à sala
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+        )}
+
+        {/* Banner: triagem psicossocial pendente */}
+        {precisaTriagemPsicossocial && (
+          <div
+            className="rounded-2xl px-5 py-4 mb-6 flex items-center gap-4"
+            style={{
+              background: 'rgba(245,158,11,0.08)',
+              border: '1.5px solid rgba(245,158,11,0.35)',
+            }}
+          >
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-amber-100">
+              <Heart className="w-5 h-5 text-amber-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-sm text-amber-800">
+                Avaliação de saúde no trabalho disponível
+              </p>
+              <p className="text-xs mt-0.5 text-amber-600">
+                Leva menos de 3 minutos. Suas respostas são anônimas.
+              </p>
+            </div>
+            <Link
+              href="/paciente/saude-trabalho"
+              className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 transition-colors"
+            >
+              Responder
               <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
