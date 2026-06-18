@@ -1,3 +1,4 @@
+import React from 'react'
 import { requireEmpresa } from '@/lib/auth-sistema'
 import { createAdminClient } from '@/lib/supabase/server'
 import PrintButton from './PrintButton'
@@ -37,44 +38,28 @@ function fmtTipo(t: string) {
   return m[t] ?? t
 }
 
-function nivelColor(n: string | null | undefined) {
-  const m: Record<string, { bg: string; color: string; border: string }> = {
-    baixo: { bg: '#ECFDF5', color: '#065F46', border: '#A7F3D0' },
-    medio: { bg: '#FFFBEB', color: '#92400E', border: '#FDE68A' },
-    alto: { bg: '#FEF2F2', color: '#991B1B', border: '#FECACA' },
-    nao_identificado: { bg: '#F3F4F6', color: '#374151', border: '#E5E7EB' },
+// Cores que funcionam sem depender de print background graphics
+function nivelStyle(n: string | null | undefined): React.CSSProperties {
+  const m: Record<string, React.CSSProperties> = {
+    baixo: { color: '#065F46', border: '1.5px solid #065F46' },
+    medio: { color: '#92400E', border: '1.5px solid #D97706' },
+    alto: { color: '#991B1B', border: '1.5px solid #DC2626' },
+    nao_identificado: { color: '#6B7280', border: '1.5px solid #9CA3AF' },
   }
   return m[n ?? 'nao_identificado'] ?? m['nao_identificado']
 }
 
-function statusColor(s: string) {
-  const m: Record<string, { bg: string; color: string }> = {
-    pendente: { bg: '#FFFBEB', color: '#92400E' },
-    em_andamento: { bg: '#EFF6FF', color: '#1E40AF' },
-    concluido: { bg: '#ECFDF5', color: '#065F46' },
-    cancelado: { bg: '#F3F4F6', color: '#6B7280' },
+function statusStyle(s: string): React.CSSProperties {
+  const m: Record<string, React.CSSProperties> = {
+    pendente: { color: '#92400E', border: '1.5px solid #D97706' },
+    em_andamento: { color: '#1E40AF', border: '1.5px solid #3B82F6' },
+    concluido: { color: '#065F46', border: '1.5px solid #059669' },
+    cancelado: { color: '#6B7280', border: '1.5px solid #9CA3AF' },
   }
-  return m[s] ?? { bg: '#F3F4F6', color: '#6B7280' }
+  return m[s] ?? { color: '#6B7280', border: '1.5px solid #9CA3AF' }
 }
 
-// ── Componentes visuais ───────────────────────────────────────────────────────
-function SectionHeader({ num, title, norma }: { num: string; title: string; norma: string }) {
-  return (
-    <div style={{ marginTop: 32, marginBottom: 8 }}>
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 4 }}>
-        <div style={{ width: 5, minHeight: 36, background: '#5BBD9B', borderRadius: 3, flexShrink: 0, marginTop: 2 }} />
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 10, color: '#6B7280', marginBottom: 1 }}>Seção {num}</div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: '#1A3A2C', lineHeight: 1.2 }}>{title}</div>
-        </div>
-        <div style={{ fontSize: 9, color: '#9CA3AF', fontStyle: 'italic', paddingTop: 6, flexShrink: 0 }}>{norma}</div>
-      </div>
-      <div style={{ height: 1, background: '#E5E7EB', marginTop: 4 }} />
-    </div>
-  )
-}
-
-function Badge({ text, bg, color, border }: { text: string; bg: string; color: string; border?: string }) {
+function Badge({ text, style }: { text: string; style: React.CSSProperties }) {
   return (
     <span style={{
       display: 'inline-block',
@@ -82,16 +67,14 @@ function Badge({ text, bg, color, border }: { text: string; bg: string; color: s
       borderRadius: 99,
       fontSize: 9,
       fontWeight: 700,
-      background: bg,
-      color,
-      border: border ? `1px solid ${border}` : undefined,
+      background: 'transparent',
+      ...style,
     }}>
       {text}
     </span>
   )
 }
 
-// ── Página principal ──────────────────────────────────────────────────────────
 export default async function PgrImprimirPage() {
   const perfil = await requireEmpresa()
   const empresaId = perfil.empresaId!
@@ -120,7 +103,6 @@ export default async function PgrImprimirPage() {
       .eq('empresa_id', empresaId),
   ])
 
-  // Agrega triagens por setor
   const triagemMap = new Map<string, { total: number; alto: number; medio: number; baixo: number }>()
   for (const t of (triagens ?? [])) {
     const s = (t as any).setor ?? 'Não informado'
@@ -142,133 +124,117 @@ export default async function PgrImprimirPage() {
   const acoesEmAndamento = planosArr.filter((p: any) => p.status === 'em_andamento').length
   const acoesPendentes = planosArr.filter((p: any) => p.status === 'pendente').length
 
-  const tdStyle: React.CSSProperties = {
+  // Estilos de tabela — todos inline para garantia máxima de impressão
+  const TH: React.CSSProperties = {
     padding: '7px 10px',
-    fontSize: 10,
-    borderBottom: '1px solid #E5E7EB',
-    color: '#374151',
-    verticalAlign: 'top',
-  }
-
-  const thStyle: React.CSSProperties = {
-    padding: '8px 10px',
     fontSize: 9,
     fontWeight: 700,
-    background: '#1A3A2C',
-    color: '#FFFFFF',
     textAlign: 'left',
+    borderBottom: '2px solid #1A3A2C',
+    color: '#1A3A2C',
+    background: 'transparent',
     letterSpacing: '0.03em',
   }
 
-  const tableStyle: React.CSSProperties = {
+  const TD: React.CSSProperties = {
+    padding: '6px 10px',
+    fontSize: 9,
+    borderBottom: '1px solid #E5E7EB',
+    color: '#374151',
+    verticalAlign: 'top',
+    background: 'transparent',
+  }
+
+  const TABLE: React.CSSProperties = {
     width: '100%',
     borderCollapse: 'collapse',
     marginTop: 12,
-    fontSize: 10,
+    tableLayout: 'fixed',
   }
 
   return (
     <>
-      {/* Print + screen CSS */}
-      <style>{`
-        * { box-sizing: border-box; }
-        body { margin: 0; padding: 0; font-family: -apple-system, Helvetica, Arial, sans-serif; }
-
+      {/* Estilos com href+precedence para ser hoistado ao <head> pelo React 18 */}
+      <style href="pgr-print-v3" precedence="high">{`
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body {
+          margin: 0; padding: 0;
+          font-family: -apple-system, Helvetica Neue, Arial, sans-serif;
+          font-size: 11px;
+          color: #111827;
+          background: white;
+        }
         @media screen {
           body { background: #F3F4F6; }
-          #pgr-doc { max-width: 800px; margin: 24px auto; background: white; padding: 48px; box-shadow: 0 4px 32px rgba(0,0,0,0.12); border-radius: 12px; }
+          #pgr { max-width: 780px; margin: 24px auto 80px; background: white; padding: 40px 48px; box-shadow: 0 4px 24px rgba(0,0,0,0.10); border-radius: 10px; }
         }
-
         @media print {
-          /* Força o browser a imprimir cores de fundo e texto colorido */
-          * {
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            color-adjust: exact !important;
-          }
+          html, body { background: white !important; margin: 0 !important; padding: 0 !important; }
+          #pgr { max-width: none !important; width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; border-radius: 0 !important; }
           .no-print { display: none !important; }
-          body { background: white !important; margin: 0 !important; padding: 0 !important; }
-          /* Remove max-width para caber na página A4 */
-          #pgr-doc {
-            max-width: none !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            box-shadow: none !important;
-            border-radius: 0 !important;
-            background: white !important;
-          }
-          .page-break { page-break-before: always; break-before: page; }
-          @page { margin: 12mm 14mm; size: A4; }
-          table { page-break-inside: auto; border-collapse: collapse; width: 100%; }
-          tr { page-break-inside: avoid; break-inside: avoid; }
-          thead { display: table-header-group; }
+          .pg-break { page-break-before: always; break-before: page; margin-top: 0 !important; padding-top: 0 !important; }
+          table { page-break-inside: auto !important; }
+          tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+          thead { display: table-header-group !important; }
+          @page { size: A4; margin: 14mm 16mm; }
         }
       `}</style>
 
       <PrintButton />
 
-      <div id="pgr-doc">
+      <div id="pgr">
 
-        {/* ── CAPA ─────────────────────────────────────────────────────── */}
-        <div style={{ background: '#1A3A2C', borderRadius: 8, padding: '32px 36px 28px', marginBottom: 32 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-            <div style={{ width: 44, height: 44, background: '#5BBD9B', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span style={{ color: 'white', fontWeight: 900, fontSize: 16 }}>PGR</span>
+        {/* ── CAPA ────────────────────────────────────────────────────────── */}
+        {/* Design sem texto branco — funciona sem background printing */}
+        <div style={{ borderTop: '6px solid #1A3A2C', paddingTop: 24, marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
+            {/* Ícone PGR como borda colorida */}
+            <div style={{ width: 52, height: 52, border: '3px solid #1A3A2C', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span style={{ color: '#1A3A2C', fontWeight: 900, fontSize: 13, letterSpacing: '-0.5px' }}>PGR</span>
             </div>
             <div>
-              <div style={{ color: '#5BBD9B', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: 11, color: '#5BBD9B', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 2 }}>
                 Programa de Gerenciamento de Riscos
               </div>
-              <div style={{ color: 'white', fontSize: 20, fontWeight: 800, lineHeight: 1.1 }}>
+              <div style={{ fontSize: 24, fontWeight: 800, color: '#1A3A2C', lineHeight: 1.1 }}>
                 Riscos Psicossociais
               </div>
+              <div style={{ fontSize: 10, color: '#6B7280', marginTop: 4 }}>
+                Portaria MTE 1.419/2024 · NR-1 · Vigência com penalidades a partir de maio/2026
+              </div>
             </div>
-          </div>
-          <div style={{ color: '#A7F3D0', fontSize: 11 }}>
-            Portaria MTE 1.419/2024 · NR-1 · Vigência com penalidades a partir de maio/2026
           </div>
         </div>
 
-        {/* Dados da empresa — usando tabela para compatibilidade máxima de impressão */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 24 }}>
+        {/* Dados da empresa */}
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 20, tableLayout: 'fixed' }}>
           <tbody>
             <tr>
-              <td style={{ width: '50%', verticalAlign: 'top', paddingRight: 12 }}>
-                <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '16px 20px', border: '1px solid #E5E7EB' }}>
-                  <div style={{ fontSize: 10, color: '#6B7280', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Identificação da Empresa
-                  </div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#1A3A2C', marginBottom: 4 }}>
+              <td style={{ width: '50%', verticalAlign: 'top', paddingRight: 10 }}>
+                <div style={{ border: '1px solid #D1D5DB', borderRadius: 6, padding: '12px 16px' }}>
+                  <div style={{ fontSize: 8, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Identificação da Empresa</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1A3A2C', marginBottom: 3 }}>
                     {empresa?.razao_social || empresa?.nome || '—'}
                   </div>
                   {empresa?.nome && empresa?.razao_social && empresa.nome !== empresa.razao_social && (
-                    <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>Nome fantasia: {empresa.nome}</div>
+                    <div style={{ fontSize: 10, color: '#6B7280', marginBottom: 2 }}>Nome fantasia: {empresa.nome}</div>
                   )}
-                  <div style={{ fontSize: 11, color: '#6B7280' }}>CNPJ: {empresa?.cnpj || '—'}</div>
-                  <div style={{ fontSize: 11, color: '#6B7280', marginTop: 4 }}>
-                    {totalFuncionarios ?? 0} funcionário(s) ativo(s)
-                  </div>
+                  <div style={{ fontSize: 10, color: '#6B7280' }}>CNPJ: {empresa?.cnpj || '—'}</div>
+                  <div style={{ fontSize: 10, color: '#6B7280', marginTop: 3 }}>{totalFuncionarios ?? 0} funcionário(s) ativo(s)</div>
                 </div>
               </td>
-              <td style={{ width: '50%', verticalAlign: 'top', paddingLeft: 12 }}>
-                <div style={{ background: '#F9FAFB', borderRadius: 8, padding: '16px 20px', border: '1px solid #E5E7EB' }}>
-                  <div style={{ fontSize: 10, color: '#6B7280', marginBottom: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Informações do Documento
-                  </div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: '#1A3A2C', marginBottom: 4 }}>
+              <td style={{ width: '50%', verticalAlign: 'top', paddingLeft: 10 }}>
+                <div style={{ border: '1px solid #D1D5DB', borderRadius: 6, padding: '12px 16px' }}>
+                  <div style={{ fontSize: 8, fontWeight: 700, color: '#9CA3AF', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>Informações do Documento</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#1A3A2C', marginBottom: 3 }}>
                     {versaoVigente ? `Versão ${versaoVigente.versao}` : 'Versão 1'}
                   </div>
-                  <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 2 }}>
-                    Gerado em: {versaoVigente ? fmtData(versaoVigente.gerado_em) : hoje}
-                  </div>
+                  <div style={{ fontSize: 10, color: '#6B7280', marginBottom: 2 }}>Gerado em: {versaoVigente ? fmtData(versaoVigente.gerado_em) : hoje}</div>
                   {versaoVigente?.assinante_nome && (
-                    <div style={{ fontSize: 11, color: '#6B7280', marginBottom: 1 }}>
-                      Responsável: {versaoVigente.assinante_nome}
-                    </div>
+                    <div style={{ fontSize: 10, color: '#6B7280', marginBottom: 1 }}>Responsável: {versaoVigente.assinante_nome}</div>
                   )}
                   {versaoVigente?.assinante_cargo && (
-                    <div style={{ fontSize: 11, color: '#6B7280' }}>{versaoVigente.assinante_cargo}</div>
+                    <div style={{ fontSize: 10, color: '#6B7280' }}>{versaoVigente.assinante_cargo}</div>
                   )}
                 </div>
               </td>
@@ -278,145 +244,137 @@ export default async function PgrImprimirPage() {
 
         {/* Hash SHA-256 */}
         {versaoVigente?.hash_sha256 && (
-          <div style={{ background: '#F3F4F6', borderRadius: 6, padding: '10px 14px', marginBottom: 32, border: '1px solid #E5E7EB' }}>
-            <span style={{ fontSize: 9, color: '#6B7280', fontWeight: 600 }}>Integridade do Documento (SHA-256): </span>
-            <span style={{ fontSize: 9, fontFamily: 'monospace', color: '#374151', wordBreak: 'break-all' }}>
+          <div style={{ border: '1px solid #D1D5DB', borderRadius: 6, padding: '8px 12px', marginBottom: 16 }}>
+            <span style={{ fontSize: 8, fontWeight: 700, color: '#6B7280' }}>Integridade do Documento (SHA-256): </span>
+            <span style={{ fontSize: 8, fontFamily: 'Courier New, monospace', color: '#374151', wordBreak: 'break-all' }}>
               {versaoVigente.hash_sha256}
             </span>
           </div>
         )}
 
-        {/* ── SEÇÃO 1 ──────────────────────────────────────────────────── */}
-        <div className="page-break" />
-        <SectionHeader
-          num="1"
-          title="Caracterização dos Processos de Trabalho"
-          norma="NR-1, item 1.5.2 (a)"
-        />
+        {/* ── SEÇÃO 1 ─────────────────────────────────────────────────────── */}
+        <div className="pg-break" />
+        <div style={{ marginTop: 0, marginBottom: 10 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <tbody><tr>
+              <td style={{ width: 5, background: '#5BBD9B', borderRadius: 2 }}>&nbsp;</td>
+              <td style={{ paddingLeft: 10, verticalAlign: 'top' }}>
+                <div style={{ fontSize: 9, color: '#6B7280' }}>Seção 1</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#1A3A2C', lineHeight: 1.1 }}>Caracterização dos Processos de Trabalho</div>
+              </td>
+              <td style={{ textAlign: 'right', verticalAlign: 'top', fontSize: 8, color: '#9CA3AF', fontStyle: 'italic', whiteSpace: 'nowrap', paddingLeft: 10 }}>NR-1, item 1.5.2 (a)</td>
+            </tr></tbody>
+          </table>
+          <div style={{ height: 1, background: '#E5E7EB', marginTop: 6 }} />
+        </div>
 
-        <p style={{ fontSize: 10, color: '#6B7280', margin: '10px 0 0', lineHeight: 1.6 }}>
-          Levantamento dos processos de trabalho com potencial de exposição a fatores de risco psicossocial
-          relacionados ao trabalho (FRPRT), conforme Portaria MTE 1.419/2024 e orientações do Guia Prático do MTE.
+        <p style={{ fontSize: 9, color: '#6B7280', margin: '0 0 0', lineHeight: 1.6 }}>
+          Levantamento dos processos de trabalho com potencial de exposição a FRPRT, conforme Portaria MTE 1.419/2024 e Guia Prático do MTE.
         </p>
 
         {mapeamentosArr.length > 0 ? (
-          <table style={tableStyle}>
+          <table style={TABLE}>
             <thead>
               <tr>
-                <th style={thStyle}>Setor / Departamento</th>
-                <th style={thStyle}>Período Avaliado</th>
-                <th style={thStyle}>Nível de Risco</th>
-                <th style={{ ...thStyle, textAlign: 'right' }}>% Funcionários Expostos</th>
+                <th style={{ ...TH, width: '35%' }}>Setor / Departamento</th>
+                <th style={{ ...TH, width: '20%' }}>Período Avaliado</th>
+                <th style={{ ...TH, width: '20%' }}>Nível de Risco</th>
+                <th style={{ ...TH, width: '25%', textAlign: 'right' }}>% Funcionários Expostos</th>
               </tr>
             </thead>
             <tbody>
-              {mapeamentosArr.map((m: any, i: number) => {
-                const nc = nivelColor(m.nivel_risco_geral)
-                return (
-                  <tr key={m.id} style={{ background: i % 2 === 0 ? 'white' : '#F9FAFB' }}>
-                    <td style={{ ...tdStyle, fontWeight: 600, color: '#1A3A2C' }}>{m.setor}</td>
-                    <td style={tdStyle}>{fmtData(m.periodo_referencia)}</td>
-                    <td style={tdStyle}>
-                      <Badge text={fmtNivel(m.nivel_risco_geral)} bg={nc.bg} color={nc.color} border={nc.border} />
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'right' }}>
-                      {m.percentual_exposto != null ? `${m.percentual_exposto}%` : 'Não informado'}
-                    </td>
-                  </tr>
-                )
-              })}
+              {mapeamentosArr.map((m: any) => (
+                <tr key={m.id}>
+                  <td style={{ ...TD, fontWeight: 600, color: '#1A3A2C' }}>{m.setor}</td>
+                  <td style={TD}>{fmtData(m.periodo_referencia)}</td>
+                  <td style={TD}><Badge text={fmtNivel(m.nivel_risco_geral)} style={nivelStyle(m.nivel_risco_geral)} /></td>
+                  <td style={{ ...TD, textAlign: 'right' }}>{m.percentual_exposto != null ? `${m.percentual_exposto}%` : '—'}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         ) : (
-          <p style={{ fontSize: 10, color: '#9CA3AF', fontStyle: 'italic', marginTop: 12 }}>
-            Nenhum setor mapeado até o momento.
-          </p>
+          <p style={{ fontSize: 9, color: '#9CA3AF', fontStyle: 'italic', marginTop: 10 }}>Nenhum setor mapeado até o momento.</p>
         )}
 
-        {/* ── SEÇÃO 2 ──────────────────────────────────────────────────── */}
-        <div className="page-break" />
-        <SectionHeader
-          num="2"
-          title="Inventário de Riscos Psicossociais"
-          norma="NR-1, item 1.5.2 (b)"
-        />
+        {/* ── SEÇÃO 2 ─────────────────────────────────────────────────────── */}
+        <div className="pg-break" />
+        <div style={{ marginTop: 0, marginBottom: 10 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <tbody><tr>
+              <td style={{ width: 5, background: '#5BBD9B', borderRadius: 2 }}>&nbsp;</td>
+              <td style={{ paddingLeft: 10, verticalAlign: 'top' }}>
+                <div style={{ fontSize: 9, color: '#6B7280' }}>Seção 2</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#1A3A2C', lineHeight: 1.1 }}>Inventário de Riscos Psicossociais</div>
+              </td>
+              <td style={{ textAlign: 'right', verticalAlign: 'top', fontSize: 8, color: '#9CA3AF', fontStyle: 'italic', whiteSpace: 'nowrap', paddingLeft: 10 }}>NR-1, item 1.5.2 (b)</td>
+            </tr></tbody>
+          </table>
+          <div style={{ height: 1, background: '#E5E7EB', marginTop: 6 }} />
+        </div>
 
-        <p style={{ fontSize: 10, color: '#6B7280', margin: '10px 0 0', lineHeight: 1.6 }}>
-          Inventário explícito dos fatores de risco psicossocial relacionados ao trabalho (FRPRT) identificados,
-          organizados segundo as quatro dimensões do Guia do MTE: Organização do Trabalho, Relações e Liderança,
-          Recursos e Ambiente, e Contexto Externo.
+        <p style={{ fontSize: 9, color: '#6B7280', margin: '0 0 0', lineHeight: 1.6 }}>
+          Inventário dos fatores de risco psicossocial (FRPRT) identificados por setor, segundo as 4 dimensões do Guia MTE.
         </p>
 
         {(() => {
           const fatores = mapeamentosArr.flatMap((m: any) =>
-            ((m.fatores_identificados as string[]) ?? []).map((f: string, fi: number) => ({ setor: m.setor, fator: f, nivel: m.nivel_risco_geral, key: `${m.id}-${fi}` }))
+            ((m.fatores_identificados as string[]) ?? []).map((f: string, fi: number) => ({
+              setor: m.setor, fator: f, nivel: m.nivel_risco_geral, key: `${m.id}-${fi}`,
+            }))
           )
-          if (fatores.length === 0) {
-            return (
-              <p style={{ fontSize: 10, color: '#9CA3AF', fontStyle: 'italic', marginTop: 12 }}>
-                Nenhum fator de risco identificado até o momento.
-              </p>
-            )
-          }
-          return (
-            <table style={tableStyle}>
+          return fatores.length > 0 ? (
+            <table style={TABLE}>
               <thead>
                 <tr>
-                  <th style={{ ...thStyle, width: '30%' }}>Setor</th>
-                  <th style={thStyle}>Fator de Risco Psicossocial Identificado</th>
-                  <th style={{ ...thStyle, width: '12%' }}>Nível</th>
+                  <th style={{ ...TH, width: '28%' }}>Setor</th>
+                  <th style={TH}>Fator de Risco Psicossocial Identificado</th>
+                  <th style={{ ...TH, width: '14%' }}>Nível</th>
                 </tr>
               </thead>
               <tbody>
-                {fatores.map((f: any, i: number) => {
-                  const nc = nivelColor(f.nivel)
-                  return (
-                    <tr key={f.key} style={{ background: i % 2 === 0 ? 'white' : '#F9FAFB' }}>
-                      <td style={{ ...tdStyle, fontWeight: 600, color: '#1A3A2C' }}>{f.setor}</td>
-                      <td style={tdStyle}>{f.fator}</td>
-                      <td style={tdStyle}>
-                        <Badge text={fmtNivel(f.nivel)} bg={nc.bg} color={nc.color} border={nc.border} />
-                      </td>
-                    </tr>
-                  )
-                })}
+                {fatores.map((f: any) => (
+                  <tr key={f.key}>
+                    <td style={{ ...TD, fontWeight: 600, color: '#1A3A2C' }}>{f.setor}</td>
+                    <td style={TD}>{f.fator}</td>
+                    <td style={TD}><Badge text={fmtNivel(f.nivel)} style={nivelStyle(f.nivel)} /></td>
+                  </tr>
+                ))}
               </tbody>
             </table>
-          )
+          ) : <p style={{ fontSize: 9, color: '#9CA3AF', fontStyle: 'italic', marginTop: 10 }}>Nenhum fator de risco identificado até o momento.</p>
         })()}
 
-        {/* Triagem anonimizada */}
         {triagemMap.size > 0 && (
           <>
-            <div style={{ marginTop: 24, marginBottom: 6 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: '#1A3A2C' }}>2.1 Resultado das Triagens dos Funcionários (Anonimizado)</div>
-              <p style={{ fontSize: 10, color: '#6B7280', margin: '4px 0 0', lineHeight: 1.6 }}>
-                Resultados agregados das triagens respondidas pelos funcionários. Nenhum dado individual é identificável,
-                em conformidade com a LGPD.
+            <div style={{ marginTop: 20, marginBottom: 6 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: '#1A3A2C' }}>2.1 Resultado das Triagens (Anonimizado)</div>
+              <p style={{ fontSize: 9, color: '#6B7280', margin: '3px 0 0', lineHeight: 1.6 }}>
+                Resultados agregados por setor. Nenhum dado individual é identificável (LGPD).
               </p>
             </div>
-            <table style={tableStyle}>
+            <table style={TABLE}>
               <thead>
                 <tr>
-                  <th style={thStyle}>Setor</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>Respondentes</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>% Risco Alto</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>% Risco Médio</th>
-                  <th style={{ ...thStyle, textAlign: 'right' }}>% Risco Baixo</th>
+                  <th style={TH}>Setor</th>
+                  <th style={{ ...TH, textAlign: 'right', width: '14%' }}>Respondentes</th>
+                  <th style={{ ...TH, textAlign: 'right', width: '14%' }}>% Alto</th>
+                  <th style={{ ...TH, textAlign: 'right', width: '14%' }}>% Médio</th>
+                  <th style={{ ...TH, textAlign: 'right', width: '14%' }}>% Baixo</th>
                 </tr>
               </thead>
               <tbody>
-                {[...triagemMap.entries()].map(([setor, v], i) => (
-                  <tr key={setor} style={{ background: i % 2 === 0 ? 'white' : '#F9FAFB' }}>
-                    <td style={{ ...tdStyle, fontWeight: 600, color: '#1A3A2C' }}>{setor}</td>
-                    <td style={{ ...tdStyle, textAlign: 'right' }}>{v.total}</td>
-                    <td style={{ ...tdStyle, textAlign: 'right', color: v.alto > 0 ? '#991B1B' : '#374151', fontWeight: v.alto > 0 ? 700 : 400 }}>
+                {[...triagemMap.entries()].map(([setor, v]) => (
+                  <tr key={setor}>
+                    <td style={{ ...TD, fontWeight: 600, color: '#1A3A2C' }}>{setor}</td>
+                    <td style={{ ...TD, textAlign: 'right' }}>{v.total}</td>
+                    <td style={{ ...TD, textAlign: 'right', fontWeight: v.alto > 0 ? 700 : 400, color: v.alto > 0 ? '#991B1B' : '#374151' }}>
                       {v.total > 0 ? Math.round((v.alto / v.total) * 100) : 0}%
                     </td>
-                    <td style={{ ...tdStyle, textAlign: 'right', color: v.medio > 0 ? '#92400E' : '#374151', fontWeight: v.medio > 0 ? 600 : 400 }}>
+                    <td style={{ ...TD, textAlign: 'right', fontWeight: v.medio > 0 ? 600 : 400, color: v.medio > 0 ? '#92400E' : '#374151' }}>
                       {v.total > 0 ? Math.round((v.medio / v.total) * 100) : 0}%
                     </td>
-                    <td style={{ ...tdStyle, textAlign: 'right', color: '#065F46' }}>
+                    <td style={{ ...TD, textAlign: 'right', color: '#065F46' }}>
                       {v.total > 0 ? Math.round((v.baixo / v.total) * 100) : 0}%
                     </td>
                   </tr>
@@ -426,69 +384,64 @@ export default async function PgrImprimirPage() {
           </>
         )}
 
-        {/* ── SEÇÃO 3 ──────────────────────────────────────────────────── */}
-        <div className="page-break" />
-        <SectionHeader
-          num="3"
-          title="Plano de Ação"
-          norma="NR-1, item 1.5.2 (c)"
-        />
+        {/* ── SEÇÃO 3 ─────────────────────────────────────────────────────── */}
+        <div className="pg-break" />
+        <div style={{ marginTop: 0, marginBottom: 10 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <tbody><tr>
+              <td style={{ width: 5, background: '#5BBD9B', borderRadius: 2 }}>&nbsp;</td>
+              <td style={{ paddingLeft: 10, verticalAlign: 'top' }}>
+                <div style={{ fontSize: 9, color: '#6B7280' }}>Seção 3</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#1A3A2C', lineHeight: 1.1 }}>Plano de Ação</div>
+              </td>
+              <td style={{ textAlign: 'right', verticalAlign: 'top', fontSize: 8, color: '#9CA3AF', fontStyle: 'italic', whiteSpace: 'nowrap', paddingLeft: 10 }}>NR-1, item 1.5.2 (c)</td>
+            </tr></tbody>
+          </table>
+          <div style={{ height: 1, background: '#E5E7EB', marginTop: 6 }} />
+        </div>
 
-        <p style={{ fontSize: 10, color: '#6B7280', margin: '10px 0 12px', lineHeight: 1.6 }}>
-          Medidas de prevenção, controle e mitigação dos fatores de risco psicossocial identificados,
-          com definição de responsáveis, prazos e resultados esperados.
+        <p style={{ fontSize: 9, color: '#6B7280', margin: '0 0 10px', lineHeight: 1.6 }}>
+          Medidas de controle dos riscos identificados, com responsáveis, prazos e status.
         </p>
 
-        {/* Cards de resumo — tabela para compatibilidade de impressão */}
+        {/* Resumo em texto — sem backgrounds */}
         {totalAcoes > 0 && (
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: 12 }}>
-            <tbody>
-              <tr>
-                {[
-                  { label: 'Total de ações', val: totalAcoes, bg: '#F0FBF7', color: '#1A3A2C' },
-                  { label: 'Concluídas', val: acoesConcluidas, bg: '#ECFDF5', color: '#065F46' },
-                  { label: 'Em andamento', val: acoesEmAndamento, bg: '#EFF6FF', color: '#1E40AF' },
-                  { label: 'Pendentes', val: acoesPendentes, bg: '#FFFBEB', color: '#92400E' },
-                ].map(c => (
-                  <td key={c.label} style={{ width: '25%', textAlign: 'center', padding: '12px 14px', background: c.bg, borderRadius: 8, border: '1px solid #E5E7EB' }}>
-                    <div style={{ fontSize: 22, fontWeight: 800, color: c.color, lineHeight: 1 }}>{c.val}</div>
-                    <div style={{ fontSize: 9, color: '#6B7280', marginTop: 4 }}>{c.label}</div>
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
+          <div style={{ border: '1px solid #D1D5DB', borderRadius: 6, padding: '10px 14px', marginBottom: 12, fontSize: 10, color: '#374151' }}>
+            <strong style={{ color: '#1A3A2C' }}>{totalAcoes}</strong> ações no plano ·&nbsp;
+            <strong style={{ color: '#065F46' }}>{acoesConcluidas}</strong> concluída(s) ·&nbsp;
+            <strong style={{ color: '#1E40AF' }}>{acoesEmAndamento}</strong> em andamento ·&nbsp;
+            <strong style={{ color: '#92400E' }}>{acoesPendentes}</strong> pendente(s)
+          </div>
         )}
 
         {planosArr.length > 0 ? (
-          <table style={tableStyle}>
+          <table style={TABLE}>
             <thead>
               <tr>
-                <th style={{ ...thStyle, width: '13%' }}>Setor</th>
-                <th style={{ ...thStyle, width: '18%' }}>Fator de Risco</th>
-                <th style={thStyle}>Medida de Controle</th>
-                <th style={{ ...thStyle, width: '14%' }}>Responsável</th>
-                <th style={{ ...thStyle, width: '10%' }}>Prazo</th>
-                <th style={{ ...thStyle, width: '12%' }}>Status</th>
+                <th style={{ ...TH, width: '13%' }}>Setor</th>
+                <th style={{ ...TH, width: '17%' }}>Fator de Risco</th>
+                <th style={TH}>Medida de Controle</th>
+                <th style={{ ...TH, width: '13%' }}>Responsável</th>
+                <th style={{ ...TH, width: '10%' }}>Prazo</th>
+                <th style={{ ...TH, width: '11%' }}>Status</th>
               </tr>
             </thead>
             <tbody>
-              {planosArr.map((p: any, i: number) => {
-                const sc = statusColor(p.status)
+              {planosArr.map((p: any) => {
                 const vencido = p.status === 'pendente' && p.prazo && new Date(p.prazo) < new Date()
                 return (
-                  <tr key={p.id} style={{ background: i % 2 === 0 ? 'white' : '#F9FAFB' }}>
-                    <td style={{ ...tdStyle, fontWeight: 600, color: '#1A3A2C' }}>{p.setor || 'Geral'}</td>
-                    <td style={{ ...tdStyle, fontSize: 9 }}>{p.fator_risco || '—'}</td>
-                    <td style={tdStyle}>{p.medida_controle}</td>
-                    <td style={tdStyle}>{p.responsavel_nome || '—'}</td>
-                    <td style={{ ...tdStyle, color: vencido ? '#991B1B' : '#374151', fontWeight: vencido ? 700 : 400 }}>
+                  <tr key={p.id}>
+                    <td style={{ ...TD, fontWeight: 600, color: '#1A3A2C' }}>{p.setor || 'Geral'}</td>
+                    <td style={{ ...TD, fontSize: 8 }}>{p.fator_risco || '—'}</td>
+                    <td style={TD}>{p.medida_controle}</td>
+                    <td style={TD}>{p.responsavel_nome || '—'}</td>
+                    <td style={{ ...TD, color: vencido ? '#991B1B' : '#374151', fontWeight: vencido ? 700 : 400 }}>
                       {fmtData(p.prazo)}
                     </td>
-                    <td style={tdStyle}>
+                    <td style={TD}>
                       {vencido
-                        ? <Badge text="Vencido" bg="#FEF2F2" color="#991B1B" border="#FECACA" />
-                        : <Badge text={fmtStatus(p.status)} bg={sc.bg} color={sc.color} />}
+                        ? <Badge text="Vencido" style={{ color: '#991B1B', border: '1.5px solid #DC2626' }} />
+                        : <Badge text={fmtStatus(p.status)} style={statusStyle(p.status)} />}
                     </td>
                   </tr>
                 )
@@ -496,80 +449,76 @@ export default async function PgrImprimirPage() {
             </tbody>
           </table>
         ) : (
-          <p style={{ fontSize: 10, color: '#9CA3AF', fontStyle: 'italic', marginTop: 12 }}>
-            Nenhuma ação cadastrada até o momento.
-          </p>
+          <p style={{ fontSize: 9, color: '#9CA3AF', fontStyle: 'italic', marginTop: 10 }}>Nenhuma ação cadastrada até o momento.</p>
         )}
 
-        {/* ── SEÇÃO 4 ──────────────────────────────────────────────────── */}
-        <div className="page-break" />
-        <SectionHeader
-          num="4"
-          title="Registros de Monitoramento"
-          norma="NR-1, item 1.5.2 (d)"
-        />
+        {/* ── SEÇÃO 4 ─────────────────────────────────────────────────────── */}
+        <div className="pg-break" />
+        <div style={{ marginTop: 0, marginBottom: 10 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <tbody><tr>
+              <td style={{ width: 5, background: '#5BBD9B', borderRadius: 2 }}>&nbsp;</td>
+              <td style={{ paddingLeft: 10, verticalAlign: 'top' }}>
+                <div style={{ fontSize: 9, color: '#6B7280' }}>Seção 4</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: '#1A3A2C', lineHeight: 1.1 }}>Registros de Monitoramento</div>
+              </td>
+              <td style={{ textAlign: 'right', verticalAlign: 'top', fontSize: 8, color: '#9CA3AF', fontStyle: 'italic', whiteSpace: 'nowrap', paddingLeft: 10 }}>NR-1, item 1.5.2 (d)</td>
+            </tr></tbody>
+          </table>
+          <div style={{ height: 1, background: '#E5E7EB', marginTop: 6 }} />
+        </div>
 
-        <p style={{ fontSize: 10, color: '#6B7280', margin: '10px 0 0', lineHeight: 1.6 }}>
-          Registros de revisões periódicas, reavaliações e incidentes relacionados aos riscos psicossociais,
-          realizados nos últimos 12 meses.
+        <p style={{ fontSize: 9, color: '#6B7280', margin: '0 0 0', lineHeight: 1.6 }}>
+          Revisões periódicas, reavaliações e incidentes registrados nos últimos 12 meses.
         </p>
 
         {monitoramentosArr.length > 0 ? (
-          <table style={tableStyle}>
+          <table style={TABLE}>
             <thead>
               <tr>
-                <th style={{ ...thStyle, width: '14%' }}>Data</th>
-                <th style={{ ...thStyle, width: '22%' }}>Tipo de Registro</th>
-                <th style={thStyle}>Observações</th>
+                <th style={{ ...TH, width: '14%' }}>Data</th>
+                <th style={{ ...TH, width: '22%' }}>Tipo de Registro</th>
+                <th style={TH}>Observações</th>
               </tr>
             </thead>
             <tbody>
-              {monitoramentosArr.map((m: any, i: number) => (
-                <tr key={m.id} style={{ background: i % 2 === 0 ? 'white' : '#F9FAFB' }}>
-                  <td style={{ ...tdStyle, fontWeight: 600 }}>{fmtData(m.data_registro)}</td>
-                  <td style={tdStyle}>{fmtTipo(m.tipo)}</td>
-                  <td style={tdStyle}>{m.observacoes || '—'}</td>
+              {monitoramentosArr.map((m: any) => (
+                <tr key={m.id}>
+                  <td style={{ ...TD, fontWeight: 600 }}>{fmtData(m.data_registro)}</td>
+                  <td style={TD}>{fmtTipo(m.tipo)}</td>
+                  <td style={TD}>{m.observacoes || '—'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         ) : (
-          <p style={{ fontSize: 10, color: '#9CA3AF', fontStyle: 'italic', marginTop: 12 }}>
-            Nenhum registro de monitoramento nos últimos 12 meses.
-          </p>
+          <p style={{ fontSize: 9, color: '#9CA3AF', fontStyle: 'italic', marginTop: 10 }}>Nenhum registro de monitoramento nos últimos 12 meses.</p>
         )}
 
-        {/* ── RODAPÉ LEGAL ──────────────────────────────────────────────── */}
-        <div style={{ marginTop: 40, borderTop: '1px solid #E5E7EB', paddingTop: 16 }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <tbody>
-              <tr>
-                <td style={{ verticalAlign: 'top' }}>
-                  <div style={{ fontSize: 9, fontWeight: 700, color: '#6B7280', marginBottom: 4 }}>BASE LEGAL</div>
-                  <div style={{ fontSize: 9, color: '#9CA3AF', lineHeight: 1.5 }}>
-                    NR-1 · Portaria MTE 1.419, de 28 de novembro de 2024 · Lei 13.709/2018 (LGPD)
+        {/* ── RODAPÉ ──────────────────────────────────────────────────────── */}
+        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 32, borderTop: '1px solid #E5E7EB', paddingTop: 12 }}>
+          <tbody>
+            <tr>
+              <td style={{ verticalAlign: 'top', paddingTop: 12 }}>
+                <div style={{ fontSize: 8, fontWeight: 700, color: '#6B7280', marginBottom: 3 }}>BASE LEGAL</div>
+                <div style={{ fontSize: 8, color: '#9CA3AF', lineHeight: 1.5 }}>
+                  NR-1 · Portaria MTE 1.419, de 28/11/2024 · Lei 13.709/2018 (LGPD)
+                </div>
+                <div style={{ fontSize: 8, color: '#9CA3AF' }}>Dados individuais dos funcionários protegidos — não constam neste documento.</div>
+              </td>
+              <td style={{ textAlign: 'right', verticalAlign: 'top', paddingTop: 12, paddingLeft: 16, whiteSpace: 'nowrap' }}>
+                <div style={{ fontSize: 8, color: '#6B7280' }}>Documento gerado em {hoje}</div>
+                {versaoVigente?.assinante_nome && (
+                  <div style={{ fontSize: 8, color: '#9CA3AF', marginTop: 2 }}>
+                    {versaoVigente.assinante_nome}{versaoVigente.assinante_cargo ? ` · ${versaoVigente.assinante_cargo}` : ''}
                   </div>
-                  <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>
-                    Os dados individuais dos funcionários são protegidos e não constam neste documento.
-                  </div>
-                </td>
-                <td style={{ verticalAlign: 'top', textAlign: 'right', paddingLeft: 16, whiteSpace: 'nowrap' }}>
-                  <div style={{ fontSize: 9, color: '#6B7280' }}>Documento gerado em {hoje}</div>
-                  {versaoVigente && (
-                    <div style={{ fontSize: 9, color: '#9CA3AF', marginTop: 2 }}>
-                      {versaoVigente.assinante_nome && `${versaoVigente.assinante_nome} · `}
-                      {versaoVigente.assinante_cargo || ''}
-                    </div>
-                  )}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                )}
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-        {/* Espaço extra no final para a tela (o botão flutuante não cobre) */}
         <div className="no-print" style={{ height: 80 }} />
-
       </div>
     </>
   )
