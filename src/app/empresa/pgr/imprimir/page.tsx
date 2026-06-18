@@ -58,7 +58,7 @@ function statusColor(s: string) {
 }
 
 // ── Componentes visuais ───────────────────────────────────────────────────────
-function SectionHeader({ num, title, ref: refLabel }: { num: string; title: string; ref: string }) {
+function SectionHeader({ num, title, norma }: { num: string; title: string; norma: string }) {
   return (
     <div style={{ marginTop: 32, marginBottom: 8 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 4 }}>
@@ -67,7 +67,7 @@ function SectionHeader({ num, title, ref: refLabel }: { num: string; title: stri
           <div style={{ fontSize: 10, color: '#6B7280', marginBottom: 1 }}>Seção {num}</div>
           <div style={{ fontSize: 16, fontWeight: 700, color: '#1A3A2C', lineHeight: 1.2 }}>{title}</div>
         </div>
-        <div style={{ fontSize: 9, color: '#9CA3AF', fontStyle: 'italic', paddingTop: 6, flexShrink: 0 }}>{refLabel}</div>
+        <div style={{ fontSize: 9, color: '#9CA3AF', fontStyle: 'italic', paddingTop: 6, flexShrink: 0 }}>{norma}</div>
       </div>
       <div style={{ height: 1, background: '#E5E7EB', marginTop: 4 }} />
     </div>
@@ -267,7 +267,7 @@ export default async function PgrImprimirPage() {
         <SectionHeader
           num="1"
           title="Caracterização dos Processos de Trabalho"
-          ref="NR-1, item 1.5.2 (a)"
+          norma="NR-1, item 1.5.2 (a)"
         />
 
         <p style={{ fontSize: 10, color: '#6B7280', margin: '10px 0 0', lineHeight: 1.6 }}>
@@ -314,7 +314,7 @@ export default async function PgrImprimirPage() {
         <SectionHeader
           num="2"
           title="Inventário de Riscos Psicossociais"
-          ref="NR-1, item 1.5.2 (b)"
+          norma="NR-1, item 1.5.2 (b)"
         />
 
         <p style={{ fontSize: 10, color: '#6B7280', margin: '10px 0 0', lineHeight: 1.6 }}>
@@ -407,7 +407,7 @@ export default async function PgrImprimirPage() {
         <SectionHeader
           num="3"
           title="Plano de Ação"
-          ref="NR-1, item 1.5.2 (c)"
+          norma="NR-1, item 1.5.2 (c)"
         />
 
         <p style={{ fontSize: 10, color: '#6B7280', margin: '10px 0 12px', lineHeight: 1.6 }}>
@@ -478,7 +478,7 @@ export default async function PgrImprimirPage() {
         <SectionHeader
           num="4"
           title="Registros de Monitoramento"
-          ref="NR-1, item 1.5.2 (d)"
+          norma="NR-1, item 1.5.2 (d)"
         />
 
         <p style={{ fontSize: 10, color: '#6B7280', margin: '10px 0 0', lineHeight: 1.6 }}>
