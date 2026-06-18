@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import {
   ShieldCheck, Loader2, AlertTriangle, CheckCircle2, XCircle,
   FileText, BarChart2, ClipboardList, Activity, Calendar,
-  Users, ChevronDown, ChevronUp, Plus, Pencil, X,
+  Users, ChevronDown, ChevronUp, Plus, Pencil, X, Download,
 } from 'lucide-react'
 import ActionButtons from '@/components/ActionButtons'
 
@@ -543,6 +543,11 @@ export default function Nr1Dashboard() {
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
             <Activity className="w-4 h-4" /> Monitoramento
           </button>
+          <button
+            onClick={() => window.open('/empresa/pgr/imprimir', '_blank')}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+            <Download className="w-4 h-4" /> Baixar PDF
+          </button>
           <button onClick={() => setModal('pgr')}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors"
             style={{ background: '#1A3A2C' }}>
@@ -578,9 +583,16 @@ export default function Nr1Dashboard() {
             <p className="text-xs text-gray-500">Gerado em {fmtData(k.pgrVigente.gerado_em)}{k.pgrVigente.assinante_nome && ` · ${k.pgrVigente.assinante_nome}`}</p>
             <p className="text-[10px] text-gray-300 font-mono truncate mt-0.5">SHA-256: {k.pgrVigente.hash_sha256}</p>
           </div>
-          <button onClick={() => setModal('pgr')} className="text-xs font-semibold text-[#5BBD9B] hover:underline shrink-0">
-            Gerar nova versão
-          </button>
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={() => window.open('/empresa/pgr/imprimir', '_blank')}
+              className="flex items-center gap-1 text-xs font-semibold text-[#5BBD9B] hover:underline">
+              <Download className="w-3 h-3" /> PDF
+            </button>
+            <button onClick={() => setModal('pgr')} className="text-xs font-semibold text-gray-400 hover:underline">
+              Nova versão
+            </button>
+          </div>
         </div>
       ) : (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex items-center gap-4">
