@@ -10,12 +10,12 @@ import { drTitle } from '@/lib/medico-utils'
 interface ReceitaDetalhe {
   id: string
   criado_em: string
-  tipo: 'simples' | 'especial' | 'antimicrobiano'
-  medicamentos: string
+  tipo: 'simples' | 'especial' | 'antimicrobiano' | string
+  medicamentos: string | null
   instrucoes?: string | null
   observacoes?: string | null
   validade?: string | null
-  data_emissao: string
+  data_emissao: string | null
   medico_id: string
   medicos: { id: string; nome: string; crm?: string | null; crm_uf?: string | null; especialidade?: string | null; sexo?: string | null } | null
 }
@@ -39,17 +39,24 @@ const COR_TIPO: Record<string, string> = {
   antimicrobiano: 'bg-blue-100 text-blue-700',
 }
 
-function fmtData(iso: string) {
-  return new Date(iso + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+function fmtData(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  try {
+    const d = new Date(iso + 'T12:00:00')
+    if (isNaN(d.getTime())) return '—'
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+  } catch {
+    return '—'
+  }
 }
 
 function toParams(r: ReceitaDetalhe, paciente: Paciente): ReceitaHTMLParams | null {
-  if (!r.medicos) return null
+  if (!r.medicos || !r.data_emissao) return null
   return {
     paciente,
     medico: r.medicos,
-    tipo: r.tipo,
-    medicamentos: r.medicamentos,
+    tipo: r.tipo as 'simples' | 'especial' | 'antimicrobiano',
+    medicamentos: r.medicamentos ?? '',
     instrucoes: r.instrucoes ?? '',
     observacoes: r.observacoes,
     dataEmissao: r.data_emissao,
@@ -107,7 +114,7 @@ export default function ReceitasMedicoClient({
 
                   {/* Medicamentos */}
                   <div className="bg-gray-50 rounded-xl px-3 py-2 mb-2">
-                    {r.medicamentos.split('\n').filter(Boolean).map((m, i) => (
+                    {(r.medicamentos ?? '').split('\n').filter(Boolean).map((m, i) => (
                       <p key={i} className="text-xs text-gray-700 font-mono leading-relaxed">
                         <span className="text-[#5BBD9B] font-bold mr-1">℞</span>{m}
                       </p>

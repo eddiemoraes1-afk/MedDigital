@@ -10,10 +10,10 @@ import { CidBadgeTable } from '@/components/CidTooltip'
 
 interface AtestadoDetalhe {
   id: string
-  data_emissao: string
-  data_inicio: string
-  data_fim: string
-  dias: number
+  data_emissao: string | null
+  data_inicio: string | null
+  data_fim: string | null
+  dias: number | null
   cid?: string | null
   texto_complementar?: string | null
   medico_id: string
@@ -27,12 +27,20 @@ interface Paciente {
   sexo?: string | null
 }
 
-function fmtData(iso: string) {
-  return new Date(iso + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+function fmtData(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  try {
+    const d = new Date(iso + 'T12:00:00')
+    if (isNaN(d.getTime())) return '—'
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+  } catch {
+    return '—'
+  }
 }
 
 function toParams(at: AtestadoDetalhe, paciente: Paciente): AtestadoHTMLParams | null {
   if (!at.medicos) return null
+  if (!at.data_emissao || !at.data_inicio || !at.data_fim || at.dias == null) return null
   return {
     paciente,
     medico: at.medicos,
@@ -80,7 +88,7 @@ export default function AtestadosMedicoClient({
                   {/* Badges */}
                   <div className="flex items-center gap-2 flex-wrap mb-2">
                     <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${ehMeu ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                      {at.dias} dia{at.dias !== 1 ? 's' : ''}
+                      {at.dias != null ? `${at.dias} dia${at.dias !== 1 ? 's' : ''}` : '—'}
                     </span>
                     {at.cid && <CidBadgeTable cid={at.cid} />}
                     {ehMeu && (
