@@ -8,12 +8,15 @@ import {
   Pill, Stethoscope, Activity, Heart,
   FlaskConical, ClipboardList, Thermometer, ShieldCheck, Video,
 } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import MedicoHeader from '../../MedicoHeader'
-import AtestadosMedicoClient from './AtestadosMedicoClient'
-import ReceitasMedicoClient from './ReceitasMedicoClient'
-import ExamesMedicoClient from './ExamesMedicoClient'
 import AntecedentesForm from './AntecedentesForm'
 import { CidBadge, CidBadgeTable } from '@/components/CidTooltip'
+
+// Componentes de documentos renderizados APENAS no cliente (evita qualquer erro de SSR)
+const AtestadosMedicoClient = dynamic(() => import('./AtestadosMedicoClient'), { ssr: false })
+const ReceitasMedicoClient  = dynamic(() => import('./ReceitasMedicoClient'),  { ssr: false })
+const ExamesMedicoClient    = dynamic(() => import('./ExamesMedicoClient'),    { ssr: false })
 
 // ── Props ──────────────────────────────────────────────────────────────────────
 
