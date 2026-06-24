@@ -42,7 +42,7 @@ interface AtestadoDetalhe {
 interface ExameDetalhe {
   id: string
   criado_em: string
-  exames: string[]
+  exames: string[] | string | null
   urgencia?: string | null
   observacoes?: string | null
   atendimento_id?: string | null

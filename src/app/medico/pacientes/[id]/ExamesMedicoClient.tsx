@@ -17,7 +17,7 @@ import { drTitle } from '@/lib/medico-utils'
 interface ExameDetalhe {
   id: string
   criado_em: string
-  exames: string[]
+  exames: string[] | string | null
   urgencia?: string | null
   observacoes?: string | null
   atendimento_id?: string | null
@@ -55,7 +55,7 @@ function toParams(ex: ExameDetalhe, paciente: Paciente): ExamesHTMLParams | null
   return {
     paciente,
     medico:          ex.medicos,
-    exames:          (ex.exames ?? []).join('\n'),
+    exames:          Array.isArray(ex.exames) ? ex.exames.join('\n') : (ex.exames ?? ''),
     observacoes:     ex.observacoes,
     urgencia:        ex.urgencia,
     dataSolicitacao: ex.criado_em.split('T')[0],
@@ -104,7 +104,11 @@ export default function ExamesMedicoClient({
           const ehMeu  = ex.medico_id === medicoId
           const params = toParams(ex, paciente)
           const { data, hora } = fmtDH(ex.criado_em)
-          const lista  = Array.isArray(ex.exames) ? ex.exames : []
+          const lista  = Array.isArray(ex.exames)
+            ? ex.exames
+            : typeof ex.exames === 'string' && ex.exames
+              ? ex.exames.split(/[,\n]/).map((s: string) => s.trim()).filter(Boolean)
+              : []
 
           return (
             <div
