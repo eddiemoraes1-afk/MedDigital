@@ -11,7 +11,9 @@
       "Bash(find . -path ./node_modules -prune -o \\\\\\( -name \"*.test.ts\" -o -name \"*.test.tsx\" -o -name \"*.spec.ts\" \\\\\\) -print)",
       "Bash(sed -n '100,112p' src/app/paciente/consulta/[id]/page.tsx)",
       "Bash(grep -rnE \"\\(cpf|cid\\)=\\\\$\\\\{|searchParams.set\\\\\\(['\\\\\"]\\(cpf|cid|nome|paciente\\)\" src/app src/components --include=\"*.tsx\" --include=\"*.ts\")",
-      "Bash(grep -rniE \"\\(secret|password|senha|token|api[_-]?key\\)['\\\\\"]?\\\\s*[:=]\\\\s*['\\\\\"][^'\\\\\"]{8,}\" src --include=\"*.ts\" --include=\"*.tsx\")"
+      "Bash(grep -rniE \"\\(secret|password|senha|token|api[_-]?key\\)['\\\\\"]?\\\\s*[:=]\\\\s*['\\\\\"][^'\\\\\"]{8,}\" src --include=\"*.ts\" --include=\"*.tsx\")",
+      "Bash(openssl rand *)",
+      "Bash(npx vercel *)"
     ]
   }
 }

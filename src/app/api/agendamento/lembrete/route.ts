@@ -1,16 +1,18 @@
 /**
  * GET /api/agendamento/lembrete
  *
- * Rota executada pelo Vercel Cron a cada hora (vercel.json).
- * Busca agendamentos confirmados cuja data_hora esteja entre
- * 60 e 75 minutos no futuro e envia lembretes por email e WhatsApp
- * para o paciente e para o médico.
+ * Rota executada pelo Vercel Cron uma vez por dia às 12:00 UTC (09:00 BRT).
+ * Busca todos os agendamentos confirmados do dia seguinte e envia
+ * lembretes antecipados por email e WhatsApp para paciente e médico.
  *
- * A janela de 15 minutos (60–75 min) garante que, mesmo que o cron
- * atrase alguns minutos, o lembrete ainda seja enviado sem duplicatas.
+ * Plano Hobby do Vercel: máximo 1 execução por dia.
+ * Para lembretes em tempo real (1h antes), use cron-job.org gratuitamente
+ * apontando para esta mesma URL a cada hora — o parâmetro ?janela=1h
+ * alterna o modo de busca automaticamente.
  *
- * Para disparar manualmente em dev:
- *   curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/agendamento/lembrete
+ * Para disparar manualmente:
+ *   curl -H "Authorization: Bearer $CRON_SECRET" https://seusite.vercel.app/api/agendamento/lembrete
+ *   curl -H "Authorization: Bearer $CRON_SECRET" https://seusite.vercel.app/api/agendamento/lembrete?janela=1h
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -35,10 +37,27 @@ export async function GET(req: NextRequest) {
 
   const admin = createAdminClient()
 
-  // Janela: agendamentos entre 60 e 75 minutos a partir de agora
+  // Modo de busca:
+  //   ?janela=1h  → consultas entre 60–75 min no futuro (para cron externo horário)
+  //   padrão      → consultas do dia seguinte (para cron Vercel diário às 09h BRT)
+  const url = new URL(req.url)
+  const janela = url.searchParams.get('janela')
+
   const agora = Date.now()
-  const de  = new Date(agora + 60 * 60 * 1000).toISOString()   // +60 min
-  const ate = new Date(agora + 75 * 60 * 1000).toISOString()   // +75 min
+  let de: string, ate: string
+
+  if (janela === '1h') {
+    // Janela de 15 min centrada em 1 hora: evita duplicatas mesmo com atraso do cron
+    de  = new Date(agora + 60 * 60 * 1000).toISOString()
+    ate = new Date(agora + 75 * 60 * 1000).toISOString()
+  } else {
+    // Dia seguinte completo (00:00–23:59 de amanhã em UTC-3 / BRT)
+    const amanha = new Date(agora + 24 * 60 * 60 * 1000)
+    amanha.setUTCHours(3, 0, 0, 0)   // 00:00 BRT = 03:00 UTC
+    const amanhaFim = new Date(amanha.getTime() + 24 * 60 * 60 * 1000 - 1)
+    de  = amanha.toISOString()
+    ate = amanhaFim.toISOString()
+  }
 
   const { data: agendamentos, error } = await admin
     .from('agendamentos')
