@@ -5,6 +5,7 @@ import {
   ShieldCheck, Loader2, AlertTriangle, CheckCircle2, XCircle,
   FileText, BarChart2, ClipboardList, Activity, Calendar,
   Users, ChevronDown, ChevronUp, Plus, Pencil, X, Download,
+  Search, Eye,
 } from 'lucide-react'
 import ActionButtons from '@/components/ActionButtons'
 
@@ -431,17 +432,22 @@ function ModalStatusAcao({ plano, onClose, onSuccess }: {
   plano: any; onClose: () => void; onSuccess: () => void
 }) {
   const [status, setStatus] = useState(plano.status)
+  const [evidencia, setEvidencia] = useState(plano.evidencia_descricao ?? '')
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (status === 'concluido' && !evidencia.trim()) {
+      setErro('Descreva o que foi feito como evidência de conclusão.')
+      return
+    }
     setLoading(true); setErro('')
     try {
       const res = await fetch('/api/empresa/nr1/plano-acao', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: plano.id, status }),
+        body: JSON.stringify({ id: plano.id, status, evidencia_descricao: evidencia || null }),
       })
       if (!res.ok) throw new Error((await res.json()).error || 'Erro ao atualizar.')
       onSuccess(); onClose()
@@ -466,12 +472,60 @@ function ModalStatusAcao({ plano, onClose, onSuccess }: {
             <option value="cancelado">Cancelado</option>
           </select>
         </div>
+        {status === 'concluido' && (
+          <div>
+            <label className={labelCls}>Evidência de conclusão *</label>
+            <textarea className={`${inputCls} resize-none`} rows={4} value={evidencia}
+              onChange={e => setEvidencia(e.target.value)}
+              placeholder="Descreva o que foi feito, quando, por quem, e como o risco foi reduzido ou eliminado. Este texto serve como evidência para auditorias NR-1." />
+            <p className="text-[10px] text-gray-400 mt-1">
+              Obrigatório ao concluir. Fica salvo no sistema e incluído no PGR.
+            </p>
+          </div>
+        )}
         {erro && <p className="text-xs text-red-500">{erro}</p>}
         <div className="flex gap-3 pt-2">
           <BtnCancelar onClose={onClose} />
           <BtnSalvar carregando={loading} label="Atualizar" />
         </div>
       </form>
+    </Modal>
+  )
+}
+
+// ── Modal: Ver Evidência ──────────────────────────────────────────────────────
+function ModalEvidencia({ plano, onClose }: { plano: any; onClose: () => void }) {
+  return (
+    <Modal titulo="Evidência de conclusão" onClose={onClose}>
+      <div className="space-y-3">
+        <div className="p-3 bg-gray-50 rounded-xl">
+          <p className="text-xs text-gray-400 mb-0.5">Ação concluída</p>
+          <p className="text-sm font-medium text-[#1A3A2C]">{plano.medida_controle}</p>
+          {plano.setor && <p className="text-xs text-gray-400 mt-0.5">Setor: {plano.setor}</p>}
+          {plano.fator_risco && <p className="text-xs text-gray-400">Fator: {plano.fator_risco}</p>}
+        </div>
+        <div>
+          <p className="text-xs font-semibold text-gray-600 mb-1.5">O que foi feito</p>
+          <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+            {plano.evidencia_descricao}
+          </div>
+        </div>
+        {(plano.concluido_em || plano.responsavel_nome) && (
+          <p className="text-xs text-gray-400">
+            {plano.concluido_em && `Concluído em: ${fmtData(plano.concluido_em)}`}
+            {plano.responsavel_nome && ` · Responsável: ${plano.responsavel_nome}`}
+          </p>
+        )}
+        <p className="text-[10px] text-gray-300 pt-1">
+          Esta evidência é registrada no PGR e pode ser apresentada em fiscalizações do MTE.
+        </p>
+      </div>
+      <div className="mt-5">
+        <button onClick={onClose}
+          className="w-full border border-gray-200 rounded-xl py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
+          Fechar
+        </button>
+      </div>
     </Modal>
   )
 }
@@ -585,11 +639,15 @@ export default function Nr1Dashboard() {
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState('')
 
-  const [modal, setModal] = useState<'mapeamento' | 'plano' | 'monitoramento' | 'pgr' | 'status' | null>(null)
+  const [modal, setModal] = useState<'mapeamento' | 'plano' | 'monitoramento' | 'pgr' | 'status' | 'evidencia' | null>(null)
   const [planoSelecionado, setPlanoSelecionado] = useState<any>(null)
   const [planoPreenchido, setPlanoPreenchido] = useState<{ setor?: string; fator?: string; medida?: string } | null>(null)
   const [expandePlanos, setExpandePlanos] = useState(false)
   const [expandeHistorico, setExpandeHistorico] = useState(false)
+  // Filtros do plano de ação
+  const [filtroTexto, setFiltroTexto] = useState('')
+  const [filtroStatus, setFiltroStatus] = useState('')
+  const [filtroSetor, setFiltroSetor] = useState('')
 
   const carregar = useCallback(async () => {
     setCarregando(true); setErro('')
@@ -619,8 +677,35 @@ export default function Nr1Dashboard() {
 
   const { kpis: k, mapeamentos, planos, monitoramentos, versoes, resumoTriagem } = data
   const setoresMapeados = (mapeamentos as any[]).map((m: any) => m.setor)
-  const planosVisiveis = expandePlanos ? planos : planos.slice(0, 5)
+
+  // Filtragem do plano de ação
+  const planosFiltrados = (planos as any[]).filter((p: any) => {
+    const txt = filtroTexto.toLowerCase()
+    const matchTxt = !txt ||
+      (p.medida_controle ?? '').toLowerCase().includes(txt) ||
+      (p.responsavel_nome ?? '').toLowerCase().includes(txt) ||
+      (p.fator_risco ?? '').toLowerCase().includes(txt) ||
+      (p.setor ?? '').toLowerCase().includes(txt)
+    const vencido = p.status === 'pendente' && p.prazo && new Date(p.prazo + 'T12:00:00') < new Date()
+    const statusReal = vencido ? 'vencido' : p.status
+    const matchStatus = !filtroStatus || statusReal === filtroStatus
+    const matchSetor = !filtroSetor || p.setor === filtroSetor || (!p.setor && filtroSetor === '_geral')
+    return matchTxt && matchStatus && matchSetor
+  })
+  const planosVisiveis = expandePlanos ? planosFiltrados : planosFiltrados.slice(0, 5)
   const historicoVisivel = expandeHistorico ? versoes : versoes.slice(0, 3)
+
+  // Retorna o plano mais relevante para um fator crítico (ignora cancelados)
+  function statusPlano(setor: string, dom: typeof DOMINIOS[number]): { status: string; vencido: boolean; plano: any } | null {
+    const p = (planos as any[]).find((p: any) =>
+      (p.setor === setor || !p.setor) &&
+      dom.fatores.some((f: string) => f === p.fator_risco) &&
+      p.status !== 'cancelado'
+    )
+    if (!p) return null
+    const vencido = p.status === 'pendente' && p.prazo && new Date(p.prazo + 'T12:00:00') < new Date()
+    return { status: p.status, vencido, plano: p }
+  }
 
   return (
     <div className="space-y-6">
@@ -631,6 +716,9 @@ export default function Nr1Dashboard() {
       {modal === 'pgr'         && <ModalGerarPGR onClose={() => setModal(null)} onSuccess={carregar} />}
       {modal === 'status' && planoSelecionado && (
         <ModalStatusAcao plano={planoSelecionado} onClose={() => { setModal(null); setPlanoSelecionado(null) }} onSuccess={carregar} />
+      )}
+      {modal === 'evidencia' && planoSelecionado && (
+        <ModalEvidencia plano={planoSelecionado} onClose={() => { setModal(null); setPlanoSelecionado(null) }} />
       )}
 
       {/* Header */}
@@ -831,23 +919,11 @@ export default function Nr1Dashboard() {
           if (!r.dominios) continue
           for (const dom of DOMINIOS) {
             const score = r.dominios[dom.key] as number
-            if (score >= 35) { // médio ou alto
-              criticos.push({ setor: r.setor, dominio: dom, score })
-            }
+            if (score >= 35) criticos.push({ setor: r.setor, dominio: dom, score })
           }
         }
         if (criticos.length === 0) return null
-        // Ordenar: alto primeiro, depois por score decrescente
         criticos.sort((a, b) => b.score - a.score)
-        // Verificar quais fatores críticos já têm plano de ação ativo
-        function jaTemPlano(setor: string, dom: typeof DOMINIOS[number]): boolean {
-          return (planos as any[]).some((p: any) =>
-            // Plano específico do setor OU plano geral (setor vazio = toda empresa)
-            (p.setor === setor || !p.setor) &&
-            dom.fatores.some((f: string) => f === p.fator_risco) &&
-            p.status !== 'cancelado'
-          )
-        }
 
         return (
           <Card
@@ -859,49 +935,48 @@ export default function Nr1Dashboard() {
                 const nivel = nivelDominio(c.score)
                 const sugestao = c.dominio.sugestoes[i % c.dominio.sugestoes.length]
                 const fatorPrincipal = c.dominio.fatores[0]
-                const coberto = jaTemPlano(c.setor, c.dominio)
+                const info = statusPlano(c.setor, c.dominio)
+
+                // Determina aparência do card com base no status real do plano
+                const cardBg = !info
+                  ? (nivel === 'alto' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200')
+                  : info.status === 'concluido' ? 'bg-emerald-50 border-emerald-200'
+                  : info.vencido ? 'bg-red-50 border-red-200'
+                  : info.status === 'em_andamento' ? 'bg-blue-50 border-blue-200'
+                  : 'bg-amber-50 border-amber-200' // pendente
+
+                // Badge de status
+                const badge = !info
+                  ? <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${nivel === 'alto' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>{nivel === 'alto' ? 'Alto risco' : 'Risco médio'}</span>
+                  : info.status === 'concluido' ? <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">✓ Concluído</span>
+                  : info.vencido ? <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">⚠ Plano vencido</span>
+                  : info.status === 'em_andamento' ? <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700">Em andamento</span>
+                  : <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Plano pendente</span>
+
+                // Botão à direita
+                const botao = !info
+                  ? <button onClick={() => abrirPlanoSugerido(c.setor, fatorPrincipal, sugestao)} className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-colors" style={{ background: '#1A3A2C' }}><Plus className="w-3.5 h-3.5" /> Criar ação</button>
+                  : info.status === 'concluido' ? null
+                  : <button onClick={() => { setPlanoSelecionado(info.plano); setModal('status') }} className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border border-gray-300 text-gray-600 hover:bg-white transition-colors"><Pencil className="w-3.5 h-3.5" /> Ver plano</button>
 
                 return (
                   <div key={`${c.setor}-${c.dominio.key}`}
-                    className={`rounded-xl p-4 border flex items-start justify-between gap-4 ${
-                      coberto
-                        ? 'bg-emerald-50 border-emerald-200'
-                        : nivel === 'alto' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'
-                    }`}>
+                    className={`rounded-xl p-4 border flex items-start justify-between gap-4 ${cardBg}`}>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        {coberto ? (
-                          <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                            ✓ Ação cadastrada
-                          </span>
-                        ) : (
-                          <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
-                            nivel === 'alto' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
-                          }`}>
-                            {nivel === 'alto' ? 'Alto risco' : 'Risco médio'}
-                          </span>
-                        )}
+                        {badge}
                         <span className="text-xs text-gray-500 font-medium">{c.setor}</span>
                       </div>
-                      <p className={`text-sm font-semibold ${coberto ? 'text-gray-400' : 'text-[#1A3A2C]'}`}>{c.dominio.label}</p>
+                      <p className={`text-sm font-semibold ${info?.status === 'concluido' ? 'text-gray-400 line-through' : 'text-[#1A3A2C]'}`}>{c.dominio.label}</p>
                       <p className="text-xs text-gray-400 mt-0.5">{c.dominio.descricao}</p>
-                      {!coberto && (
+                      {!info && (
                         <div className="mt-2 p-2.5 bg-white rounded-lg border border-gray-100">
                           <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Sugestão de medida</p>
                           <p className="text-xs text-gray-600">{sugestao}</p>
                         </div>
                       )}
                     </div>
-                    {coberto ? (
-                      <span className="shrink-0 text-[10px] text-emerald-600 font-semibold">Plano em andamento</span>
-                    ) : (
-                      <button
-                        onClick={() => abrirPlanoSugerido(c.setor, fatorPrincipal, sugestao)}
-                        className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-colors"
-                        style={{ background: '#1A3A2C' }}>
-                        <Plus className="w-3.5 h-3.5" /> Criar ação
-                      </button>
-                    )}
+                    {botao}
                   </div>
                 )
               })}
@@ -924,48 +999,95 @@ export default function Nr1Dashboard() {
       >
         {planos.length > 0 ? (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
-                  <tr>
-                    <th className="px-4 py-2.5 text-left">Setor</th>
-                    <th className="px-4 py-2.5 text-left">Medida</th>
-                    <th className="px-4 py-2.5 text-left">Responsável</th>
-                    <th className="px-4 py-2.5 text-left">Prazo</th>
-                    <th className="px-4 py-2.5 text-left">Status</th>
-                    <th className="px-4 py-2.5 text-left"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {(planosVisiveis as any[]).map((p: any) => (
-                    <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 text-xs text-[#1A3A2C] font-medium">{p.setor ?? '—'}</td>
-                      <td className="px-4 py-3 text-xs text-gray-600 max-w-[220px]">
-                        <p className="truncate" title={p.medida_controle}>{p.medida_controle}</p>
-                        <p className="text-[10px] text-gray-400 truncate mt-0.5" title={p.fator_risco}>{p.fator_risco}</p>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-gray-500">{p.responsavel_nome ?? '—'}</td>
-                      <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{fmtData(p.prazo)}</td>
-                      <td className="px-4 py-3"><StatusBadge status={p.status} prazo={p.prazo} /></td>
-                      <td className="px-4 py-3">
-                        {p.status !== 'concluido' && p.status !== 'cancelado' && (
-                          <button onClick={() => abrirStatus(p)}
-                            className="text-gray-400 hover:text-[#1A3A2C] transition-colors p-1 rounded-lg hover:bg-gray-100"
-                            title="Atualizar status">
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* Barra de filtros */}
+            <div className="flex gap-2 mb-4 flex-wrap">
+              <div className="relative flex-1 min-w-[160px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                <input
+                  className="w-full border border-gray-200 rounded-xl pl-8 pr-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+                  placeholder="Pesquisar por medida, responsável, fator..."
+                  value={filtroTexto} onChange={e => { setFiltroTexto(e.target.value); setExpandePlanos(false) }} />
+              </div>
+              <select
+                className="border border-gray-200 rounded-xl px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+                value={filtroStatus} onChange={e => { setFiltroStatus(e.target.value); setExpandePlanos(false) }}>
+                <option value="">Todos os status</option>
+                <option value="pendente">Pendente</option>
+                <option value="vencido">Vencido</option>
+                <option value="em_andamento">Em andamento</option>
+                <option value="concluido">Concluído</option>
+                <option value="cancelado">Cancelado</option>
+              </select>
+              {setoresMapeados.length > 0 && (
+                <select
+                  className="border border-gray-200 rounded-xl px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+                  value={filtroSetor} onChange={e => { setFiltroSetor(e.target.value); setExpandePlanos(false) }}>
+                  <option value="">Todos os setores</option>
+                  <option value="_geral">Geral (empresa toda)</option>
+                  {setoresMapeados.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              )}
             </div>
-            {planos.length > 5 && (
-              <button onClick={() => setExpandePlanos(!expandePlanos)}
-                className="mt-3 flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors mx-auto">
-                {expandePlanos ? <><ChevronUp className="w-3.5 h-3.5" /> Ver menos</> : <><ChevronDown className="w-3.5 h-3.5" /> Ver todos ({planos.length})</>}
-              </button>
+
+            {planosFiltrados.length === 0 ? (
+              <p className="text-center text-xs text-gray-400 py-6">Nenhuma ação encontrada com os filtros selecionados.</p>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                      <tr>
+                        <th className="px-4 py-2.5 text-left">Setor</th>
+                        <th className="px-4 py-2.5 text-left">Medida</th>
+                        <th className="px-4 py-2.5 text-left">Responsável</th>
+                        <th className="px-4 py-2.5 text-left">Prazo</th>
+                        <th className="px-4 py-2.5 text-left">Status</th>
+                        <th className="px-4 py-2.5 text-left"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {(planosVisiveis as any[]).map((p: any) => (
+                        <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-3 text-xs text-[#1A3A2C] font-medium">{p.setor || <span className="text-gray-300 italic">Geral</span>}</td>
+                          <td className="px-4 py-3 text-xs text-gray-600 max-w-[220px]">
+                            <p className="truncate" title={p.medida_controle}>{p.medida_controle}</p>
+                            <p className="text-[10px] text-gray-400 truncate mt-0.5" title={p.fator_risco}>{p.fator_risco}</p>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-gray-500">{p.responsavel_nome ?? '—'}</td>
+                          <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{fmtData(p.prazo)}</td>
+                          <td className="px-4 py-3"><StatusBadge status={p.status} prazo={p.prazo} /></td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1">
+                              {p.evidencia_descricao && (
+                                <button onClick={() => { setPlanoSelecionado(p); setModal('evidencia') }}
+                                  className="text-emerald-500 hover:text-emerald-700 transition-colors p-1 rounded-lg hover:bg-emerald-50"
+                                  title="Ver evidência de conclusão">
+                                  <Eye className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                              {p.status !== 'concluido' && p.status !== 'cancelado' && (
+                                <button onClick={() => abrirStatus(p)}
+                                  className="text-gray-400 hover:text-[#1A3A2C] transition-colors p-1 rounded-lg hover:bg-gray-100"
+                                  title="Atualizar status">
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {planosFiltrados.length > 5 && (
+                  <button onClick={() => setExpandePlanos(!expandePlanos)}
+                    className="mt-3 flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors mx-auto">
+                    {expandePlanos
+                      ? <><ChevronUp className="w-3.5 h-3.5" /> Ver menos</>
+                      : <><ChevronDown className="w-3.5 h-3.5" /> Ver todos ({planosFiltrados.length})</>}
+                  </button>
+                )}
+              </>
             )}
           </>
         ) : (

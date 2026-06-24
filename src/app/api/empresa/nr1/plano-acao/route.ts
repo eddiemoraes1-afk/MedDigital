@@ -40,7 +40,7 @@ export async function PATCH(req: Request) {
   const db = createAdminClient()
   const body = await req.json()
 
-  const { id, status } = body
+  const { id, status, evidencia_descricao } = body
   if (!id || !status) {
     return NextResponse.json({ error: 'id e status são obrigatórios.' }, { status: 400 })
   }
@@ -52,6 +52,7 @@ export async function PATCH(req: Request) {
 
   const update: Record<string, any> = { status }
   if (status === 'concluido') update.concluido_em = new Date().toISOString()
+  if (evidencia_descricao !== undefined) update.evidencia_descricao = evidencia_descricao
 
   const { error } = await db
     .from('plano_acao_nr1')
