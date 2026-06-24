@@ -23,7 +23,7 @@ export async function GET() {
     db.from('monitoramento_nr1').select('*').eq('empresa_id', empresaId).gte('data_registro', dozeM.toISOString().slice(0, 10)).order('data_registro', { ascending: false }),
     db.from('pgr_versoes').select('*').eq('empresa_id', empresaId).order('gerado_em', { ascending: false }).limit(10),
     db.from('vinculos_empresa').select('id', { count: 'exact', head: true }).eq('empresa_id', empresaId).eq('ativo', true),
-    db.from('triagem_psicossocial').select('setor, nivel_risco').eq('empresa_id', empresaId),
+    db.from('triagem_psicossocial').select('setor, nivel_risco, score_organizacao, score_relacoes, score_recursos, score_contexto').eq('empresa_id', empresaId),
   ])
 
   const ms = (mapeamentos ?? []) as any[]
@@ -43,15 +43,22 @@ export async function GET() {
     : null
   const pgrVigente = vs.find(v => v.status === 'vigente') ?? null
 
-  // Resumo de triagem por setor
-  const setorMap = new Map<string, { total: number; alto: number; medio: number; baixo: number }>()
+  // Resumo de triagem por setor — com breakdown de domínios
+  type SetorStats = {
+    total: number; alto: number; medio: number; baixo: number
+    somaOrg: number; somaRel: number; somaRec: number; somaCon: number
+    countDom: number
+  }
+  const setorMap = new Map<string, SetorStats>()
   for (const t of ts) {
     const s = t.setor ?? 'Não informado'
-    const cur = setorMap.get(s) ?? { total: 0, alto: 0, medio: 0, baixo: 0 }
+    const cur = setorMap.get(s) ?? { total: 0, alto: 0, medio: 0, baixo: 0, somaOrg: 0, somaRel: 0, somaRec: 0, somaCon: 0, countDom: 0 }
     cur.total++
     if (t.nivel_risco === 'alto') cur.alto++
     else if (t.nivel_risco === 'medio') cur.medio++
     else cur.baixo++
+    // Acumula scores de domínio (podem ser null se triagem antiga)
+    if (t.score_organizacao != null) { cur.somaOrg += t.score_organizacao; cur.somaRel += t.score_relacoes ?? 0; cur.somaRec += t.score_recursos ?? 0; cur.somaCon += t.score_contexto ?? 0; cur.countDom++ }
     setorMap.set(s, cur)
   }
   const resumoTriagem = [...setorMap.entries()].map(([setor, v]) => ({
@@ -59,6 +66,13 @@ export async function GET() {
     total: v.total,
     percentualAlto: v.total > 0 ? Math.round((v.alto / v.total) * 100) : 0,
     percentualMedio: v.total > 0 ? Math.round((v.medio / v.total) * 100) : 0,
+    // Média dos scores de domínio (0-100); null se nenhuma triagem com scores
+    dominios: v.countDom > 0 ? {
+      organizacao: Math.round(v.somaOrg / v.countDom),
+      relacoes:    Math.round(v.somaRel / v.countDom),
+      recursos:    Math.round(v.somaRec / v.countDom),
+      contexto:    Math.round(v.somaCon / v.countDom),
+    } : null,
   }))
 
   // Status compliance

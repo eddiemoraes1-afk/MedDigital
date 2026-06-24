@@ -249,13 +249,91 @@ function ModalMapeamento({ onClose, onSuccess }: { onClose: () => void; onSucces
   )
 }
 
+// ── Domínios NR-1 ──────────────────────────────────────────────────────────────
+const DOMINIOS = [
+  {
+    key: 'organizacao',
+    label: 'Organização do trabalho',
+    descricao: 'Sobrecarga, ritmo, prazos e turnos',
+    cor: '#F97316',
+    fatores: [
+      'Sobrecarga de trabalho / prazos incompatíveis',
+      'Ritmo imprevisível ou intensidade excessiva',
+      'Trabalho em turnos ou horários atípicos',
+    ],
+    sugestoes: [
+      'Revisar distribuição de tarefas e redistribuir carga entre equipes',
+      'Implementar controle de jornada e banco de horas com limites claros',
+      'Criar cronogramas realistas com participação dos funcionários no planejamento',
+    ],
+  },
+  {
+    key: 'relacoes',
+    label: 'Relações socioprofissionais',
+    descricao: 'Liderança, assédio e conflitos',
+    cor: '#EF4444',
+    fatores: [
+      'Liderança autoritária ou omissa',
+      'Assédio moral ou sexual',
+      'Conflitos interpessoais frequentes',
+      'Falta de reconhecimento e valorização',
+    ],
+    sugestoes: [
+      'Capacitar lideranças em gestão humanizada e comunicação não-violenta',
+      'Implantar canal de denúncias anônimo e política anti-assédio',
+      'Realizar pesquisa de clima e promover espaços de escuta ativa',
+    ],
+  },
+  {
+    key: 'recursos',
+    label: 'Recursos e suporte',
+    descricao: 'Autonomia, reconhecimento e ferramentas',
+    cor: '#8B5CF6',
+    fatores: [
+      'Baixa autonomia na execução das tarefas',
+      'Sistemas e ferramentas instáveis',
+      'Interrupções frequentes',
+    ],
+    sugestoes: [
+      'Aumentar margem de decisão do funcionário nas tarefas operacionais',
+      'Atualizar ou substituir sistemas e ferramentas defasadas',
+      'Criar política de foco (ex: blocos sem reuniões, notificações agendadas)',
+    ],
+  },
+  {
+    key: 'contexto',
+    label: 'Condições de trabalho',
+    descricao: 'Ambiente físico, hiperconectividade e violência',
+    cor: '#3B82F6',
+    fatores: [
+      'Ruído excessivo ou ambiente físico inadequado',
+      'Espaço físico insuficiente',
+      'Cobrança fora do horário / hiperconectividade',
+      'Contato com público hostil ou situações de violência',
+      'Instabilidade do emprego / reestruturações',
+    ],
+    sugestoes: [
+      'Avaliar e adequar condições físicas (acústica, iluminação, ergonomia)',
+      'Estabelecer política de desconexão — proibir demandas fora do horário',
+      'Treinar equipe de atendimento para situações de violência e conflito',
+    ],
+  },
+] as const
+
+function nivelDominio(score: number): 'alto' | 'medio' | 'baixo' {
+  if (score >= 60) return 'alto'
+  if (score >= 35) return 'medio'
+  return 'baixo'
+}
+
 // ── Modal: Plano de Ação ──────────────────────────────────────────────────────
-function ModalPlanoAcao({ onClose, onSuccess, setoresMapeados }: {
+function ModalPlanoAcao({ onClose, onSuccess, setoresMapeados, preSetor, preFator, preMedida }: {
   onClose: () => void; onSuccess: () => void; setoresMapeados: string[]
+  preSetor?: string; preFator?: string; preMedida?: string
 }) {
-  const [setor, setSetor] = useState('')
-  const [fator, setFator] = useState('')
-  const [medida, setMedida] = useState('')
+  const [setor, setSetor] = useState(preSetor ?? '')
+  const [fator, setFator] = useState(preFator ?? '')
+  const [medida, setMedida] = useState(preMedida ?? '')
   const [responsavel, setResponsavel] = useState('')
   const [prazo, setPrazo] = useState('')
   const [loading, setLoading] = useState(false)
@@ -278,6 +356,12 @@ function ModalPlanoAcao({ onClose, onSuccess, setoresMapeados }: {
 
   return (
     <Modal titulo="Nova ação do plano" onClose={onClose}>
+      {preFator && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
+          <span className="text-amber-500 text-base shrink-0">⚠</span>
+          <p className="text-xs text-amber-700">Ação sugerida com base nas triagens dos funcionários. Revise e adapte conforme necessário antes de salvar.</p>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className={labelCls}>Setor</label>
@@ -487,6 +571,7 @@ export default function Nr1Dashboard() {
 
   const [modal, setModal] = useState<'mapeamento' | 'plano' | 'monitoramento' | 'pgr' | 'status' | null>(null)
   const [planoSelecionado, setPlanoSelecionado] = useState<any>(null)
+  const [planoPreenchido, setPlanoPreenchido] = useState<{ setor?: string; fator?: string; medida?: string } | null>(null)
   const [expandePlanos, setExpandePlanos] = useState(false)
   const [expandeHistorico, setExpandeHistorico] = useState(false)
 
@@ -503,6 +588,10 @@ export default function Nr1Dashboard() {
   useEffect(() => { carregar() }, [carregar])
 
   function abrirStatus(p: any) { setPlanoSelecionado(p); setModal('status') }
+  function abrirPlanoSugerido(setor: string, fator: string, medida: string) {
+    setPlanoPreenchido({ setor, fator, medida })
+    setModal('plano')
+  }
 
   if (carregando) return (
     <div className="flex items-center justify-center py-24 gap-3 text-gray-400">
@@ -521,7 +610,7 @@ export default function Nr1Dashboard() {
     <div className="space-y-6">
       {/* Modais */}
       {modal === 'mapeamento'  && <ModalMapeamento onClose={() => setModal(null)} onSuccess={carregar} />}
-      {modal === 'plano'       && <ModalPlanoAcao onClose={() => setModal(null)} onSuccess={carregar} setoresMapeados={setoresMapeados} />}
+      {modal === 'plano'       && <ModalPlanoAcao onClose={() => { setModal(null); setPlanoPreenchido(null) }} onSuccess={carregar} setoresMapeados={setoresMapeados} preSetor={planoPreenchido?.setor} preFator={planoPreenchido?.fator} preMedida={planoPreenchido?.medida} />}
       {modal === 'monitoramento' && <ModalMonitoramento onClose={() => setModal(null)} onSuccess={carregar} />}
       {modal === 'pgr'         && <ModalGerarPGR onClose={() => setModal(null)} onSuccess={carregar} />}
       {modal === 'status' && planoSelecionado && (
@@ -670,26 +759,115 @@ export default function Nr1Dashboard() {
       {/* Triagem dos funcionários */}
       {resumoTriagem.length > 0 && (
         <Card title="Resultado das Triagens dos Funcionários" sub="Dados anonimizados por setor — sem identificação individual">
-          <div className="space-y-3">
+          <div className="space-y-5">
             {(resumoTriagem as any[]).map((r: any) => (
-              <div key={r.setor} className="flex items-center gap-4">
-                <span className="text-xs text-gray-600 w-32 shrink-0 truncate" title={r.setor}>{r.setor}</span>
-                <div className="flex-1 flex rounded-full overflow-hidden h-2.5">
-                  {r.percentualAlto > 0 && <div className="bg-red-400 h-full" style={{ width: `${r.percentualAlto}%` }} title={`Alto: ${r.percentualAlto}%`} />}
-                  {r.percentualMedio > 0 && <div className="bg-amber-300 h-full" style={{ width: `${r.percentualMedio}%` }} title={`Médio: ${r.percentualMedio}%`} />}
-                  <div className="bg-emerald-200 h-full flex-1" title="Baixo" />
+              <div key={r.setor}>
+                {/* Cabeçalho do setor */}
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-[#1A3A2C]">{r.setor}</span>
+                  <span className="text-xs text-gray-400">{r.total} respondente{r.total !== 1 ? 's' : ''}</span>
                 </div>
-                <div className="flex gap-2 shrink-0 text-[10px]">
-                  {r.percentualAlto > 0 && <span className="text-red-500 font-semibold">{r.percentualAlto}% alto</span>}
-                  {r.percentualMedio > 0 && <span className="text-amber-500 font-semibold">{r.percentualMedio}% médio</span>}
-                  <span className="text-gray-400">{r.total} resp.</span>
-                </div>
+
+                {/* Breakdown por domínio */}
+                {r.dominios ? (
+                  <div className="space-y-1.5">
+                    {DOMINIOS.map(dom => {
+                      const score = r.dominios[dom.key] as number
+                      const nivel = nivelDominio(score)
+                      const corBarra = nivel === 'alto' ? '#EF4444' : nivel === 'medio' ? '#F59E0B' : '#10B981'
+                      const labelNivel = nivel === 'alto' ? 'Alto' : nivel === 'medio' ? 'Médio' : 'Baixo'
+                      return (
+                        <div key={dom.key} className="flex items-center gap-3">
+                          <span className="text-xs text-gray-500 w-44 shrink-0 truncate" title={dom.label}>{dom.label}</span>
+                          <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+                            <div className="h-full rounded-full transition-all" style={{ width: `${score}%`, backgroundColor: corBarra }} />
+                          </div>
+                          <span className="text-[10px] font-semibold w-10 shrink-0 text-right" style={{ color: corBarra }}>{labelNivel}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  /* Fallback: só nível geral (triagem antiga sem scores de domínio) */
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1 flex rounded-full overflow-hidden h-2.5">
+                      {r.percentualAlto > 0 && <div className="bg-red-400 h-full" style={{ width: `${r.percentualAlto}%` }} />}
+                      {r.percentualMedio > 0 && <div className="bg-amber-300 h-full" style={{ width: `${r.percentualMedio}%` }} />}
+                      <div className="bg-emerald-200 h-full flex-1" />
+                    </div>
+                    <div className="flex gap-2 shrink-0 text-[10px]">
+                      {r.percentualAlto > 0 && <span className="text-red-500 font-semibold">{r.percentualAlto}% alto</span>}
+                      {r.percentualMedio > 0 && <span className="text-amber-500 font-semibold">{r.percentualMedio}% médio</span>}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
           <p className="text-[10px] text-gray-300 mt-4">Dados das triagens respondidas pelos funcionários. Nenhum dado individual é acessível.</p>
         </Card>
       )}
+
+      {/* Fatores críticos detectados — só aparece se há triagem com dominios */}
+      {(() => {
+        const criticos: { setor: string; dominio: typeof DOMINIOS[number]; score: number }[] = []
+        for (const r of resumoTriagem as any[]) {
+          if (!r.dominios) continue
+          for (const dom of DOMINIOS) {
+            const score = r.dominios[dom.key] as number
+            if (score >= 35) { // médio ou alto
+              criticos.push({ setor: r.setor, dominio: dom, score })
+            }
+          }
+        }
+        if (criticos.length === 0) return null
+        // Ordenar: alto primeiro, depois por score decrescente
+        criticos.sort((a, b) => b.score - a.score)
+        return (
+          <Card
+            title="Fatores Críticos Detectados"
+            sub="Gerado automaticamente a partir das respostas dos funcionários — clique em 'Criar ação' para registrar uma medida"
+          >
+            <div className="space-y-3">
+              {criticos.map((c, i) => {
+                const nivel = nivelDominio(c.score)
+                const sugestao = c.dominio.sugestoes[i % c.dominio.sugestoes.length]
+                const fatorPrincipal = c.dominio.fatores[0]
+                return (
+                  <div key={`${c.setor}-${c.dominio.key}`}
+                    className={`rounded-xl p-4 border flex items-start justify-between gap-4 ${
+                      nivel === 'alto' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'
+                    }`}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                          nivel === 'alto' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                        }`}>
+                          {nivel === 'alto' ? 'Alto risco' : 'Risco médio'}
+                        </span>
+                        <span className="text-xs text-gray-500 font-medium">{c.setor}</span>
+                      </div>
+                      <p className="text-sm font-semibold text-[#1A3A2C]">{c.dominio.label}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{c.dominio.descricao}</p>
+                      <div className="mt-2 p-2.5 bg-white rounded-lg border border-gray-100">
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Sugestão de medida</p>
+                        <p className="text-xs text-gray-600">{sugestao}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => abrirPlanoSugerido(c.setor, fatorPrincipal, sugestao)}
+                      className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-colors"
+                      style={{ background: '#1A3A2C' }}>
+                      <Plus className="w-3.5 h-3.5" /> Criar ação
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+            <p className="text-[10px] text-gray-300 mt-4">As sugestões são orientativas. Adapte conforme a realidade da empresa antes de salvar.</p>
+          </Card>
+        )
+      })()}
 
       {/* Plano de ação */}
       <Card
