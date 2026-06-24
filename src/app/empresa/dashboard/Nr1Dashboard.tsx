@@ -11,7 +11,10 @@ import ActionButtons from '@/components/ActionButtons'
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function fmtData(iso: string | null) {
   if (!iso) return '—'
-  return new Date(iso).toLocaleDateString('pt-BR')
+  // Datas no formato "YYYY-MM-DD" (sem horário) precisam de T12:00:00 para evitar
+  // que o browser interprete como UTC meia-noite e subtraia 3h (fuso BRT), exibindo o dia anterior.
+  const d = iso.includes('T') ? new Date(iso) : new Date(iso + 'T12:00:00')
+  return d.toLocaleDateString('pt-BR')
 }
 
 const FATORES_MTE = [
@@ -366,22 +369,35 @@ function ModalPlanoAcao({ onClose, onSuccess, setoresMapeados, preSetor, preFato
         <div>
           <label className={labelCls}>Setor</label>
           {setoresMapeados.length > 0 ? (
-            <select className={selectCls} value={setor} onChange={e => setSetor(e.target.value)}>
-              <option value="">Geral / toda a empresa</option>
-              {setoresMapeados.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
+            <>
+              <select className={selectCls} value={setor} onChange={e => setSetor(e.target.value)}>
+                <option value="">Geral / todos os setores</option>
+                {setoresMapeados.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <p className="text-[10px] text-gray-400 mt-1">
+                Selecione "Geral" para uma ação que se aplica a toda a empresa.
+              </p>
+            </>
           ) : (
             <input className={inputCls} value={setor} onChange={e => setSetor(e.target.value)}
-              placeholder="Ex: Comercial (opcional)" />
+              placeholder="Deixe em branco para aplicar a toda a empresa" />
           )}
         </div>
         <div>
           <label className={labelCls}>Fator de risco a ser tratado *</label>
-          <select className={selectCls} value={fator} onChange={e => setFator(e.target.value)} required>
-            <option value="">Selecione...</option>
-            {FATORES_MTE.map(f => <option key={f} value={f}>{f}</option>)}
-            <option value="Outro">Outro</option>
-          </select>
+          {preFator ? (
+            // Quando vem pré-preenchido pela sugestão, bloqueia o campo
+            <div className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50 text-gray-700 flex items-center justify-between">
+              <span>{fator}</span>
+              <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wide ml-2 shrink-0">Identificado pelas triagens</span>
+            </div>
+          ) : (
+            <select className={selectCls} value={fator} onChange={e => setFator(e.target.value)} required>
+              <option value="">Selecione...</option>
+              {FATORES_MTE.map(f => <option key={f} value={f}>{f}</option>)}
+              <option value="Outro">Outro</option>
+            </select>
+          )}
         </div>
         <div>
           <label className={labelCls}>Medida de controle / ação *</label>
@@ -823,6 +839,16 @@ export default function Nr1Dashboard() {
         if (criticos.length === 0) return null
         // Ordenar: alto primeiro, depois por score decrescente
         criticos.sort((a, b) => b.score - a.score)
+        // Verificar quais fatores críticos já têm plano de ação ativo
+        function jaTemPlano(setor: string, dom: typeof DOMINIOS[number]): boolean {
+          return (planos as any[]).some((p: any) =>
+            // Plano específico do setor OU plano geral (setor vazio = toda empresa)
+            (p.setor === setor || !p.setor) &&
+            dom.fatores.some((f: string) => f === p.fator_risco) &&
+            p.status !== 'cancelado'
+          )
+        }
+
         return (
           <Card
             title="Fatores Críticos Detectados"
@@ -833,33 +859,49 @@ export default function Nr1Dashboard() {
                 const nivel = nivelDominio(c.score)
                 const sugestao = c.dominio.sugestoes[i % c.dominio.sugestoes.length]
                 const fatorPrincipal = c.dominio.fatores[0]
+                const coberto = jaTemPlano(c.setor, c.dominio)
+
                 return (
                   <div key={`${c.setor}-${c.dominio.key}`}
                     className={`rounded-xl p-4 border flex items-start justify-between gap-4 ${
-                      nivel === 'alto' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'
+                      coberto
+                        ? 'bg-emerald-50 border-emerald-200'
+                        : nivel === 'alto' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'
                     }`}>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
-                          nivel === 'alto' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
-                        }`}>
-                          {nivel === 'alto' ? 'Alto risco' : 'Risco médio'}
-                        </span>
+                        {coberto ? (
+                          <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                            ✓ Ação cadastrada
+                          </span>
+                        ) : (
+                          <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+                            nivel === 'alto' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {nivel === 'alto' ? 'Alto risco' : 'Risco médio'}
+                          </span>
+                        )}
                         <span className="text-xs text-gray-500 font-medium">{c.setor}</span>
                       </div>
-                      <p className="text-sm font-semibold text-[#1A3A2C]">{c.dominio.label}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{c.dominio.descricao}</p>
-                      <div className="mt-2 p-2.5 bg-white rounded-lg border border-gray-100">
-                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Sugestão de medida</p>
-                        <p className="text-xs text-gray-600">{sugestao}</p>
-                      </div>
+                      <p className={`text-sm font-semibold ${coberto ? 'text-gray-400' : 'text-[#1A3A2C]'}`}>{c.dominio.label}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{c.dominio.descricao}</p>
+                      {!coberto && (
+                        <div className="mt-2 p-2.5 bg-white rounded-lg border border-gray-100">
+                          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1">Sugestão de medida</p>
+                          <p className="text-xs text-gray-600">{sugestao}</p>
+                        </div>
+                      )}
                     </div>
-                    <button
-                      onClick={() => abrirPlanoSugerido(c.setor, fatorPrincipal, sugestao)}
-                      className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-colors"
-                      style={{ background: '#1A3A2C' }}>
-                      <Plus className="w-3.5 h-3.5" /> Criar ação
-                    </button>
+                    {coberto ? (
+                      <span className="shrink-0 text-[10px] text-emerald-600 font-semibold">Plano em andamento</span>
+                    ) : (
+                      <button
+                        onClick={() => abrirPlanoSugerido(c.setor, fatorPrincipal, sugestao)}
+                        className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white transition-colors"
+                        style={{ background: '#1A3A2C' }}>
+                        <Plus className="w-3.5 h-3.5" /> Criar ação
+                      </button>
+                    )}
                   </div>
                 )
               })}
