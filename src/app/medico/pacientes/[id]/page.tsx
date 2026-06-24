@@ -8,15 +8,10 @@ import {
   Pill, Stethoscope, Activity, Heart,
   FlaskConical, ClipboardList, Thermometer, ShieldCheck, Video,
 } from 'lucide-react'
-import dynamic from 'next/dynamic'
 import MedicoHeader from '../../MedicoHeader'
 import AntecedentesForm from './AntecedentesForm'
 import { CidBadge, CidBadgeTable } from '@/components/CidTooltip'
-
-// Componentes de documentos renderizados APENAS no cliente (evita qualquer erro de SSR)
-const AtestadosMedicoClient = dynamic(() => import('./AtestadosMedicoClient'), { ssr: false })
-const ReceitasMedicoClient  = dynamic(() => import('./ReceitasMedicoClient'),  { ssr: false })
-const ExamesMedicoClient    = dynamic(() => import('./ExamesMedicoClient'),    { ssr: false })
+import DocumentosClientOnly from './DocumentosClientOnly'
 
 // ── Props ──────────────────────────────────────────────────────────────────────
 
@@ -884,68 +879,13 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
         )}
 
         {abaAtiva === 'documentos' && (
-          <div className="space-y-8">
-
-            {/* Receitas */}
-            <div>
-              <h2 className="font-bold text-[#1A3A2C] text-lg flex items-center gap-2 mb-4">
-                <Pill className="w-5 h-5 text-[#5BBD9B]" /> Receitas Médicas
-                <span className="text-sm text-gray-400 font-normal">({receitas?.length ?? 0})</span>
-              </h2>
-              {receitas && receitas.length > 0 ? (
-                <ReceitasMedicoClient
-                  receitas={receitas as any}
-                  paciente={{ nome: paciente.nome, cpf: paciente.cpf ?? null, data_nascimento: paciente.data_nascimento ?? null, sexo: paciente.sexo ?? null }}
-                  medicoId={medico.id}
-                />
-              ) : (
-                <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
-                  <Pill className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                  <p className="text-sm text-gray-400">Nenhuma receita emitida</p>
-                </div>
-              )}
-            </div>
-
-            {/* Atestados */}
-            <div>
-              <h2 className="font-bold text-[#1A3A2C] text-lg flex items-center gap-2 mb-4">
-                <FileText className="w-5 h-5 text-[#5BBD9B]" /> Atestados Médicos
-                <span className="text-sm text-gray-400 font-normal">({atestados?.length ?? 0})</span>
-              </h2>
-              {atestados && atestados.length > 0 ? (
-                <AtestadosMedicoClient
-                  atestados={atestados as any}
-                  paciente={{ nome: paciente.nome, cpf: paciente.cpf ?? null, data_nascimento: paciente.data_nascimento ?? null, sexo: paciente.sexo ?? null }}
-                  medicoId={medico.id}
-                />
-              ) : (
-                <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
-                  <FileText className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                  <p className="text-sm text-gray-400">Nenhum atestado emitido</p>
-                </div>
-              )}
-            </div>
-
-            {/* Exames */}
-            <div>
-              <h2 className="font-bold text-[#1A3A2C] text-lg flex items-center gap-2 mb-4">
-                <FlaskConical className="w-5 h-5 text-[#5BBD9B]" /> Solicitações de Exames
-                <span className="text-sm text-gray-400 font-normal">({exames?.length ?? 0})</span>
-              </h2>
-              {exames && exames.length > 0 ? (
-                <ExamesMedicoClient
-                  exames={exames as any}
-                  paciente={{ nome: paciente.nome, cpf: paciente.cpf ?? null, data_nascimento: paciente.data_nascimento ?? null, sexo: paciente.sexo ?? null }}
-                  medicoId={medico.id}
-                />
-              ) : (
-                <div className="bg-white rounded-2xl p-10 text-center shadow-sm">
-                  <FlaskConical className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                  <p className="text-sm text-gray-400">Nenhum exame solicitado</p>
-                </div>
-              )}
-            </div>
-          </div>
+          <DocumentosClientOnly
+            receitas={(receitas ?? []) as any}
+            atestados={(atestados ?? []) as any}
+            exames={(exames ?? []) as any}
+            paciente={{ nome: paciente.nome, cpf: paciente.cpf ?? null, data_nascimento: paciente.data_nascimento ?? null, sexo: paciente.sexo ?? null }}
+            medicoId={medico.id}
+          />
         )}
       </main>
     </div>
