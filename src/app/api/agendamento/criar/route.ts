@@ -1,6 +1,6 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { enviarEmailConfirmacao, enviarWhatsAppConfirmacao } from '@/lib/notifications'
+import { enviarEmailConfirmacao, enviarWhatsAppConfirmacao, enviarEmailNovoAgendamentoMedico } from '@/lib/notifications'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
@@ -69,12 +69,19 @@ export async function POST(request: Request) {
 
   if (error) return NextResponse.json({ erro: error.message }, { status: 500 })
 
-  // Buscar dados do médico
+  // Buscar dados do médico (incluindo usuario_id para buscar email)
   const { data: medico } = await adminSupabase
     .from('medicos')
-    .select('nome, especialidade, sexo')
+    .select('nome, especialidade, sexo, usuario_id')
     .eq('id', medico_id)
     .single()
+
+  // Buscar email do médico via Auth
+  let emailMedico: string | null = null
+  if (medico?.usuario_id) {
+    const { data: authMedico } = await adminSupabase.auth.admin.getUserById(medico.usuario_id)
+    emailMedico = authMedico?.user?.email ?? null
+  }
 
   // Enviar notificações (sem bloquear a resposta)
   const dadosNotificacao = {
@@ -91,6 +98,10 @@ export async function POST(request: Request) {
   await Promise.all([
     enviarEmailConfirmacao(dadosNotificacao),
     enviarWhatsAppConfirmacao(dadosNotificacao),
+    // Notificar médico sobre o novo agendamento
+    emailMedico
+      ? enviarEmailNovoAgendamentoMedico({ ...dadosNotificacao, medicoEmail: emailMedico })
+      : Promise.resolve(),
   ]).catch(err => console.error('Erro nas notificações:', err))
 
   return NextResponse.json({ sucesso: true, agendamento })

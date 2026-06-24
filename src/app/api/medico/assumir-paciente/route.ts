@@ -93,6 +93,43 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // ── Regra 3: bloquear se há agendamento confirmado nos próximos 20 minutos ──
+  const agoraMais20 = new Date(Date.now() + 20 * 60 * 1000).toISOString()
+  const agoraISO    = new Date().toISOString()
+
+  const { data: agendamentoProximo } = await admin
+    .from('agendamentos')
+    .select('id, data_hora, paciente_id')
+    .eq('medico_id', medico.id)
+    .in('status', ['confirmado', 'agendado'])
+    .gte('data_hora', agoraISO)
+    .lte('data_hora', agoraMais20)
+    .order('data_hora', { ascending: true })
+    .limit(1)
+    .maybeSingle()
+
+  if (agendamentoProximo) {
+    const dhConsulta = agendamentoProximo.data_hora
+    const dtUTC = new Date(dhConsulta.endsWith('Z') ? dhConsulta : dhConsulta + 'Z')
+    const horaStr = dtUTC.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
+    const diffMin = Math.ceil((dtUTC.getTime() - Date.now()) / 60000)
+
+    // Buscar nome do paciente agendado
+    const { data: pacAgendado } = await admin
+      .from('pacientes')
+      .select('nome')
+      .eq('id', agendamentoProximo.paciente_id)
+      .maybeSingle()
+    const nomePacAgendado = (pacAgendado as any)?.nome || 'um paciente'
+
+    return NextResponse.json({
+      error: `Você tem uma consulta agendada com ${nomePacAgendado} às ${horaStr} (em ${diffMin} min). Não é possível assumir pacientes da fila faltando menos de 20 minutos para uma consulta agendada.`,
+      agendamento_proximo: true,
+      minutos_restantes: diffMin,
+      hora_consulta: horaStr,
+    }, { status: 409 })
+  }
+
   // ── Verificar estado do atendimento alvo ──────────────────────────────────
   const { data: atendimento } = await admin
     .from('atendimentos')

@@ -212,6 +212,94 @@ export async function enviarEmailCancelamento(dados: DadosAgendamento) {
   }
 }
 
+// ─── EMAIL NOVO AGENDAMENTO PARA O MÉDICO ────────────────────────────────────
+
+export async function enviarEmailNovoAgendamentoMedico(dados: DadosAgendamento & { medicoEmail: string }) {
+  const gmailUser = process.env.GMAIL_USER
+  const gmailPass = process.env.GMAIL_APP_PASSWORD
+  if (!gmailUser || !gmailPass) return
+
+  const { data, hora } = formatarDataHora(dados.dataHora)
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: gmailUser, pass: gmailPass },
+  })
+
+  const titulo = drTitle(dados.medicoSexo)
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F4F7FB; margin: 0; padding: 20px; }
+        .container { max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .header { background: #1A3A2C; padding: 32px; text-align: center; }
+        .header h1 { color: white; margin: 0; font-size: 22px; }
+        .header p { color: #5BBD9B; margin: 8px 0 0; font-size: 14px; }
+        .body { padding: 32px; }
+        .greeting { font-size: 16px; color: #374151; margin-bottom: 24px; }
+        .card { background: #F0FDF4; border: 1px solid #86EFAC; border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .card-row { display: flex; margin-bottom: 12px; }
+        .card-label { color: #6B7280; font-size: 13px; width: 90px; }
+        .card-value { color: #1A3A2C; font-size: 13px; font-weight: 600; }
+        .badge { display: inline-block; background: #1A3A2C; color: white; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
+        .footer { background: #F9FAFB; padding: 20px 32px; text-align: center; }
+        .footer p { color: #9CA3AF; font-size: 12px; margin: 0; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>💙 MedDigital</h1>
+          <p>Nova consulta agendada</p>
+        </div>
+        <div class="body">
+          <p class="greeting">Olá, <strong>${titulo} ${dados.medicoNome}</strong>!</p>
+          <span class="badge">📅 Novo agendamento</span>
+          <div class="card">
+            <div class="card-row">
+              <span class="card-label">Paciente</span>
+              <span class="card-value">${dados.pacienteNome}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Data</span>
+              <span class="card-value">${data}</span>
+            </div>
+            <div class="card-row" style="margin-bottom: 0">
+              <span class="card-label">Horário</span>
+              <span class="card-value">${hora}</span>
+            </div>
+          </div>
+          <p style="color: #6B7280; font-size: 14px; line-height: 1.6;">
+            Acesse sua agenda em <strong>med-digital.vercel.app/medico/agendamentos</strong> para ver os detalhes.
+            Você receberá um lembrete 1 hora antes da consulta.
+          </p>
+        </div>
+        <div class="footer">
+          <p>MedDigital — Telemedicina com Inteligência Artificial</p>
+          <p style="margin-top: 4px;">med-digital.vercel.app</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+
+  try {
+    await transporter.sendMail({
+      from: `MedDigital <${gmailUser}>`,
+      to: dados.medicoEmail,
+      subject: `📅 Novo agendamento — ${dados.pacienteNome} em ${data} às ${hora}`,
+      html,
+    })
+    console.log('Email novo agendamento enviado ao médico:', dados.medicoEmail)
+  } catch (err) {
+    console.error('Erro ao enviar email para médico:', err)
+  }
+}
+
 // ─── WHATSAPP via Twilio ─────────────────────────────────────────────────────
 
 export async function enviarWhatsAppConfirmacao(dados: DadosAgendamento) {
@@ -263,5 +351,237 @@ Em caso de imprevistos, entre em contato conosco.`
     }
   } catch (err) {
     console.error('Erro ao enviar WhatsApp:', err)
+  }
+}
+
+// ─── LEMBRETE PRÉ-CONSULTA — EMAIL PACIENTE ──────────────────────────────────
+
+export async function enviarEmailLembretePaciente(dados: DadosAgendamento) {
+  const gmailUser = process.env.GMAIL_USER
+  const gmailPass = process.env.GMAIL_APP_PASSWORD
+  if (!gmailUser || !gmailPass) return
+
+  const { data, hora } = formatarDataHora(dados.dataHora)
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: gmailUser, pass: gmailPass },
+  })
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F4F7FB; margin: 0; padding: 20px; }
+        .container { max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .header { background: #1A3A5C; padding: 32px; text-align: center; }
+        .header h1 { color: white; margin: 0; font-size: 22px; }
+        .header p { color: #93C5FD; margin: 8px 0 0; font-size: 14px; }
+        .body { padding: 32px; }
+        .greeting { font-size: 16px; color: #374151; margin-bottom: 24px; }
+        .card { background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .card-row { display: flex; margin-bottom: 12px; }
+        .card-label { color: #6B7280; font-size: 13px; width: 90px; }
+        .card-value { color: #1A3A5C; font-size: 13px; font-weight: 600; }
+        .badge { display: inline-block; background: #F97316; color: white; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
+        .btn { display: inline-block; background: #1A3A5C; color: white; text-decoration: none; border-radius: 10px; padding: 12px 24px; font-size: 14px; font-weight: 600; margin-top: 16px; }
+        .footer { background: #F9FAFB; padding: 20px 32px; text-align: center; }
+        .footer p { color: #9CA3AF; font-size: 12px; margin: 0; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>💙 MedDigital</h1>
+          <p>Lembrete de consulta</p>
+        </div>
+        <div class="body">
+          <p class="greeting">Olá, <strong>${dados.pacienteNome}</strong>!</p>
+          <span class="badge">⏰ Sua consulta começa em 1 hora</span>
+          <div class="card">
+            <div class="card-row">
+              <span class="card-label">Médico</span>
+              <span class="card-value">${drTitle(dados.medicoSexo)} ${dados.medicoNome}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Especialidade</span>
+              <span class="card-value">${dados.medicoEspecialidade}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Data</span>
+              <span class="card-value">${data}</span>
+            </div>
+            <div class="card-row" style="margin-bottom: 0">
+              <span class="card-label">Horário</span>
+              <span class="card-value">${hora}</span>
+            </div>
+          </div>
+          <p style="color: #6B7280; font-size: 14px; line-height: 1.6;">
+            A sala de vídeo ficará disponível 10 minutos antes do horário marcado.<br>
+            Acesse pelo botão abaixo ou entre em <strong>med-digital.vercel.app</strong>.
+          </p>
+          <a href="https://med-digital.vercel.app/paciente/agendamentos" class="btn">Acessar minha consulta →</a>
+        </div>
+        <div class="footer">
+          <p>MedDigital — Telemedicina com Inteligência Artificial</p>
+          <p style="margin-top: 4px;">med-digital.vercel.app</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+
+  try {
+    await transporter.sendMail({
+      from: `MedDigital <${gmailUser}>`,
+      to: dados.pacienteEmail,
+      subject: `⏰ Lembrete: sua consulta começa em 1 hora — ${hora}`,
+      html,
+    })
+    console.log('Email lembrete enviado ao paciente:', dados.pacienteEmail)
+  } catch (err) {
+    console.error('Erro ao enviar email lembrete:', err)
+  }
+}
+
+// ─── LEMBRETE PRÉ-CONSULTA — EMAIL MÉDICO ────────────────────────────────────
+
+export async function enviarEmailLembreteMedico(dados: DadosAgendamento & { medicoEmail: string }) {
+  const gmailUser = process.env.GMAIL_USER
+  const gmailPass = process.env.GMAIL_APP_PASSWORD
+  if (!gmailUser || !gmailPass) return
+
+  const { data, hora } = formatarDataHora(dados.dataHora)
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: gmailUser, pass: gmailPass },
+  })
+
+  const titulo = drTitle(dados.medicoSexo)
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F4F7FB; margin: 0; padding: 20px; }
+        .container { max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .header { background: #1A3A2C; padding: 32px; text-align: center; }
+        .header h1 { color: white; margin: 0; font-size: 22px; }
+        .header p { color: #5BBD9B; margin: 8px 0 0; font-size: 14px; }
+        .body { padding: 32px; }
+        .greeting { font-size: 16px; color: #374151; margin-bottom: 24px; }
+        .card { background: #F0FDF4; border: 1px solid #86EFAC; border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .card-row { display: flex; margin-bottom: 12px; }
+        .card-label { color: #6B7280; font-size: 13px; width: 90px; }
+        .card-value { color: #1A3A2C; font-size: 13px; font-weight: 600; }
+        .badge { display: inline-block; background: #F97316; color: white; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
+        .btn { display: inline-block; background: #1A3A2C; color: white; text-decoration: none; border-radius: 10px; padding: 12px 24px; font-size: 14px; font-weight: 600; margin-top: 16px; }
+        .footer { background: #F9FAFB; padding: 20px 32px; text-align: center; }
+        .footer p { color: #9CA3AF; font-size: 12px; margin: 0; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>💙 MedDigital</h1>
+          <p>Lembrete de consulta agendada</p>
+        </div>
+        <div class="body">
+          <p class="greeting">Olá, <strong>${titulo} ${dados.medicoNome}</strong>!</p>
+          <span class="badge">⏰ Consulta em 1 hora</span>
+          <div class="card">
+            <div class="card-row">
+              <span class="card-label">Paciente</span>
+              <span class="card-value">${dados.pacienteNome}</span>
+            </div>
+            <div class="card-row">
+              <span class="card-label">Data</span>
+              <span class="card-value">${data}</span>
+            </div>
+            <div class="card-row" style="margin-bottom: 0">
+              <span class="card-label">Horário</span>
+              <span class="card-value">${hora}</span>
+            </div>
+          </div>
+          <p style="color: #6B7280; font-size: 14px; line-height: 1.6;">
+            A sala de vídeo ficará disponível 10 minutos antes do horário.<br>
+            Acesse sua agenda para entrar na sala no horário marcado.
+          </p>
+          <a href="https://med-digital.vercel.app/medico/agendamentos" class="btn">Acessar minha agenda →</a>
+        </div>
+        <div class="footer">
+          <p>MedDigital — Telemedicina com Inteligência Artificial</p>
+          <p style="margin-top: 4px;">med-digital.vercel.app</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `
+
+  try {
+    await transporter.sendMail({
+      from: `MedDigital <${gmailUser}>`,
+      to: dados.medicoEmail,
+      subject: `⏰ Lembrete: consulta com ${dados.pacienteNome} em 1 hora — ${hora}`,
+      html,
+    })
+    console.log('Email lembrete enviado ao médico:', dados.medicoEmail)
+  } catch (err) {
+    console.error('Erro ao enviar email lembrete médico:', err)
+  }
+}
+
+// ─── LEMBRETE PRÉ-CONSULTA — WHATSAPP PACIENTE ───────────────────────────────
+
+export async function enviarWhatsAppLembrete(dados: DadosAgendamento) {
+  if (!dados.pacienteTelefone) return
+  if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) return
+
+  const { data, hora } = formatarDataHora(dados.dataHora)
+
+  let telefone = dados.pacienteTelefone.replace(/\D/g, '')
+  if (!telefone.startsWith('55')) telefone = '55' + telefone
+
+  const mensagem = `⏰ *Lembrete MedDigital — sua consulta começa em 1 hora!*
+
+Olá, ${dados.pacienteNome} 👋
+
+📅 *Data:* ${data}
+⏰ *Horário:* ${hora}
+👨‍⚕️ *Médico:* ${drTitle(dados.medicoSexo)} ${dados.medicoNome}
+
+A sala de vídeo abrirá 10 minutos antes. Acesse:
+🔗 med-digital.vercel.app/paciente/agendamentos`
+
+  try {
+    const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${process.env.TWILIO_ACCOUNT_SID}/Messages.json`
+    const body = new URLSearchParams({
+      From: `whatsapp:${process.env.TWILIO_WHATSAPP_FROM || '+14155238886'}`,
+      To: `whatsapp:+${telefone}`,
+      Body: mensagem,
+    })
+
+    const response = await fetch(twilioUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + Buffer.from(`${process.env.TWILIO_ACCOUNT_SID}:${process.env.TWILIO_AUTH_TOKEN}`).toString('base64'),
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: body.toString(),
+    })
+
+    const result = await response.json()
+    if (response.ok) {
+      console.log('WhatsApp lembrete enviado para', telefone)
+    } else {
+      console.error('Erro WhatsApp lembrete:', result)
+    }
+  } catch (err) {
+    console.error('Erro ao enviar WhatsApp lembrete:', err)
   }
 }
