@@ -1,12 +1,12 @@
 import Link from 'next/link'
 import {
   Shield, Building2, Users, Calendar, UserCheck,
-  LogOut, ArrowLeft, BarChart2, Radio, ShieldCheck, ClipboardEdit,
+  LogOut, ArrowLeft, BarChart2, Radio, ShieldCheck, ClipboardEdit, Wallet,
 } from 'lucide-react'
 import ThemeToggle from '@/components/ThemeToggle'
 
 interface Props {
-  ativo?: 'dashboard' | 'empresas' | 'pacientes' | 'agendamentos' | 'medicos' | 'tempo-real' | 'auditoria' | 'logs-antecedentes'
+  ativo?: 'dashboard' | 'empresas' | 'pacientes' | 'agendamentos' | 'medicos' | 'tempo-real' | 'auditoria' | 'logs-antecedentes' | 'financeiro'
   titulo?: string
   backHref?: string
 }
@@ -89,6 +89,9 @@ export default function AdminHeader({ ativo, titulo, backHref }: Props) {
               </Link>
               <Link href="/admin/logs-antecedentes" className={`${linkBase} ${ativo === 'logs-antecedentes' ? linkAtivo : linkInativo}`}>
                 <ClipboardEdit className="w-4 h-4" /> <span className="hidden md:inline">Prontuário</span>
+              </Link>
+              <Link href="/admin/financeiro" className={`${linkBase} ${ativo === 'financeiro' ? linkAtivo : linkInativo}`}>
+                <Wallet className="w-4 h-4" /> <span className="hidden md:inline">Financeiro</span>
               </Link>
 
               <div className="w-px h-5 bg-white/15 mx-1.5" />

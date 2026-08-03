@@ -13,7 +13,8 @@
       "Bash(grep -rnE \"\\(cpf|cid\\)=\\\\$\\\\{|searchParams.set\\\\\\(['\\\\\"]\\(cpf|cid|nome|paciente\\)\" src/app src/components --include=\"*.tsx\" --include=\"*.ts\")",
       "Bash(grep -rniE \"\\(secret|password|senha|token|api[_-]?key\\)['\\\\\"]?\\\\s*[:=]\\\\s*['\\\\\"][^'\\\\\"]{8,}\" src --include=\"*.ts\" --include=\"*.tsx\")",
       "Bash(openssl rand *)",
-      "Bash(npx vercel *)"
+      "Bash(npx vercel *)",
+      "Bash(gh auth *)"
     ]
   }
 }
