@@ -66,6 +66,33 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // ── Verificação server-side de autorização de CID (LGPD / Art. 11) ──────────
+  // Se o CID foi enviado, verificar se o paciente negou explicitamente a autorização.
+  // Impede que chamadas diretas à API gravem CID após o paciente ter negado.
+  let cidFinal: string | null = cid || null
+  let cidAutorizadoFinal: boolean | null = cid_autorizado ?? null
+
+  if (cidFinal && atendimento_id) {
+    const { data: autorizacao } = await admin
+      .from('autorizacoes_cid')
+      .select('status')
+      .eq('atendimento_id', atendimento_id)
+      .eq('cid', cidFinal)
+      .order('criado_em', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (autorizacao?.status === 'negado') {
+      // Paciente negou explicitamente — nunca gravar o CID
+      cidFinal = null
+      cidAutorizadoFinal = false
+    } else if (autorizacao?.status === 'autorizado') {
+      // Confirmação server-side de autorização
+      cidAutorizadoFinal = true
+    }
+    // Se não há registro de autorização: CID não-sensível, segue normalmente
+  }
+
   // Buscar empresa vinculada ao paciente
   const { data: pac } = await admin.from('pacientes').select('cpf').eq('id', paciente_id).single()
   let empresa_id: string | null = null
@@ -83,7 +110,7 @@ export async function POST(req: NextRequest) {
     data_inicio,
     data_fim,
     dias: dias || 1,
-    cid: cid || null,
+    cid: cidFinal,
     texto_complementar: texto_complementar || null,
     observacoes: observacoes || null,
     tipo: tipoAtestado,
@@ -91,7 +118,7 @@ export async function POST(req: NextRequest) {
     hora_fim: hora_fim || null,
     nome_acompanhante: nome_acompanhante || null,
     relacao_acompanhante: relacao_acompanhante || null,
-    cid_autorizado: cid_autorizado ?? null,
+    cid_autorizado: cidAutorizadoFinal,
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
