@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function AdminHeader({ ativo, titulo, backHref }: Props) {
-  const linkBase = 'text-sm flex items-center gap-1.5 transition-colors px-2.5 py-1.5 rounded-lg'
+  const linkBase = 'text-sm flex items-center gap-1 transition-colors px-2 py-1.5 rounded-lg'
   const linkAtivo = 'text-[#5BBD9B] font-semibold bg-white/10'
   const linkInativo = 'text-green-200/80 hover:text-white hover:bg-white/10'
 
@@ -21,7 +21,7 @@ export default function AdminHeader({ ativo, titulo, backHref }: Props) {
       className="shrink-0 border-b"
       style={{ background: 'var(--header-bg)', color: 'var(--header-txt)', borderColor: 'rgba(255,255,255,0.08)' }}
     >
-      <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+      <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-between gap-2">
 
         {/* ── Esquerda ── */}
         <div className="flex items-center gap-3 min-w-0">
@@ -37,10 +37,10 @@ export default function AdminHeader({ ativo, titulo, backHref }: Props) {
           <Link href="/admin" className="flex items-center gap-2 shrink-0 group">
             <img src="/logo-branca.svg" alt="RovarisMed" className="h-8 group-hover:opacity-90 transition-opacity" />
           </Link>
-          <div className="h-5 w-px bg-white/15 shrink-0" />
-          <span className="text-xs font-semibold text-white/90 bg-white/10 px-3 py-1 rounded-full whitespace-nowrap flex items-center gap-1.5 border border-white/10">
+          <div className="h-5 w-px bg-white/15 shrink-0 hidden sm:block" />
+          <span className="text-xs font-semibold text-white/90 bg-white/10 px-2 py-1 rounded-full whitespace-nowrap hidden sm:flex items-center gap-1 border border-white/10">
             <Shield className="w-3 h-3 text-[#5BBD9B]" />
-            {titulo || 'Admin'}
+            <span className="hidden lg:inline">{titulo || 'Admin'}</span>
           </span>
         </div>
 
@@ -60,38 +60,38 @@ export default function AdminHeader({ ativo, titulo, backHref }: Props) {
               </form>
             </>
           ) : (
-            <nav className="flex items-center gap-0.5">
+            <nav className="flex items-center gap-0">
               <Link href="/admin/dashboard" className={`${linkBase} ${ativo === 'dashboard' ? linkAtivo : linkInativo}`}>
-                <BarChart2 className="w-4 h-4" /> <span className="hidden md:inline">Dashboard</span>
+                <BarChart2 className="w-4 h-4" /> <span className="hidden xl:inline">Dashboard</span>
               </Link>
               <Link href="/admin/empresas" className={`${linkBase} ${ativo === 'empresas' ? linkAtivo : linkInativo}`}>
-                <Building2 className="w-4 h-4" /> <span className="hidden md:inline">Empresas</span>
+                <Building2 className="w-4 h-4" /> <span className="hidden xl:inline">Empresas</span>
               </Link>
               <Link href="/admin/pacientes" className={`${linkBase} ${ativo === 'pacientes' ? linkAtivo : linkInativo}`}>
-                <Users className="w-4 h-4" /> <span className="hidden md:inline">Pacientes</span>
+                <Users className="w-4 h-4" /> <span className="hidden xl:inline">Pacientes</span>
               </Link>
               <Link href="/admin/agendamentos" className={`${linkBase} ${ativo === 'agendamentos' ? linkAtivo : linkInativo}`}>
-                <Calendar className="w-4 h-4" /> <span className="hidden md:inline">Agendamentos</span>
+                <Calendar className="w-4 h-4" /> <span className="hidden xl:inline">Agendamentos</span>
               </Link>
               <Link href="/admin/medicos" className={`${linkBase} ${ativo === 'medicos' ? linkAtivo : linkInativo}`}>
-                <UserCheck className="w-4 h-4" /> <span className="hidden md:inline">Médicos</span>
+                <UserCheck className="w-4 h-4" /> <span className="hidden xl:inline">Médicos</span>
               </Link>
               <Link
                 href="/admin/tempo-real"
                 className={`${linkBase} relative ${ativo === 'tempo-real' ? linkAtivo : linkInativo}`}
               >
                 <Radio className="w-4 h-4" />
-                <span className="hidden md:inline">Tempo Real</span>
+                <span className="hidden xl:inline">Tempo Real</span>
                 <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-400 animate-pulse" />
               </Link>
               <Link href="/admin/auditoria" className={`${linkBase} ${ativo === 'auditoria' ? linkAtivo : linkInativo}`}>
-                <ShieldCheck className="w-4 h-4" /> <span className="hidden md:inline">Auditoria</span>
+                <ShieldCheck className="w-4 h-4" /> <span className="hidden xl:inline">Auditoria</span>
               </Link>
               <Link href="/admin/logs-antecedentes" className={`${linkBase} ${ativo === 'logs-antecedentes' ? linkAtivo : linkInativo}`}>
-                <ClipboardEdit className="w-4 h-4" /> <span className="hidden md:inline">Prontuário</span>
+                <ClipboardEdit className="w-4 h-4" /> <span className="hidden xl:inline">Prontuário</span>
               </Link>
               <Link href="/admin/financeiro" className={`${linkBase} ${ativo === 'financeiro' ? linkAtivo : linkInativo}`}>
-                <Wallet className="w-4 h-4" /> <span className="hidden md:inline">Financeiro</span>
+                <Wallet className="w-4 h-4" /> <span className="hidden xl:inline">Financeiro</span>
               </Link>
 
               <div className="w-px h-5 bg-white/15 mx-1.5" />

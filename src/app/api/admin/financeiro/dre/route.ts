@@ -8,6 +8,7 @@ const GRUPOS: Record<string, string> = {
   custo_operacional:      'Custos Operacionais',
   despesa_administrativa: 'Despesas Administrativas',
   despesa_financeira:     'Despesas Financeiras',
+  investimentos:          'Investimentos',
 }
 
 export async function GET(req: NextRequest) {
@@ -84,7 +85,7 @@ export async function GET(req: NextRequest) {
     periodo: { de, ate },
     grupos: Object.fromEntries(
       Object.entries(grupos).sort(([a], [b]) => {
-        const ord = ['receita_bruta','deducao','custo_operacional','despesa_administrativa','despesa_financeira']
+        const ord = ['receita_bruta','deducao','custo_operacional','despesa_administrativa','despesa_financeira','investimentos']
         return ord.indexOf(a) - ord.indexOf(b)
       })
     ),

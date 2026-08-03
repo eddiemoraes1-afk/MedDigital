@@ -1,21 +1,23 @@
 'use client'
 
 import { useState } from 'react'
-import { DollarSign, TrendingUp, TrendingDown, BarChart2, Activity } from 'lucide-react'
+import { DollarSign, TrendingUp, TrendingDown, BarChart2, Activity, Settings2 } from 'lucide-react'
 import LancamentosTab    from './LancamentosTab'
 import ContasReceberTab  from './ContasReceberTab'
 import ContasPagarTab    from './ContasPagarTab'
 import DRETab            from './DRETab'
 import FluxoCaixaTab     from './FluxoCaixaTab'
+import ConfigFinanceiroTab from './ConfigFinanceiroTab'
 
-type Tab = 'lancamentos' | 'receber' | 'pagar' | 'dre' | 'fluxo'
+type Tab = 'lancamentos' | 'receber' | 'pagar' | 'dre' | 'fluxo' | 'config'
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
-  { id: 'lancamentos', label: 'Todos os Lançamentos', icon: DollarSign  },
-  { id: 'receber',     label: 'Contas a Receber',     icon: TrendingUp  },
+  { id: 'lancamentos', label: 'Todos os Lançamentos', icon: DollarSign   },
+  { id: 'receber',     label: 'Contas a Receber',     icon: TrendingUp   },
   { id: 'pagar',       label: 'Contas a Pagar',       icon: TrendingDown },
-  { id: 'dre',         label: 'DRE Gerencial',        icon: BarChart2   },
-  { id: 'fluxo',       label: 'Fluxo de Caixa',       icon: Activity    },
+  { id: 'dre',         label: 'DRE Gerencial',        icon: BarChart2    },
+  { id: 'fluxo',       label: 'Fluxo de Caixa',       icon: Activity     },
+  { id: 'config',      label: 'Configurações',        icon: Settings2    },
 ]
 
 export default function FinanceiroClient() {
@@ -62,6 +64,7 @@ export default function FinanceiroClient() {
       {tab === 'pagar'       && <ContasPagarTab />}
       {tab === 'dre'         && <DRETab />}
       {tab === 'fluxo'       && <FluxoCaixaTab />}
+      {tab === 'config'      && <ConfigFinanceiroTab />}
     </div>
   )
 }
