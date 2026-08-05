@@ -16,10 +16,30 @@ type Lancamento = {
   data_vencimento: string | null
   data_pagamento: string | null
   status: string
+  forma_pagamento: string | null
+  grupo_parcela: string | null
   categorias_financeiras?: { id: string; nome: string; grupo_dre: string } | null
   empresas?: { nome: string } | null
   medicos?: { nome: string } | null
   contas_bancarias?: { nome: string } | null
+}
+
+const FORMA_LABEL: Record<string, string> = {
+  pix:            'Pix',
+  boleto:         'Boleto',
+  cartao_credito: 'Cartão Crédito',
+  cartao_debito:  'Cartão Débito',
+  dinheiro:       'Dinheiro',
+  cheque:         'Cheque',
+}
+
+const FORMA_COR: Record<string, string> = {
+  pix:            'bg-teal-100 text-teal-700',
+  boleto:         'bg-blue-100 text-blue-700',
+  cartao_credito: 'bg-purple-100 text-purple-700',
+  cartao_debito:  'bg-indigo-100 text-indigo-700',
+  dinheiro:       'bg-green-100 text-green-700',
+  cheque:         'bg-orange-100 text-orange-700',
 }
 type Categoria = { id: string; nome: string; tipo: string }
 type Conta     = { id: string; nome: string }
@@ -57,6 +77,7 @@ export default function LancamentosTab() {
     tipo: 'receita', categoria_id: '', descricao: '', valor: '',
     data_competencia: HOJE, data_vencimento: '', data_pagamento: '',
     conta_bancaria_id: '', observacoes: '',
+    forma_pagamento: '', numero_parcelas: '1',
   })
 
   const carregar = useCallback(async () => {
@@ -105,25 +126,28 @@ export default function LancamentosTab() {
     if (!form.descricao || !form.valor || !form.data_competencia) return
     setSalvando(true)
     try {
+      const parcelas = parseInt(form.numero_parcelas) || 1
       const r = await fetch('/api/admin/financeiro/lancamentos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           tipo: form.tipo, descricao: form.descricao,
           valor: parseFloat(form.valor.replace(',', '.')),
-          data_competencia: form.data_competencia,
+          data_competencia:  form.data_competencia,
           data_vencimento:   form.data_vencimento   || null,
-          data_pagamento:    form.data_pagamento     || null,
+          data_pagamento:    parcelas > 1 ? null : (form.data_pagamento || null),
           categoria_id:      form.categoria_id       || null,
           conta_bancaria_id: form.conta_bancaria_id  || null,
           observacoes:       form.observacoes        || null,
+          forma_pagamento:   form.forma_pagamento    || null,
+          numero_parcelas:   parcelas,
         }),
       })
       if (r.ok) {
         setShowForm(false)
         setForm({ tipo: 'receita', categoria_id: '', descricao: '', valor: '',
           data_competencia: HOJE, data_vencimento: '', data_pagamento: '',
-          conta_bancaria_id: '', observacoes: '' })
+          conta_bancaria_id: '', observacoes: '', forma_pagamento: '', numero_parcelas: '1' })
         await carregar()
       }
     } finally { setSalvando(false) }
@@ -289,62 +313,133 @@ export default function LancamentosTab() {
             <h3 className="font-semibold" style={{ color: 'var(--txt)' }}>Novo Lançamento</h3>
             <button onClick={() => setShowForm(false)} style={{ color: 'var(--txt-muted)' }}><X className="w-5 h-5" /></button>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {[
-              { label: 'Tipo *', node: (
-                <select value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value, categoria_id: '' }))}
-                  className="w-full px-3 py-2 rounded-xl border text-sm" style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--txt)' }}>
-                  <option value="receita">Receita</option><option value="despesa">Despesa</option>
-                </select>
-              )},
-              { label: 'Categoria', node: (
-                <select value={form.categoria_id} onChange={e => setForm(f => ({ ...f, categoria_id: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border text-sm" style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--txt)' }}>
-                  <option value="">Sem categoria</option>
-                  {catFiltradas.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
-                </select>
-              )},
-              { label: 'Descrição *', col: 'col-span-2 md:col-span-1', node: (
-                <input value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))}
-                  placeholder="Ex: Mensalidade Empresa ABC" className="w-full px-3 py-2 rounded-xl border text-sm"
-                  style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--txt)' }} />
-              )},
-              { label: 'Valor (R$) *', node: (
-                <input value={form.valor} onChange={e => setForm(f => ({ ...f, valor: e.target.value }))}
-                  placeholder="1500,00" className="w-full px-3 py-2 rounded-xl border text-sm"
-                  style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--txt)' }} />
-              )},
-              { label: 'Competência *', node: (
-                <input type="date" value={form.data_competencia} onChange={e => setForm(f => ({ ...f, data_competencia: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border text-sm" style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--txt)' }} />
-              )},
-              { label: 'Vencimento', node: (
-                <input type="date" value={form.data_vencimento} onChange={e => setForm(f => ({ ...f, data_vencimento: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border text-sm" style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--txt)' }} />
-              )},
-              { label: 'Data de Pagamento', node: (
-                <input type="date" value={form.data_pagamento} onChange={e => setForm(f => ({ ...f, data_pagamento: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border text-sm" style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--txt)' }} />
-              )},
-              { label: 'Conta Bancária', node: (
-                <select value={form.conta_bancaria_id} onChange={e => setForm(f => ({ ...f, conta_bancaria_id: e.target.value }))}
-                  className="w-full px-3 py-2 rounded-xl border text-sm" style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--txt)' }}>
-                  <option value="">Sem conta</option>
-                  {contas.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
-                </select>
-              )},
-              { label: 'Observações', col: 'col-span-2 md:col-span-1', node: (
-                <input value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))}
-                  placeholder="Opcional" className="w-full px-3 py-2 rounded-xl border text-sm"
-                  style={{ background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--txt)' }} />
-              )},
-            ].map(({ label, node, col }) => (
-              <div key={label} className={col ?? ''}>
-                <label className="block text-xs mb-1 font-medium" style={{ color: 'var(--txt-muted)' }}>{label}</label>
-                {node}
+          {/* Campos do formulário */}
+          {(() => {
+            const fSt = { background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--txt)' } as React.CSSProperties
+            const fCls = 'w-full px-3 py-2 rounded-xl border text-sm'
+            const parcelas = parseInt(form.numero_parcelas) || 1
+            const valorNum = parseFloat(form.valor.replace(',', '.')) || 0
+            const valorParc = parcelas > 1 && valorNum > 0
+              ? (Math.floor(valorNum / parcelas * 100) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+              : null
+            return (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {/* Linha 1: Tipo, Categoria, Descrição */}
+                <div>
+                  <label className="block text-xs mb-1 font-medium" style={{ color: 'var(--txt-muted)' }}>Tipo *</label>
+                  <select value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value, categoria_id: '' }))}
+                    className={fCls} style={fSt}>
+                    <option value="receita">Receita</option>
+                    <option value="despesa">Despesa</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs mb-1 font-medium" style={{ color: 'var(--txt-muted)' }}>Categoria</label>
+                  <select value={form.categoria_id} onChange={e => setForm(f => ({ ...f, categoria_id: e.target.value }))}
+                    className={fCls} style={fSt}>
+                    <option value="">Sem categoria</option>
+                    {catFiltradas.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                  </select>
+                </div>
+                <div className="col-span-2 md:col-span-1">
+                  <label className="block text-xs mb-1 font-medium" style={{ color: 'var(--txt-muted)' }}>Descrição *</label>
+                  <input value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))}
+                    placeholder="Ex: Compra de equipamento" className={fCls} style={fSt} />
+                </div>
+
+                {/* Linha 2: Valor, Parcelas, Forma de Pagamento */}
+                <div>
+                  <label className="block text-xs mb-1 font-medium" style={{ color: 'var(--txt-muted)' }}>
+                    Valor {parcelas > 1 ? 'Total (R$) *' : '(R$) *'}
+                  </label>
+                  <input value={form.valor} onChange={e => setForm(f => ({ ...f, valor: e.target.value }))}
+                    placeholder="1500,00" className={fCls} style={fSt} />
+                </div>
+                <div>
+                  <label className="block text-xs mb-1 font-medium" style={{ color: 'var(--txt-muted)' }}>Parcelas</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number" min="1" max="360"
+                      value={form.numero_parcelas}
+                      onChange={e => setForm(f => ({ ...f, numero_parcelas: e.target.value }))}
+                      className={`${fCls} w-20`} style={fSt}
+                    />
+                    {valorParc && (
+                      <span className="text-xs font-medium px-2 py-1 rounded-lg bg-blue-50 text-blue-700">
+                        {parcelas}x de {valorParc}
+                      </span>
+                    )}
+                    {parcelas === 1 && (
+                      <span className="text-xs" style={{ color: 'var(--txt-muted)' }}>à vista</span>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs mb-1 font-medium" style={{ color: 'var(--txt-muted)' }}>Forma de Pagamento</label>
+                  <select value={form.forma_pagamento} onChange={e => setForm(f => ({ ...f, forma_pagamento: e.target.value }))}
+                    className={fCls} style={fSt}>
+                    <option value="">Não informado</option>
+                    <option value="pix">Pix</option>
+                    <option value="boleto">Boleto</option>
+                    <option value="cartao_credito">Cartão de Crédito</option>
+                    <option value="cartao_debito">Cartão de Débito</option>
+                    <option value="dinheiro">Dinheiro</option>
+                    <option value="cheque">Cheque</option>
+                  </select>
+                </div>
+
+                {/* Linha 3: Competência, Vencimento (1ª parcela), Data Pgto */}
+                <div>
+                  <label className="block text-xs mb-1 font-medium" style={{ color: 'var(--txt-muted)' }}>Competência *</label>
+                  <input type="date" value={form.data_competencia}
+                    onChange={e => setForm(f => ({ ...f, data_competencia: e.target.value }))}
+                    className={fCls} style={fSt} />
+                </div>
+                <div>
+                  <label className="block text-xs mb-1 font-medium" style={{ color: 'var(--txt-muted)' }}>
+                    {parcelas > 1 ? 'Vencimento 1ª parcela' : 'Vencimento'}
+                  </label>
+                  <input type="date" value={form.data_vencimento}
+                    onChange={e => setForm(f => ({ ...f, data_vencimento: e.target.value }))}
+                    className={fCls} style={fSt} />
+                </div>
+                {parcelas === 1 && (
+                  <div>
+                    <label className="block text-xs mb-1 font-medium" style={{ color: 'var(--txt-muted)' }}>Data de Pagamento</label>
+                    <input type="date" value={form.data_pagamento}
+                      onChange={e => setForm(f => ({ ...f, data_pagamento: e.target.value }))}
+                      className={fCls} style={fSt} />
+                  </div>
+                )}
+
+                {/* Linha 4: Conta Bancária, Observações */}
+                <div>
+                  <label className="block text-xs mb-1 font-medium" style={{ color: 'var(--txt-muted)' }}>Conta Bancária</label>
+                  <select value={form.conta_bancaria_id}
+                    onChange={e => setForm(f => ({ ...f, conta_bancaria_id: e.target.value }))}
+                    className={fCls} style={fSt}>
+                    <option value="">Sem conta</option>
+                    {contas.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                  </select>
+                </div>
+                <div className={parcelas > 1 ? 'col-span-2' : 'col-span-2 md:col-span-1'}>
+                  <label className="block text-xs mb-1 font-medium" style={{ color: 'var(--txt-muted)' }}>Observações</label>
+                  <input value={form.observacoes}
+                    onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))}
+                    placeholder="Opcional" className={fCls} style={fSt} />
+                </div>
+
+                {/* Preview de parcelamento */}
+                {parcelas > 1 && valorNum > 0 && (
+                  <div className="col-span-2 md:col-span-3 rounded-xl p-3 flex items-center gap-3"
+                    style={{ background: '#f0f9ff', border: '1px solid #bae6fd' }}>
+                    <span className="text-blue-700 text-sm font-medium">📋 Serão criados {parcelas} lançamentos:</span>
+                    <span className="text-blue-600 text-sm">{valorParc} cada · vencimentos mensais a partir de {form.data_vencimento || '(sem vencimento)'}</span>
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
+            )
+          })()}
           <div className="flex justify-end gap-3 mt-4">
             <button onClick={() => setShowForm(false)} className="px-4 py-2 rounded-xl border text-sm"
               style={{ borderColor: 'var(--border)', color: 'var(--txt-muted)' }}>Cancelar</button>
@@ -383,7 +478,16 @@ export default function LancamentosTab() {
                     </td>
                     <td className="px-4 py-3 max-w-xs">
                       <p className="font-medium truncate" style={{ color: 'var(--txt)' }}>{l.descricao}</p>
-                      <p className="text-xs truncate" style={{ color: 'var(--txt-muted)' }}>{l.empresas?.nome ?? l.medicos?.nome ?? ''}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                        {(l.empresas?.nome ?? l.medicos?.nome) && (
+                          <span className="text-xs truncate" style={{ color: 'var(--txt-muted)' }}>{l.empresas?.nome ?? l.medicos?.nome}</span>
+                        )}
+                        {l.forma_pagamento && (
+                          <span className={`text-xs px-1.5 py-0.5 rounded-md font-medium ${FORMA_COR[l.forma_pagamento] ?? 'bg-gray-100 text-gray-600'}`}>
+                            {FORMA_LABEL[l.forma_pagamento] ?? l.forma_pagamento}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-xs" style={{ color: 'var(--txt-muted)' }}>{l.categorias_financeiras?.nome ?? '—'}</td>
                     <td className="px-4 py-3 font-semibold">
