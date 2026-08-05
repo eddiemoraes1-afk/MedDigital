@@ -142,8 +142,9 @@ export default function ContasReceberTab() {
       <td className="px-4 py-3 text-xs" style={{ color: 'var(--txt-muted)' }}>{fmtDataBR(l.data_competencia)}</td>
       <td className="px-4 py-3">
         <button onClick={() => marcarRecebido(l.id)}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium bg-green-100 text-green-700 hover:bg-green-200 transition-colors">
-          <Check className="w-3.5 h-3.5" /> Recebido
+          className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium border hover:bg-green-50 transition-colors"
+          style={{ borderColor: '#16a34a', color: '#16a34a' }}>
+          <Check className="w-3.5 h-3.5" /> Marcar recebido
         </button>
       </td>
     </tr>
