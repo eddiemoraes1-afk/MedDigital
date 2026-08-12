@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import {
   Search, CheckCircle2, XCircle, Loader2,
-  Users, X, RefreshCw,
+  Users, X, RefreshCw, UserPlus, Pencil, UserMinus, UserCheck,
 } from 'lucide-react'
 import ActionButtons from '@/components/ActionButtons'
+import FuncionarioFormModal, { type FuncionarioForm } from './FuncionarioFormModal'
 
 interface Funcionario {
   id: string
@@ -45,6 +46,12 @@ export default function ListaFuncionariosDashboard() {
   const [erro, setErro] = useState<string | null>(null)
   const [exportando, setExportando] = useState(false)
 
+  // Gestão de funcionários (adicionar / editar / desativar)
+  const [modalAberto, setModalAberto]   = useState(false)
+  const [editando, setEditando]         = useState<Partial<FuncionarioForm> | null>(null)
+  const [alterandoId, setAlterandoId]   = useState<string | null>(null)
+  const [aviso, setAviso]               = useState<{ tipo: 'ok' | 'erro'; texto: string } | null>(null)
+
   // Paginação
   const [pagina, setPagina] = useState(1)
 
@@ -70,6 +77,63 @@ export default function ListaFuncionariosDashboard() {
   }
 
   useEffect(() => { carregar() }, [])
+
+  // Esconde o aviso automaticamente depois de 4 segundos
+  useEffect(() => {
+    if (!aviso) return
+    const t = setTimeout(() => setAviso(null), 4000)
+    return () => clearTimeout(t)
+  }, [aviso])
+
+  // ── Ações de gestão ──────────────────────────────────────────────────────────
+  function abrirNovo() {
+    setEditando(null)
+    setModalAberto(true)
+  }
+
+  function abrirEdicao(v: Funcionario) {
+    setEditando({
+      id:                 v.id,
+      nome_completo:      v.nome_completo ?? '',
+      nome_social:        v.nome_social ?? '',
+      cpf:                v.cpf ?? '',
+      email:              v.email ?? '',
+      cargo:              v.cargo ?? '',
+      tipo_cargo:         v.tipo_cargo ?? '',
+      departamento:       v.departamento ?? '',
+      relacao:            v.relacao ?? 'titular',
+      nome_mae:           v.nome_mae ?? '',
+      data_admissao:      v.data_admissao ? v.data_admissao.slice(0, 10) : '',
+    })
+    setModalAberto(true)
+  }
+
+  async function alternarAtivo(v: Funcionario) {
+    const acao = v.ativo ? 'desativar' : 'reativar'
+    const msg = v.ativo
+      ? `Desativar ${v.nome_completo}?\n\nEle perderá o acesso à plataforma imediatamente. O histórico de atendimentos é mantido.`
+      : `Reativar ${v.nome_completo}?\n\nEle voltará a ter acesso à plataforma.`
+    if (!confirm(msg)) return
+
+    setAlterandoId(v.id)
+    try {
+      const res = await fetch('/api/empresa/funcionarios/gerenciar', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: v.id, ativo: !v.ativo }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || `Erro ao ${acao}`)
+
+      // Atualiza só a linha alterada, sem recarregar a lista inteira
+      setVinculos(lista => lista.map(x => x.id === v.id ? { ...x, ativo: !v.ativo } : x))
+      setAviso({ tipo: 'ok', texto: json.mensagem ?? `Funcionário ${v.ativo ? 'desativado' : 'reativado'}` })
+    } catch (e) {
+      setAviso({ tipo: 'erro', texto: e instanceof Error ? e.message : `Erro ao ${acao}` })
+    } finally {
+      setAlterandoId(null)
+    }
+  }
 
   // ── Filtros aplicados ────────────────────────────────────────────────────────
   const filtrados = vinculos.filter(v => {
@@ -161,12 +225,38 @@ export default function ListaFuncionariosDashboard() {
           Funcionários
           <span className="text-xs font-normal text-gray-400">({vinculos.length})</span>
         </h2>
-        <ActionButtons
-          onExcel={exportarExcel}
-          excelDisabled={exportando || filtrados.length === 0}
-          exportando={exportando}
-        />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={abrirNovo}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white transition-opacity hover:opacity-90"
+            style={{ background: '#1A3A2C' }}
+          >
+            <UserPlus className="w-3.5 h-3.5" />
+            Adicionar funcionário
+          </button>
+          <ActionButtons
+            onExcel={exportarExcel}
+            excelDisabled={exportando || filtrados.length === 0}
+            exportando={exportando}
+          />
+        </div>
       </div>
+
+      {/* Aviso de sucesso / erro */}
+      {aviso && (
+        <div
+          className={`px-6 py-2.5 text-xs font-medium flex items-center gap-2 ${
+            aviso.tipo === 'ok'
+              ? 'bg-green-50 text-green-700 border-b border-green-100'
+              : 'bg-red-50 text-red-700 border-b border-red-100'
+          }`}
+        >
+          {aviso.tipo === 'ok'
+            ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+            : <XCircle className="w-3.5 h-3.5 shrink-0" />}
+          {aviso.texto}
+        </div>
+      )}
 
       {/* Barra de filtros */}
       <div className="px-4 py-3 border-b border-gray-100 flex gap-2 flex-wrap items-center">
@@ -233,6 +323,16 @@ export default function ListaFuncionariosDashboard() {
           <p className="text-sm text-gray-400">
             {temFiltro ? 'Nenhum funcionário encontrado para essa busca.' : 'Nenhum funcionário na lista.'}
           </p>
+          {!temFiltro && (
+            <button
+              onClick={abrirNovo}
+              className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-white transition-opacity hover:opacity-90"
+              style={{ background: '#1A3A2C' }}
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              Adicionar o primeiro funcionário
+            </button>
+          )}
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -249,6 +349,7 @@ export default function ListaFuncionariosDashboard() {
                 <th className="px-4 py-3 text-left">Admissão</th>
                 <th className="px-4 py-3 text-center">Status</th>
                 <th className="px-4 py-3 text-center">Plataforma</th>
+                <th className="px-4 py-3 text-center">Ações</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -287,6 +388,35 @@ export default function ListaFuncionariosDashboard() {
                     {v.paciente_id
                       ? <span title="Cadastrado na plataforma"><CheckCircle2 className="w-4 h-4 text-green-500 mx-auto" /></span>
                       : <span title="Não ativou"><XCircle className="w-4 h-4 text-gray-300 mx-auto" /></span>}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <button
+                        onClick={() => abrirEdicao(v)}
+                        title="Editar dados"
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors hover:bg-blue-50"
+                        style={{ borderColor: '#93C5FD', color: '#1D4ED8' }}
+                      >
+                        <Pencil className="w-3 h-3" />
+                        <span className="hidden lg:inline">Editar</span>
+                      </button>
+                      <button
+                        onClick={() => alternarAtivo(v)}
+                        disabled={alterandoId === v.id}
+                        title={v.ativo ? 'Desativar acesso (demissão)' : 'Reativar acesso'}
+                        className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-colors disabled:opacity-50"
+                        style={v.ativo
+                          ? { borderColor: '#FCA5A5', color: '#B91C1C' }
+                          : { borderColor: '#86EFAC', color: '#15803D' }}
+                      >
+                        {alterandoId === v.id
+                          ? <Loader2 className="w-3 h-3 animate-spin" />
+                          : v.ativo
+                            ? <UserMinus className="w-3 h-3" />
+                            : <UserCheck className="w-3 h-3" />}
+                        <span className="hidden lg:inline">{v.ativo ? 'Desativar' : 'Reativar'}</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -341,6 +471,17 @@ export default function ListaFuncionariosDashboard() {
           )}
         </div>
       )}
+
+      {/* Modal de adicionar / editar funcionário */}
+      <FuncionarioFormModal
+        aberto={modalAberto}
+        inicial={editando}
+        onFechar={() => { setModalAberto(false); setEditando(null) }}
+        onSalvo={() => {
+          carregar()
+          setAviso({ tipo: 'ok', texto: editando ? 'Dados atualizados com sucesso' : 'Funcionário adicionado com sucesso' })
+        }}
+      />
     </div>
   )
 }
