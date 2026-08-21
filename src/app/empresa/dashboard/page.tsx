@@ -6,6 +6,7 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import { gerarTema } from '@/lib/tema'
+import { getBaseUrl } from '@/lib/base-url'
 import EmpresaTabs from './EmpresaTabs'
 import ThemeToggle from '@/components/ThemeToggle'
 
@@ -82,6 +83,7 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
   const totalAtivos = vinculos?.filter(v => v.ativo).length ?? 0
   const totalVinculados = vinculos?.filter(v => v.paciente_id).length ?? 0
   const naoAtivaram = totalAtivos - totalVinculados
+  const linkCadastro = (await getBaseUrl()).replace(/^https?:\/\//, '') + '/cadastro'
 
 
   return (
@@ -162,7 +164,7 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
                 {naoAtivaram} funcionário{naoAtivaram > 1 ? 's ainda não ativaram' : ' ainda não ativou'} a conta
               </p>
               <p className="text-xs mt-0.5" style={{ color: 'var(--txt-2)' }}>
-                Compartilhe o link <strong>med-digital.vercel.app/cadastro</strong> com eles para que se cadastrem.
+                Compartilhe o link <strong>{linkCadastro}</strong> com eles para que se cadastrem.
               </p>
             </div>
           </div>

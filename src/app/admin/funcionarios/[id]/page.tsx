@@ -7,10 +7,13 @@ import {
   MapPin, CheckCircle2, XCircle, Mail, AlertCircle, ArrowLeft
 } from 'lucide-react'
 import AdminHeader from '../../components/AdminHeader'
+import { getBaseUrl } from '@/lib/base-url'
 
 export default async function FichaFuncionarioPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   await requireAdmin()
+
+  const linkCadastro = (await getBaseUrl()).replace(/^https?:\/\//, '') + '/cadastro'
 
   const adminSupabase = createAdminClient()
 
@@ -41,7 +44,7 @@ export default async function FichaFuncionarioPage({ params }: { params: Promise
           <div>
             <p className="text-sm font-medium text-amber-800">Este funcionário ainda não ativou a conta na plataforma</p>
             <p className="text-xs text-amber-600 mt-0.5">
-              Compartilhe o link <strong>med-digital.vercel.app/cadastro</strong> para que ele se cadastre com o CPF cadastrado aqui.
+              Compartilhe o link <strong>{linkCadastro}</strong> para que ele se cadastre com o CPF cadastrado aqui.
             </p>
           </div>
         </div>

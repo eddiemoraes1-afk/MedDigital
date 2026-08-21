@@ -1,11 +1,12 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { getBaseUrl } from '@/lib/base-url'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const baseUrl = await getBaseUrl()
 
   if (!user) {
     return NextResponse.redirect(new URL('/login', baseUrl))

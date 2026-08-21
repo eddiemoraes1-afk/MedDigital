@@ -1,4 +1,5 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { getBaseUrl } from '@/lib/base-url'
 import { NextResponse } from 'next/server'
 
 export async function POST() {
@@ -30,6 +31,6 @@ export async function POST() {
   }
 
   await supabase.auth.signOut()
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const baseUrl = await getBaseUrl()
   return NextResponse.redirect(new URL('/login', baseUrl), { status: 302 })
 }

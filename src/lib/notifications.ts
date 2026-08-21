@@ -1,6 +1,7 @@
 // Notificações por email (Gmail SMTP) e WhatsApp (Twilio)
 import nodemailer from 'nodemailer'
 import { drTitle } from '@/lib/medico-utils'
+import { APP_URL, APP_HOST } from '@/lib/base-url'
 
 interface DadosAgendamento {
   pacienteNome: string
@@ -98,7 +99,7 @@ export async function enviarEmailConfirmacao(dados: DadosAgendamento) {
         </div>
         <div class="footer">
           <p>MedDigital — Telemedicina com Inteligência Artificial</p>
-          <p style="margin-top: 4px;">med-digital.vercel.app</p>
+          <p style="margin-top: 4px;">${APP_HOST}</p>
         </div>
       </div>
     </body>
@@ -192,7 +193,7 @@ export async function enviarEmailCancelamento(dados: DadosAgendamento) {
         </div>
         <div class="footer">
           <p>MedDigital — Telemedicina com Inteligência Artificial</p>
-          <p style="margin-top: 4px;">med-digital.vercel.app</p>
+          <p style="margin-top: 4px;">${APP_HOST}</p>
         </div>
       </div>
     </body>
@@ -274,13 +275,13 @@ export async function enviarEmailNovoAgendamentoMedico(dados: DadosAgendamento &
             </div>
           </div>
           <p style="color: #6B7280; font-size: 14px; line-height: 1.6;">
-            Acesse sua agenda em <strong>med-digital.vercel.app/medico/agendamentos</strong> para ver os detalhes.
+            Acesse sua agenda em <strong>${APP_HOST}/medico/agendamentos</strong> para ver os detalhes.
             Você receberá um lembrete 1 hora antes da consulta.
           </p>
         </div>
         <div class="footer">
           <p>MedDigital — Telemedicina com Inteligência Artificial</p>
-          <p style="margin-top: 4px;">med-digital.vercel.app</p>
+          <p style="margin-top: 4px;">${APP_HOST}</p>
         </div>
       </div>
     </body>
@@ -322,7 +323,7 @@ Sua consulta foi agendada com sucesso:
 📅 *Data:* ${data}
 ⏰ *Horário:* ${hora}
 
-Acesse med-digital.vercel.app para entrar na consulta no horário marcado.
+Acesse ${APP_HOST} para entrar na consulta no horário marcado.
 
 Em caso de imprevistos, entre em contato conosco.`
 
@@ -420,13 +421,13 @@ export async function enviarEmailLembretePaciente(dados: DadosAgendamento) {
           </div>
           <p style="color: #6B7280; font-size: 14px; line-height: 1.6;">
             A sala de vídeo ficará disponível 10 minutos antes do horário marcado.<br>
-            Acesse pelo botão abaixo ou entre em <strong>med-digital.vercel.app</strong>.
+            Acesse pelo botão abaixo ou entre em <strong>${APP_HOST}</strong>.
           </p>
-          <a href="https://med-digital.vercel.app/paciente/agendamentos" class="btn">Acessar minha consulta →</a>
+          <a href="${APP_URL}/paciente/agendamentos" class="btn">Acessar minha consulta →</a>
         </div>
         <div class="footer">
           <p>MedDigital — Telemedicina com Inteligência Artificial</p>
-          <p style="margin-top: 4px;">med-digital.vercel.app</p>
+          <p style="margin-top: 4px;">${APP_HOST}</p>
         </div>
       </div>
     </body>
@@ -512,11 +513,11 @@ export async function enviarEmailLembreteMedico(dados: DadosAgendamento & { medi
             A sala de vídeo ficará disponível 10 minutos antes do horário.<br>
             Acesse sua agenda para entrar na sala no horário marcado.
           </p>
-          <a href="https://med-digital.vercel.app/medico/agendamentos" class="btn">Acessar minha agenda →</a>
+          <a href="${APP_URL}/medico/agendamentos" class="btn">Acessar minha agenda →</a>
         </div>
         <div class="footer">
           <p>MedDigital — Telemedicina com Inteligência Artificial</p>
-          <p style="margin-top: 4px;">med-digital.vercel.app</p>
+          <p style="margin-top: 4px;">${APP_HOST}</p>
         </div>
       </div>
     </body>
@@ -556,7 +557,7 @@ Olá, ${dados.pacienteNome} 👋
 👨‍⚕️ *Médico:* ${drTitle(dados.medicoSexo)} ${dados.medicoNome}
 
 A sala de vídeo abrirá 10 minutos antes. Acesse:
-🔗 med-digital.vercel.app/paciente/agendamentos`
+🔗 ${APP_HOST}/paciente/agendamentos`
 
   try {
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${process.env.TWILIO_ACCOUNT_SID}/Messages.json`
