@@ -144,13 +144,13 @@ export default function FiltrosPacientesMedico({ pacientes }: { pacientes: Pacie
             placeholder="Buscar por nome, CPF ou telefone..."
             value={busca}
             onChange={e => setBusca(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570]"
           />
         </div>
         <select
           value={filtroRisco}
           onChange={e => setFiltroRisco(e.target.value)}
-          className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white"
+          className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] bg-white"
         >
           <option value="todos">Todos os riscos</option>
           <option value="verde">🟢 Risco Baixo</option>
@@ -170,14 +170,14 @@ export default function FiltrosPacientesMedico({ pacientes }: { pacientes: Pacie
             type="date"
             value={dataInicio}
             onChange={e => setDataInicio(e.target.value)}
-            className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+            className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570]"
           />
           <span className="text-xs text-gray-400 shrink-0">até</span>
           <input
             type="date"
             value={dataFim}
             onChange={e => setDataFim(e.target.value)}
-            className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+            className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570]"
           />
           {temFiltroData && (
             <button
@@ -193,7 +193,7 @@ export default function FiltrosPacientesMedico({ pacientes }: { pacientes: Pacie
           <select
             value={ordenacao}
             onChange={e => setOrdenacao(e.target.value as any)}
-            className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white"
+            className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] bg-white"
           >
             <option value="recentes">Triagem mais recente</option>
             <option value="risco">Por prioridade (risco)</option>
@@ -235,7 +235,7 @@ export default function FiltrosPacientesMedico({ pacientes }: { pacientes: Pacie
                   {/* Info principal */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-semibold text-[#1A3A2C] group-hover:text-[#5BBD9B] transition-colors truncate">
+                      <span className="font-semibold text-[#19382E] group-hover:text-[#6E8570] transition-colors truncate">
                         {p.nome}
                       </span>
                       {idade !== null && (
@@ -280,11 +280,11 @@ export default function FiltrosPacientesMedico({ pacientes }: { pacientes: Pacie
                   {/* Stats + seta */}
                   <div className="flex items-center gap-3 shrink-0">
                     <div className="text-center hidden sm:block">
-                      <p className="text-sm font-bold text-[#1A3A2C]">{p.total_triagens}</p>
+                      <p className="text-sm font-bold text-[#19382E]">{p.total_triagens}</p>
                       <p className="text-xs text-gray-400">triagens</p>
                     </div>
                     <div className="text-center hidden sm:block">
-                      <p className="text-sm font-bold text-[#1A3A2C]">{p.total_atendimentos}</p>
+                      <p className="text-sm font-bold text-[#19382E]">{p.total_atendimentos}</p>
                       <p className="text-xs text-gray-400">consultas</p>
                     </div>
                     <div className="text-center hidden sm:block">
@@ -311,7 +311,7 @@ export default function FiltrosPacientesMedico({ pacientes }: { pacientes: Pacie
                       </p>
                       <p className="text-xs text-gray-400">exclusões</p>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-[#5BBD9B] transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-[#6E8570] transition-colors" />
                   </div>
                 </Link>
               )

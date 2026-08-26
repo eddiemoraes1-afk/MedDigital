@@ -160,14 +160,14 @@ export default function AtestadosListaClient({
                     <div className="flex flex-col gap-2 shrink-0">
                       <button
                         onClick={() => imprimirAtestado(params)}
-                        className="flex items-center gap-1.5 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
+                        className="flex items-center gap-1.5 bg-[#19382E] hover:bg-[#6E8570] text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
                       >
                         <Printer className="w-3.5 h-3.5" /> Imprimir
                       </button>
                       <button
                         onClick={() => baixar(at.id, params)}
                         disabled={baixandoId === at.id}
-                        className="flex items-center gap-1.5 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-green-50 px-4 py-2 rounded-xl text-xs font-semibold transition-colors disabled:opacity-60"
+                        className="flex items-center gap-1.5 border border-[#19382E] text-[#19382E] hover:bg-green-50 px-4 py-2 rounded-xl text-xs font-semibold transition-colors disabled:opacity-60"
                       >
                         {baixandoId === at.id
                           ? <Loader2 className="w-3.5 h-3.5 animate-spin" />

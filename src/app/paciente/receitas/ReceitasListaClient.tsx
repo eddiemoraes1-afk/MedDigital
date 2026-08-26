@@ -154,7 +154,7 @@ export default function ReceitasListaClient({
                     <div className="bg-gray-50 rounded-xl px-3 py-2.5 mb-3">
                       {r.medicamentos.split('\n').filter(Boolean).map((m, i) => (
                         <p key={i} className="text-sm text-gray-700 font-mono leading-relaxed">
-                          <span className="text-[#5BBD9B] font-bold mr-1.5">℞</span>{m}
+                          <span className="text-[#6E8570] font-bold mr-1.5">℞</span>{m}
                         </p>
                       ))}
                     </div>
@@ -185,14 +185,14 @@ export default function ReceitasListaClient({
                     <div className="flex flex-col gap-2 shrink-0">
                       <button
                         onClick={() => imprimirReceita(params)}
-                        className="flex items-center gap-1.5 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
+                        className="flex items-center gap-1.5 bg-[#19382E] hover:bg-[#6E8570] text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
                       >
                         <Printer className="w-3.5 h-3.5" /> Imprimir
                       </button>
                       <button
                         onClick={() => baixar(r.id, params)}
                         disabled={baixandoId === r.id}
-                        className="flex items-center gap-1.5 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-green-50 px-4 py-2 rounded-xl text-xs font-semibold transition-colors disabled:opacity-60"
+                        className="flex items-center gap-1.5 border border-[#19382E] text-[#19382E] hover:bg-green-50 px-4 py-2 rounded-xl text-xs font-semibold transition-colors disabled:opacity-60"
                       >
                         {baixandoId === r.id
                           ? <Loader2 className="w-3.5 h-3.5 animate-spin" />

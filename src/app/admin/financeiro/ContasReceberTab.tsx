@@ -177,7 +177,7 @@ export default function ContasReceberTab() {
         </div>
         <button onClick={() => setFiltrosAbertos(v => !v)}
           className="flex items-center gap-1 px-3 py-1.5 rounded-xl border text-sm"
-          style={{ background: filtrosAbertos ? '#1A3A2C' : 'var(--card)', color: filtrosAbertos ? 'white' : 'var(--txt-muted)', borderColor: 'var(--border)' }}>
+          style={{ background: filtrosAbertos ? '#19382E' : 'var(--card)', color: filtrosAbertos ? 'white' : 'var(--txt-muted)', borderColor: 'var(--border)' }}>
           <ChevronDown className={`w-3.5 h-3.5 transition-transform ${filtrosAbertos ? 'rotate-180' : ''}`} />
           Mais filtros
         </button>
@@ -217,12 +217,12 @@ export default function ContasReceberTab() {
 
       {/* Auto-geração */}
       <div className="rounded-2xl border p-3 mb-5 flex flex-wrap items-center gap-3" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
-        <Zap className="w-4 h-4 text-[#5BBD9B] shrink-0" />
+        <Zap className="w-4 h-4 text-[#6E8570] shrink-0" />
         <span className="text-sm font-medium" style={{ color: 'var(--txt)' }}>Gerar mensalidades automáticas:</span>
         <input type="month" value={mes} onChange={e => setMes(e.target.value)} className={inputCls} style={inputSt} />
         <button onClick={gerarMensalidades} disabled={gerando}
           className="flex items-center gap-2 px-4 py-1.5 rounded-xl text-sm font-medium text-white disabled:opacity-60"
-          style={{ background: '#1A3A2C' }}>
+          style={{ background: '#19382E' }}>
           {gerando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
           Gerar {mes}
         </button>

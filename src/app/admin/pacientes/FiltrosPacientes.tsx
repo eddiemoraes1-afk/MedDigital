@@ -68,8 +68,8 @@ export default function FiltrosPacientes({ empresas, total, nomeInicial, cadastr
     window.open(url, '_blank')
   }
 
-  const selectClass = "border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white text-gray-700"
-  const inputClass  = "border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white text-gray-700"
+  const selectClass = "border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] bg-white text-gray-700"
+  const inputClass  = "border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] bg-white text-gray-700"
 
   return (
     <div className="bg-white rounded-2xl shadow-sm px-6 py-4 mb-4 space-y-3">

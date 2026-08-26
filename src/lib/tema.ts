@@ -52,7 +52,7 @@ export interface TemaEmpresa {
  * Se nenhuma cor for fornecida, usa o verde padrão do sistema.
  */
 export function gerarTema(corPrimaria: string | null | undefined): TemaEmpresa {
-  const cor = corPrimaria && /^#[0-9A-Fa-f]{6}$/.test(corPrimaria) ? corPrimaria : '#1A3A2C'
+  const cor = corPrimaria && /^#[0-9A-Fa-f]{6}$/.test(corPrimaria) ? corPrimaria : '#19382E'
   const { r, g, b } = hexParaRgb(cor)
 
   const texto = corTextoContraste(cor)

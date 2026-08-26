@@ -93,8 +93,8 @@ export default function FichaConsultasClient({
 
       {/* ── Header ── */}
       <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-        <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
-          <Activity className="w-4 h-4 text-[#5BBD9B]" />
+        <h2 className="font-bold text-[#19382E] flex items-center gap-2 text-sm">
+          <Activity className="w-4 h-4 text-[#6E8570]" />
           Histórico de Consultas
           <span className="text-xs text-gray-400 font-normal">
             ({isFiltered
@@ -125,7 +125,7 @@ export default function FichaConsultasClient({
               type="date"
               value={dateFrom}
               onChange={e => setDateFrom(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-white"
+              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40 bg-white"
             />
           </div>
 
@@ -136,7 +136,7 @@ export default function FichaConsultasClient({
               type="date"
               value={dateTo}
               onChange={e => setDateTo(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-white"
+              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40 bg-white"
             />
           </div>
 
@@ -146,7 +146,7 @@ export default function FichaConsultasClient({
             <select
               value={origem}
               onChange={e => setOrigem(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-white"
+              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40 bg-white"
             >
               <option value="all">Todas</option>
               <option value="particular">Particular</option>
@@ -166,7 +166,7 @@ export default function FichaConsultasClient({
                 placeholder="Buscar por nome…"
                 value={busca}
                 onChange={e => setBusca(e.target.value)}
-                className="w-full text-xs border border-gray-200 rounded-lg pl-7 pr-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-white"
+                className="w-full text-xs border border-gray-200 rounded-lg pl-7 pr-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40 bg-white"
               />
             </div>
           </div>
@@ -212,7 +212,7 @@ export default function FichaConsultasClient({
                     {a.pacienteId && a.pacienteNome ? (
                       <Link
                         href={`/admin/pacientes/${a.pacienteId}?back=${encodeURIComponent(`/admin/medicos/${medicoId}`)}`}
-                        className="text-sm text-[#5BBD9B] hover:underline font-medium"
+                        className="text-sm text-[#6E8570] hover:underline font-medium"
                       >
                         {a.pacienteNome}
                       </Link>
@@ -232,7 +232,7 @@ export default function FichaConsultasClient({
                       {a.origemLabel.length > 18 ? a.origemLabel.slice(0, 16) + '…' : a.origemLabel}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-right text-sm font-semibold text-[#1A3A2C]">
+                  <td className="px-5 py-3 text-right text-sm font-semibold text-[#19382E]">
                     {a.valor > 0 ? formatBRL(a.valor) : '—'}
                   </td>
                   {custoConsulta > 0 && (
@@ -268,7 +268,7 @@ export default function FichaConsultasClient({
           <p className="text-sm text-gray-400">Nenhum resultado para os filtros aplicados</p>
           <button
             onClick={clearFilters}
-            className="mt-2 text-xs text-[#5BBD9B] hover:underline"
+            className="mt-2 text-xs text-[#6E8570] hover:underline"
           >
             Limpar filtros
           </button>

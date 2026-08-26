@@ -142,15 +142,15 @@ function ProgressoTriagem({ atual }: { atual: 1 | 2 | 3 | 4 }) {
           <div key={p.num} className="flex items-center gap-1 flex-1 last:flex-none">
             <div className={`flex items-center gap-1.5 ${!ativo && !feito ? 'opacity-35' : ''}`}>
               <div className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center shrink-0
-                ${feito ? 'bg-[#5BBD9B] text-white' : ativo ? 'bg-[#1A3A2C] text-white' : 'border-2 border-gray-300 text-gray-400'}`}>
+                ${feito ? 'bg-[#6E8570] text-white' : ativo ? 'bg-[#19382E] text-white' : 'border-2 border-gray-300 text-gray-400'}`}>
                 {feito ? <CheckCircle2 className="w-4 h-4" /> : p.num}
               </div>
-              <span className={`text-xs font-semibold whitespace-nowrap hidden sm:block ${ativo ? 'text-[#1A3A2C]' : 'text-gray-400'}`}>
+              <span className={`text-xs font-semibold whitespace-nowrap hidden sm:block ${ativo ? 'text-[#19382E]' : 'text-gray-400'}`}>
                 {p.label}
               </span>
             </div>
             {i < passos.length - 1 && (
-              <div className={`flex-1 h-px mx-1 ${feito ? 'bg-[#5BBD9B]' : 'bg-gray-200'}`} />
+              <div className={`flex-1 h-px mx-1 ${feito ? 'bg-[#6E8570]' : 'bg-gray-200'}`} />
             )}
           </div>
         )
@@ -161,10 +161,10 @@ function ProgressoTriagem({ atual }: { atual: 1 | 2 | 3 | 4 }) {
 
 // ─── Link PDF (fora do render para evitar "cannot create components during render") ──
 
-function PdfLink({ href, label, color = 'text-[#5BBD9B]' }: { href: string; label: string; color?: string }) {
+function PdfLink({ href, label, color = 'text-[#6E8570]' }: { href: string; label: string; color?: string }) {
   return (
     <a href={href} target="_blank" rel="noopener noreferrer"
-      className={`inline-flex items-center gap-1 text-xs ${color} hover:text-[#1A3A2C] hover:underline mt-2 font-medium transition-colors`}>
+      className={`inline-flex items-center gap-1 text-xs ${color} hover:text-[#19382E] hover:underline mt-2 font-medium transition-colors`}>
       <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
       </svg>
@@ -181,7 +181,7 @@ function SimNao({ valor, onChange }: { valor: boolean | null; onChange: (v: bool
       {[{ label: 'Sim', val: true }, { label: 'Não', val: false }].map(op => (
         <button key={String(op.val)} type="button" onClick={() => onChange(op.val)}
           className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-colors
-            ${valor === op.val ? 'bg-[#1A3A2C] text-white border-[#1A3A2C]' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+            ${valor === op.val ? 'bg-[#19382E] text-white border-[#19382E]' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
           {op.label}
         </button>
       ))}
@@ -250,7 +250,7 @@ function EtapaValidacao({
             garantir o registro seguro das suas informações de saúde.
           </p>
           <Link href="/paciente/dashboard"
-            className="inline-block bg-[#1A3A2C] text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-[#5BBD9B] transition-colors">
+            className="inline-block bg-[#19382E] text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-[#6E8570] transition-colors">
             Voltar ao painel
           </Link>
         </div>
@@ -265,10 +265,10 @@ function EtapaValidacao({
 
         <div className="flex items-center gap-3 mb-5">
           <div className="w-11 h-11 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
-            <Shield className="w-6 h-6 text-[#5BBD9B]" />
+            <Shield className="w-6 h-6 text-[#6E8570]" />
           </div>
           <div>
-            <h2 className="font-bold text-[#1A3A2C] text-lg leading-tight">Confirmação de identidade</h2>
+            <h2 className="font-bold text-[#19382E] text-lg leading-tight">Confirmação de identidade</h2>
             {nomeInicial && <p className="text-sm text-gray-500 mt-0.5">Olá, {nomeInicial.split(' ')[0]}!</p>}
           </div>
         </div>
@@ -305,7 +305,7 @@ function EtapaValidacao({
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input type="text" value={telefone} onChange={e => setTelefone(formatarTelefone(e.target.value))}
               placeholder="(11) 99999-9999" disabled={aceito}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm disabled:bg-gray-50 disabled:cursor-default" />
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-sm disabled:bg-gray-50 disabled:cursor-default" />
           </div>
           <p className="text-xs text-gray-400 mt-1">Utilizado apenas se a conexão cair durante o atendimento.</p>
         </div>
@@ -313,12 +313,12 @@ function EtapaValidacao({
         {/* ── ETAPA A: Consentimento LGPD ── */}
         {!aceito && (
           <>
-            <div className="bg-[#F3FAF7] border border-green-100 rounded-2xl p-4 mb-5">
-              <p className="text-sm font-semibold text-[#1A3A2C] mb-2 flex items-center gap-1.5">
-                <Shield className="w-4 h-4 text-[#5BBD9B]" /> Consentimento LGPD
+            <div className="bg-[#F3F6F3] border border-green-100 rounded-2xl p-4 mb-5">
+              <p className="text-sm font-semibold text-[#19382E] mb-2 flex items-center gap-1.5">
+                <Shield className="w-4 h-4 text-[#6E8570]" /> Consentimento LGPD
               </p>
               <p className="text-sm text-gray-600 leading-relaxed">
-                Ao continuar, você autoriza a <strong>MedDigital</strong> a coletar e tratar seus{' '}
+                Ao continuar, você autoriza a <strong>Aduno</strong> a coletar e tratar seus{' '}
                 <strong>dados pessoais e dados de saúde</strong> para realizar seu cadastro, triagem,
                 atendimento médico online, emissão de documentos, manutenção de prontuário,
                 histórico clínico, segurança da plataforma e cumprimento de obrigações legais.{' '}
@@ -338,7 +338,7 @@ function EtapaValidacao({
 
             <div className="flex gap-3">
               <button onClick={handleAceitar}
-                className="flex-1 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                className="flex-1 bg-[#19382E] hover:bg-[#6E8570] text-white py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-4 h-4" /> Sim, autorizo
               </button>
               <button onClick={() => setRecusou(true)}
@@ -372,7 +372,7 @@ function EtapaValidacao({
                 Declaro que compreendo as <strong>características, benefícios e limitações</strong> do atendimento
                 por telemedicina. Estou ciente de que o médico pode não conseguir realizar exame físico completo
                 e que, em situações graves ou urgentes, serei orientado(a) a buscar atendimento presencial ou
-                emergência. Autorizo a realização da consulta médica online por meio da <strong>MedDigital</strong>,
+                emergência. Autorizo a realização da consulta médica online por meio da <strong>Aduno</strong>,
                 nos termos da Resolução CFM nº 2.314/2022.
               </p>
               <a href="/termo-telemedicina.pdf" target="_blank" rel="noopener noreferrer"
@@ -481,7 +481,7 @@ function EtapaValidacao({
               </div>
             </div>
             <button onClick={() => onFazerTriagem(dadosValidacao())}
-              className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+              className="w-full bg-[#19382E] hover:bg-[#6E8570] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
               <Stethoscope className="w-4 h-4" /> Fazer Triagem
             </button>
           </div>
@@ -563,7 +563,7 @@ function EtapaSintomas({
         <ProgressoTriagem atual={2} />
 
         {/* Banner destacado */}
-        <div className="bg-[#1A3A2C] rounded-2xl px-5 py-4 mb-6">
+        <div className="bg-[#19382E] rounded-2xl px-5 py-4 mb-6">
           <p className="text-base font-semibold text-white leading-relaxed">
             É importante o preenchimento completo da triagem para que o/a médico(a) possa fazer o diagnóstico mais rápido.
           </p>
@@ -571,7 +571,7 @@ function EtapaSintomas({
 
         {/* Motivos */}
         <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
-          <p className="text-sm font-bold text-[#1A3A2C] mb-1">Qual o principal motivo do atendimento hoje?</p>
+          <p className="text-sm font-bold text-[#19382E] mb-1">Qual o principal motivo do atendimento hoje?</p>
           <p className="text-xs text-gray-400 mb-4">Selecione até 3 opções.</p>
           <div className="space-y-2">
             {MOTIVOS.map(motivo => {
@@ -580,9 +580,9 @@ function EtapaSintomas({
               return (
                 <label key={motivo}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors
-                    ${sel ? 'bg-[#EAF7F2] border-[#5BBD9B]' : bloq ? 'opacity-40 cursor-not-allowed border-gray-100 bg-gray-50' : 'border-gray-100 hover:bg-gray-50'}`}>
+                    ${sel ? 'bg-[#EAF7F2] border-[#6E8570]' : bloq ? 'opacity-40 cursor-not-allowed border-gray-100 bg-gray-50' : 'border-gray-100 hover:bg-gray-50'}`}>
                   <input type="checkbox" checked={sel} disabled={bloq} onChange={() => toggleMotivo(motivo)}
-                    className="accent-[#5BBD9B] w-4 h-4 shrink-0" />
+                    className="accent-[#6E8570] w-4 h-4 shrink-0" />
                   <span className="text-sm text-gray-700">{motivo}</span>
                 </label>
               )
@@ -590,23 +590,23 @@ function EtapaSintomas({
           </div>
           {temOutro && (
             <input type="text" value={outroMotivo} onChange={e => setOutroMotivo(e.target.value)}
-              placeholder="Descreva o motivo..." className="mt-3 w-full px-4 py-2.5 border border-[#5BBD9B] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]" />
+              placeholder="Descreva o motivo..." className="mt-3 w-full px-4 py-2.5 border border-[#6E8570] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570]" />
           )}
         </div>
 
         {/* Localização da dor */}
         {temDor && (
           <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
-            <p className="text-sm font-bold text-[#1A3A2C] mb-4">Onde está sentindo dor?</p>
+            <p className="text-sm font-bold text-[#19382E] mb-4">Onde está sentindo dor?</p>
             <div className="space-y-2">
               {LOCAIS_DOR.map(local => {
                 const sel = locaisDor.includes(local)
                 return (
                   <label key={local}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors
-                      ${sel ? 'bg-[#EAF7F2] border-[#5BBD9B]' : 'border-gray-100 hover:bg-gray-50'}`}>
+                      ${sel ? 'bg-[#EAF7F2] border-[#6E8570]' : 'border-gray-100 hover:bg-gray-50'}`}>
                     <input type="checkbox" checked={sel} onChange={() => toggleLocalDor(local)}
-                      className="accent-[#5BBD9B] w-4 h-4 shrink-0" />
+                      className="accent-[#6E8570] w-4 h-4 shrink-0" />
                     <span className="text-sm text-gray-700">{local}</span>
                   </label>
                 )
@@ -614,12 +614,12 @@ function EtapaSintomas({
             </div>
             {temOutroLugar && (
               <input type="text" value={outraLocalizacaoDor} onChange={e => setOutraLocalizacaoDor(e.target.value)}
-                placeholder="Em qual parte do corpo?" className="mt-3 w-full px-4 py-2.5 border border-[#5BBD9B] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]" />
+                placeholder="Em qual parte do corpo?" className="mt-3 w-full px-4 py-2.5 border border-[#6E8570] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570]" />
             )}
 
             {/* Intensidade */}
             <div className="mt-5 pt-5 border-t border-gray-100">
-              <p className="text-sm font-semibold text-[#1A3A2C] mb-3">De 0 a 10, qual a intensidade da dor?</p>
+              <p className="text-sm font-semibold text-[#19382E] mb-3">De 0 a 10, qual a intensidade da dor?</p>
               <div className="flex gap-1.5 flex-wrap">
                 {Array.from({ length: 11 }, (_, i) => (
                   <button key={i} type="button" onClick={() => setIntensidadeDor(i)}
@@ -642,13 +642,13 @@ function EtapaSintomas({
 
         {/* Remédio */}
         <div className="bg-white rounded-2xl shadow-sm p-6 mb-4">
-          <p className="text-sm font-bold text-[#1A3A2C] mb-3">Já tomou algum remédio ou fez algo para melhorar?</p>
+          <p className="text-sm font-bold text-[#19382E] mb-3">Já tomou algum remédio ou fez algo para melhorar?</p>
           <div className="flex gap-3">
             {[{ label: 'Sim', val: true }, { label: 'Não', val: false }].map(op => (
               <button key={String(op.val)} type="button"
                 onClick={() => { setTomouRemedio(op.val); if (!op.val) { setRemedioMelhorou(null); setOQueTomou('') } }}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors
-                  ${tomouRemedio === op.val ? 'bg-[#1A3A2C] text-white border-[#1A3A2C]' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                  ${tomouRemedio === op.val ? 'bg-[#19382E] text-white border-[#19382E]' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
                 {op.label}
               </button>
             ))}
@@ -656,18 +656,18 @@ function EtapaSintomas({
           {tomouRemedio && (
             <div className="mt-4 space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-[#1A3A2C] mb-1">O que tomou ou fez?</label>
+                <label className="block text-sm font-semibold text-[#19382E] mb-1">O que tomou ou fez?</label>
                 <textarea value={oQueTomou} onChange={e => setOQueTomou(e.target.value)}
                   placeholder="Ex: Dipirona 500mg, compressa fria, chá..." rows={2}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none" />
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] resize-none" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-[#1A3A2C] mb-2">Melhorou?</p>
+                <p className="text-sm font-semibold text-[#19382E] mb-2">Melhorou?</p>
                 <div className="flex gap-3">
                   {([{ label: 'Sim', val: 'sim' }, { label: 'Parcialmente', val: 'parcial' }, { label: 'Não', val: 'nao' }] as const).map(op => (
                     <button key={op.val} type="button" onClick={() => setRemedioMelhorou(op.val)}
                       className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors
-                        ${remedioMelhorou === op.val ? 'bg-[#1A3A2C] text-white border-[#1A3A2C]' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                        ${remedioMelhorou === op.val ? 'bg-[#19382E] text-white border-[#19382E]' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
                       {op.label}
                     </button>
                   ))}
@@ -679,13 +679,13 @@ function EtapaSintomas({
 
         {/* Remédio contínuo */}
         <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-          <p className="text-sm font-bold text-[#1A3A2C] mb-3">Você toma algum remédio de uso contínuo?</p>
+          <p className="text-sm font-bold text-[#19382E] mb-3">Você toma algum remédio de uso contínuo?</p>
           <div className="flex gap-3">
             {[{ label: 'Sim', val: true }, { label: 'Não', val: false }].map(op => (
               <button key={String(op.val)} type="button"
                 onClick={() => { setRemedioContinuo(op.val); if (!op.val) setRemedioContinuoQuais('') }}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-colors
-                  ${remedioContinuo === op.val ? 'bg-[#1A3A2C] text-white border-[#1A3A2C]' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                  ${remedioContinuo === op.val ? 'bg-[#19382E] text-white border-[#19382E]' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
                 {op.label}
               </button>
             ))}
@@ -695,7 +695,7 @@ function EtapaSintomas({
               <label className="block text-sm font-medium text-gray-700 mb-1">Qual ou quais?</label>
               <textarea value={remedioContinuoQuais} onChange={e => setRemedioContinuoQuais(e.target.value)}
                 placeholder="Ex: Losartana 50mg, Metformina 500mg..." rows={3}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none" />
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] resize-none" />
             </div>
           )}
         </div>
@@ -707,7 +707,7 @@ function EtapaSintomas({
         )}
 
         <button onClick={handleEnviar}
-          className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+          className="w-full bg-[#19382E] hover:bg-[#6E8570] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
           Continuar <ChevronRight className="w-4 h-4" />
         </button>
       </div>
@@ -770,7 +770,7 @@ function EtapaUrgencia({
         <ProgressoTriagem atual={3} />
 
         {/* Banner destacado */}
-        <div className="bg-[#1A3A2C] rounded-2xl px-5 py-4 mb-6">
+        <div className="bg-[#19382E] rounded-2xl px-5 py-4 mb-6">
           <p className="text-base font-semibold text-white leading-relaxed">
             Já estamos quase no fim, mas as informações são muito importantes.
           </p>
@@ -780,7 +780,7 @@ function EtapaUrgencia({
           {perguntas.map(p => (
             <div key={p.id} className={`bg-white rounded-2xl shadow-sm p-5 ${p.valor ? 'ring-2 ring-red-300' : ''}`}>
               <p className="text-sm text-gray-700 leading-relaxed">
-                <span className="font-bold text-[#1A3A2C]">{p.destaque}: </span>
+                <span className="font-bold text-[#19382E]">{p.destaque}: </span>
                 {p.texto}
               </p>
               <SimNao valor={p.valor} onChange={p.onChange} />
@@ -795,7 +795,7 @@ function EtapaUrgencia({
         )}
 
         <button onClick={handleEnviar}
-          className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+          className="w-full bg-[#19382E] hover:bg-[#6E8570] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
           Enviar <ChevronRight className="w-4 h-4" />
         </button>
       </div>
@@ -830,9 +830,9 @@ function EtapaResultado({
           <ProgressoTriagem atual={4} />
           <div className="bg-white rounded-2xl shadow-sm p-10 text-center">
             <div className="w-16 h-16 bg-[#EAF7F2] rounded-2xl flex items-center justify-center mx-auto mb-5">
-              <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#6E8570]" />
             </div>
-            <p className="text-lg font-bold text-[#1A3A2C] mb-2">Aplicando Protocolo de Manchester...</p>
+            <p className="text-lg font-bold text-[#19382E] mb-2">Aplicando Protocolo de Manchester...</p>
             <p className="text-sm text-gray-400">A IA está avaliando seus dados clínicos para determinar a classificação de risco.</p>
           </div>
         </div>
@@ -851,7 +851,7 @@ function EtapaResultado({
             <p className="font-bold text-gray-800 mb-2">Erro na análise</p>
             <p className="text-sm text-gray-500 mb-6">{erroAnalise}</p>
             <Link href="/paciente/dashboard"
-              className="inline-block bg-[#1A3A2C] text-white px-6 py-2.5 rounded-xl text-sm font-medium">
+              className="inline-block bg-[#19382E] text-white px-6 py-2.5 rounded-xl text-sm font-medium">
               Voltar ao painel
             </Link>
           </div>
@@ -948,7 +948,7 @@ function EtapaResultado({
               <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${config.badge} ${config.badgeBorder}`}>
                 {config.emoji} Protocolo de Manchester — {config.label}
               </span>
-              <p className="text-base font-bold text-[#1A3A2C] mt-1">{config.titulo}</p>
+              <p className="text-base font-bold text-[#19382E] mt-1">{config.titulo}</p>
             </div>
           </div>
 
@@ -982,14 +982,14 @@ function EtapaResultado({
             /* 🟡🟢🔵 AMARELO/VERDE/AZUL — Consultar agora sempre em destaque */
             <div className="space-y-3">
               <button onClick={onConsultarAgora} disabled={solicitando}
-                className="w-full flex items-center justify-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] disabled:opacity-60 text-white py-3.5 rounded-xl text-sm font-semibold transition-colors">
+                className="w-full flex items-center justify-center gap-2 bg-[#19382E] hover:bg-[#6E8570] disabled:opacity-60 text-white py-3.5 rounded-xl text-sm font-semibold transition-colors">
                 {solicitando
                   ? <><Loader2 className="w-4 h-4 animate-spin" /> Criando sala...</>
                   : <><Video className="w-4 h-4" /> Consultar agora</>
                 }
               </button>
               <button onClick={onAgendar}
-                className="w-full flex items-center justify-center gap-2 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-[#EAF7F2] py-3.5 rounded-xl text-sm font-semibold transition-colors">
+                className="w-full flex items-center justify-center gap-2 border border-[#19382E] text-[#19382E] hover:bg-[#EAF7F2] py-3.5 rounded-xl text-sm font-semibold transition-colors">
                 <Calendar className="w-4 h-4" /> Agendar uma consulta
               </button>
             </div>
@@ -1246,7 +1246,7 @@ function TriagemConteudo() {
       {etapa === 'carregando' && (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B] mx-auto mb-3" />
+            <Loader2 className="w-8 h-8 animate-spin text-[#6E8570] mx-auto mb-3" />
             <p className="text-gray-400 text-sm">Carregando seus dados...</p>
           </div>
         </div>
@@ -1293,7 +1293,7 @@ export default function TriagemPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--cor-empresa-bg)' }}>
-        <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#6E8570]" />
       </div>
     }>
       <TriagemConteudo />

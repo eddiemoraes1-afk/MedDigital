@@ -280,14 +280,14 @@ export default function FichaMedicoContent({
 <title>Produção — ${medicoNome}</title>
 <style>
   *{box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:11px;color:#111;padding:20px 28px}
-  h1{font-size:16px;color:#1A3A2C;margin:0 0 2px}
+  h1{font-size:16px;color:#19382E;margin:0 0 2px}
   .meta{color:#6b7280;font-size:10px;margin-bottom:16px}
   .kpis{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
   .kpi{border:1px solid #e5e7eb;border-radius:8px;padding:8px 14px;min-width:110px}
   .kpi-label{font-size:9px;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em}
-  .kpi-value{font-size:15px;font-weight:700;color:#1A3A2C;margin-top:2px}
+  .kpi-value{font-size:15px;font-weight:700;color:#19382E;margin-top:2px}
   .orange{color:#ea580c}.green{color:#16a34a}.amber{color:#d97706}.purple{color:#9333ea}
-  h3{font-size:12px;color:#1A3A2C;font-weight:700;margin:20px 0 6px;padding-bottom:4px;border-bottom:1px solid #e5e7eb}
+  h3{font-size:12px;color:#19382E;font-weight:700;margin:20px 0 6px;padding-bottom:4px;border-bottom:1px solid #e5e7eb}
   table{width:100%;border-collapse:collapse}
   th{background:#f9fafb;text-align:left;padding:5px 8px;font-size:9px;color:#6b7280;text-transform:uppercase}
   td{padding:5px 8px;border-bottom:1px solid #f3f4f6;font-size:10px}
@@ -336,17 +336,17 @@ export default function FichaMedicoContent({
       <div>
         <label className="text-[10px] text-gray-400 block mb-0.5">De</label>
         <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)}
-          className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-white" />
+          className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40 bg-white" />
       </div>
       <div>
         <label className="text-[10px] text-gray-400 block mb-0.5">Até</label>
         <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
-          className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-white" />
+          className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40 bg-white" />
       </div>
       <div>
         <label className="text-[10px] text-gray-400 block mb-0.5">Origem</label>
         <select value={origem} onChange={e => setOrigem(e.target.value)}
-          className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-white">
+          className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40 bg-white">
           <option value="all">Todas</option>
           <option value="particular">Particular</option>
           {empresas.map(e => <option key={e.id} value={e.id}>{e.nome}</option>)}
@@ -357,7 +357,7 @@ export default function FichaMedicoContent({
         <div className="relative">
           <Search className="w-3 h-3 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
           <input type="text" placeholder="Buscar por nome…" value={busca} onChange={e => setBusca(e.target.value)}
-            className="w-full text-xs border border-gray-200 rounded-lg pl-7 pr-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-white" />
+            className="w-full text-xs border border-gray-200 rounded-lg pl-7 pr-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40 bg-white" />
         </div>
       </div>
       {isFiltered && (
@@ -374,28 +374,28 @@ export default function FichaMedicoContent({
     <>
       {/* Dynamic KPI cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
-        <div className="bg-[#1A3A2C] rounded-2xl p-4 shadow-sm">
+        <div className="bg-[#19382E] rounded-2xl p-4 shadow-sm">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-xs text-green-300 font-medium">Consultas</p>
               <p className="text-2xl font-bold text-white mt-1">{totalConsultas}</p>
               <p className="text-xs text-green-300 mt-0.5">realizadas</p>
             </div>
-            <div className="p-2 rounded-xl bg-white/10"><Activity className="w-4 h-4 text-[#5BBD9B]" /></div>
+            <div className="p-2 rounded-xl bg-white/10"><Activity className="w-4 h-4 text-[#6E8570]" /></div>
           </div>
         </div>
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-50">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-xs text-gray-400 font-medium">Faturamento</p>
-              <p className="text-lg font-bold text-[#1A3A2C] mt-1 leading-tight">{formatBRL(faturamento)}</p>
+              <p className="text-lg font-bold text-[#19382E] mt-1 leading-tight">{formatBRL(faturamento)}</p>
               <p className="text-xs text-gray-400 mt-0.5">
                 {faturamentoRenovacoes > 0
                   ? `consultas + ${formatBRL(faturamentoRenovacoes)} renov.`
                   : 'receita gerada'}
               </p>
             </div>
-            <div className="p-2 rounded-xl bg-green-50"><DollarSign className="w-4 h-4 text-[#5BBD9B]" /></div>
+            <div className="p-2 rounded-xl bg-green-50"><DollarSign className="w-4 h-4 text-[#6E8570]" /></div>
           </div>
         </div>
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-50">
@@ -479,8 +479,8 @@ export default function FichaMedicoContent({
           {/* Consultation table card */}
           <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
-              <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
-                <Activity className="w-4 h-4 text-[#5BBD9B]" />
+              <h2 className="font-bold text-[#19382E] flex items-center gap-2 text-sm">
+                <Activity className="w-4 h-4 text-[#6E8570]" />
                 Histórico de Consultas
                 <span className="text-xs text-gray-400 font-normal">
                   ({isFiltered ? `${filteredAts.length} de ${atendimentos.length}` : atendimentos.length})
@@ -527,7 +527,7 @@ export default function FichaMedicoContent({
                         <td className="px-5 py-3">
                           {a.pacienteId && a.pacienteNome ? (
                             <Link href={`/admin/pacientes/${a.pacienteId}?back=${encodeURIComponent(`/admin/medicos/${medicoId}`)}&medico_id=${medicoId}`}
-                              className="text-sm text-[#5BBD9B] hover:underline font-medium">
+                              className="text-sm text-[#6E8570] hover:underline font-medium">
                               {a.pacienteNome}
                             </Link>
                           ) : <span className="text-gray-300 text-xs">—</span>}
@@ -538,7 +538,7 @@ export default function FichaMedicoContent({
                             {a.origemLabel.length > 18 ? a.origemLabel.slice(0, 16) + '…' : a.origemLabel}
                           </span>
                         </td>
-                        <td className="px-5 py-3 text-right text-sm font-semibold text-[#1A3A2C]">
+                        <td className="px-5 py-3 text-right text-sm font-semibold text-[#19382E]">
                           {a.valor > 0 ? formatBRL(a.valor) : '—'}
                         </td>
                         {custoConsulta > 0 && (
@@ -574,7 +574,7 @@ export default function FichaMedicoContent({
                       <td colSpan={3} className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                         Total ({filteredAts.length} {filteredAts.length === 1 ? 'consulta' : 'consultas'})
                       </td>
-                      <td className="px-5 py-3 text-right text-sm font-bold text-[#1A3A2C]">
+                      <td className="px-5 py-3 text-right text-sm font-bold text-[#19382E]">
                         {formatBRL(faturamentoConsultas)}
                       </td>
                       {custoConsulta > 0 && (
@@ -591,7 +591,7 @@ export default function FichaMedicoContent({
               <div className="py-12 text-center">
                 <Search className="w-8 h-8 text-gray-200 mx-auto mb-2" />
                 <p className="text-sm text-gray-400">Nenhum resultado para os filtros aplicados</p>
-                <button onClick={clearFilters} className="mt-2 text-xs text-[#5BBD9B] hover:underline">Limpar filtros</button>
+                <button onClick={clearFilters} className="mt-2 text-xs text-[#6E8570] hover:underline">Limpar filtros</button>
               </div>
             ) : (
               <div className="py-14 text-center">
@@ -605,7 +605,7 @@ export default function FichaMedicoContent({
           {atestados.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
-                <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
+                <h2 className="font-bold text-[#19382E] flex items-center gap-2 text-sm">
                   <FileText className="w-4 h-4 text-amber-500" />
                   Atestados Emitidos
                   <span className="text-xs text-gray-400 font-normal">
@@ -631,7 +631,7 @@ export default function FichaMedicoContent({
                           <td className="px-5 py-3">
                             {a.pacienteId && a.pacienteNome ? (
                               <Link href={`/admin/pacientes/${a.pacienteId}?back=${encodeURIComponent(`/admin/medicos/${medicoId}`)}&medico_id=${medicoId}`}
-                                className="text-sm text-[#5BBD9B] hover:underline">{a.pacienteNome}</Link>
+                                className="text-sm text-[#6E8570] hover:underline">{a.pacienteNome}</Link>
                             ) : <span className="text-gray-300 text-xs">—</span>}
                           </td>
                           <td className="px-5 py-3 text-center">
@@ -657,7 +657,7 @@ export default function FichaMedicoContent({
           {receitas.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
-                <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
+                <h2 className="font-bold text-[#19382E] flex items-center gap-2 text-sm">
                   <ClipboardList className="w-4 h-4 text-purple-500" />
                   Receitas Emitidas
                   <span className="text-xs text-gray-400 font-normal">
@@ -690,7 +690,7 @@ export default function FichaMedicoContent({
                           <td className="px-5 py-3">
                             {r.pacienteId && r.pacienteNome ? (
                               <Link href={`/admin/pacientes/${r.pacienteId}?back=${encodeURIComponent(`/admin/medicos/${medicoId}`)}`}
-                                className="text-sm text-[#5BBD9B] hover:underline">{r.pacienteNome}</Link>
+                                className="text-sm text-[#6E8570] hover:underline">{r.pacienteNome}</Link>
                             ) : <span className="text-gray-300 text-xs">—</span>}
                           </td>
                           <td className="px-5 py-3 text-center">
@@ -705,7 +705,7 @@ export default function FichaMedicoContent({
                               {r.status === 'emitida' ? 'Emitida' : r.status ?? '—'}
                             </span>
                           </td>
-                          <td className="px-5 py-3 text-right text-sm font-semibold text-[#1A3A2C]">
+                          <td className="px-5 py-3 text-right text-sm font-semibold text-[#19382E]">
                             {r.isRenovacao && r.valor > 0 ? formatBRL(r.valor) : '—'}
                           </td>
                         </tr>
@@ -722,7 +722,7 @@ export default function FichaMedicoContent({
                             : `${filteredRecs.length} ${filteredRecs.length === 1 ? 'receita' : 'receitas'}`}
                         </td>
                         <td className="px-5 py-3" />
-                        <td className="px-5 py-3 text-right text-sm font-bold text-[#1A3A2C]">
+                        <td className="px-5 py-3 text-right text-sm font-bold text-[#19382E]">
                           {faturamentoRenovacoes > 0 ? formatBRL(faturamentoRenovacoes) : '—'}
                         </td>
                       </tr>
@@ -741,7 +741,7 @@ export default function FichaMedicoContent({
           {exames.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
-                <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
+                <h2 className="font-bold text-[#19382E] flex items-center gap-2 text-sm">
                   <FlaskConical className="w-4 h-4 text-blue-500" />
                   Exames Solicitados
                   <span className="text-xs text-gray-400 font-normal">
@@ -775,7 +775,7 @@ export default function FichaMedicoContent({
                             <td className="px-5 py-3">
                               {e.pacienteId && e.pacienteNome ? (
                                 <Link href={`/admin/pacientes/${e.pacienteId}?back=${encodeURIComponent(`/admin/medicos/${medicoId}`)}`}
-                                  className="text-sm text-[#5BBD9B] hover:underline">{e.pacienteNome}</Link>
+                                  className="text-sm text-[#6E8570] hover:underline">{e.pacienteNome}</Link>
                               ) : <span className="text-gray-300 text-xs">—</span>}
                             </td>
                             <td className="px-5 py-3 text-xs text-gray-700 whitespace-pre-line max-w-xs">
@@ -804,7 +804,7 @@ export default function FichaMedicoContent({
           {exclusoes.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
-                <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
+                <h2 className="font-bold text-[#19382E] flex items-center gap-2 text-sm">
                   <ShieldCheck className="w-4 h-4 text-red-500" />
                   Protocolos de Exclusão
                   <span className="text-xs text-gray-400 font-normal">
@@ -845,7 +845,7 @@ export default function FichaMedicoContent({
                             <td className="px-5 py-3">
                               {ex.pacienteId && ex.pacienteNome ? (
                                 <Link href={`/admin/pacientes/${ex.pacienteId}?back=${encodeURIComponent(`/admin/medicos/${medicoId}`)}`}
-                                  className="text-sm text-[#5BBD9B] hover:underline">{ex.pacienteNome}</Link>
+                                  className="text-sm text-[#6E8570] hover:underline">{ex.pacienteNome}</Link>
                               ) : <span className="text-gray-300 text-xs">—</span>}
                             </td>
                             <td className="px-5 py-3 text-center">
@@ -897,19 +897,19 @@ export default function FichaMedicoContent({
           {/* Dynamic resumo financeiro */}
           {custoConsulta > 0 && totalConsultas > 0 && (
             <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
-              <h3 className="font-semibold text-[#1A3A2C] text-xs uppercase tracking-wide mb-3 flex items-center gap-1">
+              <h3 className="font-semibold text-[#19382E] text-xs uppercase tracking-wide mb-3 flex items-center gap-1">
                 Resumo Financeiro
-                {isFiltered && <span className="text-[9px] text-[#5BBD9B] bg-[#5BBD9B]/10 px-1.5 py-0.5 rounded-full normal-case font-medium">filtrado</span>}
+                {isFiltered && <span className="text-[9px] text-[#6E8570] bg-[#6E8570]/10 px-1.5 py-0.5 rounded-full normal-case font-medium">filtrado</span>}
               </h3>
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Faturamento consultas</span>
-                  <span className="font-semibold text-[#1A3A2C]">{formatBRL(faturamentoConsultas)}</span>
+                  <span className="font-semibold text-[#19382E]">{formatBRL(faturamentoConsultas)}</span>
                 </div>
                 {faturamentoRenovacoes > 0 && (
                   <div className="flex justify-between">
                     <span className="text-gray-500">Faturamento renovações ({totalRenovacoes})</span>
-                    <span className="font-semibold text-[#1A3A2C]">{formatBRL(faturamentoRenovacoes)}</span>
+                    <span className="font-semibold text-[#19382E]">{formatBRL(faturamentoRenovacoes)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
@@ -923,7 +923,7 @@ export default function FichaMedicoContent({
                   </div>
                 )}
                 <div className="flex justify-between pt-2 border-t border-gray-200">
-                  <span className="font-bold text-[#1A3A2C]">Margem bruta</span>
+                  <span className="font-bold text-[#19382E]">Margem bruta</span>
                   <span className={`font-bold ${lucro >= 0 ? 'text-green-600' : 'text-red-500'}`}>{formatBRL(lucro)}</span>
                 </div>
                 {faturamento > 0 && (

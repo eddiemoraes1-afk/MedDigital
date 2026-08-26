@@ -32,7 +32,7 @@ export async function GET() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'RovarisMed <onboarding@resend.dev>',
+        from: 'Aduno <onboarding@resend.dev>',
         to: ['eddiemoraes1@gmail.com'],
         subject: '🧪 Teste direto',
         html: '<p>Teste fetch direto OK</p>',

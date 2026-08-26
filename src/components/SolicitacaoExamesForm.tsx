@@ -157,7 +157,7 @@ export default function SolicitacaoExamesForm({
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={baixarPDF}
-            className="flex items-center gap-1.5 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
+            className="flex items-center gap-1.5 bg-[#19382E] hover:bg-[#6E8570] text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
           >
             <Download className="w-3.5 h-3.5" /> Baixar PDF
           </button>
@@ -186,8 +186,8 @@ export default function SolicitacaoExamesForm({
     <div className="space-y-4">
       {onFechar && (
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-sm text-[#1A3A2C] flex items-center gap-1.5">
-            <FlaskConical className="w-4 h-4 text-[#5BBD9B]" /> Solicitar Exames
+          <h3 className="font-semibold text-sm text-[#19382E] flex items-center gap-1.5">
+            <FlaskConical className="w-4 h-4 text-[#6E8570]" /> Solicitar Exames
           </h3>
           <button onClick={onFechar} className="text-gray-400 hover:text-gray-600">
             <X className="w-4 h-4" />
@@ -197,7 +197,7 @@ export default function SolicitacaoExamesForm({
 
       {/* Paciente */}
       <div className="bg-[#F0F9F5] rounded-xl px-3 py-2.5">
-        <p className="text-xs font-semibold text-[#1A3A2C]">{paciente.nome}</p>
+        <p className="text-xs font-semibold text-[#19382E]">{paciente.nome}</p>
         {paciente.cpf && <p className="text-xs text-gray-500">CPF: {paciente.cpf}</p>}
       </div>
 
@@ -212,7 +212,7 @@ export default function SolicitacaoExamesForm({
               className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                 urgencia === opt.value
                   ? opt.value === 'normal'
-                    ? 'bg-[#1A3A2C] text-white border-[#1A3A2C]'
+                    ? 'bg-[#19382E] text-white border-[#19382E]'
                     : opt.value === 'urgente'
                     ? 'bg-yellow-500 text-white border-yellow-500'
                     : 'bg-red-600 text-white border-red-600'
@@ -233,7 +233,7 @@ export default function SolicitacaoExamesForm({
           </label>
           <button
             onClick={() => setShowSugestoes(v => !v)}
-            className="text-xs text-[#5BBD9B] hover:text-[#1A3A2C] font-medium"
+            className="text-xs text-[#6E8570] hover:text-[#19382E] font-medium"
           >
             + Sugestões rápidas
           </button>
@@ -273,7 +273,7 @@ export default function SolicitacaoExamesForm({
                 onBlur={() => setTimeout(() => { setSugestoesIdx(null); setSugestoesExame([]) }, 150)}
                 placeholder={`Exame ${i + 1}...`}
                 autoComplete="off"
-                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570]"
               />
               {examesList.length > 1 && (
                 <button
@@ -300,7 +300,7 @@ export default function SolicitacaoExamesForm({
                       }}
                       className="w-full text-left px-4 py-2.5 hover:bg-[#F0F9F5] border-b border-gray-50 last:border-0 text-sm"
                     >
-                      <p className="font-medium text-[#1A3A2C]">{ex.nome}</p>
+                      <p className="font-medium text-[#19382E]">{ex.nome}</p>
                       <p className="text-xs text-gray-400 mt-0.5">{ex.sinonimos?.slice(0, 2).join(', ')}</p>
                     </button>
                   ))}
@@ -312,7 +312,7 @@ export default function SolicitacaoExamesForm({
 
         <button
           onClick={addExame}
-          className="mt-2 flex items-center gap-1 text-xs text-[#5BBD9B] hover:text-[#1A3A2C] font-medium transition-colors"
+          className="mt-2 flex items-center gap-1 text-xs text-[#6E8570] hover:text-[#19382E] font-medium transition-colors"
         >
           <Plus className="w-3.5 h-3.5" /> Adicionar exame
         </button>
@@ -329,7 +329,7 @@ export default function SolicitacaoExamesForm({
           rows={2}
           autoComplete="off"
           placeholder="Ex: Investigação de diabetes, acompanhamento de dislipidemia..."
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] resize-none"
         />
       </div>
 
@@ -344,7 +344,7 @@ export default function SolicitacaoExamesForm({
           rows={2}
           autoComplete="off"
           placeholder="Ex: Paciente deve estar em jejum de 8h, trazer resultado anterior..."
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] resize-none"
         />
       </div>
 
@@ -358,7 +358,7 @@ export default function SolicitacaoExamesForm({
         <button
           onClick={salvar}
           disabled={salvando || !temExames}
-          className="flex-1 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
+          className="flex-1 bg-[#19382E] hover:bg-[#6E8570] text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
         >
           {salvando
             ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</>

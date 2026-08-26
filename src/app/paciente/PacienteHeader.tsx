@@ -60,7 +60,7 @@ export default function PacienteHeader({ titulo, backHref, onBack }: Props) {
               />
             </div>
           ) : (
-            <img src="/logo-branca.svg" alt="RovarisMed" className="h-8 shrink-0" />
+            <img src="/aduno-logo-branca.png" alt="Aduno" className="h-8 shrink-0" />
           )}
 
           {titulo && (

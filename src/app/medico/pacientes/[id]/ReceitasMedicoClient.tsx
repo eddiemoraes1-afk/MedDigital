@@ -96,7 +96,7 @@ export default function ReceitasMedicoClient({
           return (
             <div
               key={r.id}
-              className={`bg-white rounded-2xl p-4 shadow-sm border-2 ${ehMinha ? 'border-[#5BBD9B]' : 'border-gray-100'}`}
+              className={`bg-white rounded-2xl p-4 shadow-sm border-2 ${ehMinha ? 'border-[#6E8570]' : 'border-gray-100'}`}
             >
               <div className="flex items-start gap-3">
                 <div className="flex-1 min-w-0">
@@ -106,7 +106,7 @@ export default function ReceitasMedicoClient({
                       {labelTipo}
                     </span>
                     {ehMinha && (
-                      <span className="text-xs bg-[#1A3A2C] text-white px-2 py-0.5 rounded-full font-medium">
+                      <span className="text-xs bg-[#19382E] text-white px-2 py-0.5 rounded-full font-medium">
                         Emitida por você
                       </span>
                     )}
@@ -116,7 +116,7 @@ export default function ReceitasMedicoClient({
                   <div className="bg-gray-50 rounded-xl px-3 py-2 mb-2">
                     {(r.medicamentos ?? '').split('\n').filter(Boolean).map((m, i) => (
                       <p key={i} className="text-xs text-gray-700 font-mono leading-relaxed">
-                        <span className="text-[#5BBD9B] font-bold mr-1">℞</span>{m}
+                        <span className="text-[#6E8570] font-bold mr-1">℞</span>{m}
                       </p>
                     ))}
                   </div>
@@ -145,7 +145,7 @@ export default function ReceitasMedicoClient({
                     <>
                       <button
                         onClick={() => imprimirReceita(params)}
-                        className="flex items-center gap-1 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-green-50 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                        className="flex items-center gap-1 border border-[#19382E] text-[#19382E] hover:bg-green-50 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
                       >
                         <Printer className="w-3 h-3" /> Imprimir
                       </button>

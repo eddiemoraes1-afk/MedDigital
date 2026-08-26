@@ -9,7 +9,7 @@ import * as XLSX from 'xlsx'
 import { CidBadgePill, CidBadgeTable, GrupoLabel } from '@/components/CidTooltip'
 import ActionButtons from '@/components/ActionButtons'
 
-const COLORS = ['#5BBD9B','#3B82F6','#F59E0B','#8B5CF6','#EF4444','#14B8A6','#EC4899','#6366F1']
+const COLORS = ['#6E8570','#3B82F6','#F59E0B','#8B5CF6','#EF4444','#14B8A6','#EC4899','#6366F1']
 
 function formatMes(ym: string) {
   const [year, month] = ym.split('-')
@@ -54,7 +54,7 @@ function DonutChart({ slices, centerLabel }: { slices: { label: string; value: n
     <div className="flex flex-col items-center gap-3">
       <svg viewBox="-95 -95 190 190" className="w-40 h-40">
         {sectors.map((s, i) => <path key={i} d={s.path} fill={s.color} stroke="white" strokeWidth="2"><title>{s.label}: {s.value}</title></path>)}
-        <text x="0" y="-5" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1A3A2C">{centerLabel ?? total}</text>
+        <text x="0" y="-5" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#19382E">{centerLabel ?? total}</text>
         <text x="0" y="10" textAnchor="middle" fontSize="7" fill="#9CA3AF">total</text>
       </svg>
       <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 max-w-xs">
@@ -71,7 +71,7 @@ function DonutChart({ slices, centerLabel }: { slices: { label: string; value: n
 }
 
 // ── Horizontal Bar ────────────────────────────────────────────────────────────
-function HBar({ data, labelKey, valueKey, color = '#5BBD9B', suffix = '' }: {
+function HBar({ data, labelKey, valueKey, color = '#6E8570', suffix = '' }: {
   data: Record<string, any>[]; labelKey: string; valueKey: string; color?: string; suffix?: string
 }) {
   if (!data.length) return <div className="h-24 flex items-center justify-center text-xs text-gray-300">Sem dados</div>
@@ -92,7 +92,7 @@ function HBar({ data, labelKey, valueKey, color = '#5BBD9B', suffix = '' }: {
 }
 
 // ── Bar vertical ──────────────────────────────────────────────────────────────
-function BarV({ data, labelKey, valueKey, color = '#5BBD9B' }: {
+function BarV({ data, labelKey, valueKey, color = '#6E8570' }: {
   data: Record<string, any>[]; labelKey: string; valueKey: string; color?: string
 }) {
   if (!data.length) return <div className="h-32 flex items-center justify-center text-xs text-gray-300">Sem dados</div>
@@ -126,7 +126,7 @@ function BarV({ data, labelKey, valueKey, color = '#5BBD9B' }: {
 function Card({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) {
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50">
-      <div className="mb-4"><h3 className="font-bold text-[#1A3A2C] text-sm">{title}</h3>{sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}</div>
+      <div className="mb-4"><h3 className="font-bold text-[#19382E] text-sm">{title}</h3>{sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}</div>
       {children}
     </div>
   )
@@ -136,14 +136,14 @@ function KpiCard({ label, value, sub, icon: Icon, color, highlight }: {
   label: string; value: string | number; sub?: string; icon: React.ElementType; color: string; highlight?: boolean
 }) {
   return (
-    <div className={`rounded-2xl p-5 shadow-sm border ${highlight ? 'bg-[#1A3A2C] border-[#1A3A2C]' : 'bg-white border-gray-100'}`}>
+    <div className={`rounded-2xl p-5 shadow-sm border ${highlight ? 'bg-[#19382E] border-[#19382E]' : 'bg-white border-gray-100'}`}>
       <div className="flex items-center gap-2 mb-3">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: highlight ? 'rgba(255,255,255,0.15)' : `${color}18` }}>
-          <Icon className="w-4 h-4" style={{ color: highlight ? '#5BBD9B' : color }} />
+          <Icon className="w-4 h-4" style={{ color: highlight ? '#6E8570' : color }} />
         </div>
         <p className={`text-xs font-semibold uppercase tracking-wide ${highlight ? 'text-green-300' : 'text-gray-400'}`}>{label}</p>
       </div>
-      <p className={`text-2xl font-bold leading-none ${highlight ? 'text-white' : 'text-[#1A3A2C]'}`}>{value}</p>
+      <p className={`text-2xl font-bold leading-none ${highlight ? 'text-white' : 'text-[#19382E]'}`}>{value}</p>
       {sub && <p className={`text-xs mt-1.5 ${highlight ? 'text-green-300' : 'text-gray-400'}`}>{sub}</p>}
     </div>
   )
@@ -238,18 +238,18 @@ function exportarPDF(data: any, filtrosDesc: string) {
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; font-size: 11px; color: #222; padding: 24px; }
-    h1 { font-size: 16px; color: #1A3A2C; margin-bottom: 4px; }
+    h1 { font-size: 16px; color: #19382E; margin-bottom: 4px; }
     .sub { font-size: 10px; color: #666; margin-bottom: 16px; }
     .kpis { display: flex; gap: 12px; margin-bottom: 20px; }
     .kpi { flex: 1; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; text-align: center; }
-    .kpi-val { font-size: 20px; font-weight: bold; color: #1A3A2C; }
+    .kpi-val { font-size: 20px; font-weight: bold; color: #19382E; }
     .kpi-lab { font-size: 9px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
-    h2 { font-size: 12px; color: #1A3A2C; margin: 20px 0 8px; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
+    h2 { font-size: 12px; color: #19382E; margin: 20px 0 8px; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 4px; font-size: 10px; }
-    th { background: #1A3A2C; color: white; padding: 5px 8px; text-align: left; font-weight: 600; font-size: 9px; text-transform: uppercase; letter-spacing: 0.04em; }
+    th { background: #19382E; color: white; padding: 5px 8px; text-align: left; font-weight: 600; font-size: 9px; text-transform: uppercase; letter-spacing: 0.04em; }
     td { padding: 4px 8px; border-bottom: 1px solid #f0f0f0; }
     .center { text-align: center; }
-    .cid { font-family: monospace; font-weight: bold; color: #1A3A2C; }
+    .cid { font-family: monospace; font-weight: bold; color: #19382E; }
     .bg-white { background: #fff; }
     .bg-gray-50 { background: #f9fafb; }
     footer { margin-top: 24px; font-size: 9px; color: #aaa; border-top: 1px solid #e5e7eb; padding-top: 8px; }
@@ -289,7 +289,7 @@ function exportarPDF(data: any, filtrosDesc: string) {
     <tbody>${cidRows || '<tr><td colspan="4" style="text-align:center;color:#aaa;padding:12px">Sem dados</td></tr>'}</tbody>
   </table>
 
-  <footer>Documento gerado automaticamente pelo sistema RovarisMed · ${new Date().toLocaleDateString('pt-BR')}</footer>
+  <footer>Documento gerado automaticamente pelo sistema Aduno · ${new Date().toLocaleDateString('pt-BR')}</footer>
 
   <script>window.onload = () => { window.print() }</script>
 </body>
@@ -382,8 +382,8 @@ export default function AdminAtestadosDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
-            <FileText className="w-4 h-4 text-[#5BBD9B]" /> Dashboard de Atestados
+          <h2 className="font-bold text-[#19382E] flex items-center gap-2">
+            <FileText className="w-4 h-4 text-[#6E8570]" /> Dashboard de Atestados
           </h2>
           <p className="text-xs text-gray-400 mt-0.5">Afastamentos médicos de todos os pacientes</p>
         </div>
@@ -401,8 +401,8 @@ export default function AdminAtestadosDashboard() {
       {/* Barra de filtros */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Filter className="w-3.5 h-3.5 text-[#5BBD9B]" />
-          <span className="text-xs font-semibold text-[#1A3A2C] uppercase tracking-wide">Filtros</span>
+          <Filter className="w-3.5 h-3.5 text-[#6E8570]" />
+          <span className="text-xs font-semibold text-[#19382E] uppercase tracking-wide">Filtros</span>
           {temFiltro && (
             <button
               onClick={limparFiltros}
@@ -420,7 +420,7 @@ export default function AdminAtestadosDashboard() {
               type="date"
               value={dataInicio}
               onChange={e => setDataInicio(e.target.value)}
-              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700"
+              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-gray-700"
             />
           </div>
           {/* Data fim */}
@@ -430,7 +430,7 @@ export default function AdminAtestadosDashboard() {
               type="date"
               value={dataFim}
               onChange={e => setDataFim(e.target.value)}
-              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700"
+              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-gray-700"
             />
           </div>
           {/* Empresa */}
@@ -439,7 +439,7 @@ export default function AdminAtestadosDashboard() {
             <select
               value={empresaId}
               onChange={e => setEmpresaId(e.target.value)}
-              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700 bg-white"
+              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-gray-700 bg-white"
             >
               <option value="">Todas</option>
               {(data?.empresas ?? []).map((emp: any) => (
@@ -458,7 +458,7 @@ export default function AdminAtestadosDashboard() {
                 value={nomeInput}
                 onChange={e => setNomeInput(e.target.value)}
                 placeholder="Nome do paciente..."
-                className="w-full text-xs border border-gray-200 rounded-lg pl-6 pr-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700 placeholder-gray-300"
+                className="w-full text-xs border border-gray-200 rounded-lg pl-6 pr-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-gray-700 placeholder-gray-300"
               />
             </div>
           </div>
@@ -472,7 +472,7 @@ export default function AdminAtestadosDashboard() {
                 value={cidInput}
                 onChange={e => setCidInput(e.target.value.toUpperCase())}
                 placeholder="Ex: J11, M54..."
-                className="w-full text-xs border border-gray-200 rounded-lg pl-6 pr-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700 placeholder-gray-300 font-mono"
+                className="w-full text-xs border border-gray-200 rounded-lg pl-6 pr-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-gray-700 placeholder-gray-300 font-mono"
               />
             </div>
           </div>
@@ -481,7 +481,7 @@ export default function AdminAtestadosDashboard() {
         {/* Indicador de filtros ativos */}
         {temFiltro && (
           <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2">
-            <span className="text-xs text-[#5BBD9B] font-semibold">Filtros ativos:</span>
+            <span className="text-xs text-[#6E8570] font-semibold">Filtros ativos:</span>
             <span className="text-xs text-gray-500">{descricaoFiltros()}</span>
             {!carregando && data && (
               <span className="ml-auto text-xs text-gray-400">{data.kpis.total} resultado{data.kpis.total !== 1 ? 's' : ''}</span>
@@ -500,7 +500,7 @@ export default function AdminAtestadosDashboard() {
       {erro && !carregando && (
         <div className="text-center py-16 text-red-500 text-sm">
           {erro}
-          <button onClick={carregar} className="block mx-auto mt-3 text-[#5BBD9B] hover:underline flex items-center gap-1.5 text-xs">
+          <button onClick={carregar} className="block mx-auto mt-3 text-[#6E8570] hover:underline flex items-center gap-1.5 text-xs">
             <RefreshCw className="w-3.5 h-3.5" /> Tentar novamente
           </button>
         </div>
@@ -510,7 +510,7 @@ export default function AdminAtestadosDashboard() {
         <>
           {/* KPIs */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <KpiCard label="Total de Atestados" value={k.total} sub="emitidos no período" icon={FileText} color="#5BBD9B" highlight />
+            <KpiCard label="Total de Atestados" value={k.total} sub="emitidos no período" icon={FileText} color="#6E8570" highlight />
             <KpiCard label="Total de Dias" value={k.totalDias} sub="dias de afastamento" icon={Clock} color="#3B82F6" />
             <KpiCard label="Média por Atestado" value={`${k.mediaDias} dias`} sub="duração média" icon={Calendar} color="#F59E0B" />
             <KpiCard label="Pacientes com Atestado" value={k.pacientesUnicos} sub="pacientes únicos" icon={Users} color="#8B5CF6" />
@@ -523,7 +523,7 @@ export default function AdminAtestadosDashboard() {
                 {temFiltro ? 'Nenhum atestado encontrado para estes filtros' : 'Nenhum atestado registrado ainda'}
               </p>
               {temFiltro && (
-                <button onClick={limparFiltros} className="mt-3 text-sm text-[#5BBD9B] hover:underline">
+                <button onClick={limparFiltros} className="mt-3 text-sm text-[#6E8570] hover:underline">
                   Limpar filtros
                 </button>
               )}
@@ -537,7 +537,7 @@ export default function AdminAtestadosDashboard() {
                 <Card title="Atestados por Mês" sub="Quantidade de atestados emitidos">
                   <BarV
                     data={data.porMes.map((d: any) => ({ ...d, mes: formatMes(d.mes) }))}
-                    labelKey="mes" valueKey="atestados" color="#5BBD9B"
+                    labelKey="mes" valueKey="atestados" color="#6E8570"
                   />
                 </Card>
                 <Card title="Dias de Afastamento por Mês" sub="Total de dias acumulados">
@@ -575,7 +575,7 @@ export default function AdminAtestadosDashboard() {
                       <div key={i} className="flex items-center gap-3">
                         <span className="w-20 shrink-0"><CidBadgePill cid={c.cid} /></span>
                         <div className="flex-1 bg-gray-100 rounded-full h-2">
-                          <div className="h-2 rounded-full" style={{ width: `${(c.atestados / max) * 100}%`, backgroundColor: '#5BBD9B' }} />
+                          <div className="h-2 rounded-full" style={{ width: `${(c.atestados / max) * 100}%`, backgroundColor: '#6E8570' }} />
                         </div>
                         <div className="flex items-center gap-3 text-xs shrink-0">
                           <span className="font-semibold text-gray-700 w-6 text-right">{c.atestados}</span>
@@ -667,7 +667,7 @@ export default function AdminAtestadosDashboard() {
                       {data.topPacientes.map((p: any, i: number) => (
                         <tr key={i} className={`hover:bg-gray-50 ${i === 0 ? 'bg-amber-50' : ''}`}>
                           <td className="px-4 py-2.5 text-xs text-gray-400 font-medium">{i + 1}</td>
-                          <td className="px-4 py-2.5 font-medium text-[#1A3A2C] text-sm">{p.nome}</td>
+                          <td className="px-4 py-2.5 font-medium text-[#19382E] text-sm">{p.nome}</td>
                           <td className="px-4 py-2.5 text-xs text-gray-500">{p.empresa ?? 'Particular'}</td>
                           <td className="px-4 py-2.5">
                             {p.cidPrincipal && p.cidPrincipal !== '—' ? (
@@ -710,7 +710,7 @@ export default function AdminAtestadosDashboard() {
                       {data.registros.map((r: any, i: number) => (
                         <tr key={i} className="hover:bg-gray-50">
                           <td className="px-3 py-2 text-gray-500 whitespace-nowrap">{formatDate(r.data)}</td>
-                          <td className="px-3 py-2 font-medium text-[#1A3A2C] whitespace-nowrap">{r.paciente}</td>
+                          <td className="px-3 py-2 font-medium text-[#19382E] whitespace-nowrap">{r.paciente}</td>
                           <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{r.medico}</td>
                           <td className="px-3 py-2">
                             {r.cid && r.cid !== '—' ? (

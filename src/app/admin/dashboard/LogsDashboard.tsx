@@ -150,7 +150,7 @@ function TimelineBar({ logs }: { logs: LogEntry[] }) {
         const h = Math.max(4, Math.round((byDate[d] / max) * 56))
         return (
           <div key={d} className="flex-1 flex flex-col items-center justify-end" title={`${fmtDate(d + 'T12:00:00')}: ${byDate[d]} eventos`}>
-            <div className="w-full rounded-t" style={{ height: h, background: '#1A3A2C', opacity: 0.7 }} />
+            <div className="w-full rounded-t" style={{ height: h, background: '#19382E', opacity: 0.7 }} />
           </div>
         )
       })}
@@ -166,7 +166,7 @@ function FInput({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white"
+      className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] bg-white"
     />
   )
 }
@@ -174,7 +174,7 @@ function FSelect({ children, ...props }: React.SelectHTMLAttributes<HTMLSelectEl
   return (
     <select
       {...props}
-      className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white"
+      className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] bg-white"
     >
       {children}
     </select>
@@ -330,10 +330,10 @@ export default function LogsDashboard() {
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, sans-serif; font-size: 10px; color: #111; padding: 20px; }
-  h1 { font-size: 16px; color: #1A3A2C; margin-bottom: 4px; }
+  h1 { font-size: 16px; color: #19382E; margin-bottom: 4px; }
   .sub { font-size: 9px; color: #666; margin-bottom: 16px; }
   table { width: 100%; border-collapse: collapse; }
-  th { background: #1A3A2C; color: white; padding: 5px 6px; text-align: left; font-size: 9px; }
+  th { background: #19382E; color: white; padding: 5px 6px; text-align: left; font-size: 9px; }
   td { padding: 4px 6px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
   tr:nth-child(even) td { background: #f9fafb; }
   .badge { display: inline-block; padding: 1px 6px; border-radius: 99px; font-size: 8px; font-weight: 600; }
@@ -371,7 +371,7 @@ ${rows.map(l => `<tr>
       {/* ── Barra de filtros horizontal ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
-          <span className="flex items-center gap-2 text-sm font-semibold text-[#1A3A2C]">
+          <span className="flex items-center gap-2 text-sm font-semibold text-[#19382E]">
             <SlidersHorizontal className="w-4 h-4" /> Filtros
           </span>
           <div className="flex gap-2 items-center">
@@ -460,7 +460,7 @@ ${rows.map(l => `<tr>
                 value={busca}
                 onChange={e => { setBusca(e.target.value); setPagina(1) }}
                 placeholder="Nome de paciente, médico, descrição..."
-                className="w-full border border-gray-200 rounded-lg pl-7 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white"
+                className="w-full border border-gray-200 rounded-lg pl-7 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] bg-white"
               />
             </div>
           </div>
@@ -476,7 +476,7 @@ ${rows.map(l => `<tr>
 
         {loading ? (
           <div className="flex items-center justify-center py-32">
-            <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
+            <Loader2 className="w-8 h-8 animate-spin text-[#6E8570]" />
           </div>
         ) : (
           <>
@@ -484,7 +484,7 @@ ${rows.map(l => `<tr>
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
               <div className="col-span-1 bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
                 <div className="text-xs text-gray-400 mb-1">Total</div>
-                <div className="text-3xl font-bold text-[#1A3A2C]">{logsFiltrados.length.toLocaleString('pt-BR')}</div>
+                <div className="text-3xl font-bold text-[#19382E]">{logsFiltrados.length.toLocaleString('pt-BR')}</div>
               </div>
               {TODOS_TIPOS.filter(t => (contagemFiltrada[t.key] ?? 0) > 0).slice(0, 8).map(t => {
                 const cfg = TIPO_CONFIG[t.key]
@@ -503,11 +503,11 @@ ${rows.map(l => `<tr>
             {/* ── Gráficos ── */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                <div className="text-sm font-semibold text-[#1A3A2C] mb-4">Eventos por tipo</div>
+                <div className="text-sm font-semibold text-[#19382E] mb-4">Eventos por tipo</div>
                 <BarChart contagem={contagemFiltrada} />
               </div>
               <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-                <div className="text-sm font-semibold text-[#1A3A2C] mb-2">Eventos por dia (últimos 30 dias)</div>
+                <div className="text-sm font-semibold text-[#19382E] mb-2">Eventos por dia (últimos 30 dias)</div>
                 <TimelineBar logs={logsFiltrados} />
                 <div className="text-xs text-gray-400 mt-2">Passe o mouse nas barras para ver detalhes</div>
               </div>
@@ -517,8 +517,8 @@ ${rows.map(l => `<tr>
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
-                  <ScrollText className="w-4 h-4 text-[#1A3A2C]" />
-                  <span className="font-semibold text-[#1A3A2C] text-sm">Linha do Tempo</span>
+                  <ScrollText className="w-4 h-4 text-[#19382E]" />
+                  <span className="font-semibold text-[#19382E] text-sm">Linha do Tempo</span>
                   <span className="text-xs text-gray-400 ml-1">({logsFiltrados.length.toLocaleString('pt-BR')} registros)</span>
                 </div>
                 <div className="text-xs text-gray-400">Página {pagina} de {totalPags}</div>
@@ -596,7 +596,7 @@ ${rows.map(l => `<tr>
                           key={p}
                           onClick={() => setPagina(p)}
                           className={`w-8 h-8 rounded-lg text-xs font-medium transition ${
-                            p === pagina ? 'bg-[#1A3A2C] text-white' : 'border border-gray-200 hover:bg-gray-50 text-gray-600'
+                            p === pagina ? 'bg-[#19382E] text-white' : 'border border-gray-200 hover:bg-gray-50 text-gray-600'
                           }`}
                         >
                           {p}

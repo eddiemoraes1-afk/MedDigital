@@ -1,5 +1,5 @@
 // ============================================================
-// MEDDIGITAL — Tipos TypeScript
+// ADUNO — Tipos TypeScript
 // ============================================================
 
 export type PerfilUsuario = 'paciente' | 'medico' | 'admin'

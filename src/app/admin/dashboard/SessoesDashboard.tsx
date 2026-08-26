@@ -40,7 +40,7 @@ function useDebounce<T>(value: T, delay: number): T {
 
 // ── Badge de perfil ───────────────────────────────────────────────────────────
 const PERFIL_CFG: Record<string, { label: string; bg: string; cor: string }> = {
-  admin:       { label: 'Admin',    bg: '#1A3A2C1A', cor: '#1A3A2C' },
+  admin:       { label: 'Admin',    bg: '#19382E1A', cor: '#19382E' },
   empresa:     { label: 'Empresa',  bg: '#dbeafe',   cor: '#1d4ed8' },
   medico:      { label: 'Médico',   bg: '#d1fae5',   cor: '#065f46' },
   paciente:    { label: 'Paciente', bg: '#fce7f3',   cor: '#9d174d' },
@@ -66,7 +66,7 @@ function KpiCard({ label, value, icon: Icon, cor }: { label: string; value: stri
         </div>
         <span className="text-xs text-gray-400 font-medium">{label}</span>
       </div>
-      <p className="text-2xl font-bold text-[#1A3A2C]">{value}</p>
+      <p className="text-2xl font-bold text-[#19382E]">{value}</p>
     </div>
   )
 }
@@ -76,11 +76,11 @@ function FLabel({ children }: { children: React.ReactNode }) {
   return <label className="block text-xs font-medium text-gray-500 mb-1">{children}</label>
 }
 function FInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
-  return <input {...props} className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white" />
+  return <input {...props} className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] bg-white" />
 }
 function FSelect({ children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
-    <select {...props} className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white">
+    <select {...props} className="w-full border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] bg-white">
       {children}
     </select>
   )
@@ -234,10 +234,10 @@ export default function SessoesDashboard() {
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, sans-serif; font-size: 10px; color: #111; padding: 20px; }
-  h1 { font-size: 16px; color: #1A3A2C; margin-bottom: 4px; }
+  h1 { font-size: 16px; color: #19382E; margin-bottom: 4px; }
   .sub { font-size: 9px; color: #666; margin-bottom: 16px; }
   table { width: 100%; border-collapse: collapse; }
-  th { background: #1A3A2C; color: white; padding: 5px 6px; text-align: left; font-size: 9px; }
+  th { background: #19382E; color: white; padding: 5px 6px; text-align: left; font-size: 9px; }
   td { padding: 4px 6px; border-bottom: 1px solid #e5e7eb; }
   tr:nth-child(even) td { background: #f9fafb; }
   .badge { display: inline-block; padding: 1px 5px; border-radius: 99px; font-size: 8px; font-weight: 600; }
@@ -273,11 +273,11 @@ ${rows.map(s => {
 
       {/* Cabeçalho da seção */}
       <div className="flex items-center gap-2">
-        <div className="p-2 bg-[#1A3A2C] rounded-xl">
-          <LogIn className="w-4 h-4 text-[#5BBD9B]" />
+        <div className="p-2 bg-[#19382E] rounded-xl">
+          <LogIn className="w-4 h-4 text-[#6E8570]" />
         </div>
         <div>
-          <h2 className="font-bold text-[#1A3A2C] text-sm">Relatório de Sessões</h2>
+          <h2 className="font-bold text-[#19382E] text-sm">Relatório de Sessões</h2>
           <p className="text-xs text-gray-400">Histórico de login, logout e tempo de sessão por usuário</p>
         </div>
       </div>
@@ -285,7 +285,7 @@ ${rows.map(s => {
       {/* ── Filtros ── */}
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
         <div className="flex items-center justify-between mb-3">
-          <span className="flex items-center gap-2 text-sm font-semibold text-[#1A3A2C]">
+          <span className="flex items-center gap-2 text-sm font-semibold text-[#19382E]">
             <SlidersHorizontal className="w-4 h-4" /> Filtros
           </span>
           <div className="flex gap-2 flex-wrap items-center">
@@ -346,7 +346,7 @@ ${rows.map(s => {
                 value={emailBusca}
                 onChange={e => { setEmailBusca(e.target.value); setPagina(1) }}
                 placeholder="Buscar por e-mail..."
-                className="w-full border border-gray-200 rounded-lg pl-7 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] bg-white"
+                className="w-full border border-gray-200 rounded-lg pl-7 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] bg-white"
               />
             </div>
           </div>
@@ -371,13 +371,13 @@ ${rows.map(s => {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#6E8570]" />
         </div>
       ) : (
         <>
           {/* ── KPIs ── */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            <KpiCard label="Total de sessões"    value={sessoesFiltradas.length}  icon={LogIn}   cor="#1A3A2C" />
+            <KpiCard label="Total de sessões"    value={sessoesFiltradas.length}  icon={LogIn}   cor="#19382E" />
             <KpiCard label="Usuários únicos"      value={new Set(sessoesFiltradas.map(s => s.email)).size} icon={Users} cor="#3b82f6" />
             <KpiCard label="Sessões encerradas"   value={sessoesFiltradas.filter(s => s.logout_em).length} icon={LogOut} cor="#10b981" />
             <KpiCard label="Em aberto"            value={sessoesFiltradas.filter(s => !s.logout_em).length} icon={WifiOff} cor="#f59e0b" />
@@ -388,7 +388,7 @@ ${rows.map(s => {
           {/* ── Por perfil ── */}
           {data && Object.keys(data.porPerfil).length > 0 && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-              <p className="text-sm font-semibold text-[#1A3A2C] mb-4">Sessões por perfil</p>
+              <p className="text-sm font-semibold text-[#19382E] mb-4">Sessões por perfil</p>
               <div className="flex flex-wrap gap-3">
                 {Object.entries(data.porPerfil).sort((a, b) => b[1] - a[1]).map(([perfil, n]) => {
                   const cfg = PERFIL_CFG[perfil] ?? PERFIL_CFG.desconhecido
@@ -407,8 +407,8 @@ ${rows.map(s => {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <LogIn className="w-4 h-4 text-[#1A3A2C]" />
-                <span className="font-semibold text-[#1A3A2C] text-sm">Registro de Sessões</span>
+                <LogIn className="w-4 h-4 text-[#19382E]" />
+                <span className="font-semibold text-[#19382E] text-sm">Registro de Sessões</span>
                 <span className="text-xs text-gray-400">({sessoesFiltradas.length} registros)</span>
               </div>
               <span className="text-xs text-gray-400">Página {pagina} de {totalPags}</span>
@@ -449,7 +449,7 @@ ${rows.map(s => {
                           </td>
                           <td className="px-4 py-3 text-xs whitespace-nowrap">
                             {s.duracao_segundos != null ? (
-                              <span className="font-semibold text-[#1A3A2C]">{fmtDuracao(s.duracao_segundos)}</span>
+                              <span className="font-semibold text-[#19382E]">{fmtDuracao(s.duracao_segundos)}</span>
                             ) : (
                               <span className="text-gray-300">—</span>
                             )}
@@ -486,7 +486,7 @@ ${rows.map(s => {
                     let p = totalPags <= 7 ? i + 1 : pagina <= 4 ? i + 1 : pagina >= totalPags - 3 ? totalPags - 6 + i : pagina - 3 + i
                     return (
                       <button key={p} onClick={() => setPagina(p)}
-                        className={`w-8 h-8 rounded-lg text-xs font-medium transition ${p === pagina ? 'bg-[#1A3A2C] text-white' : 'border border-gray-200 hover:bg-gray-50 text-gray-600'}`}>
+                        className={`w-8 h-8 rounded-lg text-xs font-medium transition ${p === pagina ? 'bg-[#19382E] text-white' : 'border border-gray-200 hover:bg-gray-50 text-gray-600'}`}>
                         {p}
                       </button>
                     )

@@ -23,7 +23,7 @@ export default function AtestadoShareModal({ params, onClose }: Props) {
   const [erro, setErro] = useState('')
 
   const texto = textoResumido(params)
-  const assunto = encodeURIComponent('Atestado Médico — RovarisMed')
+  const assunto = encodeURIComponent('Atestado Médico — Aduno')
   const corpoPDF = encodeURIComponent(
     `${texto}\n\n— O arquivo PDF do atestado foi salvo no seu dispositivo. Adicione-o como anexo.`
   )
@@ -54,12 +54,12 @@ export default function AtestadoShareModal({ params, onClose }: Props) {
     try {
       const file = await criarFilePDF(htmlDoc, nomeDoc)
       if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: 'Atestado Médico — RovarisMed' })
+        await navigator.share({ files: [file], title: 'Atestado Médico — Aduno' })
         onClose()
         return
       }
       if ('share' in navigator) {
-        await navigator.share({ title: 'Atestado Médico — RovarisMed', text: texto })
+        await navigator.share({ title: 'Atestado Médico — Aduno', text: texto })
         onClose()
       }
     } catch (e: any) {
@@ -94,7 +94,7 @@ export default function AtestadoShareModal({ params, onClose }: Props) {
         {/* Header */}
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
-            <p className="font-semibold text-[#1A3A2C] text-sm">Encaminhar atestado</p>
+            <p className="font-semibold text-[#19382E] text-sm">Encaminhar atestado</p>
             <p className="text-xs text-gray-400 mt-0.5">
               {params.dias} dia(s) · {params.paciente.nome}
             </p>
@@ -123,16 +123,16 @@ export default function AtestadoShareModal({ params, onClose }: Props) {
             <button
               onClick={compartilharNativo}
               disabled={ocupado}
-              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-[#5BBD9B] bg-[#F0FDF4] transition-colors disabled:opacity-60"
+              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-[#6E8570] bg-[#F0FDF4] transition-colors disabled:opacity-60"
             >
-              <div className="w-9 h-9 bg-[#5BBD9B] rounded-xl flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 bg-[#6E8570] rounded-xl flex items-center justify-center shrink-0">
                 {acaoAtiva === 'share'
                   ? <Loader2 className="w-4 h-4 text-white animate-spin" />
                   : <Smartphone className="w-4 h-4 text-white" />
                 }
               </div>
               <div className="text-left">
-                <p className="font-semibold text-sm text-[#1A3A2C]">
+                <p className="font-semibold text-sm text-[#19382E]">
                   {acaoAtiva === 'share' ? 'Gerando PDF…' : 'Compartilhar PDF'}
                 </p>
                 <p className="text-xs text-gray-500">Envia o arquivo PDF direto pelo app</p>

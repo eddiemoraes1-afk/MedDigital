@@ -1,11 +1,34 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import HeartbeatProvider from './HeartbeatProvider'
 import ThemeScript from './ThemeScript'
 
 export const metadata: Metadata = {
-  title: 'RovarisMed — Pronto Atendimento Médico Digital',
-  description: 'Triagem inteligente por IA e consultas médicas virtuais',
+  title: 'Aduno — Saúde Ocupacional Digital',
+  description: 'Medicina do trabalho, telemedicina ilimitada e conformidade NR-1 em uma única plataforma.',
+  applicationName: 'Aduno',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+    ],
+    apple: [{ url: '/apple-icon.png', sizes: '180x180' }],
+  },
+  openGraph: {
+    title: 'Aduno — Saúde Ocupacional Digital',
+    description: 'Medicina do trabalho, telemedicina ilimitada e conformidade NR-1 em uma única plataforma.',
+    siteName: 'Aduno',
+    locale: 'pt_BR',
+    type: 'website',
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#19382E' },
+    { media: '(prefers-color-scheme: dark)',  color: '#111F18' },
+  ],
 }
 
 export default function RootLayout({

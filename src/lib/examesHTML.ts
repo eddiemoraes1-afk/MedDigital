@@ -37,7 +37,7 @@ const URGENCIA_LABEL: Record<string, string> = {
 }
 
 const URGENCIA_COLOR: Record<string, string> = {
-  normal: '#1A3A2C',
+  normal: '#19382E',
   urgente: '#D97706',
   emergencia: '#DC2626',
 }
@@ -51,7 +51,7 @@ export function gerarHTMLExames(params: ExamesHTMLParams, inline = true): string
   const { paciente, medico, exames, indicacaoClinica, observacoes, urgencia, dataSolicitacao } = params
 
   const urgLabel = URGENCIA_LABEL[urgencia ?? 'normal'] ?? 'Normal'
-  const urgColor = URGENCIA_COLOR[urgencia ?? 'normal'] ?? '#1A3A2C'
+  const urgColor = URGENCIA_COLOR[urgencia ?? 'normal'] ?? '#19382E'
   const urgIsAlt = urgencia === 'urgente' || urgencia === 'emergencia'
 
   // Agrupar exames por categoria — cada grupo vira uma página do documento.
@@ -73,7 +73,7 @@ export function gerarHTMLExames(params: ExamesHTMLParams, inline = true): string
         </svg>
       </div>
       <div>
-        <div class="clinic-name">RovarisMed</div>
+        <div class="clinic-name">Aduno</div>
         <div class="clinic-sub">Saúde Digital Corporativa</div>
       </div>
     </div>
@@ -158,38 +158,38 @@ export function gerarHTMLExames(params: ExamesHTMLParams, inline = true): string
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'Inter',Arial,sans-serif;font-size:11pt;color:#222;background:#fff;padding:0}
   .page{width:210mm;min-height:297mm;padding:20mm 20mm 18mm;margin:0 auto;display:flex;flex-direction:column}
-  .header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #1A3A2C;padding-bottom:14px;margin-bottom:24px}
+  .header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #19382E;padding-bottom:14px;margin-bottom:24px}
   .header-left{display:flex;align-items:center;gap:12px}
-  .logo-box{width:48px;height:48px;background:#1A3A2C;border-radius:10px;display:flex;align-items:center;justify-content:center}
+  .logo-box{width:48px;height:48px;background:#19382E;border-radius:10px;display:flex;align-items:center;justify-content:center}
   .logo-box svg{width:28px;height:28px}
-  .clinic-name{font-size:15pt;font-weight:700;color:#1A3A2C;line-height:1.2}
-  .clinic-sub{font-size:8pt;color:#5BBD9B;font-weight:500;letter-spacing:.5px;text-transform:uppercase}
+  .clinic-name{font-size:15pt;font-weight:700;color:#19382E;line-height:1.2}
+  .clinic-sub{font-size:8pt;color:#6E8570;font-weight:500;letter-spacing:.5px;text-transform:uppercase}
   .doc-number{font-size:8pt;color:#999;text-align:right}
   .title-block{text-align:center;margin-bottom:24px}
-  .title{font-size:16pt;font-weight:700;color:#1A3A2C;letter-spacing:2px;text-transform:uppercase}
-  .title-line{width:60px;height:3px;background:#5BBD9B;margin:8px auto 0}
+  .title{font-size:16pt;font-weight:700;color:#19382E;letter-spacing:2px;text-transform:uppercase}
+  .title-line{width:60px;height:3px;background:#6E8570;margin:8px auto 0}
   .urgencia-badge{display:inline-block;background:${urgColor}18;border:1.5px solid ${urgColor};border-radius:20px;padding:4px 14px;font-size:9pt;color:${urgColor};font-weight:700;margin-bottom:16px}
-  .paciente-box{background:#F0F9F5;border:1px solid #5BBD9B;border-radius:8px;padding:12px 16px;margin-bottom:20px}
-  .paciente-box .label{font-size:8pt;color:#5BBD9B;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-  .paciente-box .nome{font-size:12pt;font-weight:700;color:#1A3A2C}
+  .paciente-box{background:#F0F9F5;border:1px solid #6E8570;border-radius:8px;padding:12px 16px;margin-bottom:20px}
+  .paciente-box .label{font-size:8pt;color:#6E8570;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+  .paciente-box .nome{font-size:12pt;font-weight:700;color:#19382E}
   .paciente-box .info{font-size:9pt;color:#555;margin-top:2px}
-  .section-title{font-size:9pt;font-weight:700;color:#1A3A2C;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;border-bottom:1px solid #E5E7EB;padding-bottom:4px}
+  .section-title{font-size:9pt;font-weight:700;color:#19382E;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;border-bottom:1px solid #E5E7EB;padding-bottom:4px}
   .quebra-pagina{page-break-after:always}
-  .categoria-titulo{font-size:13pt;font-weight:700;color:#1A3A2C;border-bottom:2px solid #5BBD9B;padding-bottom:8px;margin-bottom:16px;display:flex;justify-content:space-between}
+  .categoria-titulo{font-size:13pt;font-weight:700;color:#19382E;border-bottom:2px solid #6E8570;padding-bottom:8px;margin-bottom:16px;display:flex;justify-content:space-between}
   .pagina-num{font-size:8pt;color:#9CA3AF;font-weight:400}
   .exames-lista{margin-bottom:20px}
   .exame-item{display:flex;gap:12px;margin-bottom:10px;font-size:11pt}
-  .rx{color:#5BBD9B;font-weight:bold;font-size:13pt}
+  .rx{color:#6E8570;font-weight:bold;font-size:13pt}
   .indicacao-box{background:#FFF9F0;border-left:3px solid #D97706;padding:10px 14px;font-size:9.5pt;color:#555;border-radius:0 6px 6px 0;margin-bottom:16px;line-height:1.6}
-  .obs-box{background:#F8F8F8;border-left:3px solid #5BBD9B;padding:10px 14px;font-size:9.5pt;color:#555;border-radius:0 6px 6px 0;margin-bottom:20px;line-height:1.6}
+  .obs-box{background:#F8F8F8;border-left:3px solid #6E8570;padding:10px 14px;font-size:9.5pt;color:#555;border-radius:0 6px 6px 0;margin-bottom:20px;line-height:1.6}
   .spacer{flex:1}
   .footer{border-top:1px solid #E5E7EB;padding-top:24px;display:flex;justify-content:space-between;align-items:flex-end}
   .city-date{font-size:9.5pt;color:#666}
   .signature-block{text-align:center}
   .sig-line{width:200px;border-top:1px solid #333;margin:0 auto 6px}
-  .sig-name{font-size:10pt;font-weight:600;color:#1A3A2C}
+  .sig-name{font-size:10pt;font-weight:600;color:#19382E}
   .sig-crm{font-size:8.5pt;color:#666}
-  .sig-spec{font-size:8.5pt;color:#5BBD9B;font-weight:500}
+  .sig-spec{font-size:8.5pt;color:#6E8570;font-weight:500}
   @media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.page{margin:0;padding:16mm 18mm 14mm}}
 </style>
 </head>

@@ -302,7 +302,7 @@ export default function ConsultaPaciente() {
   // ── Tela de carregamento ──────────────────────────────────────────────────
   if (carregando) {
     return (
-      <div className="min-h-screen bg-[#1A3A2C] flex items-center justify-center">
+      <div className="min-h-screen bg-[#19382E] flex items-center justify-center">
         <div className="text-center text-white">
           <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4" />
           <p>Carregando sala de consulta...</p>
@@ -314,7 +314,7 @@ export default function ConsultaPaciente() {
   // ── Tela de consulta encerrada ────────────────────────────────────────────
   if (encerrado) {
     return (
-      <div className="min-h-screen bg-[#1A3A2C] flex items-center justify-center">
+      <div className="min-h-screen bg-[#19382E] flex items-center justify-center">
         <div className="text-center text-white px-6 max-w-sm">
           <div className="w-20 h-20 bg-green-800 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 className="w-10 h-10 text-green-300" />
@@ -334,12 +334,12 @@ export default function ConsultaPaciente() {
   // ── Sala não encontrada ───────────────────────────────────────────────────
   if (!atendimento?.sala_video) {
     return (
-      <div className="min-h-screen bg-[#F3FAF7] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F3F6F3] flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500">Sala não encontrada.</p>
           <button
             onClick={() => router.push('/paciente/dashboard')}
-            className="mt-4 text-[#5BBD9B]"
+            className="mt-4 text-[#6E8570]"
           >
             Voltar ao painel
           </button>
@@ -378,9 +378,9 @@ export default function ConsultaPaciente() {
       `}</style>
 
       {/* Header */}
-      <div className="bg-[#1A3A2C] px-6 py-3 flex items-center justify-between shrink-0">
+      <div className="bg-[#19382E] px-6 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
+          <img src="/aduno-logo-branca.png" alt="Aduno" className="h-10" />
           <span className="text-green-300 text-xs">— Consulta Virtual</span>
         </div>
 
@@ -398,7 +398,7 @@ export default function ConsultaPaciente() {
             </div>
           )}
           {atendimento.status === 'em_andamento' && atendimento.medicos && (
-            <div className="text-green-200 text-xs">
+            <div className="text-white/70 text-xs">
               {drTitle(atendimento.medicos.sexo)} {atendimento.medicos.nome} — {atendimento.medicos.especialidade}
             </div>
           )}
@@ -431,7 +431,7 @@ export default function ConsultaPaciente() {
             <div className="text-center text-white max-w-sm px-6">
 
               {/* Ícone */}
-              <div className="w-20 h-20 bg-[#1A3A2C] rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-[#19382E] rounded-full flex items-center justify-center mx-auto mb-6">
                 <Clock className="w-10 h-10 text-green-300" />
               </div>
 
@@ -439,7 +439,7 @@ export default function ConsultaPaciente() {
               {assumiu ? (
                 <>
                   <h2 className="text-2xl font-bold mb-3 text-green-300">Médico Chegando!</h2>
-                  <p className="text-green-200 text-sm leading-relaxed">
+                  <p className="text-white/70 text-sm leading-relaxed">
                     Um médico já está revisando o seu prontuário e os dados da triagem.
                     Ele entrará na sala em instantes!
                   </p>
@@ -505,8 +505,8 @@ export default function ConsultaPaciente() {
         {!entrou && atendimento.status !== 'aguardando' && (
           <div className="absolute inset-0 bg-[#0F1F33] flex items-center justify-center z-10">
             <div className="text-center text-white max-w-sm px-6">
-              <div className="w-24 h-24 bg-[#1A3A2C] rounded-full flex items-center justify-center mx-auto mb-6">
-                <Video className="w-12 h-12 text-[#5BBD9B]" />
+              <div className="w-24 h-24 bg-[#19382E] rounded-full flex items-center justify-center mx-auto mb-6">
+                <Video className="w-12 h-12 text-[#6E8570]" />
               </div>
               {atendimento.medicos && (
                 <p className="text-green-300 text-sm mb-4">
@@ -519,13 +519,13 @@ export default function ConsultaPaciente() {
               </p>
               <div className="flex flex-col items-center mb-4">
                 <div className="flex flex-col items-center gap-0.5 animate-bounce">
-                  <div className="w-0.5 h-6 bg-[#5BBD9B]" />
-                  <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[12px] border-t-[#5BBD9B]" />
+                  <div className="w-0.5 h-6 bg-[#6E8570]" />
+                  <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[12px] border-t-[#6E8570]" />
                 </div>
               </div>
               <button
                 onClick={() => setEntrou(true)}
-                className="w-full bg-[#5BBD9B] hover:bg-green-400 text-white font-extrabold py-4 px-8 rounded-2xl text-lg tracking-wide transition-colors shadow-lg shadow-green-900/40"
+                className="w-full bg-[#6E8570] hover:bg-green-400 text-white font-extrabold py-4 px-8 rounded-2xl text-lg tracking-wide transition-colors shadow-lg shadow-green-900/40"
               >
                 Clique AQUI
               </button>
@@ -567,9 +567,9 @@ export default function ConsultaPaciente() {
             <button
               onClick={() => window.location.reload()}
               className="w-full font-bold py-3.5 rounded-xl text-sm text-white transition-colors"
-              style={{ background: '#5BBD9B' }}
+              style={{ background: '#6E8570' }}
               onMouseEnter={e => (e.currentTarget.style.background = '#4aab8a')}
-              onMouseLeave={e => (e.currentTarget.style.background = '#5BBD9B')}
+              onMouseLeave={e => (e.currentTarget.style.background = '#6E8570')}
             >
               Recarregar página
             </button>
@@ -658,9 +658,9 @@ export default function ConsultaPaciente() {
               <button
                 onClick={() => setConfirmarSaida(false)}
                 className="w-full font-bold py-3.5 rounded-xl text-sm transition-colors text-white"
-                style={{ background: '#5BBD9B' }}
+                style={{ background: '#6E8570' }}
                 onMouseEnter={e => (e.currentTarget.style.background = '#4aab8a')}
-                onMouseLeave={e => (e.currentTarget.style.background = '#5BBD9B')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#6E8570')}
               >
                 Não, continuar na consulta
               </button>

@@ -37,7 +37,7 @@ const TIPO_LABEL: Record<string, string> = {
   antimicrobiano: 'Antimicrobiano',
 }
 const TIPO_COLOR: Record<string, string> = {
-  simples: '#5BBD9B',
+  simples: '#6E8570',
   especial: '#8B5CF6',
   antimicrobiano: '#3B82F6',
 }
@@ -73,7 +73,7 @@ function DonutChart({ slices, centerLabel }: {
             <title>{s.label}: {s.value}</title>
           </path>
         ))}
-        <text x="0" y="-5" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1A3A2C">{centerLabel ?? total}</text>
+        <text x="0" y="-5" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#19382E">{centerLabel ?? total}</text>
         <text x="0" y="10" textAnchor="middle" fontSize="7" fill="#9CA3AF">total</text>
       </svg>
       <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 max-w-xs">
@@ -90,7 +90,7 @@ function DonutChart({ slices, centerLabel }: {
 }
 
 // ── Horizontal Bar ────────────────────────────────────────────────────────────
-function HBar({ data, labelKey, valueKey, color = '#5BBD9B', suffix = '', maxItems = 10 }: {
+function HBar({ data, labelKey, valueKey, color = '#6E8570', suffix = '', maxItems = 10 }: {
   data: Record<string, any>[]
   labelKey: string; valueKey: string; color?: string; suffix?: string; maxItems?: number
 }) {
@@ -112,7 +112,7 @@ function HBar({ data, labelKey, valueKey, color = '#5BBD9B', suffix = '', maxIte
 }
 
 // ── Vertical Bar ──────────────────────────────────────────────────────────────
-function BarV({ data, labelKey, valueKey, color = '#5BBD9B' }: {
+function BarV({ data, labelKey, valueKey, color = '#6E8570' }: {
   data: Record<string, any>[]; labelKey: string; valueKey: string; color?: string
 }) {
   if (!data.length) return <div className="h-32 flex items-center justify-center text-xs text-gray-300">Sem dados</div>
@@ -162,7 +162,7 @@ function Card({ title, sub, children }: { title: string; sub?: string; children:
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50">
       <div className="mb-4">
-        <h3 className="font-bold text-[#1A3A2C] text-sm">{title}</h3>
+        <h3 className="font-bold text-[#19382E] text-sm">{title}</h3>
         {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
       </div>
       {children}
@@ -174,15 +174,15 @@ function KpiCard({ label, value, sub, icon: Icon, color, highlight }: {
   label: string; value: string | number; sub?: string; icon: React.ElementType; color: string; highlight?: boolean
 }) {
   return (
-    <div className={`rounded-2xl p-5 shadow-sm border ${highlight ? 'bg-[#1A3A2C] border-[#1A3A2C]' : 'bg-white border-gray-100'}`}>
+    <div className={`rounded-2xl p-5 shadow-sm border ${highlight ? 'bg-[#19382E] border-[#19382E]' : 'bg-white border-gray-100'}`}>
       <div className="flex items-center gap-2 mb-3">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
           style={{ backgroundColor: highlight ? 'rgba(255,255,255,0.15)' : `${color}18` }}>
-          <Icon className="w-4 h-4" style={{ color: highlight ? '#5BBD9B' : color }} />
+          <Icon className="w-4 h-4" style={{ color: highlight ? '#6E8570' : color }} />
         </div>
         <p className={`text-xs font-semibold uppercase tracking-wide ${highlight ? 'text-green-300' : 'text-gray-400'}`}>{label}</p>
       </div>
-      <p className={`text-2xl font-bold leading-none ${highlight ? 'text-white' : 'text-[#1A3A2C]'}`}>{value}</p>
+      <p className={`text-2xl font-bold leading-none ${highlight ? 'text-white' : 'text-[#19382E]'}`}>{value}</p>
       {sub && <p className={`text-xs mt-1.5 ${highlight ? 'text-green-300' : 'text-gray-400'}`}>{sub}</p>}
     </div>
   )
@@ -280,19 +280,19 @@ function exportarPDF(data: any, filtrosDesc: string) {
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; font-size: 11px; color: #222; padding: 24px; }
-    h1 { font-size: 16px; color: #1A3A2C; margin-bottom: 4px; }
+    h1 { font-size: 16px; color: #19382E; margin-bottom: 4px; }
     .sub { font-size: 10px; color: #666; margin-bottom: 16px; }
     .kpis { display: flex; gap: 12px; margin-bottom: 20px; }
     .kpi { flex: 1; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; text-align: center; }
-    .kpi-val { font-size: 20px; font-weight: bold; color: #1A3A2C; }
+    .kpi-val { font-size: 20px; font-weight: bold; color: #19382E; }
     .kpi-lab { font-size: 9px; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
-    h2 { font-size: 12px; color: #1A3A2C; margin: 20px 0 8px; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
+    h2 { font-size: 12px; color: #19382E; margin: 20px 0 8px; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 4px; font-size: 10px; }
-    th { background: #1A3A2C; color: white; padding: 5px 8px; text-align: left; font-weight: 600; font-size: 9px; text-transform: uppercase; letter-spacing: 0.04em; }
+    th { background: #19382E; color: white; padding: 5px 8px; text-align: left; font-weight: 600; font-size: 9px; text-transform: uppercase; letter-spacing: 0.04em; }
     td { padding: 4px 8px; border-bottom: 1px solid #f0f0f0; }
     .center { text-align: center; }
     .meds { font-family: monospace; font-size: 9px; max-width: 200px; }
-    .tipo { font-weight: bold; color: #5BBD9B; }
+    .tipo { font-weight: bold; color: #6E8570; }
     .rank { color: #aaa; font-weight: bold; }
     .bg-white { background: #fff; }
     .bg-gray-50 { background: #f9fafb; }
@@ -325,7 +325,7 @@ function exportarPDF(data: any, filtrosDesc: string) {
     <tbody>${medRows || '<tr><td colspan="3" style="text-align:center;color:#aaa;padding:12px">Sem dados</td></tr>'}</tbody>
   </table>
 
-  <footer>Documento gerado automaticamente pelo sistema RovarisMed · ${new Date().toLocaleDateString('pt-BR')}</footer>
+  <footer>Documento gerado automaticamente pelo sistema Aduno · ${new Date().toLocaleDateString('pt-BR')}</footer>
   <script>window.onload = () => { window.print() }</script>
 </body>
 </html>`)
@@ -404,7 +404,7 @@ export default function AdminReceitasDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
+          <h2 className="font-bold text-[#19382E] flex items-center gap-2">
             <Pill className="w-4 h-4 text-purple-500" /> Dashboard de Receitas
           </h2>
           <p className="text-xs text-gray-400 mt-0.5">Receitas emitidas pelos médicos em todas as consultas</p>
@@ -423,7 +423,7 @@ export default function AdminReceitasDashboard() {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
         <div className="flex items-center gap-2 mb-3">
           <Filter className="w-3.5 h-3.5 text-purple-500" />
-          <span className="text-xs font-semibold text-[#1A3A2C] uppercase tracking-wide">Filtros</span>
+          <span className="text-xs font-semibold text-[#19382E] uppercase tracking-wide">Filtros</span>
           {temFiltro && (
             <button onClick={limparFiltros} className="ml-auto flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition-colors">
               <X className="w-3 h-3" /> Limpar filtros
@@ -583,7 +583,7 @@ export default function AdminReceitasDashboard() {
                     return (
                       <div key={i} className="flex items-center gap-3">
                         <span className="text-xs text-gray-400 w-5 text-right shrink-0 font-semibold">{i + 1}</span>
-                        <span className="text-xs font-mono font-medium text-[#1A3A2C] w-44 truncate shrink-0" title={m.nome}>{m.nome}</span>
+                        <span className="text-xs font-mono font-medium text-[#19382E] w-44 truncate shrink-0" title={m.nome}>{m.nome}</span>
                         <div className="flex-1 bg-gray-100 rounded-full h-2">
                           <div className="h-2 rounded-full" style={{ width: `${(m.receitas / max) * 100}%`, backgroundColor: '#8B5CF6' }} />
                         </div>
@@ -640,7 +640,7 @@ export default function AdminReceitasDashboard() {
                       {data.topPacientes.map((p: any, i: number) => (
                         <tr key={i} className={`hover:bg-gray-50 ${i === 0 ? 'bg-purple-50' : ''}`}>
                           <td className="px-4 py-2.5 text-xs text-gray-400 font-medium">{i + 1}</td>
-                          <td className="px-4 py-2.5 font-medium text-[#1A3A2C] text-sm">{p.nome}</td>
+                          <td className="px-4 py-2.5 font-medium text-[#19382E] text-sm">{p.nome}</td>
                           <td className="px-4 py-2.5 text-xs text-gray-500">{p.empresa ?? 'Particular'}</td>
                           <td className="px-4 py-2.5">
                             <span className="text-xs px-2 py-0.5 rounded-full font-medium"
@@ -684,7 +684,7 @@ export default function AdminReceitasDashboard() {
                       {data.registros.map((r: any, i: number) => (
                         <tr key={i} className="hover:bg-gray-50">
                           <td className="px-3 py-2 text-gray-500 whitespace-nowrap">{fmtDate(r.data)}</td>
-                          <td className="px-3 py-2 font-medium text-[#1A3A2C] whitespace-nowrap">{r.paciente}</td>
+                          <td className="px-3 py-2 font-medium text-[#19382E] whitespace-nowrap">{r.paciente}</td>
                           <td className="px-3 py-2 text-gray-600 whitespace-nowrap">{r.medico}</td>
                           <td className="px-3 py-2 whitespace-nowrap">
                             <span className="font-semibold px-1.5 py-0.5 rounded text-xs"

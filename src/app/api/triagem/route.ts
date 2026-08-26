@@ -6,7 +6,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 // ─── Prompt do Protocolo de Manchester ───────────────────────────────────────
 
-const SYSTEM_PROMPT = `Você é um assistente de triagem médica do RovarisMed que aplica o Protocolo de Manchester de Classificação de Risco (MTS — Manchester Triage System).
+const SYSTEM_PROMPT = `Você é um assistente de triagem médica do Aduno que aplica o Protocolo de Manchester de Classificação de Risco (MTS — Manchester Triage System).
 
 Com base nos dados estruturados das etapas de triagem, classifique o paciente em um dos 5 níveis do Protocolo de Manchester e gere um resumo claro e empático.
 

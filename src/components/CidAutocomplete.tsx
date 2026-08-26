@@ -122,19 +122,19 @@ export default function CidAutocomplete({
   // ── Estilos ──────────────────────────────────────────────────────────────────
 
   const inputBase = dark
-    ? `w-full bg-[#0F1F33] border text-blue-100 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#5BBD9B] placeholder-blue-900 uppercase font-mono ${
+    ? `w-full bg-[#0F1F33] border text-blue-100 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#6E8570] placeholder-blue-900 uppercase font-mono ${
         error
           ? 'border-red-400'
           : 'border-[#2A4A3C]'
       } disabled:opacity-50`
-    : `w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] font-mono disabled:opacity-60 ${
+    : `w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] font-mono disabled:opacity-60 ${
         error
           ? 'border-red-200 bg-red-50'
           : 'border-gray-200 bg-white'
       }`
 
   const dropdownBase = dark
-    ? 'bg-[#1A3A2C] border border-[#2A4A3C] rounded-xl shadow-2xl'
+    ? 'bg-[#19382E] border border-[#2A4A3C] rounded-xl shadow-2xl'
     : 'bg-white border border-gray-200 rounded-xl shadow-xl'
 
   const itemBase = dark
@@ -143,7 +143,7 @@ export default function CidAutocomplete({
 
   const itemFocused = dark
     ? 'bg-[#2A4A3C]'
-    : 'bg-[#5BBD9B]/10'
+    : 'bg-[#6E8570]/10'
 
   const itemNormal = dark
     ? 'hover:bg-[#1E3028]'
@@ -151,7 +151,7 @@ export default function CidAutocomplete({
 
   const codeStyle = dark
     ? 'font-mono text-xs font-bold text-green-400 shrink-0 mt-0.5'
-    : 'font-mono text-xs font-bold text-[#1A3A2C] shrink-0 mt-0.5'
+    : 'font-mono text-xs font-bold text-[#19382E] shrink-0 mt-0.5'
 
   const descStyle = dark
     ? 'text-xs text-blue-200 leading-tight'
@@ -159,7 +159,7 @@ export default function CidAutocomplete({
 
   const descAtualStyle = dark
     ? 'text-[10px] text-green-400 mt-0.5 flex items-center gap-1'
-    : 'text-[10px] text-[#5BBD9B] mt-0.5 flex items-center gap-1'
+    : 'text-[10px] text-[#6E8570] mt-0.5 flex items-center gap-1'
 
   return (
     <div ref={containerRef} className={`relative ${className}`}>

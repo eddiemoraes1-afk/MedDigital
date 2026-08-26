@@ -91,8 +91,8 @@ export default function DocumentosClientOnly({ receitas, atestados, exames, paci
 
       {/* Receitas */}
       <div>
-        <h2 className="font-bold text-[#1A3A2C] text-lg flex items-center gap-2 mb-4">
-          <Pill className="w-5 h-5 text-[#5BBD9B]" /> Receitas Médicas
+        <h2 className="font-bold text-[#19382E] text-lg flex items-center gap-2 mb-4">
+          <Pill className="w-5 h-5 text-[#6E8570]" /> Receitas Médicas
           <span className="text-sm text-gray-400 font-normal">({receitas.length})</span>
         </h2>
         {receitas.length > 0 ? (
@@ -111,8 +111,8 @@ export default function DocumentosClientOnly({ receitas, atestados, exames, paci
 
       {/* Atestados */}
       <div>
-        <h2 className="font-bold text-[#1A3A2C] text-lg flex items-center gap-2 mb-4">
-          <FileText className="w-5 h-5 text-[#5BBD9B]" /> Atestados Médicos
+        <h2 className="font-bold text-[#19382E] text-lg flex items-center gap-2 mb-4">
+          <FileText className="w-5 h-5 text-[#6E8570]" /> Atestados Médicos
           <span className="text-sm text-gray-400 font-normal">({atestados.length})</span>
         </h2>
         {atestados.length > 0 ? (
@@ -131,8 +131,8 @@ export default function DocumentosClientOnly({ receitas, atestados, exames, paci
 
       {/* Exames */}
       <div>
-        <h2 className="font-bold text-[#1A3A2C] text-lg flex items-center gap-2 mb-4">
-          <FlaskConical className="w-5 h-5 text-[#5BBD9B]" /> Solicitações de Exames
+        <h2 className="font-bold text-[#19382E] text-lg flex items-center gap-2 mb-4">
+          <FlaskConical className="w-5 h-5 text-[#6E8570]" /> Solicitações de Exames
           <span className="text-sm text-gray-400 font-normal">({exames.length})</span>
         </h2>
         {exames.length > 0 ? (

@@ -110,7 +110,7 @@ export default function MedicamentosUsoAutocomplete({
   // ── Estilos condicionais (dark = painel de antecedentes) ──────────────────
   const clsTa = dark
     ? 'bg-transparent border border-amber-800/50 text-amber-100 placeholder-amber-700/60 focus:ring-amber-600/50 focus:border-amber-600'
-    : 'border-gray-200 text-gray-700 placeholder-gray-300 focus:ring-[#5BBD9B]'
+    : 'border-gray-200 text-gray-700 placeholder-gray-300 focus:ring-[#6E8570]'
   const clsDrop = dark
     ? 'bg-[#1A1000] border-amber-800/50 shadow-2xl'
     : 'bg-white border-gray-200 shadow-xl'
@@ -120,7 +120,7 @@ export default function MedicamentosUsoAutocomplete({
   const clsItemFoc = dark
     ? 'bg-amber-900/40'
     : 'bg-[#F0F9F5]'
-  const clsPrincipio = dark ? 'text-amber-200' : 'text-[#1A3A2C]'
+  const clsPrincipio = dark ? 'text-amber-200' : 'text-[#19382E]'
 
   return (
     <div ref={containerRef} className="relative">
@@ -160,7 +160,7 @@ export default function MedicamentosUsoAutocomplete({
               <p className={`text-xs mt-0.5 ${dark ? 'text-amber-600' : 'text-gray-400'}`}>
                 {med.forma}
                 {med.comerciais && med.comerciais.length > 0 && (
-                  <span className="ml-2 text-[#5BBD9B]">· {med.comerciais.slice(0, 2).join(', ')}</span>
+                  <span className="ml-2 text-[#6E8570]">· {med.comerciais.slice(0, 2).join(', ')}</span>
                 )}
               </p>
             </button>

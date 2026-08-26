@@ -86,7 +86,7 @@ function CadastroForm() {
     return (
       <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
         <CheckCircle2 className="w-14 h-14 text-green-500 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-[#1A3A2C] mb-2">
+        <h2 className="text-xl font-bold text-[#19382E] mb-2">
           {tipo === 'paciente' ? 'Conta criada!' : 'Cadastro enviado para análise!'}
         </h2>
         <p className="text-gray-500 text-sm">
@@ -95,7 +95,7 @@ function CadastroForm() {
             : 'Nosso time irá analisar seu cadastro em até 24 horas. Você receberá um e-mail com a confirmação.'}
         </p>
         {tipo === 'medico' && (
-          <Link href="/login" className="mt-4 inline-block text-[#5BBD9B] text-sm font-medium">
+          <Link href="/login" className="mt-4 inline-block text-[#6E8570] text-sm font-medium">
             Voltar para o login
           </Link>
         )}
@@ -107,7 +107,7 @@ function CadastroForm() {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm p-8">
-      <h1 className="text-xl font-bold text-[#1A3A2C] mb-6">Criar conta</h1>
+      <h1 className="text-xl font-bold text-[#19382E] mb-6">Criar conta</h1>
 
       {/* Seletor de tipo */}
       <div className="flex gap-3 mb-6">
@@ -116,8 +116,8 @@ function CadastroForm() {
           onClick={() => setTipo('paciente')}
           className={`flex-1 py-4 rounded-xl text-base font-semibold transition-all border-2 ${
             tipo === 'paciente'
-              ? 'bg-[#5BBD9B] border-[#5BBD9B] text-white shadow-md'
-              : 'bg-white border-gray-200 text-gray-500 hover:border-[#5BBD9B] hover:text-[#5BBD9B]'
+              ? 'bg-[#6E8570] border-[#6E8570] text-white shadow-md'
+              : 'bg-white border-gray-200 text-gray-500 hover:border-[#6E8570] hover:text-[#6E8570]'
           }`}
         >
           Sou Paciente
@@ -127,8 +127,8 @@ function CadastroForm() {
           onClick={() => setTipo('medico')}
           className={`flex-1 py-4 rounded-xl text-base font-semibold transition-all border-2 ${
             tipo === 'medico'
-              ? 'bg-[#1A7340] border-[#1A7340] text-white shadow-md'
-              : 'bg-white border-gray-200 text-gray-500 hover:border-[#1A7340] hover:text-[#1A7340]'
+              ? 'bg-[#3E6B52] border-[#3E6B52] text-white shadow-md'
+              : 'bg-white border-gray-200 text-gray-500 hover:border-[#3E6B52] hover:text-[#3E6B52]'
           }`}
         >
           Sou Médico
@@ -150,7 +150,7 @@ function CadastroForm() {
             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input type="text" value={nome} onChange={e => setNome(e.target.value)}
               placeholder="Seu nome completo" required
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm" />
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-sm" />
           </div>
         </div>
 
@@ -161,7 +161,7 @@ function CadastroForm() {
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input type="email" value={email} onChange={e => setEmail(e.target.value)}
               placeholder="seu@email.com" required
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm" />
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-sm" />
           </div>
         </div>
 
@@ -172,7 +172,7 @@ function CadastroForm() {
             <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input type="text" value={cpf} onChange={e => setCpf(formatarCPF(e.target.value))}
               placeholder="000.000.000-00" required
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm" />
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-sm" />
           </div>
         </div>
 
@@ -183,7 +183,7 @@ function CadastroForm() {
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input type="text" value={telefone} onChange={e => setTelefone(formatarTelefone(e.target.value))}
               placeholder="(11) 99999-9999" required
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm" />
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-sm" />
           </div>
         </div>
 
@@ -196,13 +196,13 @@ function CadastroForm() {
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input type="date" value={dataNascimento} onChange={e => setDataNascimento(e.target.value)}
                   max={new Date().toISOString().split('T')[0]} required
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm bg-white" />
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-sm bg-white" />
               </div>
             </div>
             <div className="w-40">
               <label className="block text-sm font-medium text-gray-700 mb-1">Sexo</label>
               <select value={sexo} onChange={e => setSexo(e.target.value)} required
-                className="w-full px-3 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm bg-white text-gray-700">
+                className="w-full px-3 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-sm bg-white text-gray-700">
                 <option value="">Selecione</option>
                 <option value="masculino">Masculino</option>
                 <option value="feminino">Feminino</option>
@@ -224,8 +224,8 @@ function CadastroForm() {
                   onClick={() => setSexoMedico('masculino')}
                   className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all ${
                     sexoMedico === 'masculino'
-                      ? 'bg-[#1A7340] border-[#1A7340] text-white'
-                      : 'bg-white border-gray-200 text-gray-500 hover:border-[#1A7340]'
+                      ? 'bg-[#3E6B52] border-[#3E6B52] text-white'
+                      : 'bg-white border-gray-200 text-gray-500 hover:border-[#3E6B52]'
                   }`}
                 >
                   Masculino (Dr.)
@@ -235,8 +235,8 @@ function CadastroForm() {
                   onClick={() => setSexoMedico('feminino')}
                   className={`flex-1 py-3 rounded-xl text-sm font-semibold border-2 transition-all ${
                     sexoMedico === 'feminino'
-                      ? 'bg-[#1A7340] border-[#1A7340] text-white'
-                      : 'bg-white border-gray-200 text-gray-500 hover:border-[#1A7340]'
+                      ? 'bg-[#3E6B52] border-[#3E6B52] text-white'
+                      : 'bg-white border-gray-200 text-gray-500 hover:border-[#3E6B52]'
                   }`}
                 >
                   Feminino (Dra.)
@@ -248,12 +248,12 @@ function CadastroForm() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">CRM</label>
                 <input type="text" value={crm} onChange={e => setCrm(e.target.value)}
                   placeholder="123456" required
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm" />
+                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-sm" />
               </div>
               <div className="w-24">
                 <label className="block text-sm font-medium text-gray-700 mb-1">UF</label>
                 <select value={crmUf} onChange={e => setCrmUf(e.target.value)}
-                  className="w-full px-3 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm bg-white">
+                  className="w-full px-3 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-sm bg-white">
                   {ufs.map(uf => <option key={uf}>{uf}</option>)}
                 </select>
               </div>
@@ -262,7 +262,7 @@ function CadastroForm() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Especialidade</label>
               <input type="text" value={especialidade} onChange={e => setEspecialidade(e.target.value)}
                 placeholder="Ex: Clínica Geral, Cardiologia..." required
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm" />
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-sm" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -270,7 +270,7 @@ function CadastroForm() {
               </label>
               <input type="text" value={rqe} onChange={e => setRqe(e.target.value)}
                 placeholder="Registro de Qualificação de Especialista"
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm" />
+                className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-sm" />
             </div>
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-700">
               ⚠️ Após o cadastro, seu CRM será verificado e você receberá uma confirmação por e-mail em até 24h.
@@ -285,7 +285,7 @@ function CadastroForm() {
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input type={senhaVisivel ? 'text' : 'password'} value={senha} onChange={e => setSenha(e.target.value)}
               placeholder="Mínimo 6 caracteres" required minLength={6}
-              className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm" />
+              className="w-full pl-10 pr-10 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-sm" />
             <button
               type="button"
               onClick={() => setSenhaVisivel(v => !v)}
@@ -301,8 +301,8 @@ function CadastroForm() {
         <button type="submit" disabled={carregando}
           className={`w-full text-white py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-60 transition-colors ${
             tipo === 'medico'
-              ? 'bg-[#1A7340] hover:bg-[#155C33]'
-              : 'bg-[#5BBD9B] hover:bg-[#1A3A2C]'
+              ? 'bg-[#3E6B52] hover:bg-[#155C33]'
+              : 'bg-[#6E8570] hover:bg-[#19382E]'
           }`}>
           {carregando ? <><Loader2 className="w-4 h-4 animate-spin" /> Criando conta...</> : 'Criar conta'}
         </button>
@@ -310,7 +310,7 @@ function CadastroForm() {
 
       <div className="mt-6 pt-6 border-t border-gray-100 text-center text-sm text-gray-500">
         Já tem conta?{' '}
-        <Link href="/login" className="text-[#5BBD9B] font-medium hover:underline">Fazer login</Link>
+        <Link href="/login" className="text-[#6E8570] font-medium hover:underline">Fazer login</Link>
       </div>
     </div>
   )
@@ -318,11 +318,11 @@ function CadastroForm() {
 
 export default function CadastroPage() {
   return (
-    <div className="min-h-screen bg-[#F3FAF7] flex items-center justify-center px-4 py-10">
+    <div className="min-h-screen bg-[#F3F6F3] flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <img src="/logo.svg" alt="RovarisMed" className="h-12" />
+            <img src="/aduno-logo.png" alt="Aduno" className="h-12" />
           </Link>
           <p className="text-gray-500 mt-2 text-sm">Crie sua conta gratuitamente</p>
         </div>

@@ -173,7 +173,7 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={() => imprimirReceita(params)}
-            className="flex items-center gap-1.5 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
+            className="flex items-center gap-1.5 bg-[#19382E] hover:bg-[#6E8570] text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
           >
             <Download className="w-3.5 h-3.5" /> Imprimir / Baixar
           </button>
@@ -195,8 +195,8 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
     <div className="space-y-4">
       {onFechar && (
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-sm text-[#1A3A2C] flex items-center gap-1.5">
-            <Pill className="w-4 h-4 text-[#5BBD9B]" /> Emitir Receita
+          <h3 className="font-semibold text-sm text-[#19382E] flex items-center gap-1.5">
+            <Pill className="w-4 h-4 text-[#6E8570]" /> Emitir Receita
           </h3>
           <button onClick={onFechar} className="text-gray-400 hover:text-gray-600">
             <X className="w-4 h-4" />
@@ -206,7 +206,7 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
 
       {/* Paciente */}
       <div className="bg-[#F0F9F5] rounded-xl px-3 py-2.5">
-        <p className="text-xs font-semibold text-[#1A3A2C]">{paciente.nome}</p>
+        <p className="text-xs font-semibold text-[#19382E]">{paciente.nome}</p>
         {paciente.cpf && <p className="text-xs text-gray-500">CPF: {paciente.cpf}</p>}
       </div>
 
@@ -256,14 +256,14 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
                   bloqueado
                     ? 'opacity-40 cursor-not-allowed bg-gray-50 border-gray-100 text-gray-400'
                     : tipo === t.value
-                    ? 'bg-[#1A3A2C] border-[#1A3A2C] text-white'
+                    ? 'bg-[#19382E] border-[#19382E] text-white'
                     : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
                 }`}
               >
                 <div className={`w-3 h-3 rounded-full border-2 shrink-0 ${tipo === t.value && !bloqueado ? 'bg-white border-white' : 'border-gray-300'}`} />
                 <div>
                   <p className={`text-xs font-semibold ${tipo === t.value && !bloqueado ? 'text-white' : 'text-gray-700'}`}>{t.label}</p>
-                  <p className={`text-xs ${tipo === t.value && !bloqueado ? 'text-green-200' : 'text-gray-400'}`}>{t.desc}</p>
+                  <p className={`text-xs ${tipo === t.value && !bloqueado ? 'text-white/70' : 'text-gray-400'}`}>{t.desc}</p>
                 </div>
               </button>
             )
@@ -289,7 +289,7 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
             onFocus={() => { if (buscaMed.length >= 2) setMostrarSugestoes(true) }}
             onBlur={() => setTimeout(() => setMostrarSugestoes(false), 150)}
             placeholder="Digite nome do medicamento ou princípio ativo... ex: losartana, omeprazol"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] pr-8"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] pr-8"
             autoComplete="off"
           />
           {buscaMed && (
@@ -320,11 +320,11 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
                 }}
                 className="w-full text-left px-4 py-2.5 hover:bg-[#F0F9F5] border-b border-gray-50 last:border-0 transition-colors"
               >
-                <p className="text-sm font-medium text-[#1A3A2C]">{med.principio} {med.concentracao}</p>
+                <p className="text-sm font-medium text-[#19382E]">{med.principio} {med.concentracao}</p>
                 <p className="text-xs text-gray-400 mt-0.5">
                   {med.forma}
                   {med.comerciais && med.comerciais.length > 0 && (
-                    <span className="ml-2 text-[#5BBD9B]">· {med.comerciais.slice(0, 2).join(', ')}</span>
+                    <span className="ml-2 text-[#6E8570]">· {med.comerciais.slice(0, 2).join(', ')}</span>
                   )}
                 </p>
               </button>
@@ -335,10 +335,10 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
 
       {/* Painel inline: quantidade + posologia do medicamento selecionado */}
       {medSelecionado && (
-        <div className="border border-[#5BBD9B] bg-[#F0F9F5] rounded-xl p-3 space-y-3">
+        <div className="border border-[#6E8570] bg-[#F0F9F5] rounded-xl p-3 space-y-3">
           {/* Medicamento selecionado */}
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="text-sm font-semibold text-[#1A3A2C]">{medicamentoLabel(medSelecionado)}</p>
+            <p className="text-sm font-semibold text-[#19382E]">{medicamentoLabel(medSelecionado)}</p>
             {medSelecionado.controle === 'especial' && (
               <span className="text-[10px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full border border-red-200">
                 ⚠ CONTROLADO — Receita Especial
@@ -357,15 +357,15 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
             <button
               type="button"
               onClick={() => setQtyMed(q => Math.max(1, q - 1))}
-              className="w-7 h-7 flex items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-600 hover:border-[#5BBD9B] hover:text-[#1A3A2C] text-sm font-bold transition-colors"
+              className="w-7 h-7 flex items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-600 hover:border-[#6E8570] hover:text-[#19382E] text-sm font-bold transition-colors"
             >
               −
             </button>
-            <span className="w-8 text-center text-sm font-bold text-[#1A3A2C] tabular-nums">{qtyMed}</span>
+            <span className="w-8 text-center text-sm font-bold text-[#19382E] tabular-nums">{qtyMed}</span>
             <button
               type="button"
               onClick={() => setQtyMed(q => q + 1)}
-              className="w-7 h-7 flex items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-600 hover:border-[#5BBD9B] hover:text-[#1A3A2C] text-sm font-bold transition-colors"
+              className="w-7 h-7 flex items-center justify-center bg-white border border-gray-200 rounded-lg text-gray-600 hover:border-[#6E8570] hover:text-[#19382E] text-sm font-bold transition-colors"
             >
               +
             </button>
@@ -383,8 +383,8 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
                   onClick={() => setPosologia(p)}
                   className={`px-2.5 py-1 rounded-full text-[11px] border transition-colors ${
                     posologia === p
-                      ? 'bg-[#1A3A2C] border-[#1A3A2C] text-white font-semibold'
-                      : 'bg-white border-gray-200 text-gray-600 hover:border-[#1A3A2C] hover:text-[#1A3A2C]'
+                      ? 'bg-[#19382E] border-[#19382E] text-white font-semibold'
+                      : 'bg-white border-gray-200 text-gray-600 hover:border-[#19382E] hover:text-[#19382E]'
                   }`}
                 >
                   {p}
@@ -397,7 +397,7 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
               onChange={e => setPosologia(e.target.value)}
               placeholder="ou digite a posologia manualmente..."
               autoComplete="off"
-              className="mt-2 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+              className="mt-2 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570]"
             />
           </div>
 
@@ -418,7 +418,7 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
               type="button"
               onClick={adicionarMedicamento}
               disabled={!posologia.trim()}
-              className="flex-1 bg-[#1A3A2C] hover:bg-[#5BBD9B] disabled:opacity-50 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors"
+              className="flex-1 bg-[#19382E] hover:bg-[#6E8570] disabled:opacity-50 text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors"
             >
               + Adicionar à receita
             </button>
@@ -444,7 +444,7 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
           onChange={e => setMedicamentos(e.target.value)}
           rows={4}
           placeholder="Preenchido automaticamente ao adicionar medicamentos acima. Você pode editar."
-          className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none font-mono text-xs leading-relaxed ${!medicamentos.trim() ? 'border-red-200 bg-red-50' : 'border-gray-200'}`}
+          className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] resize-none font-mono text-xs leading-relaxed ${!medicamentos.trim() ? 'border-red-200 bg-red-50' : 'border-gray-200'}`}
         />
         {!medicamentos.trim() && <p className="text-red-400 text-xs mt-1">Informe ao menos um medicamento</p>}
         <p className="text-gray-400 text-xs mt-1">Somente para controle interno e relatórios — não aparece na receita impressa.</p>
@@ -454,14 +454,14 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
       <div>
         <label className="block text-xs font-medium text-gray-600 mb-1">
           Modo de uso / Instruções{' '}
-          <span className="text-[10px] text-[#5BBD9B] font-normal">(impresso na receita)</span>
+          <span className="text-[10px] text-[#6E8570] font-normal">(impresso na receita)</span>
         </label>
         <textarea
           value={instrucoes}
           onChange={e => setInstrucoes(e.target.value)}
           rows={5}
           placeholder={`Preenchido automaticamente ao adicionar medicamentos. Ex:\nDipirona Monoidratada 500mg:\n1 comprimido de 6 em 6 horas, por 5 dias`}
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] resize-none"
         />
       </div>
 
@@ -474,7 +474,7 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
           onChange={e => setObservacoes(e.target.value)}
           placeholder="Observações adicionais..."
           autoComplete="off"
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570]"
         />
       </div>
 
@@ -488,7 +488,7 @@ export default function ReceitaForm({ atendimentoId, pacienteId, paciente, medic
         <button
           onClick={salvar}
           disabled={salvando || !medicamentos.trim()}
-          className="flex-1 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
+          className="flex-1 bg-[#19382E] hover:bg-[#6E8570] text-white py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors"
         >
           {salvando ? <><Loader2 className="w-4 h-4 animate-spin" /> Salvando...</> : <><Pill className="w-4 h-4" /> Salvar receita</>}
         </button>

@@ -279,7 +279,7 @@ export default async function FichaMedicoPage({
   const sc = statusConfig(medico.status)
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
+    <div className="min-h-screen bg-[#F3F6F3]">
       <AdminHeader titulo="Ficha do Médico" backHref={back ? decodeURIComponent(back) : '/admin/medicos'} />
 
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-6">
@@ -292,11 +292,11 @@ export default async function FichaMedicoPage({
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={medico.foto_url} alt={medico.nome} className="w-full h-full object-cover" />
               ) : (
-                <User2 className={`w-8 h-8 ${ativo ? 'text-[#5BBD9B]' : 'text-gray-400'}`} />
+                <User2 className={`w-8 h-8 ${ativo ? 'text-[#6E8570]' : 'text-gray-400'}`} />
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-bold text-[#1A3A2C]">{medico.nome}</h1>
+              <h1 className="text-2xl font-bold text-[#19382E]">{medico.nome}</h1>
               <div className="flex flex-wrap gap-4 mt-2">
                 {medico.especialidade && (
                   <span className="flex items-center gap-1.5 text-sm text-gray-500">
@@ -362,7 +362,7 @@ export default async function FichaMedicoPage({
 
               {/* Aprovação */}
               <div className="bg-white rounded-2xl p-5 shadow-sm">
-                <h3 className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2 mb-3">
+                <h3 className="font-semibold text-[#19382E] text-sm flex items-center gap-2 mb-3">
                   <User className="w-4 h-4 text-gray-400" /> Aprovação
                 </h3>
                 <div className="flex justify-center">
@@ -408,7 +408,7 @@ export default async function FichaMedicoPage({
               {/* Perfil */}
               {(medico.bio || medico.valor_consulta) && (
                 <div className="bg-white rounded-2xl p-5 shadow-sm">
-                  <h3 className="font-semibold text-[#1A3A2C] text-sm mb-3">Perfil</h3>
+                  <h3 className="font-semibold text-[#19382E] text-sm mb-3">Perfil</h3>
                   <div className="space-y-2">
                     {medico.valor_consulta && (
                       <div>

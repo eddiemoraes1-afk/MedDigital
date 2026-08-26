@@ -79,7 +79,7 @@ export default function ConsultaMedico() {
 
   if (carregando) {
     return (
-      <div className="min-h-screen bg-[#1A3A2C] flex items-center justify-center">
+      <div className="min-h-screen bg-[#19382E] flex items-center justify-center">
         <div className="text-center text-white">
           <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4" />
           <p>Carregando sala de consulta...</p>
@@ -90,10 +90,10 @@ export default function ConsultaMedico() {
 
   if (!atendimento?.sala_video) {
     return (
-      <div className="min-h-screen bg-[#F3FAF7] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F3F6F3] flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-500">Sala não encontrada.</p>
-          <button onClick={() => router.push('/medico/agendamentos')} className="mt-4 text-[#5BBD9B]">
+          <button onClick={() => router.push('/medico/agendamentos')} className="mt-4 text-[#6E8570]">
             Voltar à agenda
           </button>
         </div>
@@ -106,16 +106,16 @@ export default function ConsultaMedico() {
   return (
     <div className="min-h-screen bg-[#0F1F33] flex flex-col">
       {/* Header */}
-      <div className="bg-[#1A3A2C] px-6 py-3 flex items-center justify-between shrink-0">
+      <div className="bg-[#19382E] px-6 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
+          <img src="/aduno-logo-branca.png" alt="Aduno" className="h-10" />
           <span className="text-green-300 text-xs">— Consulta Virtual</span>
         </div>
 
         <div className="flex items-center gap-3">
           {paciente && (
             <div className="hidden md:flex items-center gap-3 bg-white/10 rounded-xl px-3 py-1.5">
-              <User className="w-4 h-4 text-green-200" />
+              <User className="w-4 h-4 text-white/70" />
               <div className="text-xs">
                 <p className="text-white font-medium">{paciente.nome}</p>
                 {dataHora && (
@@ -190,14 +190,14 @@ export default function ConsultaMedico() {
       <div className="flex-1 flex overflow-hidden">
 
         {/* Sidebar — sempre visível se tiver dados do paciente */}
-        <div className="w-72 bg-[#1A3A2C] shrink-0 overflow-y-auto flex flex-col">
+        <div className="w-72 bg-[#19382E] shrink-0 overflow-y-auto flex flex-col">
 
           {/* Info do paciente */}
           {paciente ? (
             <div className="p-4 border-b border-white/10">
-              <h3 className="text-green-200 text-xs font-semibold uppercase tracking-wider mb-3">Paciente</h3>
+              <h3 className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-3">Paciente</h3>
               <div className="bg-white/10 rounded-xl p-3 mb-3">
-                <div className="w-10 h-10 bg-[#5BBD9B] rounded-full flex items-center justify-center mb-2">
+                <div className="w-10 h-10 bg-[#6E8570] rounded-full flex items-center justify-center mb-2">
                   <User className="w-5 h-5 text-white" />
                 </div>
                 <p className="text-white font-semibold text-sm">{paciente.nome}</p>
@@ -214,7 +214,7 @@ export default function ConsultaMedico() {
 
               {agendamento?.observacoes && (
                 <div>
-                  <h3 className="text-green-200 text-xs font-semibold uppercase tracking-wider mb-2">Queixa</h3>
+                  <h3 className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-2">Queixa</h3>
                   <div className="bg-white/10 rounded-xl p-3">
                     <p className="text-blue-100 text-xs leading-relaxed italic">"{agendamento.observacoes}"</p>
                   </div>
@@ -223,7 +223,7 @@ export default function ConsultaMedico() {
 
               {dataHora && (
                 <div className="mt-3">
-                  <h3 className="text-green-200 text-xs font-semibold uppercase tracking-wider mb-2">Horário</h3>
+                  <h3 className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-2">Horário</h3>
                   <div className="bg-white/10 rounded-xl p-3">
                     <p className="text-white text-xs font-medium">
                       {dataHora.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', timeZone: 'America/Sao_Paulo' })}
@@ -248,7 +248,7 @@ export default function ConsultaMedico() {
               className="w-full flex items-center justify-between bg-white/10 hover:bg-white/20 rounded-xl px-3 py-2.5 transition-colors mb-3"
             >
               <span className="flex items-center gap-2 text-white text-xs font-semibold">
-                <FileText className="w-4 h-4 text-[#5BBD9B]" />
+                <FileText className="w-4 h-4 text-[#6E8570]" />
                 Emitir Atestado
               </span>
               {showAtestado

@@ -80,7 +80,7 @@ function DonutChart({ slices, center }: {
             <title>{s.label}: {s.value}</title>
           </path>
         ))}
-        <text x="0" y="-5" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1A3A2C">{center ?? total}</text>
+        <text x="0" y="-5" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#19382E">{center ?? total}</text>
         <text x="0" y="10" textAnchor="middle" fontSize="7" fill="#9CA3AF">total</text>
       </svg>
       <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 max-w-xs">
@@ -125,9 +125,9 @@ function HBarDuplo({ data, labelKey }: {
           <div className="flex gap-1">
             <div className="flex items-center gap-1 flex-1">
               <div className="flex-1 bg-gray-100 rounded-full h-1.5">
-                <div className="h-1.5 rounded-full bg-[#5BBD9B] transition-all" style={{ width: `${((d.mediaConsulta ?? 0) / max) * 100}%` }} />
+                <div className="h-1.5 rounded-full bg-[#6E8570] transition-all" style={{ width: `${((d.mediaConsulta ?? 0) / max) * 100}%` }} />
               </div>
-              <span className="text-[10px] font-semibold text-[#1A3A2C] w-14 text-right shrink-0">{fmtMin(d.mediaConsulta)}</span>
+              <span className="text-[10px] font-semibold text-[#19382E] w-14 text-right shrink-0">{fmtMin(d.mediaConsulta)}</span>
             </div>
           </div>
         </div>
@@ -137,7 +137,7 @@ function HBarDuplo({ data, labelKey }: {
           <span className="w-2.5 h-1.5 rounded-full bg-amber-400" /> Espera
         </div>
         <div className="flex items-center gap-1 text-[10px] text-gray-500">
-          <span className="w-2.5 h-1.5 rounded-full bg-[#5BBD9B]" /> Consulta
+          <span className="w-2.5 h-1.5 rounded-full bg-[#6E8570]" /> Consulta
         </div>
       </div>
     </div>
@@ -183,7 +183,7 @@ function BarVDuplo({ data, labelKey }: {
               <rect x={x0} y={PAD.top + plotH - hE} width={barW} height={hE} fill="#FBBF24" rx="2" opacity="0.85">
                 <title>Espera: {fmtMin(d.mediaEspera)}</title>
               </rect>
-              <rect x={xC} y={PAD.top + plotH - hC} width={barW} height={hC} fill="#5BBD9B" rx="2" opacity="0.85">
+              <rect x={xC} y={PAD.top + plotH - hC} width={barW} height={hC} fill="#6E8570" rx="2" opacity="0.85">
                 <title>Consulta: {fmtMin(d.mediaConsulta)}</title>
               </rect>
               <text
@@ -199,7 +199,7 @@ function BarVDuplo({ data, labelKey }: {
       </svg>
       <div className="flex justify-center gap-5 mt-1">
         <div className="flex items-center gap-1 text-[11px] text-gray-500"><span className="w-3 h-2.5 rounded-sm bg-amber-400 inline-block" /> Espera</div>
-        <div className="flex items-center gap-1 text-[11px] text-gray-500"><span className="w-3 h-2.5 rounded-sm bg-[#5BBD9B] inline-block" /> Consulta</div>
+        <div className="flex items-center gap-1 text-[11px] text-gray-500"><span className="w-3 h-2.5 rounded-sm bg-[#6E8570] inline-block" /> Consulta</div>
       </div>
     </div>
   )
@@ -207,7 +207,7 @@ function BarVDuplo({ data, labelKey }: {
 
 // ── Mini KPI ──────────────────────────────────────────────────────────────────
 
-function KPI({ icon, label, value, sub, color = '#5BBD9B' }: {
+function KPI({ icon, label, value, sub, color = '#6E8570' }: {
   icon: React.ReactNode; label: string; value: string; sub?: string; color?: string
 }) {
   return (
@@ -215,7 +215,7 @@ function KPI({ icon, label, value, sub, color = '#5BBD9B' }: {
       <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ backgroundColor: color + '20' }}>
         <span style={{ color }}>{icon}</span>
       </div>
-      <div className="text-2xl font-bold text-[#1A3A2C] leading-tight">{value}</div>
+      <div className="text-2xl font-bold text-[#19382E] leading-tight">{value}</div>
       <div className="text-sm text-gray-400 mt-1">{label}</div>
       {sub && <div className="text-xs text-gray-400 mt-0.5">{sub}</div>}
     </div>
@@ -230,16 +230,16 @@ function imprimirTempo(data: any, filtros: string) {
 <title>Tempo de Atendimento</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; font-size: 11px; color: #1A3A2C; padding: 24px; }
+body { font-family: Arial, sans-serif; font-size: 11px; color: #19382E; padding: 24px; }
 h1 { font-size: 18px; margin-bottom: 4px; }
 .sub { color: #6b7280; font-size: 11px; margin-bottom: 20px; }
-h2 { font-size: 12px; margin: 18px 0 8px; color: #5BBD9B; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
+h2 { font-size: 12px; margin: 18px 0 8px; color: #6E8570; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
 table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
 th { text-align: left; font-size: 10px; color: #6b7280; border-bottom: 1px solid #e5e7eb; padding: 5px 8px; }
 td { padding: 5px 8px; border-bottom: 1px solid #f3f4f6; }
 .kpis { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 20px; }
 .kpi { background: #f9fafb; border-radius: 8px; padding: 12px; }
-.kpi-val { font-size: 20px; font-weight: bold; color: #1A3A2C; }
+.kpi-val { font-size: 20px; font-weight: bold; color: #19382E; }
 .kpi-lbl { font-size: 10px; color: #6b7280; margin-top: 2px; }
 .badge { display:inline-block; padding:1px 7px; border-radius:999px; font-size:9px; font-weight:700; }
 .amber { background:#fef3c7;color:#92400e; }
@@ -392,8 +392,8 @@ export default function TempoDashboard() {
       onClick={() => setActiveTable(key)}
       className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
         activeTable === key
-          ? 'bg-[#1A3A2C] text-white border-[#1A3A2C]'
-          : 'bg-white text-gray-500 border-gray-200 hover:border-[#5BBD9B] hover:text-[#1A3A2C]'
+          ? 'bg-[#19382E] text-white border-[#19382E]'
+          : 'bg-white text-gray-500 border-gray-200 hover:border-[#6E8570] hover:text-[#19382E]'
       }`}
     >
       {label}
@@ -411,20 +411,20 @@ export default function TempoDashboard() {
           </div>
 
           <input type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)}
-            className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40" />
+            className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40" />
           <span className="text-gray-400 text-sm">até</span>
           <input type="date" value={dataFim} onChange={e => setDataFim(e.target.value)}
-            className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40" />
+            className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40" />
 
           <select value={empresaId} onChange={e => setEmpresaId(e.target.value)}
-            className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40">
+            className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40">
             <option value="">Todas as empresas</option>
             <option value="__particular__">Particular</option>
             {empresas.map((e: any) => <option key={e.id} value={e.id}>{e.nome}</option>)}
           </select>
 
           <select value={medicoId} onChange={e => setMedicoId(e.target.value)}
-            className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40">
+            className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40">
             <option value="">Todos os médicos</option>
             {medicos.map((m: any) => <option key={m.id} value={m.id}>{m.nome}</option>)}
           </select>
@@ -434,7 +434,7 @@ export default function TempoDashboard() {
             <input
               type="text" placeholder="Buscar paciente…" value={nomePac}
               onChange={e => setNomePac(e.target.value)}
-              className="border border-gray-200 rounded-xl pl-8 pr-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 w-44"
+              className="border border-gray-200 rounded-xl pl-8 pr-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40 w-44"
             />
             {nomePac && (
               <button onClick={() => setNomePac('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
@@ -480,27 +480,27 @@ export default function TempoDashboard() {
         const porEsperaDonut = porEmpresa.slice(0, 6).map((e: any, i: number) => ({
           label: e.nome,
           value: e.total,
-          color: ['#5BBD9B','#3B82F6','#F59E0B','#8B5CF6','#EF4444','#14B8A6'][i % 6],
+          color: ['#6E8570','#3B82F6','#F59E0B','#8B5CF6','#EF4444','#14B8A6'][i % 6],
         }))
 
         return (
           <>
             {/* KPIs */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-              <KPI icon={<Clock className="w-5 h-5" />}   label="Consultas analisadas" value={String(kpis.totalConsultas)} color="#1A3A2C" />
+              <KPI icon={<Clock className="w-5 h-5" />}   label="Consultas analisadas" value={String(kpis.totalConsultas)} color="#19382E" />
               <KPI icon={<Users className="w-5 h-5" />}   label="Pacientes únicos"     value={String(kpis.pacientesUnicos)} color="#3B82F6" />
               <KPI icon={<Timer className="w-5 h-5" />}   label="Média de espera"      value={fmtMin(kpis.mediaEspera)}   color="#F59E0B" />
-              <KPI icon={<Stethoscope className="w-5 h-5" />} label="Média de consulta" value={fmtMin(kpis.mediaConsulta)} color="#5BBD9B" />
+              <KPI icon={<Stethoscope className="w-5 h-5" />} label="Média de consulta" value={fmtMin(kpis.mediaConsulta)} color="#6E8570" />
               <KPI icon={<TrendingUp className="w-5 h-5" />} label="Total em espera"    value={fmtMin(kpis.somaEspera)}   color="#F59E0B" sub="soma do período" />
-              <KPI icon={<TrendingUp className="w-5 h-5" />} label="Total em consulta"  value={fmtMin(kpis.somaConsulta)} color="#5BBD9B" sub="soma do período" />
+              <KPI icon={<TrendingUp className="w-5 h-5" />} label="Total em consulta"  value={fmtMin(kpis.somaConsulta)} color="#6E8570" sub="soma do período" />
             </div>
 
             {/* Gráfico por mês */}
             {porMes.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                  <h2 className="font-bold text-[#1A3A2C] text-sm flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-[#5BBD9B]" /> Tempo médio por mês
+                  <h2 className="font-bold text-[#19382E] text-sm flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-[#6E8570]" /> Tempo médio por mês
                   </h2>
                   <span className="text-xs text-gray-400">{porMes.length} mês(es)</span>
                 </div>
@@ -514,8 +514,8 @@ export default function TempoDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
-                  <Stethoscope className="w-4 h-4 text-[#5BBD9B]" />
-                  <h2 className="font-bold text-[#1A3A2C] text-sm">Tempo médio por médico</h2>
+                  <Stethoscope className="w-4 h-4 text-[#6E8570]" />
+                  <h2 className="font-bold text-[#19382E] text-sm">Tempo médio por médico</h2>
                 </div>
                 <div className="px-6 py-4">
                   <HBarDuplo data={porMedico} labelKey="nome" />
@@ -525,7 +525,7 @@ export default function TempoDashboard() {
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
                   <Building2 className="w-4 h-4 text-blue-500" />
-                  <h2 className="font-bold text-[#1A3A2C] text-sm">Distribuição por empresa</h2>
+                  <h2 className="font-bold text-[#19382E] text-sm">Distribuição por empresa</h2>
                 </div>
                 <div className="px-6 py-4">
                   <DonutChart slices={porEsperaDonut} center={String(kpis.totalConsultas)} />
@@ -537,7 +537,7 @@ export default function TempoDashboard() {
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-blue-500" />
-                <h2 className="font-bold text-[#1A3A2C] text-sm">Tempo médio por empresa</h2>
+                <h2 className="font-bold text-[#19382E] text-sm">Tempo médio por empresa</h2>
               </div>
               <div className="px-6 py-4">
                 <HBarDuplo data={porEmpresa} labelKey="nome" />
@@ -547,7 +547,7 @@ export default function TempoDashboard() {
             {/* Tabelas detalhadas */}
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-4 flex-wrap">
-                <h2 className="font-bold text-[#1A3A2C] text-sm">Detalhamento</h2>
+                <h2 className="font-bold text-[#19382E] text-sm">Detalhamento</h2>
                 <div className="flex flex-wrap gap-2">
                   {tabBtn('medico',    'Por Médico')}
                   {tabBtn('empresa',   'Por Empresa')}
@@ -573,7 +573,7 @@ export default function TempoDashboard() {
                     <tbody className="divide-y divide-gray-50">
                       {porMedico.map((m: any, i: number) => (
                         <tr key={i} className="hover:bg-gray-50">
-                          <td className="px-6 py-3 font-semibold text-[#1A3A2C]">{m.nome}</td>
+                          <td className="px-6 py-3 font-semibold text-[#19382E]">{m.nome}</td>
                           <td className="px-4 py-3 text-gray-500">{m.especialidade || '—'}</td>
                           <td className="px-4 py-3 text-right font-semibold">{m.total}</td>
                           <td className="px-4 py-3 text-right"><span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">{fmtMin(m.mediaEspera)}</span></td>
@@ -597,7 +597,7 @@ export default function TempoDashboard() {
                     <tbody className="divide-y divide-gray-50">
                       {porEmpresa.map((e: any, i: number) => (
                         <tr key={i} className="hover:bg-gray-50">
-                          <td className="px-6 py-3 font-semibold text-[#1A3A2C]">{e.nome}</td>
+                          <td className="px-6 py-3 font-semibold text-[#19382E]">{e.nome}</td>
                           <td className="px-4 py-3 text-right font-semibold">{e.total}</td>
                           <td className="px-4 py-3 text-right"><span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">{fmtMin(e.mediaEspera)}</span></td>
                           <td className="px-4 py-3 text-right"><span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">{fmtMin(e.mediaConsulta)}</span></td>
@@ -619,7 +619,7 @@ export default function TempoDashboard() {
                     <tbody className="divide-y divide-gray-50">
                       {porPaciente.map((p: any, i: number) => (
                         <tr key={i} className="hover:bg-gray-50">
-                          <td className="px-6 py-3 font-semibold text-[#1A3A2C]">{p.nome}</td>
+                          <td className="px-6 py-3 font-semibold text-[#19382E]">{p.nome}</td>
                           <td className="px-4 py-3 text-gray-500">{p.empresa}</td>
                           <td className="px-4 py-3 text-right font-semibold">{p.total}</td>
                           <td className="px-4 py-3 text-right"><span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">{fmtMin(p.mediaEspera)}</span></td>
@@ -641,7 +641,7 @@ export default function TempoDashboard() {
                     <tbody className="divide-y divide-gray-50">
                       {[...porData].reverse().map((d: any, i: number) => (
                         <tr key={i} className="hover:bg-gray-50">
-                          <td className="px-6 py-3 font-semibold text-[#1A3A2C]">{fmtDate(d.data)}</td>
+                          <td className="px-6 py-3 font-semibold text-[#19382E]">{fmtDate(d.data)}</td>
                           <td className="px-4 py-3 text-right font-semibold">{d.total}</td>
                           <td className="px-4 py-3 text-right"><span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-semibold">{fmtMin(d.mediaEspera)}</span></td>
                           <td className="px-4 py-3 text-right"><span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">{fmtMin(d.mediaConsulta)}</span></td>
@@ -665,7 +665,7 @@ export default function TempoDashboard() {
                       {registros.slice(0, 100).map((r: any, i: number) => (
                         <tr key={i} className="hover:bg-gray-50">
                           <td className="px-6 py-2 text-gray-500 text-xs">{fmtDate(r.data)}</td>
-                          <td className="px-4 py-2 font-semibold text-[#1A3A2C]">{r.paciente}</td>
+                          <td className="px-4 py-2 font-semibold text-[#19382E]">{r.paciente}</td>
                           <td className="px-4 py-2 text-gray-600">{r.medico}</td>
                           <td className="px-4 py-2 text-gray-500">{r.empresa}</td>
                           <td className="px-4 py-2 text-right">

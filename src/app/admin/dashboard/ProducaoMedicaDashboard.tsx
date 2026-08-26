@@ -88,7 +88,7 @@ function formatMes(ym: string) {
   return `${meses[parseInt(month) - 1]}/${year.slice(2)}`
 }
 
-const COLORS = ['#5BBD9B', '#3B82F6', '#F59E0B', '#8B5CF6', '#EF4444', '#14B8A6', '#EC4899', '#6366F1', '#84CC16', '#F97316']
+const COLORS = ['#6E8570', '#3B82F6', '#F59E0B', '#8B5CF6', '#EF4444', '#14B8A6', '#EC4899', '#6366F1', '#84CC16', '#F97316']
 
 // ============================================================
 // SVG CHART COMPONENTS (inline, same style as DashboardClient)
@@ -149,11 +149,11 @@ function DonutChart({ slices, formatValue, centerLabel }: {
         {isCurrency ? (
           <>
             <text x="0" y="-10" textAnchor="middle" fontSize="8" fill="#9CA3AF" letterSpacing="1" fontWeight="500">TOTAL</text>
-            <text x="0" y="6" textAnchor="middle" fontSize="13" fontWeight="700" fill="#1A3A2C">{rawCenter}</text>
+            <text x="0" y="6" textAnchor="middle" fontSize="13" fontWeight="700" fill="#19382E">{rawCenter}</text>
           </>
         ) : (
           <>
-            <text x="0" y="6" textAnchor="middle" fontSize="22" fontWeight="800" fill="#1A3A2C">{rawCenter}</text>
+            <text x="0" y="6" textAnchor="middle" fontSize="22" fontWeight="800" fill="#19382E">{rawCenter}</text>
             <text x="0" y="20" textAnchor="middle" fontSize="8" fill="#9CA3AF" letterSpacing="0.5">TOTAL</text>
           </>
         )}
@@ -173,7 +173,7 @@ function DonutChart({ slices, formatValue, centerLabel }: {
 
 function HBarChart({
   data, labelKey, valueKey,
-  color = '#5BBD9B',
+  color = '#6E8570',
   formatValue = (v: number) => String(v),
   maxItems = 10,
 }: {
@@ -217,7 +217,7 @@ function HBarChart({
         return (
           <g key={i}>
             {isTop && <rect x={0} y={y + 3} width={W} height={ROW - 6} fill={`${color}12`} rx="6" />}
-            <text x={4} y={y + ROW / 2 + 4.5} fontSize="10" fill={isTop ? '#1A3A2C' : '#374151'}
+            <text x={4} y={y + ROW / 2 + 4.5} fontSize="10" fill={isTop ? '#19382E' : '#374151'}
               fontWeight={isTop ? '700' : '400'} fontFamily="system-ui">
               {isTop ? `🥇 ${truncated}` : truncated}
             </text>
@@ -236,7 +236,7 @@ function HBarChart({
 }
 
 function BarChartSVG({
-  data, labelKey, valueKey, color = '#5BBD9B',
+  data, labelKey, valueKey, color = '#6E8570',
   formatValue = (v: number) => String(v),
 }: {
   data: Record<string, any>[]
@@ -415,7 +415,7 @@ function ChartCard({ title, subtitle, children, className = '' }: {
   return (
     <div className={`bg-white rounded-2xl p-5 shadow-sm border border-gray-50 ${className}`}>
       <div className="mb-4">
-        <h3 className="font-bold text-[#1A3A2C] text-sm">{title}</h3>
+        <h3 className="font-bold text-[#19382E] text-sm">{title}</h3>
         {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
       </div>
       {children}
@@ -427,15 +427,15 @@ function KpiCard({ label, value, sub, icon: Icon, color, highlight }: {
   label: string; value: string; sub?: string; icon: React.ElementType; color: string; highlight?: boolean
 }) {
   return (
-    <div className={`rounded-2xl p-5 shadow-sm border ${highlight ? 'bg-[#1A3A2C] border-[#1A3A2C]' : 'bg-white border-gray-50'}`}>
+    <div className={`rounded-2xl p-5 shadow-sm border ${highlight ? 'bg-[#19382E] border-[#19382E]' : 'bg-white border-gray-50'}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className={`text-xs font-medium ${highlight ? 'text-green-300' : 'text-gray-400'}`}>{label}</p>
-          <p className={`text-xl font-bold mt-1 leading-tight ${highlight ? 'text-white' : 'text-[#1A3A2C]'}`}>{value}</p>
+          <p className={`text-xl font-bold mt-1 leading-tight ${highlight ? 'text-white' : 'text-[#19382E]'}`}>{value}</p>
           {sub && <p className={`text-xs mt-0.5 ${highlight ? 'text-green-300' : 'text-gray-400'}`}>{sub}</p>}
         </div>
         <div className="p-2.5 rounded-xl shrink-0" style={{ backgroundColor: highlight ? 'rgba(255,255,255,0.15)' : `${color}20` }}>
-          <Icon className="w-5 h-5" style={{ color: highlight ? '#5BBD9B' : color }} />
+          <Icon className="w-5 h-5" style={{ color: highlight ? '#6E8570' : color }} />
         </div>
       </div>
     </div>
@@ -525,19 +525,19 @@ function exportarPDFProd(data: ProducaoData, inicio: string, fim: string) {
   const win = window.open('', '_blank')
   if (!win) return
   win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
-  <title>Produção Médica — RovarisMed</title>
+  <title>Produção Médica — Aduno</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:Arial,sans-serif;font-size:11px;color:#222;padding:24px}
-    h1{font-size:16px;color:#1A3A2C;margin-bottom:4px}
+    h1{font-size:16px;color:#19382E;margin-bottom:4px}
     .sub{font-size:10px;color:#666;margin-bottom:16px}
     .kpis{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
     .kpi{flex:1;min-width:120px;border:1px solid #e5e7eb;border-radius:8px;padding:10px;text-align:center}
-    .kpi-val{font-size:16px;font-weight:bold;color:#1A3A2C}
+    .kpi-val{font-size:16px;font-weight:bold;color:#19382E}
     .kpi-lab{font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
-    h2{font-size:12px;color:#1A3A2C;margin:20px 0 8px;border-bottom:1px solid #e5e7eb;padding-bottom:4px}
+    h2{font-size:12px;color:#19382E;margin:20px 0 8px;border-bottom:1px solid #e5e7eb;padding-bottom:4px}
     table{width:100%;border-collapse:collapse;margin-bottom:4px;font-size:10px}
-    th{background:#1A3A2C;color:white;padding:5px 6px;text-align:left;font-size:9px;text-transform:uppercase}
+    th{background:#19382E;color:white;padding:5px 6px;text-align:left;font-size:9px;text-transform:uppercase}
     td{padding:4px 6px;border-bottom:1px solid #f0f0f0}
     .center{text-align:center}.right{text-align:right}
     .bg-white{background:#fff}.bg-gray-50{background:#f9fafb}
@@ -561,7 +561,7 @@ function exportarPDFProd(data: ProducaoData, inicio: string, fim: string) {
   <h2>Por Especialidade</h2>
   <table><thead><tr><th>Especialidade</th><th class="center">Médicos</th><th class="center">Consultas</th><th class="right">Faturamento</th></tr></thead>
   <tbody>${espRows||'<tr><td colspan="4" style="text-align:center;color:#aaa;padding:12px">Sem dados</td></tr>'}</tbody></table>
-  <footer>Documento gerado automaticamente pelo sistema RovarisMed · ${new Date().toLocaleDateString('pt-BR')}</footer>
+  <footer>Documento gerado automaticamente pelo sistema Aduno · ${new Date().toLocaleDateString('pt-BR')}</footer>
   <script>window.onload=()=>window.print()</script>
   </body></html>`)
   win.document.close()
@@ -623,7 +623,7 @@ export default function ProducaoMedicaDashboard() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-3">
-        <Loader2 className="w-9 h-9 animate-spin text-[#5BBD9B]" />
+        <Loader2 className="w-9 h-9 animate-spin text-[#6E8570]" />
         <p className="text-gray-400 text-sm">Carregando produção médica...</p>
       </div>
     )
@@ -635,7 +635,7 @@ export default function ProducaoMedicaDashboard() {
         <BarChart2 className="w-10 h-10 opacity-30" />
         <p className="text-sm">Erro ao carregar dados.</p>
         <button onClick={() => carregar(inicio, fim, medicoId, especialidade)}
-          className="text-[#5BBD9B] text-sm flex items-center gap-1.5 hover:underline">
+          className="text-[#6E8570] text-sm flex items-center gap-1.5 hover:underline">
           <RefreshCw className="w-3.5 h-3.5" /> Tentar novamente
         </button>
       </div>
@@ -647,14 +647,14 @@ export default function ProducaoMedicaDashboard() {
   function SortIcon({ k }: { k: SortKey }) {
     if (sortKey !== k) return <ChevronDown className="w-3 h-3 opacity-30" />
     return sortDir === 'desc'
-      ? <ChevronDown className="w-3 h-3 text-[#5BBD9B]" />
-      : <ChevronUp className="w-3 h-3 text-[#5BBD9B]" />
+      ? <ChevronDown className="w-3 h-3 text-[#6E8570]" />
+      : <ChevronUp className="w-3 h-3 text-[#6E8570]" />
   }
 
   function ThSort({ label, k, right }: { label: string; k: SortKey; right?: boolean }) {
     return (
       <th
-        className={`text-xs text-gray-400 font-medium pb-2 pr-3 cursor-pointer select-none hover:text-[#1A3A2C] transition-colors ${right ? 'text-right' : 'text-left'}`}
+        className={`text-xs text-gray-400 font-medium pb-2 pr-3 cursor-pointer select-none hover:text-[#19382E] transition-colors ${right ? 'text-right' : 'text-left'}`}
         onClick={() => toggleSort(k)}
       >
         <span className="inline-flex items-center gap-1">
@@ -671,8 +671,8 @@ export default function ProducaoMedicaDashboard() {
       {/* ---- Filter bar ---- */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
         <div className="flex items-center gap-2 mb-3">
-          <Filter className="w-3.5 h-3.5 text-[#5BBD9B]" />
-          <span className="text-xs font-semibold text-[#1A3A2C] uppercase tracking-wide">Filtros</span>
+          <Filter className="w-3.5 h-3.5 text-[#6E8570]" />
+          <span className="text-xs font-semibold text-[#19382E] uppercase tracking-wide">Filtros</span>
           {(medicoId || especialidade) && (
             <button onClick={() => { setMedicoId(''); setEspecialidade('') }}
               className="ml-auto flex items-center gap-1 text-xs text-gray-400 hover:text-red-500 transition-colors">
@@ -691,17 +691,17 @@ export default function ProducaoMedicaDashboard() {
           <div>
             <label className="block text-xs text-gray-400 mb-1">Data início</label>
             <input type="date" value={inicio} onChange={e => setInicio(e.target.value)}
-              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700" />
+              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-gray-700" />
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1">Data fim</label>
             <input type="date" value={fim} onChange={e => setFim(e.target.value)}
-              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700" />
+              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-gray-700" />
           </div>
           <div>
             <label className="block text-xs text-gray-400 mb-1">Médico</label>
             <select value={medicoId} onChange={e => setMedicoId(e.target.value)}
-              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700 bg-white">
+              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-gray-700 bg-white">
               <option value="">Todos os médicos</option>
               {data.medicos.map(m => <option key={m.id} value={m.id}>{m.nome}</option>)}
             </select>
@@ -709,7 +709,7 @@ export default function ProducaoMedicaDashboard() {
           <div>
             <label className="block text-xs text-gray-400 mb-1">Especialidade</label>
             <select value={especialidade} onChange={e => setEspecialidade(e.target.value)}
-              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-gray-700 bg-white">
+              className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-gray-700 bg-white">
               <option value="">Todas</option>
               {data.especialidades.map(e => <option key={e} value={e}>{e}</option>)}
             </select>
@@ -717,7 +717,7 @@ export default function ProducaoMedicaDashboard() {
         </div>
         {(medicoId || especialidade) && (
           <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2">
-            <span className="text-xs text-[#5BBD9B] font-semibold">Filtros ativos:</span>
+            <span className="text-xs text-[#6E8570] font-semibold">Filtros ativos:</span>
             {medicoId && <span className="text-xs bg-green-50 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">{data.medicos.find(m=>m.id===medicoId)?.nome}</span>}
             {especialidade && <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded-full">{especialidade}</span>}
           </div>
@@ -730,7 +730,7 @@ export default function ProducaoMedicaDashboard() {
           label="Faturamento Total"
           value={formatBRL(totais.faturamento)}
           sub={`${totais.consultas} consultas + ${totais.renovacoes} renovações`}
-          icon={DollarSign} color="#5BBD9B" highlight
+          icon={DollarSign} color="#6E8570" highlight
         />
         <KpiCard
           label="Consultas Realizadas"
@@ -786,7 +786,7 @@ export default function ProducaoMedicaDashboard() {
               <HBarChart
                 data={data.porEspecialidade}
                 labelKey="especialidade" valueKey="faturamento"
-                formatValue={formatBRL} color="#5BBD9B"
+                formatValue={formatBRL} color="#6E8570"
               />
             </ChartCard>
           </div>
@@ -831,7 +831,7 @@ export default function ProducaoMedicaDashboard() {
             <BarChartSVG
               data={data.porMes.map(d => ({ ...d, mes: formatMes(d.mes) }))}
               labelKey="mes" valueKey="faturamento"
-              formatValue={formatBRL} color="#5BBD9B"
+              formatValue={formatBRL} color="#6E8570"
             />
           </ChartCard>
           <ChartCard title="Consultas por Mês" subtitle="Evolução do volume de atendimentos">
@@ -940,7 +940,7 @@ export default function ProducaoMedicaDashboard() {
                   >
                     <td className="py-3 pr-2 text-xs text-gray-400 font-medium">{i + 1}</td>
                     <td className="py-3 pr-3">
-                      <div className="font-semibold text-[#1A3A2C] text-sm">{row.nome}</div>
+                      <div className="font-semibold text-[#19382E] text-sm">{row.nome}</div>
                     </td>
                     <td className="py-3 pr-3">
                       <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
@@ -952,7 +952,7 @@ export default function ProducaoMedicaDashboard() {
                       <span className="font-semibold text-gray-700">{row.consultas}</span>
                     </td>
                     <td className="py-3 pr-3 text-right">
-                      <span className="font-bold text-[#1A3A2C]" title={row.gasto_renovacoes > 0 ? `Consultas: ${formatBRL(row.faturamento - row.gasto_renovacoes)} | Renovações: ${formatBRL(row.gasto_renovacoes)}` : undefined}>
+                      <span className="font-bold text-[#19382E]" title={row.gasto_renovacoes > 0 ? `Consultas: ${formatBRL(row.faturamento - row.gasto_renovacoes)} | Renovações: ${formatBRL(row.gasto_renovacoes)}` : undefined}>
                         {formatBRL(row.faturamento)}
                       </span>
                       {row.gasto_renovacoes > 0 && (
@@ -996,8 +996,8 @@ export default function ProducaoMedicaDashboard() {
               <tfoot>
                 <tr className="border-t-2 border-gray-200 bg-gray-50">
                   <td colSpan={4} className="py-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Total do período</td>
-                  <td className="py-3 pr-3 text-right font-bold text-[#1A3A2C]">{totais.consultas}</td>
-                  <td className="py-3 pr-3 text-right font-bold text-[#1A3A2C]">{formatBRL(totais.faturamento)}</td>
+                  <td className="py-3 pr-3 text-right font-bold text-[#19382E]">{totais.consultas}</td>
+                  <td className="py-3 pr-3 text-right font-bold text-[#19382E]">{formatBRL(totais.faturamento)}</td>
                   <td className="py-3 pr-3 text-right font-bold text-orange-600">{totais.custo > 0 ? formatBRL(totais.custo) : '—'}</td>
                   <td className="py-3 pr-3 text-right font-bold text-green-600">{totais.custo > 0 ? formatBRL(totais.margem) : '—'}</td>
                   <td className="py-3 pr-3 text-right font-bold text-amber-600">{totais.atestados}</td>
@@ -1030,11 +1030,11 @@ export default function ProducaoMedicaDashboard() {
                   <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="py-2.5 pr-3 text-xs text-gray-400">{i + 1}</td>
                     <td className="py-2.5 pr-3">
-                      <span className="font-medium text-[#1A3A2C] text-sm">{e.especialidade}</span>
+                      <span className="font-medium text-[#19382E] text-sm">{e.especialidade}</span>
                     </td>
                     <td className="py-2.5 pr-3 text-right text-sm text-gray-600">{e.medicos}</td>
                     <td className="py-2.5 pr-3 text-right font-semibold text-gray-700">{e.consultas}</td>
-                    <td className="py-2.5 text-right font-bold text-[#1A3A2C]">{formatBRL(e.faturamento)}</td>
+                    <td className="py-2.5 text-right font-bold text-[#19382E]">{formatBRL(e.faturamento)}</td>
                   </tr>
                 ))}
               </tbody>

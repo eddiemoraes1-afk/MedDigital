@@ -32,8 +32,8 @@ function labelDDMM(isoDate: string): string {
 
 function BarChartSVG({
   data,
-  barColor = '#5BBD9B',
-  todayColor = '#5BBD9B',
+  barColor = '#6E8570',
+  todayColor = '#6E8570',
 }: {
   data: { date: string; count: number }[]
   barColor?: string
@@ -436,13 +436,13 @@ export default async function ProducaoMedicoPage({
 
         {/* ── Gráficos ── */}
         <ChartCard
-          icon={<CheckCircle2 className="w-4 h-4 text-[#5BBD9B]" />}
+          icon={<CheckCircle2 className="w-4 h-4 text-[#6E8570]" />}
           title="Consultas por dia"
           count={ats.length}
           avg={calcMedia(ats.length, atsChart)}
           data={atsChart}
-          barColor="#5BBD9B"
-          todayColor="#5BBD9B"
+          barColor="#6E8570"
+          todayColor="#6E8570"
         />
 
         <ChartCard

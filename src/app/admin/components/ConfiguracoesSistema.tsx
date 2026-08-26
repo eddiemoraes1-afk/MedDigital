@@ -37,8 +37,8 @@ export default function ConfiguracoesSistema({ precoReceitaParticularAtual }: Pr
 
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm">
-      <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 mb-1">
-        <Settings className="w-4 h-4 text-[#5BBD9B]" /> Configurações Globais
+      <h2 className="font-bold text-[#19382E] flex items-center gap-2 mb-1">
+        <Settings className="w-4 h-4 text-[#6E8570]" /> Configurações Globais
       </h2>
       <p className="text-xs text-gray-400 mb-4">Preços aplicados a pacientes particulares (sem empresa vinculada)</p>
 
@@ -55,7 +55,7 @@ export default function ConfiguracoesSistema({ precoReceitaParticularAtual }: Pr
               step="0.01"
               value={precoReceita}
               onChange={e => setPrecoReceita(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#5BBD9B] focus:outline-none"
+              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#6E8570] focus:outline-none"
               placeholder="0,00"
             />
           </div>
@@ -72,7 +72,7 @@ export default function ConfiguracoesSistema({ precoReceitaParticularAtual }: Pr
           className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
             salvo
               ? 'bg-green-100 text-green-700'
-              : 'bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white disabled:opacity-50'
+              : 'bg-[#19382E] hover:bg-[#6E8570] text-white disabled:opacity-50'
           }`}
         >
           {salvando ? <Loader2 className="w-4 h-4 animate-spin" /> : salvo ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}

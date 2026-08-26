@@ -52,15 +52,15 @@ export async function enviarEmailConfirmacao(dados: DadosAgendamento) {
       <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F4F7FB; margin: 0; padding: 20px; }
         .container { max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .header { background: #1A3A5C; padding: 32px; text-align: center; }
+        .header { background: #19382E; padding: 32px; text-align: center; }
         .header h1 { color: white; margin: 0; font-size: 22px; }
-        .header p { color: #93C5FD; margin: 8px 0 0; font-size: 14px; }
+        .header p { color: #8FA891; margin: 8px 0 0; font-size: 14px; }
         .body { padding: 32px; }
         .greeting { font-size: 16px; color: #374151; margin-bottom: 24px; }
-        .card { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 12px; padding: 20px; margin: 20px 0; }
+        .card { background: #F3F6F3; border: 1px solid #D8E1D9; border-radius: 12px; padding: 20px; margin: 20px 0; }
         .card-row { display: flex; margin-bottom: 12px; }
         .card-label { color: #6B7280; font-size: 13px; width: 90px; }
-        .card-value { color: #1A3A5C; font-size: 13px; font-weight: 600; }
+        .card-value { color: #19382E; font-size: 13px; font-weight: 600; }
         .badge { display: inline-block; background: #22C55E; color: white; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
         .footer { background: #F9FAFB; padding: 20px 32px; text-align: center; }
         .footer p { color: #9CA3AF; font-size: 12px; margin: 0; }
@@ -69,8 +69,8 @@ export async function enviarEmailConfirmacao(dados: DadosAgendamento) {
     <body>
       <div class="container">
         <div class="header">
-          <h1>💙 MedDigital</h1>
-          <p>Sua saúde em boas mãos</p>
+          <h1>Aduno</h1>
+          <p>Saúde ocupacional digital</p>
         </div>
         <div class="body">
           <p class="greeting">Olá, <strong>${dados.pacienteNome}</strong>!</p>
@@ -98,7 +98,7 @@ export async function enviarEmailConfirmacao(dados: DadosAgendamento) {
           </p>
         </div>
         <div class="footer">
-          <p>MedDigital — Telemedicina com Inteligência Artificial</p>
+          <p>Aduno — Saúde Ocupacional Digital</p>
           <p style="margin-top: 4px;">${APP_HOST}</p>
         </div>
       </div>
@@ -108,7 +108,7 @@ export async function enviarEmailConfirmacao(dados: DadosAgendamento) {
 
   try {
     const info = await transporter.sendMail({
-      from: `MedDigital <${gmailUser}>`,
+      from: `Aduno <${gmailUser}>`,
       to: dados.pacienteEmail,
       subject: `✅ Consulta confirmada — ${data} às ${hora}`,
       html,
@@ -141,15 +141,15 @@ export async function enviarEmailCancelamento(dados: DadosAgendamento) {
       <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F4F7FB; margin: 0; padding: 20px; }
         .container { max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .header { background: #1A3A5C; padding: 32px; text-align: center; }
+        .header { background: #19382E; padding: 32px; text-align: center; }
         .header h1 { color: white; margin: 0; font-size: 22px; }
-        .header p { color: #93C5FD; margin: 8px 0 0; font-size: 14px; }
+        .header p { color: #8FA891; margin: 8px 0 0; font-size: 14px; }
         .body { padding: 32px; }
         .greeting { font-size: 16px; color: #374151; margin-bottom: 24px; }
         .card { background: #FEF2F2; border: 1px solid #FECACA; border-radius: 12px; padding: 20px; margin: 20px 0; }
         .card-row { display: flex; margin-bottom: 12px; }
         .card-label { color: #6B7280; font-size: 13px; width: 90px; }
-        .card-value { color: #1A3A5C; font-size: 13px; font-weight: 600; }
+        .card-value { color: #19382E; font-size: 13px; font-weight: 600; }
         .badge { display: inline-block; background: #EF4444; color: white; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
         .footer { background: #F9FAFB; padding: 20px 32px; text-align: center; }
         .footer p { color: #9CA3AF; font-size: 12px; margin: 0; }
@@ -158,8 +158,8 @@ export async function enviarEmailCancelamento(dados: DadosAgendamento) {
     <body>
       <div class="container">
         <div class="header">
-          <h1>💙 MedDigital</h1>
-          <p>Sua saúde em boas mãos</p>
+          <h1>Aduno</h1>
+          <p>Saúde ocupacional digital</p>
         </div>
         <div class="body">
           <p class="greeting">Olá, <strong>${dados.pacienteNome}</strong>!</p>
@@ -192,7 +192,7 @@ export async function enviarEmailCancelamento(dados: DadosAgendamento) {
           </p>
         </div>
         <div class="footer">
-          <p>MedDigital — Telemedicina com Inteligência Artificial</p>
+          <p>Aduno — Saúde Ocupacional Digital</p>
           <p style="margin-top: 4px;">${APP_HOST}</p>
         </div>
       </div>
@@ -202,7 +202,7 @@ export async function enviarEmailCancelamento(dados: DadosAgendamento) {
 
   try {
     const info = await transporter.sendMail({
-      from: `MedDigital <${gmailUser}>`,
+      from: `Aduno <${gmailUser}>`,
       to: dados.pacienteEmail,
       subject: `❌ Consulta cancelada — ${data} às ${hora}`,
       html,
@@ -237,16 +237,16 @@ export async function enviarEmailNovoAgendamentoMedico(dados: DadosAgendamento &
       <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F4F7FB; margin: 0; padding: 20px; }
         .container { max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .header { background: #1A3A2C; padding: 32px; text-align: center; }
+        .header { background: #19382E; padding: 32px; text-align: center; }
         .header h1 { color: white; margin: 0; font-size: 22px; }
-        .header p { color: #5BBD9B; margin: 8px 0 0; font-size: 14px; }
+        .header p { color: #6E8570; margin: 8px 0 0; font-size: 14px; }
         .body { padding: 32px; }
         .greeting { font-size: 16px; color: #374151; margin-bottom: 24px; }
         .card { background: #F0FDF4; border: 1px solid #86EFAC; border-radius: 12px; padding: 20px; margin: 20px 0; }
         .card-row { display: flex; margin-bottom: 12px; }
         .card-label { color: #6B7280; font-size: 13px; width: 90px; }
-        .card-value { color: #1A3A2C; font-size: 13px; font-weight: 600; }
-        .badge { display: inline-block; background: #1A3A2C; color: white; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
+        .card-value { color: #19382E; font-size: 13px; font-weight: 600; }
+        .badge { display: inline-block; background: #19382E; color: white; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
         .footer { background: #F9FAFB; padding: 20px 32px; text-align: center; }
         .footer p { color: #9CA3AF; font-size: 12px; margin: 0; }
       </style>
@@ -254,7 +254,7 @@ export async function enviarEmailNovoAgendamentoMedico(dados: DadosAgendamento &
     <body>
       <div class="container">
         <div class="header">
-          <h1>💙 MedDigital</h1>
+          <h1>Aduno</h1>
           <p>Nova consulta agendada</p>
         </div>
         <div class="body">
@@ -280,7 +280,7 @@ export async function enviarEmailNovoAgendamentoMedico(dados: DadosAgendamento &
           </p>
         </div>
         <div class="footer">
-          <p>MedDigital — Telemedicina com Inteligência Artificial</p>
+          <p>Aduno — Saúde Ocupacional Digital</p>
           <p style="margin-top: 4px;">${APP_HOST}</p>
         </div>
       </div>
@@ -290,7 +290,7 @@ export async function enviarEmailNovoAgendamentoMedico(dados: DadosAgendamento &
 
   try {
     await transporter.sendMail({
-      from: `MedDigital <${gmailUser}>`,
+      from: `Aduno <${gmailUser}>`,
       to: dados.medicoEmail,
       subject: `📅 Novo agendamento — ${dados.pacienteNome} em ${data} às ${hora}`,
       html,
@@ -312,7 +312,7 @@ export async function enviarWhatsAppConfirmacao(dados: DadosAgendamento) {
   let telefone = dados.pacienteTelefone.replace(/\D/g, '')
   if (!telefone.startsWith('55')) telefone = '55' + telefone
 
-  const mensagem = `✅ *Consulta confirmada no MedDigital!*
+  const mensagem = `✅ *Consulta confirmada no Aduno!*
 
 Olá, ${dados.pacienteNome} 👋
 
@@ -377,17 +377,17 @@ export async function enviarEmailLembretePaciente(dados: DadosAgendamento) {
       <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F4F7FB; margin: 0; padding: 20px; }
         .container { max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .header { background: #1A3A5C; padding: 32px; text-align: center; }
+        .header { background: #19382E; padding: 32px; text-align: center; }
         .header h1 { color: white; margin: 0; font-size: 22px; }
-        .header p { color: #93C5FD; margin: 8px 0 0; font-size: 14px; }
+        .header p { color: #8FA891; margin: 8px 0 0; font-size: 14px; }
         .body { padding: 32px; }
         .greeting { font-size: 16px; color: #374151; margin-bottom: 24px; }
         .card { background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 12px; padding: 20px; margin: 20px 0; }
         .card-row { display: flex; margin-bottom: 12px; }
         .card-label { color: #6B7280; font-size: 13px; width: 90px; }
-        .card-value { color: #1A3A5C; font-size: 13px; font-weight: 600; }
+        .card-value { color: #19382E; font-size: 13px; font-weight: 600; }
         .badge { display: inline-block; background: #F97316; color: white; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
-        .btn { display: inline-block; background: #1A3A5C; color: white; text-decoration: none; border-radius: 10px; padding: 12px 24px; font-size: 14px; font-weight: 600; margin-top: 16px; }
+        .btn { display: inline-block; background: #19382E; color: white; text-decoration: none; border-radius: 10px; padding: 12px 24px; font-size: 14px; font-weight: 600; margin-top: 16px; }
         .footer { background: #F9FAFB; padding: 20px 32px; text-align: center; }
         .footer p { color: #9CA3AF; font-size: 12px; margin: 0; }
       </style>
@@ -395,7 +395,7 @@ export async function enviarEmailLembretePaciente(dados: DadosAgendamento) {
     <body>
       <div class="container">
         <div class="header">
-          <h1>💙 MedDigital</h1>
+          <h1>Aduno</h1>
           <p>Lembrete de consulta</p>
         </div>
         <div class="body">
@@ -426,7 +426,7 @@ export async function enviarEmailLembretePaciente(dados: DadosAgendamento) {
           <a href="${APP_URL}/paciente/agendamentos" class="btn">Acessar minha consulta →</a>
         </div>
         <div class="footer">
-          <p>MedDigital — Telemedicina com Inteligência Artificial</p>
+          <p>Aduno — Saúde Ocupacional Digital</p>
           <p style="margin-top: 4px;">${APP_HOST}</p>
         </div>
       </div>
@@ -436,7 +436,7 @@ export async function enviarEmailLembretePaciente(dados: DadosAgendamento) {
 
   try {
     await transporter.sendMail({
-      from: `MedDigital <${gmailUser}>`,
+      from: `Aduno <${gmailUser}>`,
       to: dados.pacienteEmail,
       subject: `⏰ Lembrete: sua consulta começa em 1 hora — ${hora}`,
       html,
@@ -471,17 +471,17 @@ export async function enviarEmailLembreteMedico(dados: DadosAgendamento & { medi
       <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F4F7FB; margin: 0; padding: 20px; }
         .container { max-width: 560px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .header { background: #1A3A2C; padding: 32px; text-align: center; }
+        .header { background: #19382E; padding: 32px; text-align: center; }
         .header h1 { color: white; margin: 0; font-size: 22px; }
-        .header p { color: #5BBD9B; margin: 8px 0 0; font-size: 14px; }
+        .header p { color: #6E8570; margin: 8px 0 0; font-size: 14px; }
         .body { padding: 32px; }
         .greeting { font-size: 16px; color: #374151; margin-bottom: 24px; }
         .card { background: #F0FDF4; border: 1px solid #86EFAC; border-radius: 12px; padding: 20px; margin: 20px 0; }
         .card-row { display: flex; margin-bottom: 12px; }
         .card-label { color: #6B7280; font-size: 13px; width: 90px; }
-        .card-value { color: #1A3A2C; font-size: 13px; font-weight: 600; }
+        .card-value { color: #19382E; font-size: 13px; font-weight: 600; }
         .badge { display: inline-block; background: #F97316; color: white; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; margin-bottom: 20px; }
-        .btn { display: inline-block; background: #1A3A2C; color: white; text-decoration: none; border-radius: 10px; padding: 12px 24px; font-size: 14px; font-weight: 600; margin-top: 16px; }
+        .btn { display: inline-block; background: #19382E; color: white; text-decoration: none; border-radius: 10px; padding: 12px 24px; font-size: 14px; font-weight: 600; margin-top: 16px; }
         .footer { background: #F9FAFB; padding: 20px 32px; text-align: center; }
         .footer p { color: #9CA3AF; font-size: 12px; margin: 0; }
       </style>
@@ -489,7 +489,7 @@ export async function enviarEmailLembreteMedico(dados: DadosAgendamento & { medi
     <body>
       <div class="container">
         <div class="header">
-          <h1>💙 MedDigital</h1>
+          <h1>Aduno</h1>
           <p>Lembrete de consulta agendada</p>
         </div>
         <div class="body">
@@ -516,7 +516,7 @@ export async function enviarEmailLembreteMedico(dados: DadosAgendamento & { medi
           <a href="${APP_URL}/medico/agendamentos" class="btn">Acessar minha agenda →</a>
         </div>
         <div class="footer">
-          <p>MedDigital — Telemedicina com Inteligência Artificial</p>
+          <p>Aduno — Saúde Ocupacional Digital</p>
           <p style="margin-top: 4px;">${APP_HOST}</p>
         </div>
       </div>
@@ -526,7 +526,7 @@ export async function enviarEmailLembreteMedico(dados: DadosAgendamento & { medi
 
   try {
     await transporter.sendMail({
-      from: `MedDigital <${gmailUser}>`,
+      from: `Aduno <${gmailUser}>`,
       to: dados.medicoEmail,
       subject: `⏰ Lembrete: consulta com ${dados.pacienteNome} em 1 hora — ${hora}`,
       html,
@@ -548,7 +548,7 @@ export async function enviarWhatsAppLembrete(dados: DadosAgendamento) {
   let telefone = dados.pacienteTelefone.replace(/\D/g, '')
   if (!telefone.startsWith('55')) telefone = '55' + telefone
 
-  const mensagem = `⏰ *Lembrete MedDigital — sua consulta começa em 1 hora!*
+  const mensagem = `⏰ *Lembrete Aduno — sua consulta começa em 1 hora!*
 
 Olá, ${dados.pacienteNome} 👋
 

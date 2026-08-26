@@ -216,7 +216,7 @@ export default function FiltraMedicos({ medicos }: Props) {
                               // eslint-disable-next-line @next/next/no-img-element
                               <img src={m.foto_url} alt={m.nome} className="w-full h-full object-cover" />
                             ) : (
-                              <User2 className={`w-4 h-4 ${ativo ? 'text-[#5BBD9B]' : 'text-gray-400'}`} />
+                              <User2 className={`w-4 h-4 ${ativo ? 'text-[#6E8570]' : 'text-gray-400'}`} />
                             )}
                             {/* Indicador de presença no avatar */}
                             <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
@@ -225,7 +225,7 @@ export default function FiltraMedicos({ medicos }: Props) {
                               'bg-purple-500 animate-pulse'
                             }`} />
                           </div>
-                          <Link href={`/admin/medicos/${m.id}`} className="font-medium text-[#5BBD9B] hover:underline">
+                          <Link href={`/admin/medicos/${m.id}`} className="font-medium text-[#6E8570] hover:underline">
                             {m.nome}
                           </Link>
                         </div>

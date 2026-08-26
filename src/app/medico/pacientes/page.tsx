@@ -27,7 +27,7 @@ export default async function MedicoPacientesPage() {
 
   if (!pacientes || pacientes.length === 0) {
     return (
-      <div className="min-h-screen bg-[#F3FAF7] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F3F6F3] flex items-center justify-center">
         <p className="text-gray-400">Nenhum paciente cadastrado.</p>
       </div>
     )
@@ -125,16 +125,16 @@ export default async function MedicoPacientesPage() {
   }))
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
+    <div className="min-h-screen bg-[#F3F6F3]">
       <MedicoHeader titulo="Prontuários" backHref="/medico/dashboard" medicoNome={medico.nome} medicoSexo={medico.sexo} medicoFotoUrl={medico.foto_url} />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-[#1A3A2C] rounded-xl flex items-center justify-center">
+          <div className="w-10 h-10 bg-[#19382E] rounded-xl flex items-center justify-center">
             <Users className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-[#1A3A2C]">Prontuários dos Pacientes</h1>
+            <h1 className="text-xl font-bold text-[#19382E]">Prontuários dos Pacientes</h1>
             <p className="text-sm text-gray-400">
               {pacientesEnriquecidos.length} {pacientesEnriquecidos.length === 1 ? 'paciente cadastrado' : 'pacientes cadastrados'}
             </p>

@@ -279,7 +279,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
   }
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
+    <div className="min-h-screen bg-[#F3F6F3]">
       <AdminHeader titulo="Ficha do Paciente" backHref={backHref} />
 
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-6">
@@ -291,7 +291,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
               <User className="w-8 h-8 text-green-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-bold text-[#1A3A2C]">{paciente.nome}</h1>
+              <h1 className="text-2xl font-bold text-[#19382E]">{paciente.nome}</h1>
               <div className="flex flex-wrap gap-4 mt-2">
                 {paciente.cpf && (
                   <span className="flex items-center gap-1.5 text-sm text-gray-500">
@@ -323,8 +323,8 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
             {/* KPIs + export buttons */}
             <div className="flex flex-col items-end gap-3 shrink-0">
               <div className="flex gap-3">
-                <div className="text-center bg-[#F3FAF7] rounded-xl px-4 py-3">
-                  <p className="text-2xl font-bold text-[#1A3A2C]">{totalAtendimentos}</p>
+                <div className="text-center bg-[#F3F6F3] rounded-xl px-4 py-3">
+                  <p className="text-2xl font-bold text-[#19382E]">{totalAtendimentos}</p>
                   <p className="text-xs text-gray-400">consultas</p>
                 </div>
                 <div className="text-center bg-amber-50 rounded-xl px-4 py-3">
@@ -368,14 +368,14 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
             {/* Histórico de Atendimentos Concluídos */}
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden" id="historico">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
-                <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
-                  <Activity className="w-4 h-4 text-[#5BBD9B]" />
+                <h2 className="font-bold text-[#19382E] flex items-center gap-2 text-sm">
+                  <Activity className="w-4 h-4 text-[#6E8570]" />
                   Consultas Realizadas
                   <span className="text-xs text-gray-400 font-normal">({totalAtendimentos})</span>
                 </h2>
                 {medicoFiltroId && (
-                  <span className="flex items-center gap-1.5 text-xs bg-[#5BBD9B]/10 text-[#1A3A2C] px-3 py-1 rounded-full font-medium shrink-0">
-                    <Stethoscope className="w-3 h-3 text-[#5BBD9B]" />
+                  <span className="flex items-center gap-1.5 text-xs bg-[#6E8570]/10 text-[#19382E] px-3 py-1 rounded-full font-medium shrink-0">
+                    <Stethoscope className="w-3 h-3 text-[#6E8570]" />
                     Apenas consultas com {medicoMap[medicoFiltroId]?.nome ?? 'este médico'}
                   </span>
                 )}
@@ -409,7 +409,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                               {medicoNome ? (
                                 <Link
                                   href={`/admin/medicos/${a.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
-                                  className="text-sm text-[#5BBD9B] hover:underline font-medium"
+                                  className="text-sm text-[#6E8570] hover:underline font-medium"
                                 >
                                   {drTitleP(a.medico_id ? medicoMap[a.medico_id]?.sexo : null)} {medicoNome}
                                 </Link>
@@ -436,7 +436,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                                 )
                               })()}
                             </td>
-                            <td className="px-5 py-3 text-right text-sm font-semibold text-[#1A3A2C]">
+                            <td className="px-5 py-3 text-right text-sm font-semibold text-[#19382E]">
                               {resolveValorConsulta(a.valor_cobrado) > 0 ? formatBRL(resolveValorConsulta(a.valor_cobrado)) : '—'}
                             </td>
                             <td className="px-5 py-3">
@@ -457,7 +457,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                         <td colSpan={3} className="px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                           Total ({totalAtendimentos} {totalAtendimentos === 1 ? 'consulta' : 'consultas'})
                         </td>
-                        <td className="px-5 py-3 text-right text-sm font-bold text-[#1A3A2C]">
+                        <td className="px-5 py-3 text-right text-sm font-bold text-[#19382E]">
                           {formatBRL(totalGastoConsultas)}
                         </td>
                         <td />
@@ -477,7 +477,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
             {atestados.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100">
-                  <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
+                  <h2 className="font-bold text-[#19382E] flex items-center gap-2 text-sm">
                     <FileText className="w-4 h-4 text-amber-500" />
                     Atestados Emitidos
                     <span className="text-xs text-gray-400 font-normal">({atestados.length})</span>
@@ -503,7 +503,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                               {a.medico_id && medicoMap[a.medico_id] ? (
                                 <Link
                                   href={`/admin/medicos/${a.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
-                                  className="text-sm text-[#5BBD9B] hover:underline"
+                                  className="text-sm text-[#6E8570] hover:underline"
                                 >
                                   {drTitleP(medicoMap[a.medico_id]?.sexo)} {medicoMap[a.medico_id]?.nome}
                                 </Link>
@@ -528,7 +528,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
             {receitas.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
-                  <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
+                  <h2 className="font-bold text-[#19382E] flex items-center gap-2 text-sm">
                     <ClipboardList className="w-4 h-4 text-purple-500" />
                     Receitas Emitidas
                     <span className="text-xs text-gray-400 font-normal">({receitas.length})</span>
@@ -563,7 +563,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                               {r.medico_id && medicoMap[r.medico_id] ? (
                                 <Link
                                   href={`/admin/medicos/${r.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
-                                  className="text-sm text-[#5BBD9B] hover:underline"
+                                  className="text-sm text-[#6E8570] hover:underline"
                                 >
                                   {drTitleP(medicoMap[r.medico_id]?.sexo)} {medicoMap[r.medico_id]?.nome}
                                 </Link>
@@ -583,7 +583,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                                 {r.status === 'emitida' ? 'Emitida' : r.status ?? '—'}
                               </span>
                             </td>
-                            <td className="px-5 py-3 text-right text-sm font-semibold text-[#1A3A2C]">
+                            <td className="px-5 py-3 text-right text-sm font-semibold text-[#19382E]">
                               {isRenovacao && valorRenovacao > 0 ? formatBRL(valorRenovacao) : '—'}
                             </td>
                           </tr>
@@ -597,7 +597,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                             Total renovações
                           </td>
                           <td className="px-5 py-3" />
-                          <td className="px-5 py-3 text-right text-sm font-bold text-[#1A3A2C]">
+                          <td className="px-5 py-3 text-right text-sm font-bold text-[#19382E]">
                             {formatBRL(totalGastoRenovacoes)}
                           </td>
                         </tr>
@@ -612,7 +612,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
             {exames.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100">
-                  <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
+                  <h2 className="font-bold text-[#19382E] flex items-center gap-2 text-sm">
                     <FlaskConical className="w-4 h-4 text-blue-500" />
                     Exames Solicitados
                     <span className="text-xs text-gray-400 font-normal">({exames.length})</span>
@@ -645,7 +645,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                               {e.medico_id && medicoMap[e.medico_id] ? (
                                 <Link
                                   href={`/admin/medicos/${e.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
-                                  className="text-sm text-[#5BBD9B] hover:underline"
+                                  className="text-sm text-[#6E8570] hover:underline"
                                 >
                                   {drTitleP(medicoMap[e.medico_id]?.sexo)} {medicoMap[e.medico_id]?.nome}
                                 </Link>
@@ -672,7 +672,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
             {exclusoes.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100">
-                  <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 text-sm">
+                  <h2 className="font-bold text-[#19382E] flex items-center gap-2 text-sm">
                     <ShieldCheck className="w-4 h-4 text-red-500" />
                     Protocolos de Exclusão
                     <span className="text-xs text-gray-400 font-normal">({exclusoes.length})</span>
@@ -720,7 +720,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                               {m ? (
                                 <Link
                                   href={`/admin/medicos/${ex.medico_id}?back=${encodeURIComponent(`/admin/pacientes/${id}?back=${encodeURIComponent(backHref)}`)}`}
-                                  className="text-sm text-[#5BBD9B] hover:underline font-medium"
+                                  className="text-sm text-[#6E8570] hover:underline font-medium"
                                 >
                                   {drTitleP(m.sexo)} {m.nome}
                                 </Link>
@@ -800,7 +800,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
             {/* Vínculo empresarial */}
             {vinculo ? (
               <div className="bg-white rounded-2xl p-5 shadow-sm">
-                <h3 className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2 mb-3">
+                <h3 className="font-semibold text-[#19382E] text-sm flex items-center gap-2 mb-3">
                   <Building2 className="w-4 h-4 text-purple-500" /> Empresa
                 </h3>
                 <Link
@@ -839,7 +839,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
               </div>
             ) : (
               <div className="bg-white rounded-2xl p-5 shadow-sm">
-                <h3 className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2 mb-2">
+                <h3 className="font-semibold text-[#19382E] text-sm flex items-center gap-2 mb-2">
                   <Building2 className="w-4 h-4 text-gray-400" /> Empresa
                 </h3>
                 <p className="text-xs text-gray-400">Paciente particular · sem vínculo empresarial</p>
@@ -848,7 +848,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
 
             {/* Dados cadastrais */}
             <div className="bg-white rounded-2xl p-5 shadow-sm">
-              <h3 className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2 mb-3">
+              <h3 className="font-semibold text-[#19382E] text-sm flex items-center gap-2 mb-3">
                 <User className="w-4 h-4 text-gray-400" /> Dados cadastrais
               </h3>
               {temDadosCadastrais ? (
@@ -894,13 +894,13 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
             {/* Resumo de atividade */}
             {(totalAtendimentos > 0 || totalAtestados > 0 || totalReceitas > 0 || totalExames > 0 || totalExclusoes > 0) && (
               <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
-                <h3 className="font-semibold text-[#1A3A2C] text-xs uppercase tracking-wide mb-3">Resumo de Atividade</h3>
+                <h3 className="font-semibold text-[#19382E] text-xs uppercase tracking-wide mb-3">Resumo de Atividade</h3>
                 <div className="space-y-2 text-xs">
                   <div className="flex justify-between items-center">
                     <span className="flex items-center gap-1.5 text-gray-500">
-                      <Stethoscope className="w-3.5 h-3.5 text-[#5BBD9B]" /> Consultas
+                      <Stethoscope className="w-3.5 h-3.5 text-[#6E8570]" /> Consultas
                     </span>
-                    <span className="font-bold text-[#1A3A2C]">{totalAtendimentos}</span>
+                    <span className="font-bold text-[#19382E]">{totalAtendimentos}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="flex items-center gap-1.5 text-gray-500">
@@ -938,7 +938,7 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                         {totalAtendimentos > 0 && (
                           <div className="flex justify-between">
                             <span className="text-gray-500">Consultas ({totalAtendimentos})</span>
-                            <span className="font-semibold text-[#1A3A2C]">{formatBRL(totalGastoConsultas)}</span>
+                            <span className="font-semibold text-[#19382E]">{formatBRL(totalGastoConsultas)}</span>
                           </div>
                         )}
                         {totalRenovacoes > 0 && (
@@ -949,9 +949,9 @@ export default async function FichaPacientePage({ params, searchParams }: Props)
                         )}
                         <div className="flex justify-between items-center pt-1.5 border-t border-gray-200">
                           <span className="flex items-center gap-1.5 text-gray-500 font-semibold">
-                            <DollarSign className="w-3.5 h-3.5 text-[#5BBD9B]" /> Total gasto
+                            <DollarSign className="w-3.5 h-3.5 text-[#6E8570]" /> Total gasto
                           </span>
-                          <span className="font-bold text-[#1A3A2C]">{formatBRL(totalGasto)}</span>
+                          <span className="font-bold text-[#19382E]">{formatBRL(totalGasto)}</span>
                         </div>
                       </div>
                     </>

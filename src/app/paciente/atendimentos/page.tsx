@@ -98,18 +98,18 @@ export default async function PacienteAtendimentosPage() {
   const totalEncaminhamentos = lista.filter((a: any) => (a.notas_medico ?? '').includes('[Encaminhado por') || (a.agendamento_id && (agendamentoObs[a.agendamento_id] ?? '').includes('[Encaminhado por'))).length
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
+    <div className="min-h-screen bg-[#F3F6F3]">
       <PacienteHeader titulo="Histórico de Consultas" backHref="/paciente/dashboard" />
 
       <main className="max-w-3xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#1A3A2C] rounded-xl">
-              <Stethoscope className="w-5 h-5 text-[#5BBD9B]" />
+            <div className="p-2.5 bg-[#19382E] rounded-xl">
+              <Stethoscope className="w-5 h-5 text-[#6E8570]" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[#1A3A2C]">Histórico de Consultas</h1>
+              <h1 className="text-xl font-bold text-[#19382E]">Histórico de Consultas</h1>
               <p className="text-sm text-gray-400">
                 {lista.length} consulta{lista.length !== 1 ? 's' : ''}
                 {totalConcluidos > 0 && (
@@ -126,11 +126,11 @@ export default async function PacienteAtendimentosPage() {
         {lista.length > 0 && (
           <div className={`grid gap-3 mb-6 ${totalEncaminhamentos > 0 ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <div className="bg-white rounded-xl border border-gray-100 p-3 text-center shadow-sm">
-              <p className="text-2xl font-bold text-[#1A3A2C]">{lista.length}</p>
+              <p className="text-2xl font-bold text-[#19382E]">{lista.length}</p>
               <p className="text-xs text-gray-400 mt-0.5">Total</p>
             </div>
             <div className="bg-white rounded-xl border border-gray-100 p-3 text-center shadow-sm">
-              <p className="text-2xl font-bold text-[#5BBD9B]">{totalVirtuais}</p>
+              <p className="text-2xl font-bold text-[#6E8570]">{totalVirtuais}</p>
               <p className="text-xs text-gray-400 mt-0.5">Virtuais</p>
             </div>
             <div className="bg-white rounded-xl border border-gray-100 p-3 text-center shadow-sm">
@@ -153,7 +153,7 @@ export default async function PacienteAtendimentosPage() {
             <p className="text-gray-400 font-medium">Nenhum atendimento realizado ainda</p>
             <Link
               href="/paciente/triagem"
-              className="mt-3 inline-block text-sm font-semibold text-[#5BBD9B] hover:underline"
+              className="mt-3 inline-block text-sm font-semibold text-[#6E8570] hover:underline"
             >
               Iniciar consulta agora →
             </Link>
@@ -186,11 +186,11 @@ export default async function PacienteAtendimentosPage() {
                   {/* Header row */}
                   <div className={`px-5 py-3 flex items-center justify-between border-b ${isEncaminhamento ? 'bg-orange-50/60 border-orange-100' : 'bg-gray-50/60 border-gray-50'}`}>
                     <div className="flex items-center gap-2 min-w-0">
-                      {tipo === 'virtual'   && <Video    className="w-4 h-4 text-[#5BBD9B] shrink-0" />}
+                      {tipo === 'virtual'   && <Video    className="w-4 h-4 text-[#6E8570] shrink-0" />}
                       {tipo === 'agendada'  && <Calendar className="w-4 h-4 text-purple-500 shrink-0" />}
                       {isEncaminhamento     && <UserPlus className="w-4 h-4 text-orange-500 shrink-0" />}
                       <div className="min-w-0">
-                        <span className="text-sm font-semibold text-[#1A3A2C]">{TIPO_LABEL[tipo]}</span>
+                        <span className="text-sm font-semibold text-[#19382E]">{TIPO_LABEL[tipo]}</span>
                         {encaminhadoPor && (
                           <p className="text-xs text-orange-600 font-medium truncate">
                             Por {encaminhadoPor}
@@ -232,11 +232,11 @@ export default async function PacienteAtendimentosPage() {
                     {/* Doctor */}
                     {medico && (
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-[#1A3A2C]/10 flex items-center justify-center shrink-0 text-xs font-bold text-[#1A3A2C]">
+                        <div className="w-8 h-8 rounded-full bg-[#19382E]/10 flex items-center justify-center shrink-0 text-xs font-bold text-[#19382E]">
                           {medico.nome.charAt(0)}
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-[#1A3A2C]">
+                          <p className="text-sm font-semibold text-[#19382E]">
                             {drTitle(medico.sexo)} {medico.nome}
                           </p>
                           <p className="text-xs text-gray-400">{medico.especialidade} · CRM {medico.crm}/{medico.crm_uf}</p>

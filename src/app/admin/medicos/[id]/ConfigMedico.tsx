@@ -58,7 +58,7 @@ export default function ConfigMedico({ medicoId, custoConsultaAtual, custoReceit
             placeholder="0,00"
             value={value}
             onChange={e => { onChange(e.target.value); setSaved(false) }}
-            className="flex-1 text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40"
+            className="flex-1 text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40"
           />
         </div>
       </div>
@@ -67,7 +67,7 @@ export default function ConfigMedico({ medicoId, custoConsultaAtual, custoReceit
 
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm">
-      <h3 className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2 mb-1">
+      <h3 className="font-semibold text-[#19382E] text-sm flex items-center gap-2 mb-1">
         <Settings2 className="w-4 h-4 text-gray-400" />
         Remuneração do Médico
       </h3>
@@ -84,12 +84,12 @@ export default function ConfigMedico({ medicoId, custoConsultaAtual, custoReceit
         <button
           onClick={handleSalvar}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-1.5 bg-[#1A3A2C] hover:bg-[#122a1f] text-white px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-60 transition-colors"
+          className="w-full flex items-center justify-center gap-1.5 bg-[#19382E] hover:bg-[#122a1f] text-white px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-60 transition-colors"
         >
           {loading ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : saved ? (
-            <><CheckCircle2 className="w-3.5 h-3.5 text-[#5BBD9B]" /> Salvo!</>
+            <><CheckCircle2 className="w-3.5 h-3.5 text-[#6E8570]" /> Salvo!</>
           ) : (
             'Salvar valores'
           )}

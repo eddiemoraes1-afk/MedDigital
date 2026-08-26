@@ -56,8 +56,8 @@ export default function AutorizacaoCidWatcher() {
     <>
       {/* Confirmação discreta após responder */}
       {confirmacao && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[90] flex items-center gap-2 bg-[#1A3A2C] text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-lg">
-          <CheckCircle2 className="w-4 h-4 text-[#5BBD9B]" /> Resposta enviada ao médico ✓
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[90] flex items-center gap-2 bg-[#19382E] text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-lg">
+          <CheckCircle2 className="w-4 h-4 text-[#6E8570]" /> Resposta enviada ao médico ✓
         </div>
       )}
 
@@ -67,17 +67,17 @@ export default function AutorizacaoCidWatcher() {
           <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 text-center shadow-2xl">
             {/* Logo */}
             <div className="flex items-center justify-center gap-2.5 mb-6">
-              <div className="w-10 h-10 bg-[#1A3A2C] rounded-xl flex items-center justify-center">
+              <div className="w-10 h-10 bg-[#19382E] rounded-xl flex items-center justify-center">
                 <Activity className="w-6 h-6 text-white" />
               </div>
               <div className="text-left">
-                <p className="font-bold text-[#1A3A2C] leading-tight">RovarisMed</p>
-                <p className="text-[10px] text-[#5BBD9B] font-medium uppercase tracking-wide">Saúde Digital Corporativa</p>
+                <p className="font-bold text-[#19382E] leading-tight">Aduno</p>
+                <p className="text-[10px] text-[#6E8570] font-medium uppercase tracking-wide">Saúde Digital Corporativa</p>
               </div>
             </div>
 
             <p className="text-sm text-gray-500 mb-2">Seu médico está solicitando sua autorização:</p>
-            <h2 className="text-lg font-bold text-[#1A3A2C] mb-3 leading-snug">
+            <h2 className="text-lg font-bold text-[#19382E] mb-3 leading-snug">
               &ldquo;Você autoriza a inclusão do CID (Classificação Internacional de Doenças) neste atestado?&rdquo;
             </h2>
             <p className="text-xs text-gray-500 mb-6 leading-relaxed">
@@ -89,7 +89,7 @@ export default function AutorizacaoCidWatcher() {
               <button
                 onClick={() => responder('autorizado')}
                 disabled={respondendo}
-                className="w-full flex items-center justify-center gap-2 bg-[#5BBD9B] hover:bg-[#1A3A2C] disabled:opacity-60 text-white font-bold py-4 px-6 rounded-2xl text-base transition-colors"
+                className="w-full flex items-center justify-center gap-2 bg-[#6E8570] hover:bg-[#19382E] disabled:opacity-60 text-white font-bold py-4 px-6 rounded-2xl text-base transition-colors"
               >
                 <Check className="w-5 h-5" /> Autorizo a inclusão do CID
               </button>

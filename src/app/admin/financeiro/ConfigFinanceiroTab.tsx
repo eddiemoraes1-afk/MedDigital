@@ -85,7 +85,7 @@ function CategoriasSection() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Tag className="w-5 h-5" style={{ color: '#5BBD9B' }} />
+          <Tag className="w-5 h-5" style={{ color: '#6E8570' }} />
           <h3 className="font-semibold text-lg" style={{ color: 'var(--txt)' }}>Categorias</h3>
           <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--card)', color: 'var(--txt-muted)', border: '1px solid var(--border)' }}>
             {cats.length} ativas
@@ -93,7 +93,7 @@ function CategoriasSection() {
         </div>
         <button onClick={abrirNovo}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-white"
-          style={{ background: '#1A3A2C' }}>
+          style={{ background: '#19382E' }}>
           <Plus className="w-4 h-4" /> Nova Categoria
         </button>
       </div>
@@ -145,7 +145,7 @@ function CategoriasSection() {
               style={{ borderColor: 'var(--border)', color: 'var(--txt-muted)' }}>Cancelar</button>
             <button onClick={salvar} disabled={salvando}
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-medium text-white disabled:opacity-60"
-              style={{ background: '#1A3A2C' }}>
+              style={{ background: '#19382E' }}>
               {salvando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
               {editId ? 'Salvar' : 'Criar'}
             </button>
@@ -262,12 +262,12 @@ function ContasBancariasSection() {
     <div>
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Building2 className="w-5 h-5" style={{ color: '#5BBD9B' }} />
+          <Building2 className="w-5 h-5" style={{ color: '#6E8570' }} />
           <h3 className="font-semibold text-lg" style={{ color: 'var(--txt)' }}>Contas Bancárias</h3>
         </div>
         <button onClick={() => setShowForm(!showForm)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium text-white"
-          style={{ background: '#1A3A2C' }}>
+          style={{ background: '#19382E' }}>
           <Plus className="w-4 h-4" /> Nova Conta
         </button>
       </div>
@@ -315,7 +315,7 @@ function ContasBancariasSection() {
               style={{ borderColor: 'var(--border)', color: 'var(--txt-muted)' }}>Cancelar</button>
             <button onClick={salvar} disabled={salvando}
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-medium text-white disabled:opacity-60"
-              style={{ background: '#1A3A2C' }}>
+              style={{ background: '#19382E' }}>
               {salvando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
               Cadastrar
             </button>
@@ -369,7 +369,7 @@ function ContasBancariasSection() {
                         style={{ background: 'var(--card)', borderColor: 'var(--border)', color: 'var(--txt)' }} />
                       <button onClick={() => reconciliar(c.id)} disabled={salvRec || !saldoInput}
                         className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-medium text-white disabled:opacity-60"
-                        style={{ background: '#1A3A2C' }}>
+                        style={{ background: '#19382E' }}>
                         {salvRec ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
                         Confirmar
                       </button>

@@ -71,7 +71,7 @@ export default async function AgendamentosPage() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <p className="font-semibold text-[#1A3A2C] text-sm">{drTitle(medico?.sexo)} {medico?.nome || 'Médico'}</p>
+                <p className="font-semibold text-[#19382E] text-sm">{drTitle(medico?.sexo)} {medico?.nome || 'Médico'}</p>
                 {a.reagendado_de && (
                   <span className="text-xs bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full">
                     Reagendado
@@ -115,7 +115,7 @@ export default async function AgendamentosPage() {
       <main className="max-w-3xl mx-auto px-6 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-[#1A3A2C] flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-[#19382E] flex items-center gap-2">
               <Calendar className="w-6 h-6" style={{ color: 'var(--cor-empresa)' }} /> Meus Agendamentos
             </h1>
             <p className="text-gray-500 mt-1">Consultas agendadas</p>
@@ -131,7 +131,7 @@ export default async function AgendamentosPage() {
 
         {/* Próximas consultas */}
         <div className="mb-8">
-          <h2 className="font-semibold text-[#1A3A2C] mb-3">Próximas consultas</h2>
+          <h2 className="font-semibold text-[#19382E] mb-3">Próximas consultas</h2>
           {proximos.length === 0 ? (
             <div className="bg-white rounded-2xl p-10 shadow-sm text-center">
               <Calendar className="w-12 h-12 text-gray-200 mx-auto mb-3" />
@@ -152,7 +152,7 @@ export default async function AgendamentosPage() {
         {/* Histórico */}
         {passados.length > 0 && (
           <div>
-            <h2 className="font-semibold text-[#1A3A2C] mb-3">Histórico</h2>
+            <h2 className="font-semibold text-[#19382E] mb-3">Histórico</h2>
             <div className="space-y-3 opacity-70">
               {passados.map((a: any) => <CartaoAgendamento key={a.id} a={a} futuro={false} />)}
             </div>

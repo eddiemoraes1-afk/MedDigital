@@ -113,7 +113,7 @@ export default function ExamesMedicoClient({
           return (
             <div
               key={ex.id}
-              className={`bg-white rounded-2xl p-4 shadow-sm border-2 ${ehMeu ? 'border-[#5BBD9B]' : 'border-gray-100'}`}
+              className={`bg-white rounded-2xl p-4 shadow-sm border-2 ${ehMeu ? 'border-[#6E8570]' : 'border-gray-100'}`}
             >
               <div className="flex items-start gap-3">
                 <div className="flex-1 min-w-0">
@@ -126,7 +126,7 @@ export default function ExamesMedicoClient({
                       </span>
                     )}
                     {ehMeu && (
-                      <span className="text-xs bg-[#1A3A2C] text-white px-2 py-0.5 rounded-full font-medium">
+                      <span className="text-xs bg-[#19382E] text-white px-2 py-0.5 rounded-full font-medium">
                         Solicitado por você
                       </span>
                     )}
@@ -173,7 +173,7 @@ export default function ExamesMedicoClient({
                     <>
                       <button
                         onClick={() => imprimirExames(params)}
-                        className="flex items-center gap-1 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-green-50 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                        className="flex items-center gap-1 border border-[#19382E] text-[#19382E] hover:bg-green-50 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
                       >
                         <Printer className="w-3 h-3" /> Imprimir
                       </button>

@@ -60,10 +60,10 @@ export function exportarPDF(
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:Arial,sans-serif;font-size:10px;color:#111;padding:16px 20px}
-    h1{font-size:14px;color:#1A3A2C;margin-bottom:2px}
+    h1{font-size:14px;color:#19382E;margin-bottom:2px}
     .sub{font-size:9px;color:#777;margin-bottom:12px}
     table{width:100%;border-collapse:collapse;margin-top:4px}
-    th{background:#1A3A2C;color:#fff;padding:5px 7px;text-align:left;font-size:9px;white-space:nowrap}
+    th{background:#19382E;color:#fff;padding:5px 7px;text-align:left;font-size:9px;white-space:nowrap}
     td{padding:4px 7px;border-bottom:1px solid #e5e7eb;font-size:9.5px;vertical-align:middle}
     tr:nth-child(even) td{background:#f9fafb}
     .rodape{margin-top:10px;font-size:8px;color:#aaa;text-align:right}

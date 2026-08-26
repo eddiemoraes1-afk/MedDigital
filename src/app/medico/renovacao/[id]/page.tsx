@@ -78,23 +78,23 @@ export default async function RenovacaoAtenderPage({
   }
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
+    <div className="min-h-screen bg-[#F3F6F3]">
       <MedicoHeader titulo="Renovação de Receita" backHref="/medico/dashboard" medicoNome={medico.nome} medicoSexo={medico.sexo} medicoFotoUrl={medico.foto_url} />
 
       <main className="max-w-2xl mx-auto px-6 py-8 space-y-5">
 
         <div>
-          <h1 className="text-xl font-bold text-[#1A3A2C]">Solicitação de Renovação</h1>
+          <h1 className="text-xl font-bold text-[#19382E]">Solicitação de Renovação</h1>
           <p className="text-sm text-gray-500 mt-1">Recebida em {fmtData(solicitacao.criado_em)}</p>
         </div>
 
         {/* Info do paciente */}
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-[#1A3A2C]/10 rounded-xl flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-5 h-5 text-[#1A3A2C]" />
+            <div className="w-10 h-10 bg-[#19382E]/10 rounded-xl flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-5 h-5 text-[#19382E]" />
             </div>
-            <h2 className="font-bold text-[#1A3A2C]">Dados do Paciente</h2>
+            <h2 className="font-bold text-[#19382E]">Dados do Paciente</h2>
           </div>
           <div className="space-y-1.5">
             <p className="text-sm"><span className="text-gray-400">Nome: </span><strong>{paciente?.nome ?? '—'}</strong></p>
@@ -115,7 +115,7 @@ export default async function RenovacaoAtenderPage({
               <ClipboardList className="w-5 h-5 text-purple-500" />
             </div>
             <div>
-              <h2 className="font-bold text-[#1A3A2C]">Receita Solicitada</h2>
+              <h2 className="font-bold text-[#19382E]">Receita Solicitada</h2>
               <span className="text-xs bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-bold">
                 {LABEL_TIPO[solicitacao.tipo_receita] ?? solicitacao.tipo_receita}
               </span>
@@ -125,7 +125,7 @@ export default async function RenovacaoAtenderPage({
           <div className="bg-gray-50 rounded-xl px-4 py-3 mb-3">
             {solicitacao.medicamentos.split('\n').filter(Boolean).map((m: string, i: number) => (
               <p key={i} className="text-sm text-gray-700 font-mono leading-relaxed">
-                <span className="text-[#5BBD9B] font-bold mr-1.5">℞</span>{m}
+                <span className="text-[#6E8570] font-bold mr-1.5">℞</span>{m}
               </p>
             ))}
           </div>

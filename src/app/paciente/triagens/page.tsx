@@ -52,18 +52,18 @@ export default async function PacienteTriagensPage() {
     vermelho: lista.filter(t => t.classificacao_risco === 'vermelho').length }
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
+    <div className="min-h-screen bg-[#F3F6F3]">
       <PacienteHeader titulo="Histórico de Triagens" backHref="/paciente/dashboard" />
 
       <main className="max-w-3xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#1A3A2C] rounded-xl">
-              <Clock className="w-5 h-5 text-[#5BBD9B]" />
+            <div className="p-2.5 bg-[#19382E] rounded-xl">
+              <Clock className="w-5 h-5 text-[#6E8570]" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[#1A3A2C]">Minhas Triagens</h1>
+              <h1 className="text-xl font-bold text-[#19382E]">Minhas Triagens</h1>
               <p className="text-sm text-gray-400">
                 {lista.length} triagem{lista.length !== 1 ? 's' : ''} realizad{lista.length !== 1 ? 'as' : 'a'}
               </p>
@@ -94,7 +94,7 @@ export default async function PacienteTriagensPage() {
             <p className="text-gray-400 font-medium">Nenhuma triagem realizada ainda</p>
             <Link
               href="/paciente/triagem"
-              className="mt-3 inline-block text-sm font-semibold text-[#5BBD9B] hover:underline"
+              className="mt-3 inline-block text-sm font-semibold text-[#6E8570] hover:underline"
             >
               Fazer triagem agora →
             </Link>

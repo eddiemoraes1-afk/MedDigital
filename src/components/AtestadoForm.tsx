@@ -144,29 +144,29 @@ function gerarPDF(params: {
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'Inter',Arial,sans-serif;font-size:11pt;color:#222;background:#fff;padding:0}
   .page{width:210mm;min-height:297mm;padding:20mm 20mm 18mm;margin:0 auto;display:flex;flex-direction:column}
-  .header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #1A3A2C;padding-bottom:14px;margin-bottom:24px}
+  .header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #19382E;padding-bottom:14px;margin-bottom:24px}
   .header-left{display:flex;align-items:center;gap:12px}
-  .logo-box{width:48px;height:48px;background:#1A3A2C;border-radius:10px;display:flex;align-items:center;justify-content:center}
+  .logo-box{width:48px;height:48px;background:#19382E;border-radius:10px;display:flex;align-items:center;justify-content:center}
   .logo-box svg{width:28px;height:28px}
-  .clinic-name{font-size:15pt;font-weight:700;color:#1A3A2C;line-height:1.2}
-  .clinic-sub{font-size:8pt;color:#5BBD9B;font-weight:500;letter-spacing:.5px;text-transform:uppercase}
+  .clinic-name{font-size:15pt;font-weight:700;color:#19382E;line-height:1.2}
+  .clinic-sub{font-size:8pt;color:#6E8570;font-weight:500;letter-spacing:.5px;text-transform:uppercase}
   .doc-number{font-size:8pt;color:#999;text-align:right}
   .title-block{text-align:center;margin-bottom:28px}
-  .title{font-size:16pt;font-weight:700;color:#1A3A2C;letter-spacing:2px;text-transform:uppercase}
-  .title-line{width:60px;height:3px;background:#5BBD9B;margin:8px auto 0}
+  .title{font-size:16pt;font-weight:700;color:#19382E;letter-spacing:2px;text-transform:uppercase}
+  .title-line{width:60px;height:3px;background:#6E8570;margin:8px auto 0}
   .body-text{font-size:11pt;line-height:1.9;text-align:justify;color:#333;margin-bottom:20px}
-  .highlight{font-weight:600;color:#1A3A2C}
-  .cid-box{display:inline-block;background:#F0F9F5;border:1px solid #5BBD9B;border-radius:6px;padding:4px 12px;font-size:9pt;color:#1A3A2C;font-weight:600;margin-bottom:8px}
+  .highlight{font-weight:600;color:#19382E}
+  .cid-box{display:inline-block;background:#F0F9F5;border:1px solid #6E8570;border-radius:6px;padding:4px 12px;font-size:9pt;color:#19382E;font-weight:600;margin-bottom:8px}
   .lgpd-line{font-size:7.5pt;color:#888;border-top:1px dashed #ddd;padding-top:7px;margin-top:0;margin-bottom:16px;line-height:1.5}
-  .obs-box{background:#F8F8F8;border-left:3px solid #5BBD9B;padding:10px 14px;font-size:9.5pt;color:#555;border-radius:0 6px 6px 0;margin-bottom:20px;line-height:1.6}
+  .obs-box{background:#F8F8F8;border-left:3px solid #6E8570;padding:10px 14px;font-size:9.5pt;color:#555;border-radius:0 6px 6px 0;margin-bottom:20px;line-height:1.6}
   .spacer{flex:1}
   .footer{border-top:1px solid #E5E7EB;padding-top:24px;display:flex;justify-content:space-between;align-items:flex-end}
   .city-date{font-size:9.5pt;color:#666}
   .signature-block{text-align:center}
   .sig-line{width:200px;border-top:1px solid #333;margin:0 auto 6px}
-  .sig-name{font-size:10pt;font-weight:600;color:#1A3A2C}
+  .sig-name{font-size:10pt;font-weight:600;color:#19382E}
   .sig-crm{font-size:8.5pt;color:#666}
-  .sig-spec{font-size:8.5pt;color:#5BBD9B;font-weight:500}
+  .sig-spec{font-size:8.5pt;color:#6E8570;font-weight:500}
   @media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.page{margin:0;padding:16mm 18mm 14mm}}
 </style>
 </head>
@@ -180,7 +180,7 @@ function gerarPDF(params: {
         </svg>
       </div>
       <div>
-        <div class="clinic-name">RovarisMed</div>
+        <div class="clinic-name">Aduno</div>
         <div class="clinic-sub">Saúde Digital Corporativa</div>
       </div>
     </div>
@@ -386,7 +386,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
     })
   }
 
-  const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]'
+  const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570]'
 
   if (salvo) {
     return (
@@ -403,7 +403,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={baixarPDF}
-            className="flex items-center gap-1.5 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
+            className="flex items-center gap-1.5 bg-[#19382E] hover:bg-[#6E8570] text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
           >
             <Download className="w-3.5 h-3.5" /> Baixar PDF
           </button>
@@ -425,8 +425,8 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
     <div className="space-y-4">
       {onFechar && (
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-sm text-[#1A3A2C] flex items-center gap-1.5">
-            <FileText className="w-4 h-4 text-[#5BBD9B]" /> Emitir Atestado
+          <h3 className="font-semibold text-sm text-[#19382E] flex items-center gap-1.5">
+            <FileText className="w-4 h-4 text-[#6E8570]" /> Emitir Atestado
           </h3>
           <button onClick={onFechar} className="text-gray-400 hover:text-gray-600">
             <X className="w-4 h-4" />
@@ -437,7 +437,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
       {/* Seletor de tipo */}
       <div className="grid grid-cols-3 gap-2">
         {([
-          { t: 'afastamento',    icon: <BriefcaseMedical className="w-4 h-4" />, label: 'Afastamento',    ativo: 'bg-[#1A3A2C] border-[#1A3A2C] text-white', inativo: 'border-gray-200 text-gray-500 hover:border-[#1A3A2C] hover:text-[#1A3A2C]' },
+          { t: 'afastamento',    icon: <BriefcaseMedical className="w-4 h-4" />, label: 'Afastamento',    ativo: 'bg-[#19382E] border-[#19382E] text-white', inativo: 'border-gray-200 text-gray-500 hover:border-[#19382E] hover:text-[#19382E]' },
           { t: 'comparecimento', icon: <CalendarCheck className="w-4 h-4" />,    label: 'Comparecimento', ativo: 'bg-blue-600 border-blue-600 text-white',   inativo: 'border-gray-200 text-gray-500 hover:border-blue-600 hover:text-blue-600' },
           { t: 'acompanhamento', icon: <Users className="w-4 h-4" />,            label: 'Acompanhamento', ativo: 'bg-orange-500 border-orange-500 text-white', inativo: 'border-gray-200 text-gray-500 hover:border-orange-500 hover:text-orange-500' },
         ] as { t: TipoAtestado; icon: React.ReactNode; label: string; ativo: string; inativo: string }[]).map(({ t, icon, label, ativo, inativo }) => (
@@ -454,7 +454,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
 
       {/* Paciente */}
       <div className="bg-[#F0F9F5] rounded-xl px-3 py-2.5">
-        <p className="text-xs font-semibold text-[#1A3A2C]">{paciente.nome}</p>
+        <p className="text-xs font-semibold text-[#19382E]">{paciente.nome}</p>
         {paciente.cpf && <p className="text-xs text-gray-500">CPF: {paciente.cpf}</p>}
       </div>
 
@@ -511,7 +511,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
                 <button
                   type="button"
                   onClick={solicitarAutorizacao}
-                  className="w-full bg-[#5BBD9B] hover:bg-[#1A3A2C] text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors"
+                  className="w-full bg-[#6E8570] hover:bg-[#19382E] text-white px-3 py-2 rounded-lg text-xs font-semibold transition-colors"
                 >
                   📱 Enviar pergunta ao paciente
                 </button>
@@ -656,7 +656,7 @@ export default function AtestadoForm({ atendimentoId, pacienteId, paciente, medi
             ${!valido || salvando
               ? 'bg-gray-300 cursor-not-allowed'
               : tipo === 'afastamento'
-                ? 'bg-[#1A3A2C] hover:bg-[#5BBD9B]'
+                ? 'bg-[#19382E] hover:bg-[#6E8570]'
                 : tipo === 'comparecimento'
                   ? 'bg-blue-600 hover:bg-blue-700'
                   : 'bg-orange-500 hover:bg-orange-600'

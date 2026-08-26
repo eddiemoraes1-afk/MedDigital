@@ -117,7 +117,7 @@ export default function AuditoriaClient() {
     URL.revokeObjectURL(url)
   }
 
-  const inputCls = 'border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-700 bg-white focus:ring-1 focus:ring-[#5BBD9B] focus:outline-none'
+  const inputCls = 'border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-700 bg-white focus:ring-1 focus:ring-[#6E8570] focus:outline-none'
 
   return (
     <div className="space-y-5">
@@ -135,7 +135,7 @@ export default function AuditoriaClient() {
           <button
             key={c.tipo}
             onClick={() => setTipoFiltro(t => t === c.tipo ? '' : c.tipo)}
-            className={`rounded-xl border p-3 text-left transition-all ${c.cor} ${tipoFiltro === c.tipo ? 'ring-2 ring-offset-1 ring-[#5BBD9B]' : 'hover:shadow-sm'}`}
+            className={`rounded-xl border p-3 text-left transition-all ${c.cor} ${tipoFiltro === c.tipo ? 'ring-2 ring-offset-1 ring-[#6E8570]' : 'hover:shadow-sm'}`}
           >
             <p className="text-xl font-bold">{contagem[c.tipo] ?? 0}</p>
             <p className="text-[11px] font-medium leading-tight mt-0.5">{c.label}</p>
@@ -183,10 +183,10 @@ export default function AuditoriaClient() {
               )}
             </div>
           </div>
-          <button onClick={carregar} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#1A3A2C] border border-gray-200 px-3 py-1.5 rounded-lg bg-white transition-colors self-end">
+          <button onClick={carregar} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#19382E] border border-gray-200 px-3 py-1.5 rounded-lg bg-white transition-colors self-end">
             <RefreshCw className="w-3.5 h-3.5" /> Atualizar
           </button>
-          <button onClick={exportarExcel} className="flex items-center gap-1.5 text-xs text-[#1A3A2C] border border-[#5BBD9B] px-3 py-1.5 rounded-lg bg-white hover:bg-[#F0F9F5] transition-colors self-end">
+          <button onClick={exportarExcel} className="flex items-center gap-1.5 text-xs text-[#19382E] border border-[#6E8570] px-3 py-1.5 rounded-lg bg-white hover:bg-[#F0F9F5] transition-colors self-end">
             <Download className="w-3.5 h-3.5" /> Exportar Excel
           </button>
         </div>
@@ -233,7 +233,7 @@ export default function AuditoriaClient() {
                       <td className={`px-4 py-3 text-xs whitespace-nowrap ${STATUS_COR[r.status] ?? 'text-gray-600'}`}>
                         {r.status_label}
                       </td>
-                      <td className="px-4 py-3 text-xs font-medium text-[#1A3A2C] whitespace-nowrap">{r.paciente_nome}</td>
+                      <td className="px-4 py-3 text-xs font-medium text-[#19382E] whitespace-nowrap">{r.paciente_nome}</td>
                       <td className="px-4 py-3 text-xs text-gray-500 font-mono whitespace-nowrap">{r.paciente_cpf}</td>
                       <td className="px-4 py-3 text-xs text-gray-400 font-mono whitespace-nowrap" title="Endereço IP registrado no momento do consentimento">
                         {r.ip_address ?? '—'}
@@ -246,7 +246,7 @@ export default function AuditoriaClient() {
                         {r.texto_termo && (
                           <button
                             onClick={() => setExpandido(expandido === r.id ? null : r.id)}
-                            className="text-gray-400 hover:text-[#1A3A2C] transition-colors"
+                            className="text-gray-400 hover:text-[#19382E] transition-colors"
                             title="Ver texto do termo"
                           >
                             {expandido === r.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}

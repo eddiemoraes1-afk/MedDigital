@@ -97,7 +97,7 @@ export default async function AgendamentoDetalhePage({
     : null
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
+    <div className="min-h-screen bg-[#F3F6F3]">
       <MedicoHeader titulo="Detalhe do Agendamento" backHref="/medico/agendamentos" />
 
       <main className="max-w-4xl mx-auto px-6 py-8">
@@ -107,10 +107,10 @@ export default async function AgendamentoDetalhePage({
           <div className="flex items-start justify-between">
             <div className="flex gap-4">
               <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center shrink-0">
-                <User className="w-7 h-7 text-[#5BBD9B]" />
+                <User className="w-7 h-7 text-[#6E8570]" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-[#1A3A2C]">{paciente?.nome || 'Paciente'}</h1>
+                <h1 className="text-xl font-bold text-[#19382E]">{paciente?.nome || 'Paciente'}</h1>
                 <div className="flex flex-wrap gap-3 mt-1">
                   {idadeAnos !== null && (
                     <span className="text-sm text-gray-500">{idadeAnos} anos</span>
@@ -127,12 +127,12 @@ export default async function AgendamentoDetalhePage({
                   )}
                 </div>
                 <div className="flex items-center gap-4 mt-3">
-                  <span className="flex items-center gap-1.5 text-sm font-medium text-[#1A3A2C]">
-                    <Calendar className="w-4 h-4 text-[#5BBD9B]" />
+                  <span className="flex items-center gap-1.5 text-sm font-medium text-[#19382E]">
+                    <Calendar className="w-4 h-4 text-[#6E8570]" />
                     {dataHora.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'America/Sao_Paulo' })}
                   </span>
-                  <span className="flex items-center gap-1.5 text-sm font-medium text-[#1A3A2C]">
-                    <Clock className="w-4 h-4 text-[#5BBD9B]" />
+                  <span className="flex items-center gap-1.5 text-sm font-medium text-[#19382E]">
+                    <Clock className="w-4 h-4 text-[#6E8570]" />
                     {dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })}
                   </span>
                 </div>
@@ -173,8 +173,8 @@ export default async function AgendamentoDetalhePage({
         <div className="grid md:grid-cols-2 gap-6">
           {/* Triagens */}
           <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 mb-4">
-              <Brain className="w-4 h-4 text-[#5BBD9B]" /> Histórico de triagens
+            <h2 className="font-bold text-[#19382E] flex items-center gap-2 mb-4">
+              <Brain className="w-4 h-4 text-[#6E8570]" /> Histórico de triagens
             </h2>
             {triagens && triagens.length > 0 ? (
               <div className="space-y-3">
@@ -207,8 +207,8 @@ export default async function AgendamentoDetalhePage({
 
           {/* Atendimentos anteriores */}
           <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 mb-4">
-              <Video className="w-4 h-4 text-[#5BBD9B]" /> Consultas anteriores
+            <h2 className="font-bold text-[#19382E] flex items-center gap-2 mb-4">
+              <Video className="w-4 h-4 text-[#6E8570]" /> Consultas anteriores
             </h2>
             {atendimentos && atendimentos.length > 0 ? (
               <div className="space-y-3">

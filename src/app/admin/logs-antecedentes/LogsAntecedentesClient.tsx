@@ -111,7 +111,7 @@ export default function LogsAntecedentesClient({ logsIniciais }: { logsIniciais:
     URL.revokeObjectURL(url)
   }
 
-  const inputCls = 'border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-700 bg-white focus:ring-1 focus:ring-[#5BBD9B] focus:outline-none'
+  const inputCls = 'border border-gray-200 rounded-lg px-3 py-1.5 text-xs text-gray-700 bg-white focus:ring-1 focus:ring-[#6E8570] focus:outline-none'
 
   return (
     <div className="space-y-5">
@@ -122,7 +122,7 @@ export default function LogsAntecedentesClient({ logsIniciais }: { logsIniciais:
             <ClipboardEdit className="w-5 h-5 text-blue-600" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-[#1A3A2C]">{logs.length}</p>
+            <p className="text-2xl font-bold text-[#19382E]">{logs.length}</p>
             <p className="text-xs text-gray-400">edições no período</p>
           </div>
         </div>
@@ -155,10 +155,10 @@ export default function LogsAntecedentesClient({ logsIniciais }: { logsIniciais:
               {filtroMedico && <button onClick={() => setFiltroMedico('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500"><X className="w-3 h-3" /></button>}
             </div>
           </div>
-          <button onClick={carregar} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#1A3A2C] border border-gray-200 px-3 py-1.5 rounded-lg bg-white transition-colors self-end">
+          <button onClick={carregar} className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-[#19382E] border border-gray-200 px-3 py-1.5 rounded-lg bg-white transition-colors self-end">
             <RefreshCw className="w-3.5 h-3.5" /> Atualizar
           </button>
-          <button onClick={exportarExcel} className="flex items-center gap-1.5 text-xs text-[#1A3A2C] border border-[#5BBD9B] px-3 py-1.5 rounded-lg bg-white hover:bg-[#F0F9F5] transition-colors self-end">
+          <button onClick={exportarExcel} className="flex items-center gap-1.5 text-xs text-[#19382E] border border-[#6E8570] px-3 py-1.5 rounded-lg bg-white hover:bg-[#F0F9F5] transition-colors self-end">
             <Download className="w-3.5 h-3.5" /> Exportar Excel
           </button>
         </div>
@@ -199,7 +199,7 @@ export default function LogsAntecedentesClient({ logsIniciais }: { logsIniciais:
                         {fmtDH(log.criado_em)}
                       </td>
                       <td className="px-4 py-3">
-                        <p className="text-xs font-medium text-[#1A3A2C] whitespace-nowrap">{log.pacientes?.nome ?? '—'}</p>
+                        <p className="text-xs font-medium text-[#19382E] whitespace-nowrap">{log.pacientes?.nome ?? '—'}</p>
                         {log.pacientes?.cpf && <p className="text-[10px] text-gray-400 font-mono">{log.pacientes.cpf}</p>}
                       </td>
                       <td className="px-4 py-3 text-xs font-medium text-gray-700 whitespace-nowrap">
@@ -219,7 +219,7 @@ export default function LogsAntecedentesClient({ logsIniciais }: { logsIniciais:
                       <td className="px-4 py-3 text-center">
                         <button
                           onClick={() => setExpandido(expandido === log.id ? null : log.id)}
-                          className="text-gray-400 hover:text-[#1A3A2C] transition-colors"
+                          className="text-gray-400 hover:text-[#19382E] transition-colors"
                         >
                           {expandido === log.id
                             ? <ChevronUp className="w-4 h-4" />

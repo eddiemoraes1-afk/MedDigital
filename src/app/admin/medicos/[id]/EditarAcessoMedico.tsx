@@ -66,7 +66,7 @@ export default function EditarAcessoMedico({ medicoId, emailAtual }: Props) {
         onClick={() => setAberto(v => !v)}
         className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors"
       >
-        <span className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2">
+        <span className="font-semibold text-[#19382E] text-sm flex items-center gap-2">
           <KeyRound className="w-4 h-4 text-gray-400" /> Acesso (e-mail e senha)
         </span>
         <span className="text-gray-400 text-xs">{aberto ? '▲' : '▼'}</span>
@@ -85,16 +85,16 @@ export default function EditarAcessoMedico({ medicoId, emailAtual }: Props) {
               value={email}
               onChange={e => { setEmail(e.target.value); setSavedEmail(false) }}
               placeholder="email@exemplo.com"
-              className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40"
+              className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40"
             />
             {erroEmail && <p className="text-xs text-red-500">{erroEmail}</p>}
             <button
               onClick={handleSalvarEmail}
               disabled={savingEmail}
-              className="w-full flex items-center justify-center gap-1.5 bg-[#1A3A2C] hover:bg-[#122a1f] text-white px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-60 transition-colors"
+              className="w-full flex items-center justify-center gap-1.5 bg-[#19382E] hover:bg-[#122a1f] text-white px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-60 transition-colors"
             >
               {savingEmail ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                : savedEmail ? <><CheckCircle2 className="w-3.5 h-3.5 text-[#5BBD9B]" /> Salvo!</>
+                : savedEmail ? <><CheckCircle2 className="w-3.5 h-3.5 text-[#6E8570]" /> Salvo!</>
                 : 'Atualizar e-mail'}
             </button>
           </div>
@@ -112,7 +112,7 @@ export default function EditarAcessoMedico({ medicoId, emailAtual }: Props) {
                 value={senha}
                 onChange={e => { setSenha(e.target.value); setSavedSenha(false) }}
                 placeholder="Mínimo 6 caracteres"
-                className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 pr-9 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40"
+                className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 pr-9 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40"
               />
               <button
                 type="button"
@@ -126,10 +126,10 @@ export default function EditarAcessoMedico({ medicoId, emailAtual }: Props) {
             <button
               onClick={handleSalvarSenha}
               disabled={savingSenha}
-              className="w-full flex items-center justify-center gap-1.5 bg-[#1A3A2C] hover:bg-[#122a1f] text-white px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-60 transition-colors"
+              className="w-full flex items-center justify-center gap-1.5 bg-[#19382E] hover:bg-[#122a1f] text-white px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-60 transition-colors"
             >
               {savingSenha ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                : savedSenha ? <><CheckCircle2 className="w-3.5 h-3.5 text-[#5BBD9B]" /> Senha atualizada!</>
+                : savedSenha ? <><CheckCircle2 className="w-3.5 h-3.5 text-[#6E8570]" /> Senha atualizada!</>
                 : 'Atualizar senha'}
             </button>
             <p className="text-xs text-gray-400">A nova senha entrará em vigor no próximo login.</p>

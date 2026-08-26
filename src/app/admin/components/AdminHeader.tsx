@@ -13,7 +13,7 @@ interface Props {
 
 export default function AdminHeader({ ativo, titulo, backHref }: Props) {
   const linkBase = 'flex items-center gap-1.5 transition-colors px-2.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap'
-  const linkAtivo  = 'text-[#5BBD9B] bg-white/10'
+  const linkAtivo  = 'text-[#6E8570] bg-white/10'
   const linkInativo = 'text-white/70 hover:text-white hover:bg-white/10'
 
   return (
@@ -35,7 +35,7 @@ export default function AdminHeader({ ativo, titulo, backHref }: Props) {
         ) : null}
 
         <Link href="/admin" className="shrink-0 group">
-          <img src="/logo-branca.svg" alt="RovarisMed" className="h-7 group-hover:opacity-90 transition-opacity" />
+          <img src="/aduno-logo-branca.png" alt="Aduno" className="h-7 group-hover:opacity-90 transition-opacity" />
         </Link>
 
         <div className="w-px h-5 bg-white/15 shrink-0" />
@@ -102,7 +102,7 @@ export default function AdminHeader({ ativo, titulo, backHref }: Props) {
             {/* Ações — ficam sempre à direita, sem encostar no nav */}
             <div className="flex items-center gap-1.5 shrink-0 pl-1 border-l border-white/10">
               <span className="hidden md:flex items-center gap-1 text-xs text-white/50 px-1">
-                <Shield className="w-3 h-3 text-[#5BBD9B]" /> Admin
+                <Shield className="w-3 h-3 text-[#6E8570]" /> Admin
               </span>
               <ThemeToggle />
               <form action="/api/auth/signout" method="POST">

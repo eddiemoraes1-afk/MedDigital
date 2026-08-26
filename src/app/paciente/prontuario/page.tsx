@@ -94,7 +94,7 @@ export default async function ProntuarioPage() {
       <main className="max-w-4xl mx-auto px-6 py-8">
         {/* Título */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-[#1A3A2C] flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[#19382E] flex items-center gap-2">
             <FileText className="w-6 h-6" />
             Prontuário Médico
           </h1>
@@ -103,7 +103,7 @@ export default async function ProntuarioPage() {
 
         {/* Card do Paciente */}
         <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-          <h2 className="font-bold text-[#1A3A2C] mb-4 flex items-center gap-2">
+          <h2 className="font-bold text-[#19382E] mb-4 flex items-center gap-2">
             <User className="w-4 h-4" />
             Dados do Paciente
           </h2>
@@ -143,8 +143,8 @@ export default async function ProntuarioPage() {
         {/* Resumo estatístico */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {[
-            { label: 'Triagens realizadas', valor: totalTriagens, cor: '#5BBD9B', icone: Brain },
-            { label: 'Consultas totais', valor: totalAtendimentos, cor: '#1A7340', icone: Stethoscope },
+            { label: 'Triagens realizadas', valor: totalTriagens, cor: '#6E8570', icone: Brain },
+            { label: 'Consultas totais', valor: totalAtendimentos, cor: '#3E6B52', icone: Stethoscope },
             { label: 'Consultas concluídas', valor: atendimentosConcluidos, cor: '#7B3FA0', icone: CheckCircle2 },
             { label: 'Última consulta', valor: ultimaConsulta || '—', cor: '#C0392B', icone: Calendar },
           ].map((item) => (
@@ -153,7 +153,7 @@ export default async function ProntuarioPage() {
                 style={{ backgroundColor: item.cor + '15' }}>
                 <item.icone className="w-4 h-4" style={{ color: item.cor }} />
               </div>
-              <p className="text-xl font-bold text-[#1A3A2C]">{item.valor}</p>
+              <p className="text-xl font-bold text-[#19382E]">{item.valor}</p>
               <p className="text-xs text-gray-400 mt-0.5">{item.label}</p>
             </div>
           ))}
@@ -161,7 +161,7 @@ export default async function ProntuarioPage() {
 
         {/* Linha do tempo */}
         <div className="bg-white rounded-2xl p-6 shadow-sm">
-          <h2 className="font-bold text-[#1A3A2C] mb-6 flex items-center gap-2">
+          <h2 className="font-bold text-[#19382E] mb-6 flex items-center gap-2">
             <Clock className="w-4 h-4" />
             Histórico completo
           </h2>
@@ -171,7 +171,7 @@ export default async function ProntuarioPage() {
               <FileText className="w-12 h-12 text-gray-200 mx-auto mb-3" />
               <p className="text-gray-400">Nenhum registro encontrado</p>
               <Link href="/paciente/triagem"
-                className="mt-3 inline-block text-sm text-[#5BBD9B] font-medium hover:underline">
+                className="mt-3 inline-block text-sm text-[#6E8570] font-medium hover:underline">
                 Fazer primeira triagem →
               </Link>
             </div>
@@ -204,7 +204,7 @@ export default async function ProntuarioPage() {
                       {/* Header do item */}
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <p className="font-semibold text-[#1A3A2C] text-sm">
+                          <p className="font-semibold text-[#19382E] text-sm">
                             {item._tipo === 'triagem' ? '🧠 Triagem por IA' : item._tipo === 'exames' ? '🔬 Solicitação de Exames' : '📹 Consulta virtual'}
                           </p>
                           <p className="text-xs text-gray-400 mt-0.5">

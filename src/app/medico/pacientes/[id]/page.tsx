@@ -112,8 +112,8 @@ function TabNav({ abaAtiva, pacienteId, back }: { abaAtiva: string; pacienteId: 
           href={`/medico/pacientes/${pacienteId}?aba=${a.id}${back ? `&back=${encodeURIComponent(back)}` : ''}`}
           className={`flex-1 py-3.5 text-center text-sm font-semibold transition-colors ${
             abaAtiva === a.id
-              ? 'bg-[#1A3A2C] text-white'
-              : 'text-gray-500 hover:bg-gray-50 hover:text-[#1A3A2C]'
+              ? 'bg-[#19382E] text-white'
+              : 'text-gray-500 hover:bg-gray-50 hover:text-[#19382E]'
           }`}
         >
           {a.label}
@@ -261,7 +261,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
     .maybeSingle()
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
+    <div className="min-h-screen bg-[#F3F6F3]">
       <MedicoHeader titulo="Prontuário" backHref={backHref} />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
@@ -273,7 +273,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
               <User className="w-8 h-8 text-green-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-bold text-[#1A3A2C]">{paciente.nome}</h1>
+              <h1 className="text-2xl font-bold text-[#19382E]">{paciente.nome}</h1>
               <div className="flex flex-wrap gap-3 mt-2">
                 {idade !== null && <span className="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">{idade} anos</span>}
                 {paciente.sexo && paciente.sexo !== 'nao_informado' && (
@@ -291,7 +291,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
             {/* KPIs */}
             <div className="flex gap-2 shrink-0 flex-wrap">
               {[
-                { n: triagens.length,                label: 'triagens',    cor: 'bg-[#F3FAF7] text-[#1A3A2C]' },
+                { n: triagens.length,                label: 'triagens',    cor: 'bg-[#F3F6F3] text-[#19382E]' },
                 { n: totalConsultas,                 label: 'consultas',   cor: 'bg-green-50 text-green-700' },
                 { n: atestados?.length ?? 0,         label: 'atestados',   cor: 'bg-blue-50 text-blue-700' },
                 { n: receitas?.length ?? 0,          label: 'receitas',    cor: 'bg-purple-50 text-purple-700' },
@@ -308,14 +308,14 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
 
           {/* Banner de consulta ativa — aparece só quando o médico assumiu este paciente */}
           {atendimentoAtivo && (
-            <div className="mt-4 flex items-center justify-between gap-4 bg-[#1A3A2C] rounded-xl px-4 py-3">
+            <div className="mt-4 flex items-center justify-between gap-4 bg-[#19382E] rounded-xl px-4 py-3">
               <div className="flex items-center gap-2.5 text-white">
-                <Video className="w-4 h-4 text-[#5BBD9B] shrink-0" />
+                <Video className="w-4 h-4 text-[#6E8570] shrink-0" />
                 <p className="text-sm font-semibold">Você assumiu este paciente — consulta aguardando</p>
               </div>
               <Link
                 href={`/medico/atendimento/${atendimentoAtivo.id}`}
-                className="flex items-center gap-2 bg-[#5BBD9B] hover:bg-green-400 text-white font-bold px-5 py-2 rounded-xl text-sm transition-colors whitespace-nowrap shrink-0"
+                className="flex items-center gap-2 bg-[#6E8570] hover:bg-green-400 text-white font-bold px-5 py-2 rounded-xl text-sm transition-colors whitespace-nowrap shrink-0"
               >
                 <Video className="w-4 h-4" /> Entrar na consulta
               </Link>
@@ -342,7 +342,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
 
             {/* Dados cadastrais */}
             <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <h3 className="font-bold text-[#1A3A2C] text-sm mb-4 flex items-center gap-2">
+              <h3 className="font-bold text-[#19382E] text-sm mb-4 flex items-center gap-2">
                 <User className="w-4 h-4" /> Dados cadastrais
               </h3>
               <div className="space-y-3 text-sm">
@@ -362,7 +362,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
 
             {/* Empresa */}
             <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <h3 className="font-bold text-[#1A3A2C] text-sm mb-4 flex items-center gap-2">
+              <h3 className="font-bold text-[#19382E] text-sm mb-4 flex items-center gap-2">
                 <Building2 className="w-4 h-4" /> Empresa / Vínculo
               </h3>
               {vinculo ? (
@@ -383,7 +383,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
 
             {/* Antecedentes — ocupa coluna inteira */}
             <div className="md:col-span-2 bg-white rounded-2xl p-6 shadow-sm">
-              <h3 className="font-bold text-[#1A3A2C] text-sm mb-4 flex items-center gap-2">
+              <h3 className="font-bold text-[#19382E] text-sm mb-4 flex items-center gap-2">
                 <ClipboardList className="w-4 h-4" /> Antecedentes Pessoais
               </h3>
               <AntecedentesForm
@@ -433,7 +433,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                   return (
                     <div key={a.id} className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-50">
                       {/* Cabeçalho da consulta */}
-                      <div className="bg-[#1A3A2C] px-6 py-4 flex items-center justify-between">
+                      <div className="bg-[#19382E] px-6 py-4 flex items-center justify-between">
                         <div>
                           <p className="text-white font-bold">{data} às {hora}</p>
                           {medA && (
@@ -464,10 +464,10 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
 
                         {/* QP */}
                         <CampoConsulta
-                          icone={<FileText className="w-3.5 h-3.5 text-[#5BBD9B]" />}
+                          icone={<FileText className="w-3.5 h-3.5 text-[#6E8570]" />}
                           titulo="Queixa Principal"
                           valor={a.queixa_principal}
-                          className="bg-[#F3FAF7] border-green-100"
+                          className="bg-[#F3F6F3] border-green-100"
                         />
 
                         {/* HDA */}
@@ -495,7 +495,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                               ].filter(f => f.value).map(f => (
                                 <div key={f.label} className="bg-white rounded-lg px-2 py-2">
                                   <p className="text-[10px] text-gray-400 font-medium">{f.label}</p>
-                                  <p className="text-sm font-bold text-[#1A3A2C]">{f.value}</p>
+                                  <p className="text-sm font-bold text-[#19382E]">{f.value}</p>
                                   <p className="text-[10px] text-gray-400">{f.unit}</p>
                                 </div>
                               ))}
@@ -521,10 +521,10 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
 
                         {/* Plano terapêutico */}
                         <CampoConsulta
-                          icone={<Pill className="w-3.5 h-3.5 text-[#5BBD9B]" />}
+                          icone={<Pill className="w-3.5 h-3.5 text-[#6E8570]" />}
                           titulo="Plano Terapêutico"
                           valor={a.plano_terapeutico}
-                          className="bg-[#F3FAF7] border-green-100"
+                          className="bg-[#F3F6F3] border-green-100"
                         />
 
                         {/* Evolução */}
@@ -650,8 +650,8 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
 
                         {(t.resumo_ia || t.recomendacao_ia) && (
                           <div className="bg-white/80 rounded-xl p-4 border border-white">
-                            <p className="text-xs font-bold text-[#1A3A2C] uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                              <Brain className="w-3.5 h-3.5 text-[#5BBD9B]" /> Análise da IA
+                            <p className="text-xs font-bold text-[#19382E] uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                              <Brain className="w-3.5 h-3.5 text-[#6E8570]" /> Análise da IA
                             </p>
                             {t.resumo_ia && <p className="text-sm text-gray-700 leading-relaxed">{t.resumo_ia}</p>}
                             {t.recomendacao_ia && (
@@ -667,12 +667,12 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                           <div className="bg-white/80 rounded-xl p-4 border border-white space-y-3">
                             {/* Motivos principais */}
                             <div>
-                              <p className="text-xs font-bold text-[#1A3A2C] uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                                <Stethoscope className="w-3.5 h-3.5 text-[#5BBD9B]" /> Sintomas Relatados
+                              <p className="text-xs font-bold text-[#19382E] uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                                <Stethoscope className="w-3.5 h-3.5 text-[#6E8570]" /> Sintomas Relatados
                               </p>
                               <div className="flex flex-wrap gap-1.5">
                                 {sintomas.motivosPrincipais.map((m: string) => (
-                                  <span key={m} className="text-xs bg-[#EAF7F2] text-[#1A3A2C] border border-green-200 px-2.5 py-1 rounded-full font-medium">{m}</span>
+                                  <span key={m} className="text-xs bg-[#EAF7F2] text-[#19382E] border border-green-200 px-2.5 py-1 rounded-full font-medium">{m}</span>
                                 ))}
                                 {sintomas.outroMotivo && <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full">{sintomas.outroMotivo}</span>}
                               </div>
@@ -772,7 +772,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
         {abaAtiva === 'exclusao' && (
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-[#1A3A2C] text-lg flex items-center gap-2">
+              <h2 className="font-bold text-[#19382E] text-lg flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-orange-500" />
                 Protocolo de Exclusão Médica
                 <span className="text-sm text-gray-400 font-normal">({exclusoes?.length ?? 0})</span>
@@ -797,7 +797,7 @@ export default async function MedicoPacientePage({ params, searchParams }: Props
                     <div key={ex.id} className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-50">
 
                       {/* Cabeçalho */}
-                      <div className="bg-[#1A3A2C] px-6 py-4 flex items-center justify-between">
+                      <div className="bg-[#19382E] px-6 py-4 flex items-center justify-between">
                         <div>
                           <p className="text-white font-bold">{data} às {hora}</p>
                           {med && (

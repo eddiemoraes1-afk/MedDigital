@@ -21,7 +21,7 @@ async function extrairCorDominante(file: File): Promise<string> {
         canvas.width = tamanho
         canvas.height = tamanho
         const ctx = canvas.getContext('2d')
-        if (!ctx) { resolve('#1A3A2C'); return }
+        if (!ctx) { resolve('#19382E'); return }
 
         ctx.drawImage(img, 0, 0, tamanho, tamanho)
         const dados = ctx.getImageData(0, 0, tamanho, tamanho).data
@@ -42,18 +42,18 @@ async function extrairCorDominante(file: File): Promise<string> {
         }
 
         const entradas = Object.entries(mapa).sort((a, b) => b[1] - a[1])
-        if (entradas.length === 0) { resolve('#1A3A2C'); return }
+        if (entradas.length === 0) { resolve('#19382E'); return }
 
         const [r, g, b] = entradas[0][0].split(',').map(Number)
         const hex = '#' + [r, g, b].map(v => Math.min(255, v).toString(16).padStart(2, '0')).join('')
         resolve(hex)
       } catch {
-        resolve('#1A3A2C')
+        resolve('#19382E')
       } finally {
         URL.revokeObjectURL(url)
       }
     }
-    img.onerror = () => { URL.revokeObjectURL(url); resolve('#1A3A2C') }
+    img.onerror = () => { URL.revokeObjectURL(url); resolve('#19382E') }
     img.src = url
   })
 }
@@ -185,7 +185,7 @@ export default function LogoEmpresa({ empresaId, logoAtual, corAtual }: Props) {
           <button
             onClick={salvar}
             disabled={salvando}
-            className="flex items-center gap-1.5 text-xs bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60"
+            className="flex items-center gap-1.5 text-xs bg-[#19382E] hover:bg-[#6E8570] text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-60"
           >
             {salvando ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
             {salvando ? 'Salvando...' : 'Salvar logo'}

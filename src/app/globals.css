@@ -6,25 +6,26 @@
 /* ─── Design tokens — Light mode ───────────────────────────── */
 :root {
   /* Background layers */
-  --bg:           #EFF7F3;
+  --bg:           #F3F6F3;
   --surface:      #FFFFFF;
-  --surface-2:    #F5FAF7;
-  --surface-3:    #EBF5EF;
+  --surface-2:    #F9FBF9;
+  --surface-3:    #EDF1ED;
 
   /* Borders */
-  --border:       #D8EDE3;
-  --border-2:     #B8D9C7;
+  --border:       #E1E8E2;
+  --border-2:     #C7D3C8;
 
   /* Text */
-  --txt-1:        #0D2B1E;
-  --txt-2:        #3D6652;
-  --txt-3:        #7A9E8C;
+  --txt-1:        #15251E;
+  --txt-2:        #46584B;
+  --txt-3:        #85928A;
 
-  /* Brand */
-  --brand:        #1A3A2C;
-  --brand-2:      #5BBD9B;
-  --brand-light:  #E6F5EE;
-  --brand-glow:   rgba(91,189,155,.18);
+  /* Brand — Aduno */
+  --brand:        #19382E;
+  --brand-2:      #6E8570;
+  --brand-3:      #8FA891;
+  --brand-light:  #EBF0EB;
+  --brand-glow:   rgba(110,133,112,.20);
 
   /* Semantic */
   --danger:       #DC2626;
@@ -37,7 +38,7 @@
   --success-bg:   #ECFDF5;
 
   /* Header */
-  --header-bg:    #1A3A2C;
+  --header-bg:    #19382E;
   --header-txt:   #FFFFFF;
 
   /* Shadows */
@@ -47,37 +48,39 @@
   --shadow-lg:    0 8px 32px rgba(0,0,0,.11), 0 4px 8px rgba(0,0,0,.07);
 
   /* Chart palette */
-  --c1:  #5BBD9B;
+  --c1:  #6E8570;
   --c2:  #3B82F6;
-  --c3:  #F59E0B;
+  --c3:  #D9922B;
   --c4:  #8B5CF6;
   --c5:  #EF4444;
-  --c6:  #14B8A6;
+  --c6:  #2E7D6B;
   --c7:  #EC4899;
   --c8:  #6366F1;
-  --chart-grid:   #E2EFE9;
-  --chart-txt:    #4B6B5A;
-  --chart-bg:     rgba(91,189,155,.08);
+  --chart-grid:   #E6ECE7;
+  --chart-txt:    #54655A;
+  --chart-bg:     rgba(110,133,112,.10);
 }
 
 /* ─── Design tokens — Dark mode ────────────────────────────── */
 .dark {
-  --bg:           #07120D;
-  --surface:      #0D1F17;
-  --surface-2:    #112419;
-  --surface-3:    #16301F;
+  --bg:           #0B1510;
+  --surface:      #111F18;
+  --surface-2:    #16261D;
+  --surface-3:    #1C3025;
 
-  --border:       #1C3527;
-  --border-2:     #2A4D3A;
+  --border:       #23362B;
+  --border-2:     #334C3C;
 
-  --txt-1:        #E2F5EB;
-  --txt-2:        #7BB899;
-  --txt-3:        #3E6650;
+  --txt-1:        #E5EDE7;
+  --txt-2:        #9CB2A1;
+  --txt-3:        #6A8170;
 
-  --brand:        #5BBD9B;
-  --brand-2:      #3D9E7A;
-  --brand-light:  rgba(91,189,155,.14);
-  --brand-glow:   rgba(91,189,155,.24);
+  /* Brand — Aduno (clareado para contraste em fundo escuro) */
+  --brand:        #8FA891;
+  --brand-2:      #6E8570;
+  --brand-3:      #A8BCAA;
+  --brand-light:  rgba(143,168,145,.14);
+  --brand-glow:   rgba(143,168,145,.24);
 
   --danger:       #F87171;
   --danger-bg:    rgba(248,113,113,.12);
@@ -88,25 +91,25 @@
   --success:      #34D399;
   --success-bg:   rgba(52,211,153,.12);
 
-  --header-bg:    #0D1F17;
-  --header-txt:   #E2F5EB;
+  --header-bg:    #111F18;
+  --header-txt:   #E5EDE7;
 
   --shadow-xs:    0 1px 2px rgba(0,0,0,.4);
   --shadow-sm:    0 1px 4px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.3);
   --shadow-md:    0 4px 16px rgba(0,0,0,.5), 0 2px 4px rgba(0,0,0,.35);
   --shadow-lg:    0 8px 32px rgba(0,0,0,.6), 0 4px 8px rgba(0,0,0,.4);
 
-  --c1:  #5BBD9B;
+  --c1:  #8FA891;
   --c2:  #60A5FA;
   --c3:  #FBB040;
   --c4:  #A78BFA;
   --c5:  #F87171;
-  --c6:  #2DD4BF;
+  --c6:  #4FBFA5;
   --c7:  #F472B6;
   --c8:  #818CF8;
-  --chart-grid:   #1C3527;
-  --chart-txt:    #7BB899;
-  --chart-bg:     rgba(91,189,155,.10);
+  --chart-grid:   #23362B;
+  --chart-txt:    #9CB2A1;
+  --chart-bg:     rgba(143,168,145,.10);
 }
 
 /* ─── Base ──────────────────────────────────────────────────── */

@@ -168,7 +168,7 @@ export default async function MedicoDashboard() {
       label: 'Atendidos hoje',
       icon: CheckCircle2,
       dark: true,
-      iconColor: 'text-[#5BBD9B]',
+      iconColor: 'text-[#6E8570]',
       bgIcon: 'bg-white/10',
     },
     {
@@ -740,7 +740,7 @@ export default async function MedicoDashboard() {
                   {custoConsulta > 0 ? ` · ${formatBRL(custoConsulta)}/consulta` : ''}
                 </p>
               </div>
-              <p className="text-3xl font-bold text-[#5BBD9B]">{formatBRL(totalDia)}</p>
+              <p className="text-3xl font-bold text-[#6E8570]">{formatBRL(totalDia)}</p>
             </div>
           </div>
         )}

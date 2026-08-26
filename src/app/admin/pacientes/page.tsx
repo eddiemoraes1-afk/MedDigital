@@ -136,12 +136,12 @@ export default async function AdminPacientesPage({ searchParams }: Props) {
   const totalAtendimentos = (atendimentos ?? []).length
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
+    <div className="min-h-screen bg-[#F3F6F3]">
       <AdminHeader ativo="pacientes" />
 
       <main className="max-w-6xl mx-auto px-6 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-[#1A3A2C] flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[#19382E] flex items-center gap-2">
             <Activity className="w-6 h-6 text-green-500" /> Pacientes
           </h1>
           <p className="text-gray-500 text-sm mt-1">{total} paciente(s) cadastrado(s) na plataforma</p>
@@ -150,7 +150,7 @@ export default async function AdminPacientesPage({ searchParams }: Props) {
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-2xl p-5 shadow-sm">
-            <p className="text-3xl font-bold text-[#1A3A2C]">{total}</p>
+            <p className="text-3xl font-bold text-[#19382E]">{total}</p>
             <p className="text-xs text-gray-500 mt-1">total cadastrados</p>
           </div>
           <div className="bg-white rounded-2xl p-5 shadow-sm">
@@ -185,7 +185,7 @@ export default async function AdminPacientesPage({ searchParams }: Props) {
         {/* Tabela com paginação */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h2 className="font-bold text-[#1A3A2C]">
+            <h2 className="font-bold text-[#19382E]">
               Lista de pacientes
               {pacientesFiltrados.length > 0 && (
                 <span className="ml-2 text-xs font-normal text-gray-400">

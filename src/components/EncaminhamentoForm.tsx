@@ -100,7 +100,7 @@ function MiniCalendar({ diasComAgenda, dataSelecionada, onChange }: CalendarProp
         >
           <ChevronLeft className="w-3.5 h-3.5 text-gray-500" />
         </button>
-        <span className="text-xs font-semibold text-[#1A3A2C]">
+        <span className="text-xs font-semibold text-[#19382E]">
           {MESES[mes]} {ano}
         </span>
         <button
@@ -142,7 +142,7 @@ function MiniCalendar({ diasComAgenda, dataSelecionada, onChange }: CalendarProp
                 ${selecionado
                   ? 'bg-orange-500 text-white shadow-sm'
                   : disponivel
-                    ? 'hover:bg-orange-50 hover:text-orange-700 text-[#1A3A2C] cursor-pointer'
+                    ? 'hover:bg-orange-50 hover:text-orange-700 text-[#19382E] cursor-pointer'
                     : 'text-gray-200 cursor-not-allowed'
                 }
               `}
@@ -297,7 +297,7 @@ export default function EncaminhamentoForm({ pacienteId, salaVideo, onFechar, on
         <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
           <UserCheck className="w-7 h-7 text-green-600" />
         </div>
-        <p className="font-semibold text-[#1A3A2C] text-sm">Encaminhamento realizado!</p>
+        <p className="font-semibold text-[#19382E] text-sm">Encaminhamento realizado!</p>
         <p className="text-xs text-gray-400 mt-1.5">
           {modo === 'imediato'
             ? `Paciente adicionado à fila de ${drTitle(medicoSelecionado!.sexo)} ${medicoSelecionado!.nome}`
@@ -311,7 +311,7 @@ export default function EncaminhamentoForm({ pacienteId, salaVideo, onFechar, on
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-[#1A3A2C] uppercase tracking-wide">
+        <p className="text-xs font-semibold text-[#19382E] uppercase tracking-wide">
           Encaminhar para especialista
         </p>
         <button onClick={onFechar} className="text-gray-400 hover:text-gray-600 transition-colors">
@@ -330,7 +330,7 @@ export default function EncaminhamentoForm({ pacienteId, salaVideo, onFechar, on
               value={busca}
               onChange={e => setBusca(e.target.value)}
               autoComplete="off"
-              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E8570]"
             />
           </div>
 
@@ -355,14 +355,14 @@ export default function EncaminhamentoForm({ pacienteId, salaVideo, onFechar, on
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={m.foto_url} alt={m.nome} className="w-8 h-8 rounded-full object-cover" />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-[#1A3A2C]/10 flex items-center justify-center text-xs font-bold text-[#1A3A2C]">
+                      <div className="w-8 h-8 rounded-full bg-[#19382E]/10 flex items-center justify-center text-xs font-bold text-[#19382E]">
                         {m.nome.charAt(0)}
                       </div>
                     )}
                     <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${m.online ? 'bg-green-500' : 'bg-gray-300'}`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#1A3A2C] truncate">{drTitle(m.sexo)} {m.nome}</p>
+                    <p className="text-sm font-medium text-[#19382E] truncate">{drTitle(m.sexo)} {m.nome}</p>
                     <p className="text-xs text-gray-400 truncate">{m.especialidade}</p>
                   </div>
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold shrink-0 ${
@@ -385,14 +385,14 @@ export default function EncaminhamentoForm({ pacienteId, salaVideo, onFechar, on
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={medicoSelecionado.foto_url} alt={medicoSelecionado.nome} className="w-9 h-9 rounded-full object-cover" />
               ) : (
-                <div className="w-9 h-9 rounded-full bg-[#1A3A2C]/10 flex items-center justify-center text-sm font-bold text-[#1A3A2C]">
+                <div className="w-9 h-9 rounded-full bg-[#19382E]/10 flex items-center justify-center text-sm font-bold text-[#19382E]">
                   {medicoSelecionado.nome.charAt(0)}
                 </div>
               )}
               <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${medicoSelecionado.online ? 'bg-green-500' : 'bg-gray-300'}`} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-[#1A3A2C] truncate">
+              <p className="text-sm font-semibold text-[#19382E] truncate">
                 {drTitle(medicoSelecionado.sexo)} {medicoSelecionado.nome}
               </p>
               <p className="text-xs text-gray-400 truncate">
@@ -401,7 +401,7 @@ export default function EncaminhamentoForm({ pacienteId, salaVideo, onFechar, on
             </div>
             <button
               onClick={() => { setMedicoSelecionado(null); setDiasComAgenda(new Set()) }}
-              className="text-xs text-[#5BBD9B] hover:text-[#1A3A2C] font-medium shrink-0 transition-colors"
+              className="text-xs text-[#6E8570] hover:text-[#19382E] font-medium shrink-0 transition-colors"
             >
               Trocar
             </button>
@@ -414,8 +414,8 @@ export default function EncaminhamentoForm({ pacienteId, salaVideo, onFechar, on
               disabled={!medicoSelecionado.online}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold border transition-colors ${
                 modo === 'imediato'
-                  ? 'bg-[#1A3A2C] text-white border-[#1A3A2C]'
-                  : 'bg-white text-gray-500 border-gray-200 hover:border-[#5BBD9B] hover:text-[#1A3A2C]'
+                  ? 'bg-[#19382E] text-white border-[#19382E]'
+                  : 'bg-white text-gray-500 border-gray-200 hover:border-[#6E8570] hover:text-[#19382E]'
               } disabled:opacity-40 disabled:cursor-not-allowed`}
             >
               <Wifi className="w-3.5 h-3.5" />
@@ -425,8 +425,8 @@ export default function EncaminhamentoForm({ pacienteId, salaVideo, onFechar, on
               onClick={() => handleModoChange('agendado')}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold border transition-colors ${
                 modo === 'agendado'
-                  ? 'bg-[#1A3A2C] text-white border-[#1A3A2C]'
-                  : 'bg-white text-gray-500 border-gray-200 hover:border-[#5BBD9B] hover:text-[#1A3A2C]'
+                  ? 'bg-[#19382E] text-white border-[#19382E]'
+                  : 'bg-white text-gray-500 border-gray-200 hover:border-[#6E8570] hover:text-[#19382E]'
               }`}
             >
               <Calendar className="w-3.5 h-3.5" />
@@ -502,7 +502,7 @@ export default function EncaminhamentoForm({ pacienteId, salaVideo, onFechar, on
                             className={`py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
                               slotSelecionado === slot
                                 ? 'bg-orange-500 text-white border-orange-500'
-                                : 'bg-white border-gray-200 text-[#1A3A2C] hover:border-orange-300 hover:bg-orange-50'
+                                : 'bg-white border-gray-200 text-[#19382E] hover:border-orange-300 hover:bg-orange-50'
                             }`}
                           >
                             {slot}
@@ -527,7 +527,7 @@ export default function EncaminhamentoForm({ pacienteId, salaVideo, onFechar, on
               placeholder="Ex: quadro depressivo, solicitar avaliação psiquiátrica..."
               rows={2}
               autoComplete="off"
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none placeholder-gray-300"
+              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E8570] resize-none placeholder-gray-300"
             />
           </div>
 

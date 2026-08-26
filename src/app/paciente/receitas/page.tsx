@@ -42,18 +42,18 @@ export default async function PacienteReceitasPage() {
   const totalValidas = receitasComStatus.filter((r: any) => r.valida).length
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
+    <div className="min-h-screen bg-[#F3F6F3]">
       <PacienteHeader titulo="Minhas Receitas" backHref="/paciente/dashboard" />
 
       <main className="max-w-3xl mx-auto px-6 py-8">
         {/* Cabeçalho */}
         <div className="flex items-center gap-3 mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#1A3A2C] rounded-xl">
-              <Pill className="w-5 h-5 text-[#5BBD9B]" />
+            <div className="p-2.5 bg-[#19382E] rounded-xl">
+              <Pill className="w-5 h-5 text-[#6E8570]" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[#1A3A2C]">Minhas Receitas</h1>
+              <h1 className="text-xl font-bold text-[#19382E]">Minhas Receitas</h1>
               <p className="text-sm text-gray-400">
                 {receitasComStatus.length} receita{receitasComStatus.length !== 1 ? 's' : ''}
                 {totalValidas > 0 && (

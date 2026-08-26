@@ -74,7 +74,7 @@ const STATUS_CHART_COLOR: Record<string, string> = {
   emergencia: '#991B1B',
 }
 
-const MISC_COLORS = ['#5BBD9B','#3B82F6','#F59E0B','#8B5CF6','#EF4444','#14B8A6','#EC4899','#6366F1','#F97316','#06B6D4']
+const MISC_COLORS = ['#6E8570','#3B82F6','#F59E0B','#8B5CF6','#EF4444','#14B8A6','#EC4899','#6366F1','#F97316','#06B6D4']
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function calcRange(p: string): [string, string] {
@@ -113,7 +113,7 @@ function ChartCard({ title, subtitle, children }: { title: string; subtitle?: st
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50">
       <div className="mb-4">
-        <h3 className="font-bold text-[#1A3A2C] text-sm">{title}</h3>
+        <h3 className="font-bold text-[#19382E] text-sm">{title}</h3>
         {subtitle && <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>}
       </div>
       {children}
@@ -132,13 +132,13 @@ function KpiCard({ label, value, sub, icon: Icon, color }: {
         </div>
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide truncate">{label}</p>
       </div>
-      <p className="text-2xl font-bold text-[#1A3A2C] leading-none">{value}</p>
+      <p className="text-2xl font-bold text-[#19382E] leading-none">{value}</p>
       {sub && <p className="text-xs text-gray-400 mt-1.5">{sub}</p>}
     </div>
   )
 }
 
-function BarChartSVG({ data, labelKey, valueKey, color = '#5BBD9B' }: {
+function BarChartSVG({ data, labelKey, valueKey, color = '#6E8570' }: {
   data: Record<string, any>[]; labelKey: string; valueKey: string; color?: string
 }) {
   if (!data.length) return <div className="flex items-center justify-center h-40 text-gray-300 text-xs">Sem dados no período</div>
@@ -185,7 +185,7 @@ function BarChartSVG({ data, labelKey, valueKey, color = '#5BBD9B' }: {
   )
 }
 
-function HBarChart({ data, labelKey, valueKey, color = '#5BBD9B', maxItems = 12 }: {
+function HBarChart({ data, labelKey, valueKey, color = '#6E8570', maxItems = 12 }: {
   data: Record<string, any>[]; labelKey: string; valueKey: string; color?: string; maxItems?: number
 }) {
   const items = data.slice(0, maxItems)
@@ -202,7 +202,7 @@ function HBarChart({ data, labelKey, valueKey, color = '#5BBD9B', maxItems = 12 
         return (
           <g key={i}>
             {i % 2 === 0 && <rect x={0} y={y + 2} width={W} height={ROW - 4} fill="#FAFAFA" rx="4" />}
-            <text x={0} y={y + ROW / 2 + 4} fontSize="10" fill={i === 0 ? '#1A3A2C' : '#374151'} fontWeight={i === 0 ? 'bold' : 'normal'}>
+            <text x={0} y={y + ROW / 2 + 4} fontSize="10" fill={i === 0 ? '#19382E' : '#374151'} fontWeight={i === 0 ? 'bold' : 'normal'}>
               {truncated}
             </text>
             <rect x={LABEL_W} y={y + 8} width={bw} height={22} fill={color} rx="4" opacity={i === 0 ? 1 : 0.85}>
@@ -247,7 +247,7 @@ function DonutChart({ slices }: { slices: Array<{ label: string; value: number; 
             <title>{s.label}: {s.value} ({Math.round(s.value / total * 100)}%)</title>
           </path>
         ))}
-        <text x="0" y="-6" textAnchor="middle" fontSize="13" fontWeight="bold" fill="#1A3A2C">{total}</text>
+        <text x="0" y="-6" textAnchor="middle" fontSize="13" fontWeight="bold" fill="#19382E">{total}</text>
         <text x="0" y="10" textAnchor="middle" fontSize="8" fill="#9CA3AF">total</text>
       </svg>
       <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 max-w-xs">
@@ -344,7 +344,7 @@ export default function AdminExclusoesDashboard() {
 
   function SortIcon({ k }: { k: keyof ExclusaoItem }) {
     if (sortKey !== k) return <ChevronDown className="w-3 h-3 opacity-20" />
-    return sortAsc ? <ChevronUp className="w-3 h-3 text-[#5BBD9B]" /> : <ChevronDown className="w-3 h-3 text-[#5BBD9B]" />
+    return sortAsc ? <ChevronUp className="w-3 h-3 text-[#6E8570]" /> : <ChevronDown className="w-3 h-3 text-[#6E8570]" />
   }
 
   function Th({ label, k }: { label: string; k: keyof ExclusaoItem }) {
@@ -445,7 +445,7 @@ export default function AdminExclusoesDashboard() {
 <title>Relatório de Protocolos de Exclusão</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: Arial, sans-serif; font-size: 11px; color: #1A3A2C; padding: 24px; }
+  body { font-family: Arial, sans-serif; font-size: 11px; color: #19382E; padding: 24px; }
   h1 { font-size: 18px; margin-bottom: 4px; }
   .subtitle { color: #6B7280; font-size: 11px; margin-bottom: 16px; }
   .kpis { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
@@ -453,7 +453,7 @@ export default function AdminExclusoesDashboard() {
   .kpi .val { font-size: 20px; font-weight: bold; }
   .kpi .lbl { font-size: 10px; color: #6B7280; margin-top: 2px; }
   table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 10px; }
-  th { background: #1A3A2C; color: white; text-align: left; padding: 6px 8px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  th { background: #19382E; color: white; text-align: left; padding: 6px 8px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
   td { padding: 5px 8px; border-bottom: 1px solid #F3F4F6; vertical-align: top; }
   tr:nth-child(even) td { background: #F9FAFB; }
   .badge { display: inline-block; padding: 2px 7px; border-radius: 999px; font-size: 9px; font-weight: 600; }
@@ -504,7 +504,7 @@ export default function AdminExclusoesDashboard() {
   `).join('')}
 </tbody>
 </table>
-<div class="footer">Relatório gerado pelo sistema MedDigital em ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })} · Documento confidencial</div>
+<div class="footer">Relatório gerado pelo sistema Aduno em ${new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })} · Documento confidencial</div>
 </body>
 </html>`
 
@@ -521,7 +521,7 @@ export default function AdminExclusoesDashboard() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-32 gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
+        <Loader2 className="w-8 h-8 animate-spin text-[#6E8570]" />
         <p className="text-gray-400 text-sm">Carregando protocolos de exclusão...</p>
       </div>
     )
@@ -532,7 +532,7 @@ export default function AdminExclusoesDashboard() {
       <div className="flex flex-col items-center justify-center py-24 gap-3 text-gray-400">
         <ShieldCheck className="w-10 h-10 opacity-30" />
         <p className="text-sm">{erro}</p>
-        <button onClick={handleAtualizar} className="text-[#5BBD9B] text-sm flex items-center gap-1.5 hover:underline">
+        <button onClick={handleAtualizar} className="text-[#6E8570] text-sm flex items-center gap-1.5 hover:underline">
           <RefreshCw className="w-3.5 h-3.5" /> Tentar novamente
         </button>
       </div>
@@ -551,7 +551,7 @@ export default function AdminExclusoesDashboard() {
         <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1">
           {PERIODOS.map(p => (
             <button key={p.v} onClick={() => handlePeriodo(p.v)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${periodo === p.v ? 'bg-[#1A3A2C] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${periodo === p.v ? 'bg-[#19382E] text-white shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
               {p.l}
             </button>
           ))}
@@ -559,12 +559,12 @@ export default function AdminExclusoesDashboard() {
         {periodo === 'custom' && (
           <div className="flex items-center gap-2">
             <input type="date" value={inicio} onChange={e => setInicio(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40" />
+              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40" />
             <span className="text-gray-400 text-xs">até</span>
             <input type="date" value={fim} onChange={e => setFim(e.target.value)}
-              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40" />
+              className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40" />
             <button onClick={() => { if (inicio && fim) carregar('custom', inicio, fim) }}
-              className="bg-[#5BBD9B] text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-[#4aab8a] transition-colors">
+              className="bg-[#6E8570] text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-[#4aab8a] transition-colors">
               Aplicar
             </button>
           </div>
@@ -572,7 +572,7 @@ export default function AdminExclusoesDashboard() {
 
         {/* Filtros rápidos */}
         <select value={filtroEmpresa} onChange={e => setFiltroEmpresa(e.target.value)}
-          className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40">
+          className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40">
           <option value="">Todas as empresas</option>
           <option value="__particular__">Particular</option>
           {data.empresas.map(e => <option key={e.id} value={e.id}>{e.nome}</option>)}
@@ -677,10 +677,10 @@ export default function AdminExclusoesDashboard() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
           <input type="text" value={busca} onChange={e => setBusca(e.target.value)}
             placeholder="Buscar paciente, médico, empresa ou CPF..."
-            className="w-full pl-9 pr-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40" />
+            className="w-full pl-9 pr-3 py-1.5 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40" />
         </div>
         <select value={filtroStatus} onChange={e => setFiltroStatus(e.target.value)}
-          className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40">
+          className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40">
           <option value="">Todos os status</option>
           <option value="apto">Apto</option>
           <option value="apto_ressalvas">Apto c/ Ressalvas</option>
@@ -688,7 +688,7 @@ export default function AdminExclusoesDashboard() {
           <option value="emergencia">Emergência</option>
         </select>
         <select value={filtroMedico} onChange={e => setFiltroMedico(e.target.value)}
-          className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40">
+          className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40">
           <option value="">Todos os médicos</option>
           {medicos.map(m => <option key={m} value={m}>{m}</option>)}
         </select>
@@ -731,7 +731,7 @@ export default function AdminExclusoesDashboard() {
                     <tr key={c.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-3 py-3 text-xs text-gray-600 whitespace-nowrap">{formatDH(c.data)}</td>
                       <td className="px-3 py-3">
-                        <p className="font-medium text-[#1A3A2C] text-sm leading-tight">{c.paciente}</p>
+                        <p className="font-medium text-[#19382E] text-sm leading-tight">{c.paciente}</p>
                         {c.cargo !== '—' && <p className="text-xs text-gray-400 mt-0.5">{c.cargo}</p>}
                         <p className="text-xs text-gray-400 font-mono">{c.cpf}</p>
                       </td>

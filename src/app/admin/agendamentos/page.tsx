@@ -10,7 +10,7 @@ import MarcarNaoCompareceu from './MarcarNaoCompareceu'
 
 // Paleta de cores por médico no modo "todos"
 const PALETA = [
-  { bg: 'bg-[#5BBD9B]/10', text: 'text-[#1A6B4A]', border: 'border-[#5BBD9B]/30', dot: 'bg-[#5BBD9B]' },
+  { bg: 'bg-[#6E8570]/10', text: 'text-[#1A6B4A]', border: 'border-[#6E8570]/30', dot: 'bg-[#6E8570]' },
   { bg: 'bg-blue-50',      text: 'text-blue-700',   border: 'border-blue-200',      dot: 'bg-blue-400' },
   { bg: 'bg-purple-50',    text: 'text-purple-700',  border: 'border-purple-200',    dot: 'bg-purple-400' },
   { bg: 'bg-orange-50',    text: 'text-orange-700',  border: 'border-orange-200',    dot: 'bg-orange-400' },
@@ -37,11 +37,11 @@ export default async function AdminAgendamentosPage({
 
   if (!medicos || medicos.length === 0) {
     return (
-      <div className="min-h-screen bg-[#F3FAF7] flex items-center justify-center">
+      <div className="min-h-screen bg-[#F3F6F3] flex items-center justify-center">
         <div className="text-center">
           <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
           <p className="text-gray-500 font-medium">Nenhum médico aprovado</p>
-          <Link href="/admin" className="text-sm text-[#5BBD9B] hover:underline mt-2 inline-block">← Voltar ao painel</Link>
+          <Link href="/admin" className="text-sm text-[#6E8570] hover:underline mt-2 inline-block">← Voltar ao painel</Link>
         </div>
       </div>
     )
@@ -249,7 +249,7 @@ export default async function AdminAgendamentosPage({
   const backEncoded = encodeURIComponent(backUrl)
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
+    <div className="min-h-screen bg-[#F3F6F3]">
       <AdminHeader ativo="agendamentos" />
 
       <main className="max-w-6xl mx-auto px-6 py-8">
@@ -274,7 +274,7 @@ export default async function AdminAgendamentosPage({
         {/* ── Cabeçalho + toggle Semana / Mês ── */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-xl font-bold text-[#1A3A2C] flex items-center gap-2">
+            <h1 className="text-xl font-bold text-[#19382E] flex items-center gap-2">
               <Calendar className="w-5 h-5" />
               {tituloHeader}
             </h1>
@@ -295,7 +295,7 @@ export default async function AdminAgendamentosPage({
               <Link
                 href={viewLink('semana')}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  view === 'semana' ? 'bg-[#1A3A2C] text-white' : 'text-gray-500 hover:bg-gray-50'
+                  view === 'semana' ? 'bg-[#19382E] text-white' : 'text-gray-500 hover:bg-gray-50'
                 }`}
               >
                 Semana
@@ -303,7 +303,7 @@ export default async function AdminAgendamentosPage({
               <Link
                 href={viewLink('mes')}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  view === 'mes' ? 'bg-[#1A3A2C] text-white' : 'text-gray-500 hover:bg-gray-50'
+                  view === 'mes' ? 'bg-[#19382E] text-white' : 'text-gray-500 hover:bg-gray-50'
                 }`}
               >
                 Mês
@@ -316,7 +316,7 @@ export default async function AdminAgendamentosPage({
                 <Link href={navLink(offset - 1)} className="w-9 h-9 bg-white rounded-xl shadow-sm flex items-center justify-center hover:bg-gray-50 border border-gray-100">
                   <ChevronLeft className="w-4 h-4 text-gray-600" />
                 </Link>
-                <span className="text-sm font-medium text-[#1A3A2C] min-w-[90px] text-center">
+                <span className="text-sm font-medium text-[#19382E] min-w-[90px] text-center">
                   {offset === 0 ? 'Esta semana' : offset === 1 ? 'Próxima semana' : offset === -1 ? 'Semana passada' : `${offset > 0 ? '+' : ''}${offset} sem.`}
                 </span>
                 <Link href={navLink(offset + 1)} className="w-9 h-9 bg-white rounded-xl shadow-sm flex items-center justify-center hover:bg-gray-50 border border-gray-100">
@@ -328,7 +328,7 @@ export default async function AdminAgendamentosPage({
                 <Link href={mesLink(mesOffset - 1)} className="w-9 h-9 bg-white rounded-xl shadow-sm flex items-center justify-center hover:bg-gray-50 border border-gray-100">
                   <ChevronLeft className="w-4 h-4 text-gray-600" />
                 </Link>
-                <span className="text-sm font-medium text-[#1A3A2C] min-w-[90px] text-center capitalize">
+                <span className="text-sm font-medium text-[#19382E] min-w-[90px] text-center capitalize">
                   {mesOffset === 0 ? 'Este mês' : mesOffset === 1 ? 'Próximo mês' : mesOffset === -1 ? 'Mês passado' : primeiroDiaMes.toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' })}
                 </span>
                 <Link href={mesLink(mesOffset + 1)} className="w-9 h-9 bg-white rounded-xl shadow-sm flex items-center justify-center hover:bg-gray-50 border border-gray-100">
@@ -355,15 +355,15 @@ export default async function AdminAgendamentosPage({
                 return (
                   <div
                     key={dia.toISOString()}
-                    className={`bg-white rounded-2xl shadow-sm overflow-hidden ${isPast ? 'opacity-60' : ''} ${isHoje ? 'ring-2 ring-[#5BBD9B]' : ''}`}
+                    className={`bg-white rounded-2xl shadow-sm overflow-hidden ${isPast ? 'opacity-60' : ''} ${isHoje ? 'ring-2 ring-[#6E8570]' : ''}`}
                   >
-                    <div className={`px-3 py-3 text-center ${isHoje ? 'bg-[#1A3A2C]' : 'bg-gray-50 border-b border-gray-100'}`}>
-                      <p className={`text-xs font-medium ${isHoje ? 'text-green-200' : 'text-gray-400'}`}>{DIAS[i]}</p>
-                      <p className={`text-xl font-bold mt-0.5 ${isHoje ? 'text-white' : 'text-[#1A3A2C]'}`}>{dia.getDate()}</p>
+                    <div className={`px-3 py-3 text-center ${isHoje ? 'bg-[#19382E]' : 'bg-gray-50 border-b border-gray-100'}`}>
+                      <p className={`text-xs font-medium ${isHoje ? 'text-white/70' : 'text-gray-400'}`}>{DIAS[i]}</p>
+                      <p className={`text-xl font-bold mt-0.5 ${isHoje ? 'text-white' : 'text-[#19382E]'}`}>{dia.getDate()}</p>
                       {agsDia.length > 0 && (
                         <div className="flex justify-center gap-1 mt-1">
                           {ativos.length > 0 && (
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${isHoje ? 'bg-white/20 text-white' : 'bg-[#5BBD9B]/10 text-[#5BBD9B]'}`}>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${isHoje ? 'bg-white/20 text-white' : 'bg-[#6E8570]/10 text-[#6E8570]'}`}>
                               {ativos.length}
                             </span>
                           )}
@@ -449,7 +449,7 @@ export default async function AdminAgendamentosPage({
             {agendamentos.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                  <h2 className="font-bold text-[#1A3A2C]">
+                  <h2 className="font-bold text-[#19382E]">
                     Detalhes da semana — {tituloHeader}
                   </h2>
                   {modoTodos && (
@@ -486,17 +486,17 @@ export default async function AdminAgendamentosPage({
                           }`}>
                             {isCancelado
                               ? <XCircle className="w-5 h-5 text-red-300" />
-                              : <User className={`w-5 h-5 ${modoTodos && medInfo ? medInfo.cor.text : 'text-[#5BBD9B]'}`} />
+                              : <User className={`w-5 h-5 ${modoTodos && medInfo ? medInfo.cor.text : 'text-[#6E8570]'}`} />
                             }
                           </div>
                           <div>
                             <Link
                               href={pac ? `/admin/pacientes/${a.paciente_id}?back=${backEncoded}` : '#'}
-                              className={`font-medium hover:text-[#5BBD9B] hover:underline ${isCancelado ? 'line-through text-gray-400' : 'text-gray-800'}`}
+                              className={`font-medium hover:text-[#6E8570] hover:underline ${isCancelado ? 'line-through text-gray-400' : 'text-gray-800'}`}
                             >
                               {pac?.nome || 'Paciente'}
                             </Link>
-                            <p className={`text-xs font-medium mt-0.5 flex items-center gap-1 ${modoTodos && medInfo ? medInfo.cor.text : 'text-[#5BBD9B]'}`}>
+                            <p className={`text-xs font-medium mt-0.5 flex items-center gap-1 ${modoTodos && medInfo ? medInfo.cor.text : 'text-[#6E8570]'}`}>
                               {modoTodos && medInfo && <span className={`w-2 h-2 rounded-full ${medInfo.cor.dot}`} />}
                               {drTitle(medInfo?.sexo ?? medico.sexo)} {medInfo?.nome || medico.nome}
                             </p>
@@ -528,7 +528,7 @@ export default async function AdminAgendamentosPage({
                               )
                             })()}
                             {pac && (
-                              <Link href={`/admin/pacientes/${a.paciente_id}?back=${backEncoded}`} className="inline-flex items-center gap-1 mt-2 text-xs text-[#5BBD9B] hover:underline font-medium">
+                              <Link href={`/admin/pacientes/${a.paciente_id}?back=${backEncoded}`} className="inline-flex items-center gap-1 mt-2 text-xs text-[#6E8570] hover:underline font-medium">
                                 <ExternalLink className="w-3 h-3" /> Ver detalhes do paciente
                               </Link>
                             )}
@@ -614,16 +614,16 @@ export default async function AdminAgendamentosPage({
                     <Link
                       key={idx}
                       href={navLink(wOffset)}
-                      className={`min-h-[100px] p-2 flex flex-col transition-colors hover:bg-[#F3FAF7] ${
+                      className={`min-h-[100px] p-2 flex flex-col transition-colors hover:bg-[#F3F6F3] ${
                         !isCurrentMonth ? 'bg-gray-50/50' : ''
-                      } ${isHoje ? 'bg-[#5BBD9B]/5' : ''}`}
+                      } ${isHoje ? 'bg-[#6E8570]/5' : ''}`}
                     >
                       {/* Número do dia */}
                       <span className={`w-7 h-7 flex items-center justify-center rounded-full text-sm font-bold mb-1 self-start ${
                         isHoje
-                          ? 'bg-[#1A3A2C] text-white'
+                          ? 'bg-[#19382E] text-white'
                           : isCurrentMonth
-                            ? 'text-[#1A3A2C]'
+                            ? 'text-[#19382E]'
                             : 'text-gray-300'
                       }`}>
                         {dia.getDate()}
@@ -660,7 +660,7 @@ export default async function AdminAgendamentosPage({
                                 className={`text-[10px] px-1.5 py-0.5 rounded-md truncate font-medium ${
                                   modoTodos && medInfo
                                     ? `${medInfo.cor.bg} ${medInfo.cor.text}`
-                                    : 'bg-[#5BBD9B]/10 text-[#1A6B4A]'
+                                    : 'bg-[#6E8570]/10 text-[#1A6B4A]'
                                 }`}
                               >
                                 {hora} {nomePac}
@@ -693,7 +693,7 @@ export default async function AdminAgendamentosPage({
             {agendamentosMes.length > 0 && (
               <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                  <h2 className="font-bold text-[#1A3A2C] capitalize">
+                  <h2 className="font-bold text-[#19382E] capitalize">
                     Todos os agendamentos — {labelMesMes}
                   </h2>
                   <span className="text-sm text-gray-400">{agendamentosMes.length} total</span>
@@ -716,17 +716,17 @@ export default async function AdminAgendamentosPage({
                           }`}>
                             {isCancelado
                               ? <XCircle className="w-5 h-5 text-red-300" />
-                              : <User className={`w-5 h-5 ${modoTodos && medInfo ? medInfo.cor.text : 'text-[#5BBD9B]'}`} />
+                              : <User className={`w-5 h-5 ${modoTodos && medInfo ? medInfo.cor.text : 'text-[#6E8570]'}`} />
                             }
                           </div>
                           <div>
                             <Link
                               href={pac ? `/admin/pacientes/${a.paciente_id}?back=${backEncoded}` : '#'}
-                              className={`font-medium hover:text-[#5BBD9B] hover:underline ${isCancelado ? 'line-through text-gray-400' : 'text-gray-800'}`}
+                              className={`font-medium hover:text-[#6E8570] hover:underline ${isCancelado ? 'line-through text-gray-400' : 'text-gray-800'}`}
                             >
                               {pac?.nome || 'Paciente'}
                             </Link>
-                            <p className={`text-xs font-medium mt-0.5 flex items-center gap-1 ${modoTodos && medInfo ? medInfo.cor.text : 'text-[#5BBD9B]'}`}>
+                            <p className={`text-xs font-medium mt-0.5 flex items-center gap-1 ${modoTodos && medInfo ? medInfo.cor.text : 'text-[#6E8570]'}`}>
                               {modoTodos && medInfo && <span className={`w-2 h-2 rounded-full ${medInfo.cor.dot}`} />}
                               {drTitle(medInfo?.sexo ?? medico.sexo)} {medInfo?.nome || medico.nome}
                             </p>
@@ -747,7 +747,7 @@ export default async function AdminAgendamentosPage({
                               </p>
                             )}
                             {pac && (
-                              <Link href={`/admin/pacientes/${a.paciente_id}?back=${backEncoded}`} className="inline-flex items-center gap-1 mt-2 text-xs text-[#5BBD9B] hover:underline font-medium">
+                              <Link href={`/admin/pacientes/${a.paciente_id}?back=${backEncoded}`} className="inline-flex items-center gap-1 mt-2 text-xs text-[#6E8570] hover:underline font-medium">
                                 <ExternalLink className="w-3 h-3" /> Ver detalhes do paciente
                               </Link>
                             )}

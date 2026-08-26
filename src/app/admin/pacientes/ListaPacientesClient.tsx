@@ -72,7 +72,7 @@ export default function ListaPacientesClient({ pacientes }: Props) {
                     <div>
                       <Link
                         href={`/admin/pacientes/${p.id}`}
-                        className="font-medium text-[#5BBD9B] hover:underline"
+                        className="font-medium text-[#6E8570] hover:underline"
                       >
                         {p.nome}
                       </Link>
@@ -126,7 +126,7 @@ export default function ListaPacientesClient({ pacientes }: Props) {
                 </td>
                 <td className="px-6 py-4">
                   {p.ultimoAtend ? (
-                    <span className="text-xs text-[#5BBD9B] font-medium flex items-center gap-1">
+                    <span className="text-xs text-[#6E8570] font-medium flex items-center gap-1">
                       <Stethoscope className="w-3 h-3" />
                       {new Date(p.ultimoAtend).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: 'short', year: 'numeric' })}
                     </span>
@@ -175,7 +175,7 @@ export default function ListaPacientesClient({ pacientes }: Props) {
                       onClick={() => setPagina(p as number)}
                       className={`w-8 h-7 rounded-lg border text-xs font-medium transition-colors ${
                         paginaAtual === p
-                          ? 'bg-[#1A3A2C] border-[#1A3A2C] text-white'
+                          ? 'bg-[#19382E] border-[#19382E] text-white'
                           : 'border-gray-200 hover:bg-gray-50'
                       }`}
                     >

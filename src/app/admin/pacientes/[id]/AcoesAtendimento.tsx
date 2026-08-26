@@ -66,7 +66,7 @@ export default function AcoesAtendimento({ atendimentoId, pacienteId, medicos }:
         <select
           value={medicoSelecionado}
           onChange={e => setMedicoSelecionado(e.target.value)}
-          className="text-xs border border-gray-200 rounded-lg px-2 py-1 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-white max-w-[200px]"
+          className="text-xs border border-gray-200 rounded-lg px-2 py-1 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40 bg-white max-w-[200px]"
           autoFocus
         >
           <option value="">Selecione…</option>

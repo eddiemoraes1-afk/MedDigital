@@ -210,19 +210,19 @@ export default function FichaPacienteExports({
 <style>
   *{box-sizing:border-box}
   body{font-family:Arial,sans-serif;font-size:11px;color:#111;padding:20px 28px}
-  h1{font-size:16px;color:#1A3A2C;margin:0 0 2px}
+  h1{font-size:16px;color:#19382E;margin:0 0 2px}
   .meta{color:#6b7280;font-size:10px;margin-bottom:16px}
   .kpis{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
   .kpi{border:1px solid #e5e7eb;border-radius:8px;padding:8px 14px;min-width:110px}
   .kpi-label{font-size:9px;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em}
-  .kpi-value{font-size:15px;font-weight:700;color:#1A3A2C;margin-top:2px}
+  .kpi-value{font-size:15px;font-weight:700;color:#19382E;margin-top:2px}
   .kpi-value.green{color:#16a34a}.kpi-value.amber{color:#d97706}
   .kpi-value.purple{color:#9333ea}.kpi-value.orange{color:#ea580c}
   .resumo{border:1px solid #e5e7eb;border-radius:8px;padding:10px 14px;margin-bottom:20px;max-width:340px}
   .resumo-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;margin-bottom:6px}
   .resumo-row{display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px}
   .resumo-row.total{font-weight:700;padding-top:5px;border-top:1px solid #e5e7eb;margin-top:5px;font-size:11px}
-  h3{font-size:12px;color:#1A3A2C;font-weight:700;margin:20px 0 6px;padding-bottom:4px;border-bottom:1px solid #e5e7eb}
+  h3{font-size:12px;color:#19382E;font-weight:700;margin:20px 0 6px;padding-bottom:4px;border-bottom:1px solid #e5e7eb}
   table{width:100%;border-collapse:collapse}
   th{background:#f9fafb;text-align:left;padding:5px 8px;font-size:9px;color:#6b7280;text-transform:uppercase}
   td{padding:5px 8px;border-bottom:1px solid #f3f4f6;font-size:10px}

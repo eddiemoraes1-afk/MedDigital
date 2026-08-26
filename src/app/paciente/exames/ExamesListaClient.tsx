@@ -89,7 +89,7 @@ function ExameShareModal({ params, onClose }: { params: ExamesHTMLParams; onClos
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl" onClick={e => e.stopPropagation()}>
-        <h3 className="font-bold text-[#1A3A2C] mb-4 flex items-center gap-2">
+        <h3 className="font-bold text-[#19382E] mb-4 flex items-center gap-2">
           <Share2 className="w-4 h-4" /> Encaminhar Solicitação de Exames
         </h3>
         <p className="text-sm text-gray-500 mb-4">
@@ -98,7 +98,7 @@ function ExameShareModal({ params, onClose }: { params: ExamesHTMLParams; onClos
         <div className="flex flex-col gap-2">
           <button
             onClick={() => baixarComoPDF(html, nomeArquivoExames(params.paciente, params.dataSolicitacao))}
-            className="w-full flex items-center justify-center gap-2 bg-[#1A3A2C] text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-[#5BBD9B] transition-colors"
+            className="w-full flex items-center justify-center gap-2 bg-[#19382E] text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-[#6E8570] transition-colors"
           >
             <Download className="w-4 h-4" /> Baixar PDF para encaminhar
           </button>
@@ -178,7 +178,7 @@ export default function ExamesListaClient({
                     </>
                   ) : (
                     <>
-                      <FlaskConical className="w-4 h-4 text-[#5BBD9B]" />
+                      <FlaskConical className="w-4 h-4 text-[#6E8570]" />
                       <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${URGENCIA_BADGE[urgencia] ?? 'bg-gray-100 text-gray-600'}`}>
                         {URGENCIA_LABEL[urgencia] ?? urgencia}
                       </span>
@@ -204,7 +204,7 @@ export default function ExamesListaClient({
                       <ul className="space-y-1">
                         {listaExames.map((e, i) => (
                           <li key={i} className="flex items-center gap-2 text-sm text-gray-700">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#5BBD9B] shrink-0" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#6E8570] shrink-0" />
                             {e}
                           </li>
                         ))}
@@ -240,14 +240,14 @@ export default function ExamesListaClient({
                     <div className="flex flex-col gap-2 shrink-0">
                       <button
                         onClick={() => imprimirExames(params)}
-                        className="flex items-center gap-1.5 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
+                        className="flex items-center gap-1.5 bg-[#19382E] hover:bg-[#6E8570] text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors"
                       >
                         <Printer className="w-3.5 h-3.5" /> Imprimir
                       </button>
                       <button
                         onClick={() => baixar(ex.id, params)}
                         disabled={baixandoId === ex.id}
-                        className="flex items-center gap-1.5 border border-[#1A3A2C] text-[#1A3A2C] hover:bg-green-50 px-4 py-2 rounded-xl text-xs font-semibold transition-colors disabled:opacity-60"
+                        className="flex items-center gap-1.5 border border-[#19382E] text-[#19382E] hover:bg-green-50 px-4 py-2 rounded-xl text-xs font-semibold transition-colors disabled:opacity-60"
                       >
                         {baixandoId === ex.id
                           ? <Loader2 className="w-3.5 h-3.5 animate-spin" />

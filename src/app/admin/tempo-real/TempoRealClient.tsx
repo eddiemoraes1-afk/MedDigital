@@ -119,7 +119,7 @@ export default function TempoRealClient() {
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-48 gap-3">
-        <Loader2 className="w-9 h-9 animate-spin text-[#5BBD9B]" />
+        <Loader2 className="w-9 h-9 animate-spin text-[#6E8570]" />
         <p className="text-gray-400 text-sm">Conectando ao tempo real...</p>
       </div>
     )
@@ -168,7 +168,7 @@ export default function TempoRealClient() {
           )}
           <button
             onClick={fetchData}
-            className="ml-1 text-[#5BBD9B] hover:text-[#1A3A2C] transition-colors"
+            className="ml-1 text-[#6E8570] hover:text-[#19382E] transition-colors"
             title="Atualizar agora"
           >
             <RefreshCw className="w-4 h-4" />
@@ -189,7 +189,7 @@ export default function TempoRealClient() {
                 <div className="p-1.5 bg-blue-100 rounded-lg">
                   <Stethoscope className="w-4 h-4 text-blue-600" />
                 </div>
-                <h2 className="font-bold text-[#1A3A2C] text-sm">Em Consulta</h2>
+                <h2 className="font-bold text-[#19382E] text-sm">Em Consulta</h2>
                 <span className="ml-auto text-xs bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">
                   {medicosAtendendo.length}
                 </span>
@@ -210,7 +210,7 @@ export default function TempoRealClient() {
                           <span className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${consulta?.assumido ? 'bg-amber-400' : 'bg-blue-500'}`} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-xs font-bold text-[#1A3A2C] truncate">{m.nome}</p>
+                          <p className="text-xs font-bold text-[#19382E] truncate">{m.nome}</p>
                           <p className={`text-[10px] font-medium ${consulta?.assumido ? 'text-amber-600' : 'text-blue-500'}`}>{m.especialidade}</p>
                         </div>
                         {consulta?.assumido && (
@@ -272,7 +272,7 @@ export default function TempoRealClient() {
               <div className="p-1.5 bg-green-100 rounded-lg">
                 <Wifi className="w-4 h-4 text-green-600" />
               </div>
-              <h2 className="font-bold text-[#1A3A2C] text-sm">Online · Disponíveis</h2>
+              <h2 className="font-bold text-[#19382E] text-sm">Online · Disponíveis</h2>
               <span className="ml-auto text-xs bg-green-100 text-green-700 font-semibold px-2 py-0.5 rounded-full">
                 {medicosOnline.length}
               </span>
@@ -293,7 +293,7 @@ export default function TempoRealClient() {
                       <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-white" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-[#1A3A2C] truncate">{m.nome}</p>
+                      <p className="text-xs font-semibold text-[#19382E] truncate">{m.nome}</p>
                       <p className="text-[10px] text-gray-400">{m.especialidade}</p>
                     </div>
                     <span className="text-[10px] text-green-600 font-semibold shrink-0">Livre</span>
@@ -336,11 +336,11 @@ export default function TempoRealClient() {
         <div className="lg:col-span-2">
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-50">
             <div className="flex items-center gap-2 mb-5">
-              <div className="p-1.5 bg-[#1A3A2C] rounded-lg">
-                <Activity className="w-4 h-4 text-[#5BBD9B]" />
+              <div className="p-1.5 bg-[#19382E] rounded-lg">
+                <Activity className="w-4 h-4 text-[#6E8570]" />
               </div>
-              <h2 className="font-bold text-[#1A3A2C] text-sm">Fila de Atendimento Virtual</h2>
-              <span className="ml-auto text-xs bg-[#1A3A2C] text-[#5BBD9B] font-semibold px-2 py-0.5 rounded-full">
+              <h2 className="font-bold text-[#19382E] text-sm">Fila de Atendimento Virtual</h2>
+              <span className="ml-auto text-xs bg-[#19382E] text-[#6E8570] font-semibold px-2 py-0.5 rounded-full">
                 {fila.length} {fila.length === 1 ? 'paciente' : 'pacientes'}
               </span>
             </div>
@@ -369,7 +369,7 @@ export default function TempoRealClient() {
                         {/* Posição */}
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold text-sm ${
                           item.posicao === 1
-                            ? 'bg-[#1A3A2C] text-[#5BBD9B]'
+                            ? 'bg-[#19382E] text-[#6E8570]'
                             : 'bg-white text-gray-500 border border-gray-200'
                         }`}>
                           {item.posicao}
@@ -378,7 +378,7 @@ export default function TempoRealClient() {
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-bold text-[#1A3A2C] text-sm">{item.paciente_nome}</p>
+                            <p className="font-bold text-[#19382E] text-sm">{item.paciente_nome}</p>
                             <RiscoBadge risco={item.classificacao_risco} />
                             {item.medico_id && (
                               <span className="text-[9px] font-bold bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0.5 rounded-full animate-pulse">
@@ -434,7 +434,7 @@ export default function TempoRealClient() {
                 <div className="p-1.5 bg-teal-100 rounded-lg">
                   <Stethoscope className="w-4 h-4 text-teal-600" />
                 </div>
-                <h2 className="font-bold text-[#1A3A2C] text-sm">Consultas em Andamento</h2>
+                <h2 className="font-bold text-[#19382E] text-sm">Consultas em Andamento</h2>
                 <span className="ml-auto text-xs bg-teal-100 text-teal-700 font-semibold px-2 py-0.5 rounded-full">
                   {consultasAtivas.length}
                 </span>
@@ -462,7 +462,7 @@ export default function TempoRealClient() {
                       return (
                         <tr key={c.id} className="border-b border-gray-50 hover:bg-gray-50">
                           <td className="py-3 pr-4">
-                            <p className="font-semibold text-[#1A3A2C] text-xs">{c.medico_nome}</p>
+                            <p className="font-semibold text-[#19382E] text-xs">{c.medico_nome}</p>
                             <p className="text-[10px] text-gray-400">{c.medico_especialidade}</p>
                           </td>
                           <td className="py-3 pr-4">

@@ -151,7 +151,7 @@ export default function FluxoCaixaTab() {
             <div className="rounded-2xl border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
               <table className="w-full text-sm">
                 <thead>
-                  <tr style={{ background: '#1A3A2C', color: 'white' }}>
+                  <tr style={{ background: '#19382E', color: 'white' }}>
                     {['Data', 'Entradas', 'Saídas', 'Saldo do Dia', 'Saldo Acumulado', 'Visual'].map((h, i) => (
                       <th key={h} className={`px-5 py-3 font-semibold ${i === 0 || i === 5 ? 'text-left' : 'text-right'}`}>{h}</th>
                     ))}

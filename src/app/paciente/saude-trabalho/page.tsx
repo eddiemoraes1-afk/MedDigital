@@ -92,7 +92,7 @@ function Resultado({ nivel, score, onAgendar }: {
 }) {
   const cfg = {
     baixo: {
-      cor: '#5BBD9B',
+      cor: '#6E8570',
       bgCor: 'bg-emerald-50',
       borderCor: 'border-emerald-200',
       textoCor: 'text-emerald-700',
@@ -230,7 +230,7 @@ export default function SaudeTrabalhoPage() {
         <p className="text-sm text-gray-400">
           Esta avaliação é para funcionários vinculados a uma empresa. Você não tem vínculo ativo no momento.
         </p>
-        <Link href="/paciente/dashboard" className="inline-flex items-center gap-1 text-sm text-[#5BBD9B] hover:underline">
+        <Link href="/paciente/dashboard" className="inline-flex items-center gap-1 text-sm text-[#6E8570] hover:underline">
           <ArrowLeft className="w-4 h-4" /> Voltar ao início
         </Link>
       </div>
@@ -248,8 +248,8 @@ export default function SaudeTrabalhoPage() {
     return (
       <div className="min-h-screen flex items-center justify-center p-6">
         <div className="max-w-sm w-full text-center space-y-5">
-          <CheckCircle2 className="w-12 h-12 text-[#5BBD9B] mx-auto" />
-          <h2 className="font-bold text-[#1A3A2C] text-lg">Você já respondeu recentemente</h2>
+          <CheckCircle2 className="w-12 h-12 text-[#6E8570] mx-auto" />
+          <h2 className="font-bold text-[#19382E] text-lg">Você já respondeu recentemente</h2>
           <div className={`rounded-2xl p-5 border ${nivelCfg.bg}`}>
             <p className="text-xs text-gray-400 mb-1">Sua última avaliação</p>
             <p className="text-sm text-gray-600">
@@ -262,7 +262,7 @@ export default function SaudeTrabalhoPage() {
           <p className="text-xs text-gray-400">
             O questionário fica disponível novamente após 6 meses.
           </p>
-          <Link href="/paciente/dashboard" className="inline-flex items-center gap-1 text-sm text-[#5BBD9B] hover:underline">
+          <Link href="/paciente/dashboard" className="inline-flex items-center gap-1 text-sm text-[#6E8570] hover:underline">
             <ArrowLeft className="w-4 h-4" /> Voltar ao início
           </Link>
         </div>
@@ -284,7 +284,7 @@ export default function SaudeTrabalhoPage() {
   // Enviando
   if (etapa === 'enviando') return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-3 text-gray-400">
-      <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
+      <Loader2 className="w-8 h-8 animate-spin text-[#6E8570]" />
       <p className="text-sm">Processando suas respostas...</p>
     </div>
   )
@@ -294,10 +294,10 @@ export default function SaudeTrabalhoPage() {
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="max-w-md w-full space-y-6">
         <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl bg-[#5BBD9B]/10 flex items-center justify-center mx-auto mb-4">
-            <Heart className="w-8 h-8 text-[#5BBD9B]" />
+          <div className="w-16 h-16 rounded-2xl bg-[#6E8570]/10 flex items-center justify-center mx-auto mb-4">
+            <Heart className="w-8 h-8 text-[#6E8570]" />
           </div>
-          <h1 className="text-2xl font-bold text-[#1A3A2C]">Saúde no Trabalho</h1>
+          <h1 className="text-2xl font-bold text-[#19382E]">Saúde no Trabalho</h1>
           <p className="text-gray-500 mt-2 text-sm leading-relaxed">
             Um breve questionário para entendermos como o ambiente de trabalho está impactando seu bem-estar.
           </p>
@@ -320,7 +320,7 @@ export default function SaudeTrabalhoPage() {
         <button
           onClick={() => setEtapa('questionario')}
           className="w-full py-3.5 rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-colors"
-          style={{ background: '#1A3A2C' }}
+          style={{ background: '#19382E' }}
         >
           Começar
           <ChevronRight className="w-4 h-4" />
@@ -353,14 +353,14 @@ export default function SaudeTrabalhoPage() {
           <div className="w-full bg-gray-100 rounded-full h-1.5">
             <div
               className="h-1.5 rounded-full transition-all duration-300"
-              style={{ width: `${((paginaAtual + 1) / totalPaginas) * 100}%`, background: '#5BBD9B' }}
+              style={{ width: `${((paginaAtual + 1) / totalPaginas) * 100}%`, background: '#6E8570' }}
             />
           </div>
         </div>
 
         {/* Pergunta */}
         <div className="text-center space-y-2">
-          <p className="text-lg font-bold text-[#1A3A2C] leading-snug">{perguntaAtual.texto}</p>
+          <p className="text-lg font-bold text-[#19382E] leading-snug">{perguntaAtual.texto}</p>
         </div>
 
         {/* Opções */}
@@ -373,8 +373,8 @@ export default function SaudeTrabalhoPage() {
                 onClick={() => responder(opcao.valor)}
                 className="w-full py-3.5 px-5 rounded-xl text-sm font-semibold text-left transition-all border"
                 style={selecionada ? {
-                  background: '#1A3A2C',
-                  borderColor: '#1A3A2C',
+                  background: '#19382E',
+                  borderColor: '#19382E',
                   color: '#fff',
                   boxShadow: '0 4px 12px rgba(26,58,44,0.2)',
                 } : {
@@ -383,7 +383,7 @@ export default function SaudeTrabalhoPage() {
                   color: '#374151',
                 }}
                 onMouseEnter={e => {
-                  if (!selecionada) (e.currentTarget as HTMLElement).style.borderColor = '#5BBD9B'
+                  if (!selecionada) (e.currentTarget as HTMLElement).style.borderColor = '#6E8570'
                 }}
                 onMouseLeave={e => {
                   if (!selecionada) (e.currentTarget as HTMLElement).style.borderColor = '#E5E7EB'
@@ -416,7 +416,7 @@ export default function SaudeTrabalhoPage() {
             onClick={avancar}
             disabled={!podeAvancar}
             className="flex-1 py-3 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-40"
-            style={{ background: podeAvancar ? '#1A3A2C' : '#9CA3AF' }}
+            style={{ background: podeAvancar ? '#19382E' : '#9CA3AF' }}
           >
             {paginaAtual === totalPaginas - 1 ? 'Ver resultado' : 'Próxima'}
             <ChevronRight className="w-4 h-4" />

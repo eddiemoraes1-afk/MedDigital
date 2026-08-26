@@ -65,7 +65,7 @@ function Secao({ titulo, icone, count, children }: {
         onClick={() => setAberto(v => !v)}
         className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/5 transition-colors"
       >
-        <span className="flex items-center gap-2 text-xs font-semibold text-green-200 uppercase tracking-wide">
+        <span className="flex items-center gap-2 text-xs font-semibold text-white/70 uppercase tracking-wide">
           {icone} {titulo}
           {count !== undefined && count > 0 && (
             <span className="bg-white/20 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">{count}</span>
@@ -96,9 +96,9 @@ export default function ProntuarioDrawer({ pacienteId, onFechar }: Props) {
     <div className="absolute inset-y-0 left-0 w-[400px] z-20 flex flex-col bg-[#0F2318] border-r border-white/10 shadow-2xl">
 
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-[#1A3A2C] border-b border-white/10 shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 bg-[#19382E] border-b border-white/10 shrink-0">
         <div className="flex items-center gap-2">
-          <FileText className="w-4 h-4 text-[#5BBD9B]" />
+          <FileText className="w-4 h-4 text-[#6E8570]" />
           <span className="text-sm font-bold text-white">Prontuário do Paciente</span>
         </div>
         <button
@@ -113,7 +113,7 @@ export default function ProntuarioDrawer({ pacienteId, onFechar }: Props) {
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-40 gap-3">
-            <Loader2 className="w-6 h-6 animate-spin text-[#5BBD9B]" />
+            <Loader2 className="w-6 h-6 animate-spin text-[#6E8570]" />
             <p className="text-xs text-green-300">Carregando prontuário...</p>
           </div>
         ) : !dados ? (
@@ -121,10 +121,10 @@ export default function ProntuarioDrawer({ pacienteId, onFechar }: Props) {
         ) : (
           <>
             {/* Dados do paciente */}
-            <div className="px-4 py-3 bg-[#1A3A2C]/60 border-b border-white/10">
+            <div className="px-4 py-3 bg-[#19382E]/60 border-b border-white/10">
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#5BBD9B]/20 flex items-center justify-center shrink-0 mt-0.5">
-                  <User className="w-4 h-4 text-[#5BBD9B]" />
+                <div className="w-9 h-9 rounded-full bg-[#6E8570]/20 flex items-center justify-center shrink-0 mt-0.5">
+                  <User className="w-4 h-4 text-[#6E8570]" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-white font-semibold text-sm leading-tight">{dados.paciente?.nome ?? '—'}</p>
@@ -301,7 +301,7 @@ export default function ProntuarioDrawer({ pacienteId, onFechar }: Props) {
                     <div className="mt-1.5 space-y-0.5">
                       {e.exames.split('\n').filter(Boolean).map((x: string, i: number) => (
                         <p key={i} className="text-xs text-blue-200 flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#5BBD9B] shrink-0" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#6E8570] shrink-0" />
                           {x.trim()}
                         </p>
                       ))}

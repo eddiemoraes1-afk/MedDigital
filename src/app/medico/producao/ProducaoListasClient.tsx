@@ -209,10 +209,10 @@ function imprimirRelatorio(
   <title>Produção — ${drTitle(medicoSexo)} ${medicoNome}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; font-size: 11px; color: #1A3A2C; padding: 24px; }
+    body { font-family: Arial, sans-serif; font-size: 11px; color: #19382E; padding: 24px; }
     h1  { font-size: 17px; margin-bottom: 2px; }
     .sub { color: #6b7280; font-size: 11px; margin-bottom: 20px; }
-    h2  { font-size: 12px; margin: 18px 0 8px; color: #5BBD9B; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
+    h2  { font-size: 12px; margin: 18px 0 8px; color: #6E8570; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; }
     table { width: 100%; border-collapse: collapse; }
     th { text-align: left; font-size: 10px; color: #6b7280; border-bottom: 1px solid #e5e7eb; padding: 5px 8px; }
     td { padding: 5px 8px; border-bottom: 1px solid #f3f4f6; }
@@ -408,7 +408,7 @@ export default function ProducaoListasClient({
           placeholder="Buscar paciente…"
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="text-xs rounded-lg pl-7 pr-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 w-44"
+          className="text-xs rounded-lg pl-7 pr-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40 w-44"
           style={{ border: '1px solid var(--border-2)', background: 'var(--surface-2)', color: 'var(--txt-1)' }}
         />
       </div>
@@ -443,7 +443,7 @@ export default function ProducaoListasClient({
       <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
         <div className="px-6 py-4 flex items-center justify-between gap-4" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-[#5BBD9B]" />
+            <CheckCircle2 className="w-4 h-4 text-[#6E8570]" />
             <h3 className="font-bold text-sm" style={{ color: 'var(--txt-1)' }}>
               Consultas ({consultasFiltradas.length}{buscaC ? ` de ${consultas.length}` : ''})
             </h3>

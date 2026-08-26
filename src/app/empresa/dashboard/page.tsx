@@ -100,7 +100,7 @@ export default async function EmpresaDashboardPage({ searchParams }: Props) {
                 <img src={empresa.logo_url} alt={empresa?.nome || 'Logo'} className="h-full w-full object-contain rounded-lg" />
               </div>
             ) : (
-              <img src="/logo-branca.svg" alt="RovarisMed" className="h-8" />
+              <img src="/aduno-logo-branca.png" alt="Aduno" className="h-8" />
             )}
             <span className="text-xs font-semibold ml-1 px-2 py-0.5 rounded-full" style={{ color: tema.corTextoSuave, background: 'rgba(255,255,255,0.10)' }}>
               Portal {empresa?.nome}

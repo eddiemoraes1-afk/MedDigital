@@ -174,7 +174,7 @@ export default function AntecedentesForm({ pacienteId, inicial, logsIniciais = [
           </div>
           <button
             onClick={() => setEditando(true)}
-            className="flex items-center gap-1.5 text-xs text-[#1A3A2C] border border-gray-200 hover:bg-gray-50 px-3 py-1.5 rounded-lg font-medium transition-colors"
+            className="flex items-center gap-1.5 text-xs text-[#19382E] border border-gray-200 hover:bg-gray-50 px-3 py-1.5 rounded-lg font-medium transition-colors"
           >
             <Edit3 className="w-3.5 h-3.5" />
             {temDados ? 'Editar antecedentes' : 'Preencher antecedentes'}
@@ -219,7 +219,7 @@ export default function AntecedentesForm({ pacienteId, inicial, logsIniciais = [
                     >
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 min-w-0">
                         {/* Médico */}
-                        <span className="text-xs font-semibold text-[#1A3A2C] truncate">
+                        <span className="text-xs font-semibold text-[#19382E] truncate">
                           {medInfo
                             ? `${prefixo(medInfo.sexo)} ${medInfo.nome}`
                             : 'Médico desconhecido'}
@@ -291,7 +291,7 @@ export default function AntecedentesForm({ pacienteId, inicial, logsIniciais = [
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-semibold text-[#1A3A2C]">Editando antecedentes</p>
+        <p className="text-sm font-semibold text-[#19382E]">Editando antecedentes</p>
         <button onClick={cancelar} className="text-gray-400 hover:text-gray-600">
           <X className="w-4 h-4" />
         </button>
@@ -315,7 +315,7 @@ export default function AntecedentesForm({ pacienteId, inicial, logsIniciais = [
             onChange={e => f.onChange(e.target.value)}
             placeholder={f.placeholder}
             rows={f.rows}
-            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none placeholder-gray-300"
+            className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570] resize-none placeholder-gray-300"
           />
         </div>
       ))}
@@ -326,7 +326,7 @@ export default function AntecedentesForm({ pacienteId, inicial, logsIniciais = [
         <button
           onClick={salvar}
           disabled={salvando}
-          className="flex-1 flex items-center justify-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60"
+          className="flex-1 flex items-center justify-center gap-2 bg-[#19382E] hover:bg-[#6E8570] text-white py-2.5 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60"
         >
           {salvando ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
           Salvar antecedentes

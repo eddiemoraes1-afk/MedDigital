@@ -36,7 +36,7 @@ const URGENCIA_LABEL: Record<string, string> = {
   emergencia: 'Emergência',
 }
 const URGENCIA_COLOR: Record<string, string> = {
-  normal: '#5BBD9B',
+  normal: '#6E8570',
   urgente: '#D97706',
   emergencia: '#DC2626',
 }
@@ -72,7 +72,7 @@ function DonutChart({ slices, centerLabel }: {
             <title>{s.label}: {s.value}</title>
           </path>
         ))}
-        <text x="0" y="-5" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#1A3A2C">{centerLabel ?? total}</text>
+        <text x="0" y="-5" textAnchor="middle" fontSize="11" fontWeight="bold" fill="#19382E">{centerLabel ?? total}</text>
         <text x="0" y="10" textAnchor="middle" fontSize="7" fill="#9CA3AF">total</text>
       </svg>
       <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 max-w-xs">
@@ -88,7 +88,7 @@ function DonutChart({ slices, centerLabel }: {
 }
 
 // ── Bar Chart ─────────────────────────────────────────────────────────────────
-function BarChart({ data, color = '#5BBD9B', labelKey = 'label', valueKey = 'value', horizontal = false }: {
+function BarChart({ data, color = '#6E8570', labelKey = 'label', valueKey = 'value', horizontal = false }: {
   data: any[]
   color?: string
   labelKey?: string
@@ -120,7 +120,7 @@ function BarChart({ data, color = '#5BBD9B', labelKey = 'label', valueKey = 'val
     <div className="flex items-end gap-1 h-40 overflow-x-auto pb-1">
       {data.map((d, i) => (
         <div key={i} className="flex flex-col items-center gap-1 min-w-[40px]">
-          <span className="text-xs font-bold text-[#1A3A2C]">{d[valueKey]}</span>
+          <span className="text-xs font-bold text-[#19382E]">{d[valueKey]}</span>
           <div
             className="w-8 rounded-t-md transition-all"
             style={{ height: `${Math.max(4, (d[valueKey] / max) * 120)}px`, background: color }}
@@ -144,7 +144,7 @@ function KpiCard({ label, value, icon: Icon, color }: {
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs text-gray-400 font-medium">{label}</p>
-          <p className="text-2xl font-bold text-[#1A3A2C] mt-1">{value}</p>
+          <p className="text-2xl font-bold text-[#19382E] mt-1">{value}</p>
         </div>
         <div className="p-2.5 rounded-xl" style={{ background: color + '18' }}>
           <Icon className="w-5 h-5" style={{ color }} />
@@ -235,15 +235,15 @@ function exportarPDF(data: any, inicio: string, fim: string) {
   const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/>
   <style>
     body{font-family:Arial,sans-serif;font-size:10px;color:#222;padding:20px}
-    h1{color:#1A3A2C;font-size:16px;margin-bottom:4px}
+    h1{color:#19382E;font-size:16px;margin-bottom:4px}
     p.sub{color:#666;font-size:10px;margin-bottom:16px}
     table{width:100%;border-collapse:collapse;margin-top:8px}
-    th{background:#1A3A2C;color:white;padding:6px 8px;text-align:left;font-size:10px}
+    th{background:#19382E;color:white;padding:6px 8px;text-align:left;font-size:10px}
     td{border-bottom:1px solid #eee;padding:5px 8px;vertical-align:top}
     tr:nth-child(even) td{background:#F9F9F9}
     .kpis{display:flex;gap:16px;margin-bottom:16px}
-    .kpi{background:#F0F9F5;border:1px solid #5BBD9B;border-radius:8px;padding:10px 14px;min-width:120px}
-    .kpi .val{font-size:18px;font-weight:700;color:#1A3A2C}
+    .kpi{background:#F0F9F5;border:1px solid #6E8570;border-radius:8px;padding:10px 14px;min-width:120px}
+    .kpi .val{font-size:18px;font-weight:700;color:#19382E}
     .kpi .lbl{font-size:9px;color:#666}
     @media print{body{padding:10px}}
   </style></head><body>
@@ -328,19 +328,19 @@ export default function ExamesDashboard() {
       {/* ── Filtros ── */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4">
         <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1.5 text-sm font-semibold text-[#1A3A2C] shrink-0">
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-[#19382E] shrink-0">
             <Filter className="w-4 h-4" /> Filtros
           </div>
 
           <input type="date" value={inicio} onChange={e => setInicio(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]" />
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570]" />
           <span className="text-gray-400 text-sm">até</span>
           <input type="date" value={fim} onChange={e => setFim(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]" />
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570]" />
 
           {data?.empresas?.length > 0 && (
             <select value={empresaId} onChange={e => setEmpresaId(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]">
+              className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570]">
               <option value="">Todas as empresas</option>
               <option value="__particular__">Particular</option>
               {data.empresas.map((e: any) => (
@@ -350,7 +350,7 @@ export default function ExamesDashboard() {
           )}
 
           <select value={urgenciaFiltro} onChange={e => setUrgenciaFiltro(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]">
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570]">
             <option value="">Todas as urgências</option>
             <option value="normal">Normal</option>
             <option value="urgente">Urgente</option>
@@ -359,11 +359,11 @@ export default function ExamesDashboard() {
 
           <input type="text" value={nomePac} onChange={e => setNomePac(e.target.value)}
             placeholder="Buscar paciente..."
-            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-44 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]" />
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-44 focus:outline-none focus:ring-2 focus:ring-[#6E8570]" />
 
           <input type="text" value={nomeExame} onChange={e => setNomeExame(e.target.value)}
             placeholder="Buscar exame..."
-            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-44 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]" />
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-44 focus:outline-none focus:ring-2 focus:ring-[#6E8570]" />
 
           {temFiltros && (
             <button onClick={limparFiltros}
@@ -383,7 +383,7 @@ export default function ExamesDashboard() {
         {/* Filtros ativos */}
         {(data || temFiltros) && (
           <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-2 text-xs text-gray-500">
-            <span>Período: <strong className="text-[#1A3A2C]">{fmtDate(inicio)} – {fmtDate(fim)}</strong></span>
+            <span>Período: <strong className="text-[#19382E]">{fmtDate(inicio)} – {fmtDate(fim)}</strong></span>
             {temFiltros && <span className="text-amber-600 font-medium">· Filtros ativos</span>}
             {data && <span className="ml-auto text-gray-400">{data.kpis.totalSolicitacoes} solicitação(ões)</span>}
           </div>
@@ -392,7 +392,7 @@ export default function ExamesDashboard() {
 
       {loading && (
         <div className="flex justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#6E8570]" />
         </div>
       )}
 
@@ -408,7 +408,7 @@ export default function ExamesDashboard() {
         <>
           {/* ── KPIs ── */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <KpiCard label="Total de Solicitações" value={data.kpis.totalSolicitacoes} icon={FlaskConical} color="#5BBD9B" />
+            <KpiCard label="Total de Solicitações" value={data.kpis.totalSolicitacoes} icon={FlaskConical} color="#6E8570" />
             <KpiCard label="Total de Exames" value={data.kpis.totalExames} icon={Calendar} color="#3B82F6" />
             <KpiCard label="Pacientes Únicos" value={data.kpis.pacientesUnicos} icon={Users} color="#8B5CF6" />
             <KpiCard label="Urgentes / Emergência" value={data.kpis.urgentes} icon={AlertTriangle} color="#D97706" />
@@ -417,14 +417,14 @@ export default function ExamesDashboard() {
           {/* ── Linha 1: Por Mês + Por Urgência ── */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2 bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <p className="text-sm font-semibold text-[#1A3A2C] mb-4">Solicitações por Mês</p>
+              <p className="text-sm font-semibold text-[#19382E] mb-4">Solicitações por Mês</p>
               <BarChart
                 data={data.porMes.map((d: any) => ({ label: formatMes(d.mes), value: d.total }))}
-                color="#5BBD9B"
+                color="#6E8570"
               />
             </div>
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <p className="text-sm font-semibold text-[#1A3A2C] mb-4">Por Urgência</p>
+              <p className="text-sm font-semibold text-[#19382E] mb-4">Por Urgência</p>
               <DonutChart
                 slices={data.porUrgencia.map((d: any) => ({
                   label: URGENCIA_LABEL[d.urgencia] ?? d.urgencia,
@@ -438,17 +438,17 @@ export default function ExamesDashboard() {
           {/* ── Linha 2: Por Sexo + Por Empresa ── */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <p className="text-sm font-semibold text-[#1A3A2C] mb-4">Por Sexo do Paciente</p>
+              <p className="text-sm font-semibold text-[#19382E] mb-4">Por Sexo do Paciente</p>
               <DonutChart
                 slices={data.porSexo.map((d: any, i: number) => ({
                   label: d.sexo,
                   value: d.total,
-                  color: ['#5BBD9B', '#3B82F6', '#8B5CF6', '#D97706'][i % 4],
+                  color: ['#6E8570', '#3B82F6', '#8B5CF6', '#D97706'][i % 4],
                 }))}
               />
             </div>
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <p className="text-sm font-semibold text-[#1A3A2C] mb-4">Por Empresa</p>
+              <p className="text-sm font-semibold text-[#19382E] mb-4">Por Empresa</p>
               <BarChart
                 data={data.porEmpresa.slice(0, 10).map((d: any) => ({ label: d.nome, value: d.total }))}
                 color="#3B82F6"
@@ -461,7 +461,7 @@ export default function ExamesDashboard() {
 
           {/* ── Linha 3: Top Exames ── */}
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <p className="text-sm font-semibold text-[#1A3A2C] mb-4">Top 20 Exames mais Solicitados</p>
+            <p className="text-sm font-semibold text-[#19382E] mb-4">Top 20 Exames mais Solicitados</p>
             <BarChart
               data={data.topExames.map((d: any) => ({ label: d.nome, value: d.total }))}
               color="#8B5CF6"
@@ -471,7 +471,7 @@ export default function ExamesDashboard() {
 
           {/* ── Linha 4: Por Médico ── */}
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <p className="text-sm font-semibold text-[#1A3A2C] mb-4">Solicitações por Médico</p>
+            <p className="text-sm font-semibold text-[#19382E] mb-4">Solicitações por Médico</p>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -485,7 +485,7 @@ export default function ExamesDashboard() {
                   {data.porMedico.map((m: any, i: number) => (
                     <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
                       <td className="py-2.5 pr-4 font-medium text-gray-700">{m.nome}</td>
-                      <td className="py-2.5 pr-4 text-right text-[#1A3A2C] font-semibold">{m.total}</td>
+                      <td className="py-2.5 pr-4 text-right text-[#19382E] font-semibold">{m.total}</td>
                       <td className="py-2.5 text-right text-blue-600 font-semibold">{m.exames}</td>
                     </tr>
                   ))}
@@ -499,7 +499,7 @@ export default function ExamesDashboard() {
 
           {/* ── Top Pacientes ── */}
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <p className="text-sm font-semibold text-[#1A3A2C] mb-4">Top 10 Pacientes</p>
+            <p className="text-sm font-semibold text-[#19382E] mb-4">Top 10 Pacientes</p>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -515,7 +515,7 @@ export default function ExamesDashboard() {
                     <tr key={i} className="border-b border-gray-50 hover:bg-gray-50">
                       <td className="py-2.5 pr-4 text-gray-400 text-xs">{i + 1}</td>
                       <td className="py-2.5 pr-4 font-medium text-gray-700">{p.nome}</td>
-                      <td className="py-2.5 pr-4 text-right text-[#1A3A2C] font-semibold">{p.total}</td>
+                      <td className="py-2.5 pr-4 text-right text-[#19382E] font-semibold">{p.total}</td>
                       <td className="py-2.5 text-right">
                         {p.urgentes > 0
                           ? <span className="text-red-500 font-semibold">{p.urgentes}</span>
@@ -533,7 +533,7 @@ export default function ExamesDashboard() {
 
           {/* ── Lista Completa ── */}
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-            <p className="text-sm font-semibold text-[#1A3A2C] mb-4">
+            <p className="text-sm font-semibold text-[#19382E] mb-4">
               Lista Completa de Solicitações
               <span className="ml-2 text-xs font-normal text-gray-400">({data.registros.length} registros)</span>
             </p>
@@ -560,13 +560,13 @@ export default function ExamesDashboard() {
                       <td className="py-2 pr-3">
                         <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
                           style={{
-                            background: (URGENCIA_COLOR[r.urgencia] ?? '#5BBD9B') + '20',
-                            color: URGENCIA_COLOR[r.urgencia] ?? '#5BBD9B',
+                            background: (URGENCIA_COLOR[r.urgencia] ?? '#6E8570') + '20',
+                            color: URGENCIA_COLOR[r.urgencia] ?? '#6E8570',
                           }}>
                           {URGENCIA_LABEL[r.urgencia] ?? r.urgencia}
                         </span>
                       </td>
-                      <td className="py-2 pr-3 text-right text-[#1A3A2C] font-semibold text-xs">{r.total_exames}</td>
+                      <td className="py-2 pr-3 text-right text-[#19382E] font-semibold text-xs">{r.total_exames}</td>
                       <td className="py-2 text-xs text-gray-500 max-w-[200px]">
                         {r.exames.split('\n').slice(0, 2).join(', ')}
                         {r.exames.split('\n').length > 2 && ` +${r.exames.split('\n').length - 2} mais`}

@@ -165,7 +165,7 @@ export default async function PacienteDashboard() {
             className="rounded-2xl px-5 py-4 mb-6 flex items-center gap-4"
             style={{
               background: 'rgba(91,189,155,0.12)',
-              border: '1.5px solid #5BBD9B',
+              border: '1.5px solid #6E8570',
               boxShadow: '0 0 0 4px rgba(91,189,155,0.07)',
             }}
           >
@@ -173,7 +173,7 @@ export default async function PacienteDashboard() {
               className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
               style={{ background: 'rgba(91,189,155,0.2)' }}
             >
-              <Video className="w-5 h-5" style={{ color: '#5BBD9B' }} />
+              <Video className="w-5 h-5" style={{ color: '#6E8570' }} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-bold text-sm" style={{ color: 'var(--txt-1)' }}>
@@ -188,7 +188,7 @@ export default async function PacienteDashboard() {
             <Link
               href={`/paciente/consulta/${consultaAtiva.id}`}
               className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold text-white transition-colors"
-              style={{ background: '#5BBD9B' }}
+              style={{ background: '#6E8570' }}
             >
               Voltar à sala
               <ChevronRight className="w-4 h-4" />

@@ -162,7 +162,7 @@ export default function DRETab() {
           <div className="rounded-2xl border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
             <table className="w-full text-sm">
               <thead>
-                <tr style={{ background: '#1A3A2C', color: 'white' }}>
+                <tr style={{ background: '#19382E', color: 'white' }}>
                   {['Conta / Categoria', 'Previsto', 'Realizado', '% Rec. Bruta'].map((h, i) => (
                     <th key={h} className={`px-5 py-3 font-semibold ${i > 0 ? 'text-right' : 'text-left'}`}>{h}</th>
                   ))}

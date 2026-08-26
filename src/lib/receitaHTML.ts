@@ -68,8 +68,8 @@ export function gerarHTMLReceita(p: ReceitaHTMLParams, comAutoprint = false): st
   const prescricao = instrucoes?.trim() ? instrucoes : medicamentos
 
   const isEspecial = tipo === 'especial' || tipo === 'antimicrobiano'
-  const corTitulo = isEspecial ? '#7C3AED' : '#1A3A2C'
-  const corLinha = isEspecial ? '#7C3AED' : '#5BBD9B'
+  const corTitulo = isEspecial ? '#7C3AED' : '#19382E'
+  const corLinha = isEspecial ? '#7C3AED' : '#6E8570'
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -83,18 +83,18 @@ export function gerarHTMLReceita(p: ReceitaHTMLParams, comAutoprint = false): st
   .page{width:210mm;min-height:297mm;padding:20mm 20mm 18mm;margin:0 auto;display:flex;flex-direction:column}
   .header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid ${corTitulo};padding-bottom:14px;margin-bottom:24px}
   .header-left{display:flex;align-items:center;gap:12px}
-  .logo-box{width:48px;height:48px;background:#1A3A2C;border-radius:10px;display:flex;align-items:center;justify-content:center}
+  .logo-box{width:48px;height:48px;background:#19382E;border-radius:10px;display:flex;align-items:center;justify-content:center}
   .logo-box svg{width:28px;height:28px}
-  .clinic-name{font-size:15pt;font-weight:700;color:#1A3A2C;line-height:1.2}
-  .clinic-sub{font-size:8pt;color:#5BBD9B;font-weight:500;letter-spacing:.5px;text-transform:uppercase}
+  .clinic-name{font-size:15pt;font-weight:700;color:#19382E;line-height:1.2}
+  .clinic-sub{font-size:8pt;color:#6E8570;font-weight:500;letter-spacing:.5px;text-transform:uppercase}
   .doc-info{font-size:8pt;color:#999;text-align:right;line-height:1.6}
   .title-block{text-align:center;margin-bottom:24px}
   .title{font-size:16pt;font-weight:700;color:${corTitulo};letter-spacing:2px;text-transform:uppercase}
   .title-line{width:60px;height:3px;background:${corLinha};margin:8px auto 0}
-  .tipo-badge{display:inline-block;background:${isEspecial ? '#EDE9FE' : '#F0F9F5'};color:${isEspecial ? '#7C3AED' : '#1A3A2C'};border:1px solid ${isEspecial ? '#C4B5FD' : '#5BBD9B'};border-radius:20px;padding:3px 14px;font-size:8.5pt;font-weight:600;margin-top:8px}
+  .tipo-badge{display:inline-block;background:${isEspecial ? '#EDE9FE' : '#F0F9F5'};color:${isEspecial ? '#7C3AED' : '#19382E'};border:1px solid ${isEspecial ? '#C4B5FD' : '#6E8570'};border-radius:20px;padding:3px 14px;font-size:8.5pt;font-weight:600;margin-top:8px}
   .paciente-box{background:#F8FAFC;border:1px solid #E5E7EB;border-radius:8px;padding:12px 16px;margin-bottom:20px}
   .pac-label{font-size:8pt;color:#9CA3AF;text-transform:uppercase;font-weight:600;letter-spacing:.5px;margin-bottom:4px}
-  .pac-nome{font-size:12pt;font-weight:700;color:#1A3A2C}
+  .pac-nome{font-size:12pt;font-weight:700;color:#19382E}
   .pac-info{font-size:9pt;color:#6B7280;margin-top:2px}
   .section-label{font-size:8.5pt;font-weight:700;color:${corTitulo};text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
   .section-label::after{content:'';flex:1;height:1px;background:#E5E7EB}
@@ -110,9 +110,9 @@ export function gerarHTMLReceita(p: ReceitaHTMLParams, comAutoprint = false): st
   .city-date{font-size:9.5pt;color:#666;line-height:1.7}
   .sig-block{text-align:center}
   .sig-line{width:200px;border-top:1px solid #333;margin:0 auto 6px}
-  .sig-name{font-size:10pt;font-weight:600;color:#1A3A2C}
+  .sig-name{font-size:10pt;font-weight:600;color:#19382E}
   .sig-crm{font-size:8.5pt;color:#666}
-  .sig-spec{font-size:8.5pt;color:#5BBD9B;font-weight:500}
+  .sig-spec{font-size:8.5pt;color:#6E8570;font-weight:500}
   @media print{body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.page{margin:0;padding:16mm 18mm 14mm}}
 </style>
 </head>
@@ -127,7 +127,7 @@ export function gerarHTMLReceita(p: ReceitaHTMLParams, comAutoprint = false): st
         </svg>
       </div>
       <div>
-        <div class="clinic-name">RovarisMed</div>
+        <div class="clinic-name">Aduno</div>
         <div class="clinic-sub">Saúde Digital Corporativa</div>
       </div>
     </div>
@@ -223,7 +223,7 @@ export function textoResumidoReceita(params: ReceitaHTMLParams): string {
   // Mesmo critério do HTML: o campo medicamentos é interno; compartilha a prescrição
   const prescricao = instrucoes?.trim() ? instrucoes : medicamentos
   return [
-    `${badge} — RovarisMed`,
+    `${badge} — Aduno`,
     `Paciente: ${paciente.nome}`,
     `Médico: ${drTitle(medico.sexo)} ${medico.nome}${medico.crm ? ` (CRM-${medico.crm_uf ?? 'BR'} ${medico.crm})` : ''}`,
     '',

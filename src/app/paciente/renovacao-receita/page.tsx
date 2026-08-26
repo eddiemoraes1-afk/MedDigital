@@ -61,15 +61,15 @@ function Progresso({ atual }: { atual: 1 | 2 | 3 | 4 }) {
           <div key={p.num} className="flex items-center gap-1 flex-1 last:flex-none">
             <div className={`flex items-center gap-1.5 ${!ativo && !feito ? 'opacity-35' : ''}`}>
               <div className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center shrink-0
-                ${feito ? 'bg-[#5BBD9B] text-white' : ativo ? 'bg-[#1A3A2C] text-white' : 'border-2 border-gray-300 text-gray-400'}`}>
+                ${feito ? 'bg-[#6E8570] text-white' : ativo ? 'bg-[#19382E] text-white' : 'border-2 border-gray-300 text-gray-400'}`}>
                 {feito ? <CheckCircle2 className="w-4 h-4" /> : p.num}
               </div>
-              <span className={`text-xs font-semibold whitespace-nowrap hidden sm:block ${ativo ? 'text-[#1A3A2C]' : 'text-gray-400'}`}>
+              <span className={`text-xs font-semibold whitespace-nowrap hidden sm:block ${ativo ? 'text-[#19382E]' : 'text-gray-400'}`}>
                 {p.label}
               </span>
             </div>
             {i < passos.length - 1 && (
-              <div className={`flex-1 h-px mx-1 ${feito ? 'bg-[#5BBD9B]' : 'bg-gray-200'}`} />
+              <div className={`flex-1 h-px mx-1 ${feito ? 'bg-[#6E8570]' : 'bg-gray-200'}`} />
             )}
           </div>
         )
@@ -111,7 +111,7 @@ function EtapaValidacao({
             O consentimento é necessário para solicitar a renovação de receita por telemedicina.
           </p>
           <Link href="/paciente/dashboard"
-            className="inline-block bg-[#1A3A2C] text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-[#5BBD9B] transition-colors">
+            className="inline-block bg-[#19382E] text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-[#6E8570] transition-colors">
             Voltar ao painel
           </Link>
         </div>
@@ -126,10 +126,10 @@ function EtapaValidacao({
 
         <div className="flex items-center gap-3 mb-5">
           <div className="w-11 h-11 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
-            <Shield className="w-6 h-6 text-[#5BBD9B]" />
+            <Shield className="w-6 h-6 text-[#6E8570]" />
           </div>
           <div>
-            <h2 className="font-bold text-[#1A3A2C] text-lg leading-tight">Confirmação de identidade</h2>
+            <h2 className="font-bold text-[#19382E] text-lg leading-tight">Confirmação de identidade</h2>
             {nomeInicial && <p className="text-sm text-gray-500 mt-0.5">Olá, {nomeInicial.split(' ')[0]}!</p>}
           </div>
         </div>
@@ -166,15 +166,15 @@ function EtapaValidacao({
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input type="text" value={telefone} onChange={e => setTelefone(formatarTelefone(e.target.value))}
               placeholder="(11) 99999-9999" disabled={aceito}
-              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] text-sm disabled:bg-gray-50 disabled:cursor-default" />
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E8570] text-sm disabled:bg-gray-50 disabled:cursor-default" />
           </div>
         </div>
 
         {!aceito && (
           <>
-            <div className="bg-[#F3FAF7] border border-green-100 rounded-2xl p-4 mb-5">
-              <p className="text-sm font-semibold text-[#1A3A2C] mb-1 flex items-center gap-1.5">
-                <Shield className="w-4 h-4 text-[#5BBD9B]" /> Consentimento LGPD
+            <div className="bg-[#F3F6F3] border border-green-100 rounded-2xl p-4 mb-5">
+              <p className="text-sm font-semibold text-[#19382E] mb-1 flex items-center gap-1.5">
+                <Shield className="w-4 h-4 text-[#6E8570]" /> Consentimento LGPD
               </p>
               <p className="text-sm text-gray-600 leading-relaxed">
                 Você autoriza a solicitação de <strong>renovação de receita</strong> por telemedicina
@@ -191,7 +191,7 @@ function EtapaValidacao({
 
             <div className="flex gap-3">
               <button onClick={handleAceitar}
-                className="flex-1 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+                className="flex-1 bg-[#19382E] hover:bg-[#6E8570] text-white py-3 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-4 h-4" /> Sim, autorizo
               </button>
               <button onClick={() => setRecusou(true)}
@@ -210,7 +210,7 @@ function EtapaValidacao({
             </div>
             <button
               onClick={() => onAvancar({ cpf: cpf.replace(/\D/g, ''), telefone: telefone.replace(/\D/g, ''), consentimentoEm: new Date().toISOString() })}
-              className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+              className="w-full bg-[#19382E] hover:bg-[#6E8570] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
               Continuar <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -266,7 +266,7 @@ function EtapaTipo({
             <ScrollText className="w-6 h-6 text-blue-500" />
           </div>
           <div>
-            <h2 className="font-bold text-[#1A3A2C] text-lg leading-tight">Qual o tipo de receita?</h2>
+            <h2 className="font-bold text-[#19382E] text-lg leading-tight">Qual o tipo de receita?</h2>
             <p className="text-sm text-gray-500 mt-0.5">Selecione o tipo que você precisa renovar</p>
           </div>
         </div>
@@ -279,18 +279,18 @@ function EtapaTipo({
               onClick={() => { setSelecionado(t.value); setErro('') }}
               className={`w-full text-left px-4 py-4 rounded-xl border-2 transition-all ${
                 selecionado === t.value
-                  ? `${t.cor} border-2 ring-2 ring-offset-1 ring-[#5BBD9B]`
+                  ? `${t.cor} border-2 ring-2 ring-offset-1 ring-[#6E8570]`
                   : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
               }`}
             >
               <div className="flex items-start gap-3">
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-0.5 ${
-                  selecionado === t.value ? 'border-[#5BBD9B] bg-[#5BBD9B]' : 'border-gray-300'
+                  selecionado === t.value ? 'border-[#6E8570] bg-[#6E8570]' : 'border-gray-300'
                 }`}>
                   {selecionado === t.value && <div className="w-2 h-2 rounded-full bg-white" />}
                 </div>
                 <div>
-                  <p className="font-semibold text-[#1A3A2C] text-sm">{t.label}</p>
+                  <p className="font-semibold text-[#19382E] text-sm">{t.label}</p>
                   <p className="text-xs text-gray-500 mt-0.5">{t.desc}</p>
                 </div>
               </div>
@@ -305,7 +305,7 @@ function EtapaTipo({
         )}
 
         <button onClick={handleAvancar}
-          className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+          className="w-full bg-[#19382E] hover:bg-[#6E8570] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
           Verificar elegibilidade <ChevronRight className="w-4 h-4" />
         </button>
       </div>
@@ -321,9 +321,9 @@ function EtapaVerificando() {
       <div className="bg-white rounded-2xl shadow-sm p-10 max-w-md w-full text-center">
         <Progresso atual={3} />
         <div className="w-16 h-16 bg-[#EAF7F2] rounded-2xl flex items-center justify-center mx-auto mb-5">
-          <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#6E8570]" />
         </div>
-        <p className="text-lg font-bold text-[#1A3A2C] mb-2">Verificando elegibilidade…</p>
+        <p className="text-lg font-bold text-[#19382E] mb-2">Verificando elegibilidade…</p>
         <p className="text-sm text-gray-400">Estamos consultando seu histórico de consultas e receitas.</p>
       </div>
     </div>
@@ -348,7 +348,7 @@ function EtapaBloqueado({
           <div className="w-16 h-16 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <AlertCircle className="w-9 h-9 text-amber-500" />
           </div>
-          <h2 className="text-lg font-bold text-[#1A3A2C] mb-2">
+          <h2 className="text-lg font-bold text-[#19382E] mb-2">
             {motivo === 'sem_historico'
               ? 'Nenhum histórico encontrado'
               : `Nenhuma receita de ${tipoLabel} encontrada`}
@@ -371,7 +371,7 @@ function EtapaBloqueado({
 
         <button
           onClick={onIrParaTriagem}
-          className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+          className="w-full bg-[#19382E] hover:bg-[#6E8570] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2"
         >
           <Video className="w-4 h-4" /> Fazer consulta online agora
         </button>
@@ -409,7 +409,7 @@ function EtapaConfirmacao({
             <ClipboardList className="w-6 h-6 text-purple-500" />
           </div>
           <div>
-            <h2 className="font-bold text-[#1A3A2C] text-lg leading-tight">Confirme a receita</h2>
+            <h2 className="font-bold text-[#19382E] text-lg leading-tight">Confirme a receita</h2>
             <p className="text-sm text-gray-500 mt-0.5">{tipoLabel} · emitida por {drTitle(ultimaReceita.medico_sexo)} {ultimaReceita.medico_nome}</p>
           </div>
         </div>
@@ -421,13 +421,13 @@ function EtapaConfirmacao({
 
           {/* Medicamentos */}
           <div className="mb-4">
-            <label className="block text-sm font-semibold text-[#1A3A2C] mb-2">
+            <label className="block text-sm font-semibold text-[#19382E] mb-2">
               Medicamento(s) de uso contínuo
             </label>
             <div className="bg-gray-50 rounded-xl px-4 py-3 mb-2">
               {ultimaReceita.medicamentos.split('\n').filter(Boolean).map((m, i) => (
                 <p key={i} className="text-sm text-gray-700 font-mono leading-relaxed">
-                  <span className="text-[#5BBD9B] font-bold mr-1.5">℞</span>{m}
+                  <span className="text-[#6E8570] font-bold mr-1.5">℞</span>{m}
                 </p>
               ))}
             </div>
@@ -446,7 +446,7 @@ function EtapaConfirmacao({
 
           {/* Observação adicional */}
           <div>
-            <label className="block text-sm font-semibold text-[#1A3A2C] mb-1">
+            <label className="block text-sm font-semibold text-[#19382E] mb-1">
               Observação para o médico <span className="text-gray-400 font-normal">(opcional)</span>
             </label>
             <textarea
@@ -454,7 +454,7 @@ function EtapaConfirmacao({
               onChange={e => setInstrucoes(e.target.value)}
               placeholder="Ex: preciso da dosagem atualizada, tenho tomado há 3 anos…"
               rows={3}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] resize-none"
             />
           </div>
         </div>
@@ -465,7 +465,7 @@ function EtapaConfirmacao({
             type="checkbox"
             checked={confirmado}
             onChange={e => { setConfirmado(e.target.checked); setErro('') }}
-            className="accent-[#5BBD9B] w-4 h-4 mt-0.5 shrink-0"
+            className="accent-[#6E8570] w-4 h-4 mt-0.5 shrink-0"
           />
           <span className="text-sm text-gray-700 leading-relaxed">
             Confirmo que o(s) medicamento(s) acima são os de uso contínuo que desejo renovar
@@ -480,7 +480,7 @@ function EtapaConfirmacao({
         )}
 
         <button onClick={handleEnviar}
-          className="w-full bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+          className="w-full bg-[#19382E] hover:bg-[#6E8570] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2">
           Enviar pedido <ChevronRight className="w-4 h-4" />
         </button>
       </div>
@@ -495,9 +495,9 @@ function EtapaSucesso({ tipoLabel }: { tipoLabel: string }) {
     <div className="flex-1 flex items-center justify-center px-4 py-8">
       <div className="bg-white rounded-2xl shadow-sm p-10 max-w-md w-full text-center">
         <div className="w-20 h-20 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
-          <CheckCircle2 className="w-10 h-10 text-[#5BBD9B]" />
+          <CheckCircle2 className="w-10 h-10 text-[#6E8570]" />
         </div>
-        <h2 className="text-xl font-bold text-[#1A3A2C] mb-2">Pedido enviado!</h2>
+        <h2 className="text-xl font-bold text-[#19382E] mb-2">Pedido enviado!</h2>
         <p className="text-sm text-gray-500 mb-6 leading-relaxed">
           Sua solicitação de <strong>{tipoLabel}</strong> foi encaminhada para os médicos online.
           Um médico irá revisar seu pedido e emitir a nova receita em breve.
@@ -517,7 +517,7 @@ function EtapaSucesso({ tipoLabel }: { tipoLabel: string }) {
 
         <div className="space-y-3">
           <Link href="/paciente/receitas"
-            className="w-full flex items-center justify-center gap-2 bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors">
+            className="w-full flex items-center justify-center gap-2 bg-[#19382E] hover:bg-[#6E8570] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors">
             <ScrollText className="w-4 h-4" /> Ver minhas receitas
           </Link>
           <Link href="/paciente/dashboard"
@@ -537,9 +537,9 @@ function EtapaEnviando() {
     <div className="flex-1 flex items-center justify-center px-4 py-8">
       <div className="bg-white rounded-2xl shadow-sm p-10 max-w-md w-full text-center">
         <div className="w-16 h-16 bg-[#EAF7F2] rounded-2xl flex items-center justify-center mx-auto mb-5">
-          <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#6E8570]" />
         </div>
-        <p className="text-lg font-bold text-[#1A3A2C] mb-2">Enviando pedido…</p>
+        <p className="text-lg font-bold text-[#19382E] mb-2">Enviando pedido…</p>
         <p className="text-sm text-gray-400">Aguarde um instante.</p>
       </div>
     </div>

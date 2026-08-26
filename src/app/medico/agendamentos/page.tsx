@@ -179,7 +179,7 @@ export default async function MedicoAgendamentosPage({
     : `${mesOff > 0 ? '+' : ''}${mesOff} m.`
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
+    <div className="min-h-screen bg-[#F3F6F3]">
       <MedicoHeader
         titulo="Minha Agenda"
         backHref="/medico/dashboard"
@@ -193,7 +193,7 @@ export default async function MedicoAgendamentosPage({
         {/* ── Cabeçalho ── */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-[#1A3A2C] flex items-center gap-2">
+            <h1 className="text-2xl font-bold text-[#19382E] flex items-center gap-2">
               <Calendar className="w-6 h-6" /> Minha Agenda
             </h1>
             <p className="text-gray-500 mt-1 capitalize">
@@ -214,7 +214,7 @@ export default async function MedicoAgendamentosPage({
                 href={`/medico/agendamentos?vista=semana&semana=${semanaOff}`}
                 className={`flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium transition-colors ${
                   vista === 'semana'
-                    ? 'bg-[#1A3A2C] text-white'
+                    ? 'bg-[#19382E] text-white'
                     : 'text-gray-500 hover:bg-gray-50'
                 }`}
               >
@@ -225,7 +225,7 @@ export default async function MedicoAgendamentosPage({
                 href={`/medico/agendamentos?vista=mes&mes=${mesOff}`}
                 className={`flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium transition-colors ${
                   vista === 'mes'
-                    ? 'bg-[#1A3A2C] text-white'
+                    ? 'bg-[#19382E] text-white'
                     : 'text-gray-500 hover:bg-gray-50'
                 }`}
               >
@@ -243,7 +243,7 @@ export default async function MedicoAgendamentosPage({
                 >
                   <ChevronLeft className="w-4 h-4 text-gray-600" />
                 </Link>
-                <span className="text-sm font-medium text-[#1A3A2C] min-w-[96px] text-center">
+                <span className="text-sm font-medium text-[#19382E] min-w-[96px] text-center">
                   {labelSemana}
                 </span>
                 <Link
@@ -261,7 +261,7 @@ export default async function MedicoAgendamentosPage({
                 >
                   <ChevronLeft className="w-4 h-4 text-gray-600" />
                 </Link>
-                <span className="text-sm font-medium text-[#1A3A2C] min-w-[96px] text-center">
+                <span className="text-sm font-medium text-[#19382E] min-w-[96px] text-center">
                   {labelNavMes}
                 </span>
                 <Link
@@ -292,16 +292,16 @@ export default async function MedicoAgendamentosPage({
                 return (
                   <div
                     key={dia.toISOString()}
-                    className={`bg-white rounded-2xl shadow-sm overflow-hidden ${isPast ? 'opacity-60' : ''} ${isHoje ? 'ring-2 ring-[#5BBD9B]' : ''}`}
+                    className={`bg-white rounded-2xl shadow-sm overflow-hidden ${isPast ? 'opacity-60' : ''} ${isHoje ? 'ring-2 ring-[#6E8570]' : ''}`}
                   >
-                    <div className={`px-3 py-3 text-center ${isHoje ? 'bg-[#1A3A2C]' : 'bg-gray-50 border-b border-gray-100'}`}>
-                      <p className={`text-xs font-medium ${isHoje ? 'text-green-200' : 'text-gray-400'}`}>{DIAS_SEMANA[i]}</p>
-                      <p className={`text-xl font-bold mt-0.5 ${isHoje ? 'text-white' : 'text-[#1A3A2C]'}`}>{dia.getDate()}</p>
+                    <div className={`px-3 py-3 text-center ${isHoje ? 'bg-[#19382E]' : 'bg-gray-50 border-b border-gray-100'}`}>
+                      <p className={`text-xs font-medium ${isHoje ? 'text-white/70' : 'text-gray-400'}`}>{DIAS_SEMANA[i]}</p>
+                      <p className={`text-xl font-bold mt-0.5 ${isHoje ? 'text-white' : 'text-[#19382E]'}`}>{dia.getDate()}</p>
                       {agsDia.length > 0 && (
                         <div className="flex justify-center gap-1 mt-1">
                           {ativos.length > 0 && (
                             <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
-                              isHoje ? 'bg-white/20 text-white' : 'bg-[#5BBD9B]/10 text-[#5BBD9B]'
+                              isHoje ? 'bg-white/20 text-white' : 'bg-[#6E8570]/10 text-[#6E8570]'
                             }`}>
                               {ativos.length}
                             </span>
@@ -423,14 +423,14 @@ export default async function MedicoAgendamentosPage({
                       {/* Número do dia */}
                       <div className="flex items-center justify-between mb-1.5">
                         <span className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full ${
-                          isHoje ? 'bg-[#1A3A2C] text-white' : isPast ? 'text-gray-300' : 'text-[#1A3A2C]'
+                          isHoje ? 'bg-[#19382E] text-white' : isPast ? 'text-gray-300' : 'text-[#19382E]'
                         }`}>
                           {dia.getDate()}
                         </span>
                         {agsDia.length > 0 && (
                           <div className="flex gap-0.5">
                             {ativos.length > 0 && (
-                              <span className="text-[10px] bg-[#5BBD9B]/10 text-[#5BBD9B] px-1 rounded font-semibold">
+                              <span className="text-[10px] bg-[#6E8570]/10 text-[#6E8570] px-1 rounded font-semibold">
                                 {ativos.length}
                               </span>
                             )}
@@ -505,7 +505,7 @@ function ListaDetalhada({
   return (
     <div className="mt-8 bg-white rounded-2xl shadow-sm overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-100">
-        <h2 className="font-bold text-[#1A3A2C]">
+        <h2 className="font-bold text-[#19382E]">
           Lista detalhada
           <span className="ml-2 text-xs text-gray-400 font-normal">({agendamentos.length} no período)</span>
         </h2>
@@ -526,13 +526,13 @@ function ListaDetalhada({
                 }`}>
                   {(isCancelado || isNaoComp)
                     ? <XCircle className="w-5 h-5 text-red-300" />
-                    : <User className="w-5 h-5 text-[#5BBD9B]" />
+                    : <User className="w-5 h-5 text-[#6E8570]" />
                   }
                 </div>
                 <div>
                   <Link
                     href={`/medico/agendamento/${a.id}`}
-                    className={`font-medium hover:text-[#5BBD9B] hover:underline ${isDimmed ? 'text-gray-400' : 'text-gray-800'}`}
+                    className={`font-medium hover:text-[#6E8570] hover:underline ${isDimmed ? 'text-gray-400' : 'text-gray-800'}`}
                   >
                     {paciente?.nome || 'Paciente'}
                   </Link>
@@ -565,7 +565,7 @@ function ListaDetalhada({
                     const abreDate = new Date(dataConsulta.getTime() - 10 * 60 * 1000)
                     const abreStr  = abreDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
                     return (
-                      <p className="text-xs text-[#5BBD9B] mt-1 flex items-center gap-1">
+                      <p className="text-xs text-[#6E8570] mt-1 flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         Sala abre às {abreStr}
                       </p>

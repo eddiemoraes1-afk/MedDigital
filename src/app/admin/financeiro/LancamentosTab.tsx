@@ -251,7 +251,7 @@ export default function LancamentosTab() {
         </select>
         <button onClick={() => setFiltrosAbertos(v => !v)}
           className="flex items-center gap-1 px-3 py-2 rounded-xl border text-sm"
-          style={{ background: filtrosAbertos ? '#1A3A2C' : 'var(--card)', color: filtrosAbertos ? 'white' : 'var(--txt-muted)', borderColor: 'var(--border)' }}>
+          style={{ background: filtrosAbertos ? '#19382E' : 'var(--card)', color: filtrosAbertos ? 'white' : 'var(--txt-muted)', borderColor: 'var(--border)' }}>
           <ChevronDown className={`w-3.5 h-3.5 transition-transform ${filtrosAbertos ? 'rotate-180' : ''}`} />
           Mais filtros
         </button>
@@ -273,7 +273,7 @@ export default function LancamentosTab() {
           </button>
           <button onClick={() => setShowForm(true)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium text-white"
-            style={{ background: '#1A3A2C' }}>
+            style={{ background: '#19382E' }}>
             <Plus className="w-4 h-4" /> Novo
           </button>
         </div>
@@ -445,7 +445,7 @@ export default function LancamentosTab() {
               style={{ borderColor: 'var(--border)', color: 'var(--txt-muted)' }}>Cancelar</button>
             <button onClick={salvar} disabled={salvando}
               className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-medium text-white disabled:opacity-60"
-              style={{ background: '#1A3A2C' }}>
+              style={{ background: '#19382E' }}>
               {salvando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Salvar
             </button>
           </div>

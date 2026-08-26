@@ -28,7 +28,7 @@ export default async function LogsAntecedentesPage() {
       <AdminHeader ativo="logs-antecedentes" />
       <main className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-[#1A3A2C]">Auditoria — Edições de Antecedentes</h1>
+          <h1 className="text-2xl font-bold text-[#19382E]">Auditoria — Edições de Antecedentes</h1>
           <p className="text-sm text-gray-500 mt-1">
             Histórico completo de quem editou antecedentes pessoais, quando, qual IP e o que foi alterado.
           </p>

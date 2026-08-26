@@ -55,8 +55,8 @@ export default function PrecosEmpresa({ empresaId, precoMensalidadeAtual, precoC
 
   return (
     <div>
-      <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 mb-4">
-        <DollarSign className="w-4 h-4 text-[#5BBD9B]" /> Precificação
+      <h2 className="font-bold text-[#19382E] flex items-center gap-2 mb-4">
+        <DollarSign className="w-4 h-4 text-[#6E8570]" /> Precificação
       </h2>
       <div className="space-y-3">
         <div>
@@ -71,7 +71,7 @@ export default function PrecosEmpresa({ empresaId, precoMensalidadeAtual, precoC
               step="0.01"
               value={mensalidade}
               onChange={e => setMensalidade(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#5BBD9B] focus:outline-none"
+              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#6E8570] focus:outline-none"
               placeholder="0,00"
             />
           </div>
@@ -90,7 +90,7 @@ export default function PrecosEmpresa({ empresaId, precoMensalidadeAtual, precoC
               step="0.01"
               value={consulta}
               onChange={e => setConsulta(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#5BBD9B] focus:outline-none"
+              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#6E8570] focus:outline-none"
               placeholder="0,00"
             />
           </div>
@@ -109,7 +109,7 @@ export default function PrecosEmpresa({ empresaId, precoMensalidadeAtual, precoC
               step="1"
               value={coparticipacao}
               onChange={e => setCoparticipacao(e.target.value)}
-              className="w-full pl-3 pr-9 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#5BBD9B] focus:outline-none"
+              className="w-full pl-3 pr-9 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#6E8570] focus:outline-none"
               placeholder="0"
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">%</span>
@@ -131,7 +131,7 @@ export default function PrecosEmpresa({ empresaId, precoMensalidadeAtual, precoC
               step="0.01"
               value={receita}
               onChange={e => setReceita(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#5BBD9B] focus:outline-none"
+              className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#6E8570] focus:outline-none"
               placeholder="0,00"
             />
           </div>
@@ -148,7 +148,7 @@ export default function PrecosEmpresa({ empresaId, precoMensalidadeAtual, precoC
           className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
             salvo
               ? 'bg-green-100 text-green-700'
-              : 'bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white disabled:opacity-50'
+              : 'bg-[#19382E] hover:bg-[#6E8570] text-white disabled:opacity-50'
           }`}
         >
           {salvando ? (

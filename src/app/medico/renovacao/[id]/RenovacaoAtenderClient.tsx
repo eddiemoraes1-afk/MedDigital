@@ -106,12 +106,12 @@ export default function RenovacaoAtenderClient({
 
   return (
     <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
-      <h2 className="font-bold text-[#1A3A2C]">Emitir Receita</h2>
+      <h2 className="font-bold text-[#19382E]">Emitir Receita</h2>
       <p className="text-xs text-gray-400">Revise e ajuste se necessário antes de emitir.</p>
 
       {/* Medicamentos */}
       <div>
-        <label className="block text-sm font-semibold text-[#1A3A2C] mb-1.5">
+        <label className="block text-sm font-semibold text-[#19382E] mb-1.5">
           Medicamentos <span className="text-red-400">*</span>
         </label>
         <textarea
@@ -119,14 +119,14 @@ export default function RenovacaoAtenderClient({
           onChange={e => setMedicamentos(e.target.value)}
           rows={4}
           placeholder="Um medicamento por linha…"
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none font-mono"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] resize-none font-mono"
         />
         <p className="text-xs text-gray-400 mt-1">Um medicamento por linha (nome + dosagem + posologia)</p>
       </div>
 
       {/* Instruções */}
       <div>
-        <label className="block text-sm font-semibold text-[#1A3A2C] mb-1.5">
+        <label className="block text-sm font-semibold text-[#19382E] mb-1.5">
           Modo de uso / Instruções
         </label>
         <textarea
@@ -134,27 +134,27 @@ export default function RenovacaoAtenderClient({
           onChange={e => setInstrucoes(e.target.value)}
           rows={2}
           placeholder="Ex: 1 comprimido ao dia, em jejum…"
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] resize-none"
         />
       </div>
 
       {/* Validade */}
       <div>
-        <label className="block text-sm font-semibold text-[#1A3A2C] mb-1.5">
+        <label className="block text-sm font-semibold text-[#19382E] mb-1.5">
           Data de validade da receita <span className="text-gray-400 font-normal">(opcional)</span>
         </label>
         <input
           type="date"
           value={validade}
           onChange={e => setValidade(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570]"
         />
         <p className="text-xs text-gray-400 mt-1">Prazo de validade para uso da receita pelo paciente</p>
       </div>
 
       {/* Observações */}
       <div>
-        <label className="block text-sm font-semibold text-[#1A3A2C] mb-1.5">
+        <label className="block text-sm font-semibold text-[#19382E] mb-1.5">
           Observações internas <span className="text-gray-400 font-normal">(opcional)</span>
         </label>
         <textarea
@@ -162,7 +162,7 @@ export default function RenovacaoAtenderClient({
           onChange={e => setObservacoes(e.target.value)}
           rows={2}
           placeholder="Notas internas do médico…"
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#5BBD9B] resize-none"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#6E8570] resize-none"
         />
       </div>
 
@@ -211,7 +211,7 @@ export default function RenovacaoAtenderClient({
         <button
           onClick={emitirReceita}
           disabled={salvando}
-          className="flex-[2] bg-[#1A3A2C] hover:bg-[#5BBD9B] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
+          className="flex-[2] bg-[#19382E] hover:bg-[#6E8570] text-white py-3.5 rounded-xl text-sm font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-60"
         >
           {salvando
             ? <><Loader2 className="w-4 h-4 animate-spin" /> Emitindo…</>

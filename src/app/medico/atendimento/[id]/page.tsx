@@ -51,7 +51,7 @@ function SecaoAnamnese({
         disabled={disabled}
         className="w-full flex items-center justify-between px-3 py-2.5 text-left hover:bg-white/5 transition-colors disabled:cursor-not-allowed"
       >
-        <span className="flex items-center gap-2 text-xs font-semibold text-green-200">
+        <span className="flex items-center gap-2 text-xs font-semibold text-white/70">
           {icone}
           {titulo}
           {disabled && <span className="text-[9px] text-green-600/80 font-normal italic ml-0.5">indisponível em telemedicina</span>}
@@ -78,7 +78,7 @@ function DarkTextarea({
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
-      className="w-full bg-[#0F1F33] text-blue-100 text-xs rounded-lg p-2.5 resize-none focus:outline-none focus:ring-1 focus:ring-[#5BBD9B] placeholder-blue-800"
+      className="w-full bg-[#0F1F33] text-blue-100 text-xs rounded-lg p-2.5 resize-none focus:outline-none focus:ring-1 focus:ring-[#6E8570] placeholder-blue-800"
     />
   )
 }
@@ -366,7 +366,7 @@ export default function AtendimentoMedico() {
 
   if (carregando) {
     return (
-      <div className="min-h-screen bg-[#1A3A2C] flex items-center justify-center">
+      <div className="min-h-screen bg-[#19382E] flex items-center justify-center">
         <div className="text-center text-white">
           <Loader2 className="w-10 h-10 animate-spin mx-auto mb-4" />
           <p>Entrando na sala...</p>
@@ -412,13 +412,13 @@ export default function AtendimentoMedico() {
     <div className="h-screen bg-[#0F1F33] flex flex-col overflow-hidden">
 
       {/* ── Header ── */}
-      <div className="bg-[#1A3A2C] px-6 py-3 flex items-center justify-between shrink-0">
+      <div className="bg-[#19382E] px-6 py-3 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <img src="/logo-branca.svg" alt="RovarisMed" className="h-10" />
+          <img src="/aduno-logo-branca.png" alt="Aduno" className="h-10" />
           <span className="text-green-300 text-xs">— Atendimento Virtual</span>
         </div>
         {paciente && (
-          <div className="flex items-center gap-2 text-green-200 text-xs">
+          <div className="flex items-center gap-2 text-white/70 text-xs">
             <span>Paciente: <strong className="text-white">{paciente.nome}</strong></span>
             {triagem?.classificacao_risco && (
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${corRisco[triagem.classificacao_risco] || ''}`}>
@@ -430,8 +430,8 @@ export default function AtendimentoMedico() {
               title="Ver prontuário completo"
               className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors ml-1 border ${
                 showProntuario
-                  ? 'bg-[#5BBD9B] text-white border-[#5BBD9B]'
-                  : 'text-green-400 hover:text-white border-green-700/40 hover:border-[#5BBD9B]'
+                  ? 'bg-[#6E8570] text-white border-[#6E8570]'
+                  : 'text-green-400 hover:text-white border-green-700/40 hover:border-[#6E8570]'
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
@@ -448,7 +448,7 @@ export default function AtendimentoMedico() {
                   target="_blank"
                   rel="noopener noreferrer"
                   title={`WhatsApp: ${telFmt}`}
-                  className="flex items-center gap-1 bg-green-700/60 hover:bg-green-600/80 border border-green-600/40 text-green-200 hover:text-white px-2 py-0.5 rounded-full transition-colors ml-1"
+                  className="flex items-center gap-1 bg-green-700/60 hover:bg-green-600/80 border border-green-600/40 text-white/70 hover:text-white px-2 py-0.5 rounded-full transition-colors ml-1"
                 >
                   <Phone className="w-3 h-3" />
                   <span className="text-[11px] font-medium">{telFmt}</span>
@@ -473,8 +473,8 @@ export default function AtendimentoMedico() {
                 title={title}
                 className={`p-1.5 rounded transition-colors ${
                   layoutMode === mode
-                    ? 'bg-[#5BBD9B] text-white'
-                    : 'text-green-400 hover:text-green-200'
+                    ? 'bg-[#6E8570] text-white'
+                    : 'text-green-400 hover:text-white/70'
                 }`}
               >
                 {icon}
@@ -585,8 +585,8 @@ export default function AtendimentoMedico() {
           {!entrou && (
             <div className="absolute inset-0 bg-[#0F1F33] flex items-center justify-center z-10">
               <div className="text-center text-white max-w-sm px-6">
-                <div className="w-24 h-24 bg-[#1A3A2C] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Video className="w-12 h-12 text-[#5BBD9B]" />
+                <div className="w-24 h-24 bg-[#19382E] rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Video className="w-12 h-12 text-[#6E8570]" />
                 </div>
                 {paciente && (
                   <p className="text-green-300 text-sm mb-4">
@@ -596,13 +596,13 @@ export default function AtendimentoMedico() {
                 <h2 className="text-3xl font-extrabold mb-2 tracking-tight">Entrar AGORA</h2>
                 <div className="flex flex-col items-center mb-4">
                   <div className="flex flex-col items-center gap-0.5 animate-bounce">
-                    <div className="w-0.5 h-6 bg-[#5BBD9B]" />
-                    <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[12px] border-t-[#5BBD9B]" />
+                    <div className="w-0.5 h-6 bg-[#6E8570]" />
+                    <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[12px] border-t-[#6E8570]" />
                   </div>
                 </div>
                 <button
                   onClick={() => setEntrou(true)}
-                  className="w-full bg-[#5BBD9B] hover:bg-green-400 text-white font-extrabold py-4 px-8 rounded-2xl text-lg tracking-wide transition-colors shadow-lg shadow-green-900/40"
+                  className="w-full bg-[#6E8570] hover:bg-green-400 text-white font-extrabold py-4 px-8 rounded-2xl text-lg tracking-wide transition-colors shadow-lg shadow-green-900/40"
                 >
                   Clique AQUI
                 </button>
@@ -617,7 +617,7 @@ export default function AtendimentoMedico() {
         </div>
 
         {/* ── Painel lateral ── */}
-        <div className={`${sidebarWidth[layoutMode]} bg-[#1A3A2C] flex flex-col shrink-0 overflow-y-auto transition-all duration-300`}>
+        <div className={`${sidebarWidth[layoutMode]} bg-[#19382E] flex flex-col shrink-0 overflow-y-auto transition-all duration-300`}>
 
           {/* ── Antecedentes do paciente (editável durante a consulta) ── */}
           <div className="border-b border-amber-800/40">
@@ -759,8 +759,8 @@ export default function AtendimentoMedico() {
               onClick={() => setShowAnamnese(v => !v)}
               className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-semibold transition-colors ${
                 showAnamnese
-                  ? 'bg-[#5BBD9B] text-white'
-                  : 'bg-[#0F1F33] text-green-200 hover:bg-[#5BBD9B] hover:text-white'
+                  ? 'bg-[#6E8570] text-white'
+                  : 'bg-[#0F1F33] text-white/70 hover:bg-[#6E8570] hover:text-white'
               }`}
             >
               <span className="flex items-center gap-2">
@@ -832,7 +832,7 @@ export default function AtendimentoMedico() {
                           value={sv[f.key as keyof SinaisVitais]}
                           onChange={e => setSv(prev => ({ ...prev, [f.key]: e.target.value }))}
                           placeholder={f.placeholder}
-                          className="w-full bg-[#0F1F33] border border-[#2A4A3C] text-blue-100 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#5BBD9B] placeholder-blue-900"
+                          className="w-full bg-[#0F1F33] border border-[#2A4A3C] text-blue-100 text-xs rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#6E8570] placeholder-blue-900"
                         />
                       </div>
                     ))}
@@ -920,8 +920,8 @@ export default function AtendimentoMedico() {
               onClick={() => { fecharTodas(); setShowAtestado(v => !v) }}
               className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
                 showAtestado
-                  ? 'bg-[#5BBD9B] text-white'
-                  : 'bg-[#0F1F33] text-green-200 hover:bg-[#5BBD9B] hover:text-white'
+                  ? 'bg-[#6E8570] text-white'
+                  : 'bg-[#0F1F33] text-white/70 hover:bg-[#6E8570] hover:text-white'
               }`}
             >
               <span className="flex items-center gap-2">

@@ -19,7 +19,7 @@ type Acao = 'share' | 'email' | 'whatsapp' | 'baixar' | null
 function textoResumido(params: ExamesHTMLParams): string {
   const lista = params.exames.split('\n').filter(Boolean)
   return [
-    `📋 *Solicitação de Exames — RovarisMed*`,
+    `📋 *Solicitação de Exames — Aduno*`,
     `Paciente: ${params.paciente.nome}`,
     `Exames: ${lista.join(', ')}`,
     params.indicacaoClinica ? `Indicação: ${params.indicacaoClinica}` : '',
@@ -33,7 +33,7 @@ export default function ExamesShareModal({ params, onClose }: Props) {
   const [erro,       setErro]       = useState('')
 
   const texto    = textoResumido(params)
-  const assunto  = encodeURIComponent('Solicitação de Exames — RovarisMed')
+  const assunto  = encodeURIComponent('Solicitação de Exames — Aduno')
   const corpoPDF = encodeURIComponent(`${texto}\n\n— O arquivo PDF foi salvo no seu dispositivo. Adicione-o como anexo.`)
   const corpoWA  = encodeURIComponent(`${texto}\n\n_O PDF foi salvo no seu dispositivo. Anexe o arquivo ao enviar._`)
   const htmlDoc  = gerarHTMLExames(params, false)
@@ -60,12 +60,12 @@ export default function ExamesShareModal({ params, onClose }: Props) {
     try {
       const file = await criarFilePDF(htmlDoc, nomeDoc)
       if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: 'Solicitação de Exames — RovarisMed' })
+        await navigator.share({ files: [file], title: 'Solicitação de Exames — Aduno' })
         onClose()
         return
       }
       if ('share' in navigator) {
-        await navigator.share({ title: 'Solicitação de Exames — RovarisMed', text: texto })
+        await navigator.share({ title: 'Solicitação de Exames — Aduno', text: texto })
         onClose()
       }
     } catch (e: any) {
@@ -95,7 +95,7 @@ export default function ExamesShareModal({ params, onClose }: Props) {
         {/* Header */}
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
-            <p className="font-semibold text-[#1A3A2C] text-sm">Encaminhar solicitação de exames</p>
+            <p className="font-semibold text-[#19382E] text-sm">Encaminhar solicitação de exames</p>
             <p className="text-xs text-gray-400 mt-0.5">{params.paciente.nome}</p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1">
@@ -121,16 +121,16 @@ export default function ExamesShareModal({ params, onClose }: Props) {
             <button
               onClick={compartilharNativo}
               disabled={ocupado}
-              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-[#5BBD9B] bg-[#F0FDF4] transition-colors disabled:opacity-60"
+              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl hover:bg-gray-50 border border-[#6E8570] bg-[#F0FDF4] transition-colors disabled:opacity-60"
             >
-              <div className="w-9 h-9 bg-[#5BBD9B] rounded-xl flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 bg-[#6E8570] rounded-xl flex items-center justify-center shrink-0">
                 {acaoAtiva === 'share'
                   ? <Loader2 className="w-4 h-4 text-white animate-spin" />
                   : <Smartphone className="w-4 h-4 text-white" />
                 }
               </div>
               <div className="text-left">
-                <p className="font-semibold text-sm text-[#1A3A2C]">
+                <p className="font-semibold text-sm text-[#19382E]">
                   {acaoAtiva === 'share' ? 'Gerando PDF…' : 'Compartilhar PDF'}
                 </p>
                 <p className="text-xs text-gray-500">Envia o arquivo PDF direto pelo app</p>

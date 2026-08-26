@@ -111,7 +111,7 @@ export default function EditarMedico({
         onClick={() => setAberto(v => !v)}
         className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors"
       >
-        <span className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2">
+        <span className="font-semibold text-[#19382E] text-sm flex items-center gap-2">
           <Pencil className="w-4 h-4 text-gray-400" /> Editar dados do médico
         </span>
         <span className="text-gray-400 text-xs">{aberto ? '▲' : '▼'}</span>
@@ -133,7 +133,7 @@ export default function EditarMedico({
                 )}
                 {uploadingFoto && (
                   <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-                    <Loader2 className="w-5 h-5 animate-spin text-[#5BBD9B]" />
+                    <Loader2 className="w-5 h-5 animate-spin text-[#6E8570]" />
                   </div>
                 )}
               </div>
@@ -141,7 +141,7 @@ export default function EditarMedico({
                 <button
                   onClick={() => fileRef.current?.click()}
                   disabled={uploadingFoto}
-                  className="flex items-center gap-1.5 text-xs bg-[#1A3A2C] text-white px-3 py-1.5 rounded-lg hover:bg-[#122a1f] transition-colors disabled:opacity-50"
+                  className="flex items-center gap-1.5 text-xs bg-[#19382E] text-white px-3 py-1.5 rounded-lg hover:bg-[#122a1f] transition-colors disabled:opacity-50"
                 >
                   <Camera className="w-3.5 h-3.5" />
                   {fotoUrl ? 'Trocar foto' : 'Enviar foto'}
@@ -181,8 +181,8 @@ export default function EditarMedico({
                     onClick={() => setSexo(val)}
                     className={`flex-1 text-xs py-1.5 rounded-lg border-2 font-medium transition-all ${
                       sexo === val
-                        ? 'bg-[#1A3A2C] border-[#1A3A2C] text-white'
-                        : 'bg-white border-gray-200 text-gray-500 hover:border-[#1A3A2C]'
+                        ? 'bg-[#19382E] border-[#19382E] text-white'
+                        : 'bg-white border-gray-200 text-gray-500 hover:border-[#19382E]'
                     }`}
                   >
                     {label}
@@ -202,7 +202,7 @@ export default function EditarMedico({
                 onChange={e => { setBio(e.target.value); setSavedDados(false) }}
                 rows={3}
                 placeholder="Breve apresentação do médico..."
-                className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 resize-none"
+                className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40 resize-none"
               />
             </div>
 
@@ -211,12 +211,12 @@ export default function EditarMedico({
             <button
               onClick={handleSalvarDados}
               disabled={savingDados}
-              className="w-full flex items-center justify-center gap-1.5 bg-[#1A3A2C] hover:bg-[#122a1f] text-white px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-60 transition-colors"
+              className="w-full flex items-center justify-center gap-1.5 bg-[#19382E] hover:bg-[#122a1f] text-white px-4 py-2 rounded-xl text-xs font-semibold disabled:opacity-60 transition-colors"
             >
               {savingDados ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
               ) : savedDados ? (
-                <><CheckCircle2 className="w-3.5 h-3.5 text-[#5BBD9B]" /> Salvo!</>
+                <><CheckCircle2 className="w-3.5 h-3.5 text-[#6E8570]" /> Salvo!</>
               ) : (
                 'Salvar alterações'
               )}
@@ -242,7 +242,7 @@ function Field({
         onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         maxLength={maxLength}
-        className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40"
+        className="w-full text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40"
       />
     </div>
   )

@@ -54,7 +54,7 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
   const logoUrl: string | null = empresa.logo_url ?? null
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
+    <div className="min-h-screen bg-[#F3F6F3]">
       <AdminHeader titulo="Empresa" backHref="/admin/empresas" />
 
       <main className="max-w-6xl mx-auto px-6 py-8">
@@ -74,7 +74,7 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
               {/* Dados da empresa */}
               <div className="min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-xl font-bold text-[#1A3A2C]">{empresa.nome}</h1>
+                  <h1 className="text-xl font-bold text-[#19382E]">{empresa.nome}</h1>
                   {corPrimaria && (
                     <span
                       className="inline-block w-3 h-3 rounded-full border border-gray-200"
@@ -100,7 +100,7 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
                 </div>
                 <div className="flex gap-5 mt-3">
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-[#1A3A2C]">{totalAtivos}</p>
+                    <p className="text-2xl font-bold text-[#19382E]">{totalAtivos}</p>
                     <p className="text-xs text-gray-400">ativos</p>
                   </div>
                   <div className="text-center">
@@ -138,8 +138,8 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
           <div className="md:col-span-2">
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2">
-                  <Users className="w-4 h-4 text-[#5BBD9B]" /> Funcionários
+                <h2 className="font-bold text-[#19382E] flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#6E8570]" /> Funcionários
                 </h2>
               </div>
               {vinculos && vinculos.length > 0 ? (
@@ -157,8 +157,8 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
           {/* Painel lateral */}
           <div className="space-y-4">
             <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 mb-4">
-                <FileSpreadsheet className="w-4 h-4 text-[#5BBD9B]" /> Importar funcionários
+              <h2 className="font-bold text-[#19382E] flex items-center gap-2 mb-4">
+                <FileSpreadsheet className="w-4 h-4 text-[#6E8570]" /> Importar funcionários
               </h2>
               <ImportarFuncionarios empresaId={empresa.id} empresaNome={empresa.nome} />
             </div>
@@ -176,7 +176,7 @@ export default async function EmpresaDetalhePage({ params }: { params: Promise<{
 
             {/* Info do portal */}
             <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <h2 className="font-bold text-[#1A3A2C] flex items-center gap-2 mb-3">
+              <h2 className="font-bold text-[#19382E] flex items-center gap-2 mb-3">
                 <Shield className="w-4 h-4 text-purple-500" /> Portal RH
               </h2>
               <p className="text-xs text-gray-500">

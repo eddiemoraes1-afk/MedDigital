@@ -32,7 +32,7 @@ export default function ProducaoFiltroClient({ dataIni, dataFim, label }: Props)
           type="date"
           defaultValue={dataIni}
           onChange={navegar}
-          className="text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40"
+          className="text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40"
           style={{ border: '1px solid var(--border-2)', background: 'var(--surface-2)', color: 'var(--txt-1)' }}
         />
       </div>
@@ -43,7 +43,7 @@ export default function ProducaoFiltroClient({ dataIni, dataFim, label }: Props)
           type="date"
           defaultValue={dataFim}
           onChange={navegar}
-          className="text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40"
+          className="text-sm rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40"
           style={{ border: '1px solid var(--border-2)', background: 'var(--surface-2)', color: 'var(--txt-1)' }}
         />
       </div>

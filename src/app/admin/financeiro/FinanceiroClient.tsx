@@ -46,8 +46,8 @@ export default function FinanceiroClient() {
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all border ${
                 ativo
-                  ? 'bg-[#1A3A2C] text-white border-[#1A3A2C]'
-                  : 'border-transparent hover:border-[#1A3A2C]/20'
+                  ? 'bg-[#19382E] text-white border-[#19382E]'
+                  : 'border-transparent hover:border-[#19382E]/20'
               }`}
               style={ativo ? {} : { color: 'var(--txt-muted)', background: 'var(--card)' }}
             >

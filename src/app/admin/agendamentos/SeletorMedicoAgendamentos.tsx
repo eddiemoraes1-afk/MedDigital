@@ -78,7 +78,7 @@ export default function SeletorMedicoAgendamentos({ medicos, medicoIdAtivo, view
             placeholder="Buscar por nome, especialidade ou CRM…"
             value={busca}
             onChange={e => setBusca(e.target.value)}
-            className="w-full pl-8 pr-8 py-1.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#5BBD9B]/40 bg-gray-50 text-gray-700 placeholder-gray-400"
+            className="w-full pl-8 pr-8 py-1.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#6E8570]/40 bg-gray-50 text-gray-700 placeholder-gray-400"
           />
           {busca && (
             <button
@@ -105,8 +105,8 @@ export default function SeletorMedicoAgendamentos({ medicos, medicoIdAtivo, view
           href={todosLink()}
           className={`px-4 py-1.5 rounded-xl text-sm font-semibold transition-colors flex items-center gap-1.5 ${
             modoTodos
-              ? 'bg-[#1A3A2C] text-white'
-              : 'bg-[#5BBD9B]/10 text-[#1A3A2C] hover:bg-[#5BBD9B]/20 border border-[#5BBD9B]/30'
+              ? 'bg-[#19382E] text-white'
+              : 'bg-[#6E8570]/10 text-[#19382E] hover:bg-[#6E8570]/20 border border-[#6E8570]/30'
           }`}
         >
           <LayoutGrid className="w-3.5 h-3.5" />
@@ -134,7 +134,7 @@ export default function SeletorMedicoAgendamentos({ medicos, medicoIdAtivo, view
                 m.crm ? `CRM ${m.crm}/${m.crm_uf}` : null,
               ].filter(Boolean).join(' · ')}
               className={`group px-4 py-1.5 rounded-xl text-sm font-medium transition-colors flex items-center gap-1.5 ${
-                ativo ? 'bg-[#1A3A2C] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ativo ? 'bg-[#19382E] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               {modoTodos && (
@@ -143,7 +143,7 @@ export default function SeletorMedicoAgendamentos({ medicos, medicoIdAtivo, view
               <span>{drTitle(m.sexo)} {nomeAbrev(m.nome)}</span>
               {/* Tooltip-style: especialidade ao lado (só quando há busca ativa) */}
               {busca && m.especialidade && (
-                <span className={`text-xs font-normal ${ativo ? 'text-green-200' : 'text-gray-400'}`}>
+                <span className={`text-xs font-normal ${ativo ? 'text-white/70' : 'text-gray-400'}`}>
                   · {m.especialidade}
                 </span>
               )}
@@ -161,7 +161,7 @@ export default function SeletorMedicoAgendamentos({ medicos, medicoIdAtivo, view
               <span className={`w-2.5 h-2.5 rounded-full ${m.cor.dot}`} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-[#1A3A2C]">{drTitle(m.sexo)} {m.nome}</p>
+              <p className="text-sm font-semibold text-[#19382E]">{drTitle(m.sexo)} {m.nome}</p>
               <div className="flex items-center gap-3 mt-0.5">
                 {m.especialidade && (
                   <span className="text-xs text-gray-500 flex items-center gap-1">

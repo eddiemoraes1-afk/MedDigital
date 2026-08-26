@@ -49,7 +49,7 @@ export default function MedicoHeader({ titulo, backHref, onBack, medicoNome, med
             </Link>
           ) : null}
 
-          <img src="/logo-branca.svg" alt="RovarisMed" className="h-8 shrink-0" />
+          <img src="/aduno-logo-branca.png" alt="Aduno" className="h-8 shrink-0" />
           <div className="h-5 w-px bg-white/15 shrink-0" />
           <span className="text-xs font-semibold text-white/90 bg-white/10 px-3 py-1 rounded-full border border-white/10 max-w-[180px] truncate" title={titulo}>
             {titulo}
@@ -60,21 +60,21 @@ export default function MedicoHeader({ titulo, backHref, onBack, medicoNome, med
         <div className="flex items-center gap-0.5 shrink-0">
           <Link
             href="/medico/dashboard"
-            className="flex items-center gap-1.5 text-green-200/80 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+            className="flex items-center gap-1.5 text-white/65 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
           >
             <LayoutDashboard className="w-3.5 h-3.5" />
             <span className="hidden md:inline">Painel</span>
           </Link>
           <Link
             href="/medico/producao"
-            className="flex items-center gap-1.5 text-green-200/80 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+            className="flex items-center gap-1.5 text-white/65 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
           >
             <BarChart2 className="w-3.5 h-3.5" />
             <span className="hidden md:inline">Minha Produção</span>
           </Link>
           <Link
             href="/medico/logs"
-            className="flex items-center gap-1.5 text-green-200/80 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
+            className="flex items-center gap-1.5 text-white/65 hover:text-white hover:bg-white/10 px-3 py-1.5 rounded-xl text-xs font-medium transition-all"
           >
             <History className="w-3.5 h-3.5" />
             <span className="hidden md:inline">Histórico</span>

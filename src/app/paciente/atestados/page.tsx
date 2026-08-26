@@ -35,18 +35,18 @@ export default async function PacienteAtestadosPage() {
   const totalValidos = atestadosComStatus.filter((a: any) => a.valido).length
 
   return (
-    <div className="min-h-screen bg-[#F3FAF7]">
+    <div className="min-h-screen bg-[#F3F6F3]">
       <PacienteHeader titulo="Meus Atestados" backHref="/paciente/dashboard" />
 
       <main className="max-w-3xl mx-auto px-6 py-8">
         {/* Cabeçalho */}
         <div className="flex items-center gap-3 mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#1A3A2C] rounded-xl">
-              <FileText className="w-5 h-5 text-[#5BBD9B]" />
+            <div className="p-2.5 bg-[#19382E] rounded-xl">
+              <FileText className="w-5 h-5 text-[#6E8570]" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-[#1A3A2C]">Meus Atestados</h1>
+              <h1 className="text-xl font-bold text-[#19382E]">Meus Atestados</h1>
               <p className="text-sm text-gray-400">
                 {atestadosComStatus.length} atestado{atestadosComStatus.length !== 1 ? 's' : ''}
                 {totalValidos > 0 && (

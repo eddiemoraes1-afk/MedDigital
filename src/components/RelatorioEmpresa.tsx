@@ -333,18 +333,18 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: Arial, sans-serif; font-size: 11px; color: #1a1a1a; padding: 20px; }
-  h1 { font-size: 18px; color: #1A3A2C; margin-bottom: 4px; }
+  h1 { font-size: 18px; color: #19382E; margin-bottom: 4px; }
   .subtitulo { color: #555; font-size: 12px; margin-bottom: 16px; }
   .meta { display: flex; gap: 24px; margin-bottom: 20px; padding: 10px 14px; background: #f5f5f5; border-radius: 6px; }
   .meta div { display: flex; flex-direction: column; }
   .meta label { font-size: 9px; text-transform: uppercase; color: #888; letter-spacing: .5px; }
-  .meta span { font-size: 12px; font-weight: 600; color: #1A3A2C; }
+  .meta span { font-size: 12px; font-weight: 600; color: #19382E; }
   .cards { display: flex; gap: 12px; margin-bottom: 20px; }
   .card { flex: 1; padding: 10px 14px; border-radius: 8px; }
   .card.consultas { background: #e8f4ea; }
   .card.mensalidade { background: #ede9f6; }
   .card.receitas { background: #e0f7f4; }
-  .card.total { background: #1A3A2C; color: white; }
+  .card.total { background: #19382E; color: white; }
   .card .lbl { font-size: 9px; text-transform: uppercase; letter-spacing: .5px; opacity: .7; }
   .card .val { font-size: 18px; font-weight: 700; margin-top: 2px; }
   .card.consultas .val { color: #1a7340; }
@@ -352,22 +352,22 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
   .card.receitas .val { color: #0e7490; }
   .card.total .val { color: white; }
   .secao { margin-bottom: 20px; }
-  .secao h2 { font-size: 12px; font-weight: 700; color: #1A3A2C; border-bottom: 2px solid #1A3A2C; padding-bottom: 4px; margin-bottom: 8px; }
+  .secao h2 { font-size: 12px; font-weight: 700; color: #19382E; border-bottom: 2px solid #19382E; padding-bottom: 4px; margin-bottom: 8px; }
   table { width: 100%; border-collapse: collapse; }
-  th { background: #1A3A2C; color: white; padding: 6px 8px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .4px; }
+  th { background: #19382E; color: white; padding: 6px 8px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .4px; }
   td { padding: 5px 8px; border-bottom: 1px solid #eee; font-size: 11px; }
   tr:last-child td { border-bottom: none; }
   tr:nth-child(even) td { background: #f9fafb; }
   .valor { text-align: right; font-weight: 600; }
   .center { text-align: center; }
-  tfoot td { background: #f0faf4 !important; font-weight: 700; font-size: 12px; border-top: 2px solid #5BBD9B; }
+  tfoot td { background: #f0faf4 !important; font-weight: 700; font-size: 12px; border-top: 2px solid #6E8570; }
   tfoot .valor { color: #1a7340; }
   .badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 9px; font-weight: 600; }
   .badge-virtual { background: #dbeafe; color: #1d4ed8; }
   .badge-agendada { background: #ede9f6; color: #6d28d9; }
   .badge-func { background: #d1fae5; color: #065f46; }
   .badge-dep { background: #fef3c7; color: #92400e; }
-  .total-geral { background: #1A3A2C; color: white; border-radius: 8px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+  .total-geral { background: #19382E; color: white; border-radius: 8px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
   .total-geral .tg-lbl { font-size: 13px; font-weight: 600; }
   .total-geral .tg-sub { font-size: 10px; opacity: .7; margin-top: 2px; }
   .total-geral .tg-val { font-size: 22px; font-weight: 700; }
@@ -488,7 +488,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
     <div class="val">${formatBRL(totalCoparticipacaoGeral)}</div>
   </div>` : ''}
 
-  <div class="rodape">Relatório gerado pelo sistema RovarisMed em ${geradoEm}</div>
+  <div class="rodape">Relatório gerado pelo sistema Aduno em ${geradoEm}</div>
 
   <script>window.onload = () => setTimeout(() => window.print(), 400)</script>
 </body>
@@ -505,8 +505,8 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="font-bold text-[#1A3A2C] text-lg flex items-center gap-2">
-          <Receipt className="w-5 h-5 text-[#5BBD9B]" />
+        <h2 className="font-bold text-[#19382E] text-lg flex items-center gap-2">
+          <Receipt className="w-5 h-5 text-[#6E8570]" />
           {titulo}
         </h2>
         {!carregando && dados && (
@@ -538,14 +538,14 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
           <label className="text-xs text-gray-500 font-medium whitespace-nowrap">De:</label>
           <input
             type="date" value={de} onChange={e => setDe(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-[#5BBD9B] focus:outline-none"
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-[#6E8570] focus:outline-none"
           />
         </div>
         <div className="flex items-center gap-2">
           <label className="text-xs text-gray-500 font-medium whitespace-nowrap">Até:</label>
           <input
             type="date" value={ate} onChange={e => setAte(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-[#5BBD9B] focus:outline-none"
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-[#6E8570] focus:outline-none"
           />
         </div>
         <div className="relative">
@@ -555,14 +555,14 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
             placeholder="Buscar funcionário..."
             value={buscaFuncionario}
             onChange={e => setBuscaFuncionario(e.target.value)}
-            className="pl-8 pr-3 py-1.5 border border-gray-200 rounded-lg text-sm w-52 focus:ring-2 focus:ring-[#5BBD9B] focus:outline-none"
+            className="pl-8 pr-3 py-1.5 border border-gray-200 rounded-lg text-sm w-52 focus:ring-2 focus:ring-[#6E8570] focus:outline-none"
           />
         </div>
         {(dados?.medicos ?? []).length > 0 && (
           <select
             value={medicoFiltro}
             onChange={e => setMedicoFiltro(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-[#5BBD9B] focus:outline-none"
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-[#6E8570] focus:outline-none"
           >
             <option value="">Todos os médicos</option>
             {dados!.medicos.map(m => (
@@ -574,7 +574,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
 
       {carregando ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-[#5BBD9B]" />
+          <Loader2 className="w-8 h-8 animate-spin text-[#6E8570]" />
         </div>
       ) : erro ? (
         <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl">{erro}</div>
@@ -612,7 +612,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
                 </p>
               </div>
             )}
-            <div className="bg-[#1A3A2C] rounded-2xl p-4">
+            <div className="bg-[#19382E] rounded-2xl p-4">
               <p className="text-xs text-green-300 font-medium mb-1">Total a Pagar</p>
               <p className="text-xl font-bold text-white leading-tight">{formatBRL(totalGeral)}</p>
               <p className="text-xs text-green-400 mt-1">consultas + renovações</p>
@@ -622,8 +622,8 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
           {/* Tabela de consultas */}
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
-              <p className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-[#5BBD9B]" />
+              <p className="font-semibold text-[#19382E] text-sm flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-[#6E8570]" />
                 Consultas realizadas
               </p>
               <p className="text-xs text-gray-400">{consultasFiltradas.length} registro{consultasFiltradas.length !== 1 ? 's' : ''}</p>
@@ -676,7 +676,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
                             {c.tipo === 'virtual' ? '📹 Virtual' : '📅 Agendada'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right font-semibold text-[#1A3A2C]">
+                        <td className="px-4 py-3 text-right font-semibold text-[#19382E]">
                           {formatBRL(c.valor_cobrado || 0)}
                         </td>
                         {temCoparticipacao && (
@@ -689,10 +689,10 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
                   </tbody>
                   <tfoot className="bg-green-50 border-t border-green-100">
                     <tr>
-                      <td colSpan={5} className="px-4 py-3 font-bold text-[#1A3A2C]">
+                      <td colSpan={5} className="px-4 py-3 font-bold text-[#19382E]">
                         Total ({consultasFiltradas.length} consulta{consultasFiltradas.length !== 1 ? 's' : ''})
                       </td>
-                      <td className="px-4 py-3 text-right font-bold text-[#1A3A2C] text-base">
+                      <td className="px-4 py-3 text-right font-bold text-[#19382E] text-base">
                         {formatBRL(totalConsultas)}
                       </td>
                       {temCoparticipacao && (
@@ -710,7 +710,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
           {/* Receitas emitidas */}
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
-              <p className="font-semibold text-[#1A3A2C] text-sm flex items-center gap-2">
+              <p className="font-semibold text-[#19382E] text-sm flex items-center gap-2">
                 <FileText className="w-4 h-4 text-cyan-500" />
                 Receitas emitidas
               </p>
@@ -772,7 +772,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
                   {renovacoes.length > 0 && (
                     <tfoot className="bg-cyan-50 border-t border-cyan-100">
                       <tr>
-                        <td colSpan={4} className="px-4 py-3 font-bold text-[#1A3A2C]">
+                        <td colSpan={4} className="px-4 py-3 font-bold text-[#19382E]">
                           Total renovações ({renovacoes.length})
                         </td>
                         <td className="px-4 py-3 text-right font-bold text-cyan-700 text-base">
@@ -792,7 +792,7 @@ export default function RelatorioEmpresa({ apiUrl, titulo = 'Relatório Financei
           </div>
 
           {/* Bloco verde — consultas + renovações */}
-          <div className="bg-[#1A3A2C] rounded-2xl p-6 space-y-4">
+          <div className="bg-[#19382E] rounded-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-300 text-sm font-semibold">Total a Pagar no período</p>

@@ -106,7 +106,7 @@ function labelStatus(s: string) {
   return map[s] || s
 }
 
-const COLORS = ['#5BBD9B', '#3B82F6', '#F59E0B', '#8B5CF6', '#EF4444', '#14B8A6', '#EC4899', '#6366F1', '#84CC16', '#F97316']
+const COLORS = ['#6E8570', '#3B82F6', '#F59E0B', '#8B5CF6', '#EF4444', '#14B8A6', '#EC4899', '#6366F1', '#84CC16', '#F97316']
 
 // ============================================================
 // SVG CHART COMPONENTS
@@ -197,7 +197,7 @@ function DonutChart({ slices, formatValue, centerLabel }: {
 
 // ---- Vertical Bar Chart ----
 function BarChartSVG({
-  data, labelKey, valueKey, color = '#5BBD9B',
+  data, labelKey, valueKey, color = '#6E8570',
   formatValue = (v: number) => String(v),
   secondKey, secondColor = '#3B82F6', secondLabel, firstLabel,
 }: {
@@ -313,7 +313,7 @@ function BarChartSVG({
 // ---- Horizontal Bar Chart ----
 function HBarChart({
   data, labelKey, valueKey,
-  color = '#5BBD9B',
+  color = '#6E8570',
   formatValue = (v: number) => String(v),
   maxItems = 10,
 }: {
@@ -712,7 +712,7 @@ function KpiCard({ label, value, sub, icon: Icon, color, highlight }: {
           {sub && <p className="text-xs mt-0.5" style={{ color: highlight ? 'rgba(255,255,255,0.6)' : 'var(--txt-3)' }}>{sub}</p>}
         </div>
         <div className="p-2.5 rounded-xl shrink-0" style={{ backgroundColor: highlight ? 'rgba(255,255,255,0.15)' : `${color}1a` }}>
-          <Icon className="w-5 h-5" style={{ color: highlight ? '#5BBD9B' : color }} />
+          <Icon className="w-5 h-5" style={{ color: highlight ? '#6E8570' : color }} />
         </div>
       </div>
     </div>
@@ -832,7 +832,7 @@ function exportarPDF(data: DashboardData) {
   const tableStyle = `
     width:100%;border-collapse:collapse;font-size:11px;margin-bottom:4px;
   `
-  const thStyle = `background:#1A3A2C;color:white;padding:6px 8px;text-align:left;font-size:10px;`
+  const thStyle = `background:#19382E;color:white;padding:6px 8px;text-align:left;font-size:10px;`
   const tdStyle = `padding:5px 8px;border-bottom:1px solid #F0F0F0;`
 
   function table(headers: string[], rows: string[][]): string {
@@ -846,27 +846,27 @@ function exportarPDF(data: DashboardData) {
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Dashboard Admin — RovarisMed</title>
+<title>Dashboard Admin — Aduno</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:system-ui,sans-serif;color:#1A3A2C;background:#f8f8f8;padding:28px}
+  body{font-family:system-ui,sans-serif;color:#19382E;background:#f8f8f8;padding:28px}
   h1{font-size:22px;font-weight:bold}
   .sub{color:#6B7280;font-size:12px;margin-bottom:24px;margin-top:3px}
   .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
   .kpi{background:white;border-radius:10px;padding:13px 16px;border:1px solid #E5E7EB}
   .kpi-label{font-size:10px;color:#6B7280;text-transform:uppercase;letter-spacing:.5px}
   .kpi-value{font-size:18px;font-weight:bold;margin-top:3px}
-  .kpi.highlight{background:#1A3A2C;border-color:#1A3A2C}
+  .kpi.highlight{background:#19382E;border-color:#19382E}
   .kpi.highlight .kpi-label{color:#86EFAC}
   .kpi.highlight .kpi-value{color:white}
   section{margin-bottom:22px;page-break-inside:avoid}
-  h2{font-size:13px;font-weight:bold;border-bottom:2px solid #5BBD9B;padding-bottom:6px;margin-bottom:10px}
+  h2{font-size:13px;font-weight:bold;border-bottom:2px solid #6E8570;padding-bottom:6px;margin-bottom:10px}
   .total-row td{font-weight:bold!important;background:#F0FAF6!important}
   @media print{body{background:white;padding:0}@page{margin:14mm;size:A4}}
 </style>
 </head>
 <body>
-<h1>📊 Dashboard Administrativo — RovarisMed</h1>
+<h1>📊 Dashboard Administrativo — Aduno</h1>
 <p class="sub">Gerado em ${new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
 
 <div class="kpis">
@@ -966,7 +966,7 @@ function exportarPDF(data: DashboardData) {
 // MAIN COMPONENT
 // ============================================================
 const STATUS_COLORS: Record<string, string> = {
-  confirmado: '#5BBD9B', concluido: '#1A3A2C',
+  confirmado: '#6E8570', concluido: '#19382E',
   cancelado: '#EF4444', reagendado: '#F59E0B',
   pendente: '#9CA3AF', agendado: '#3B82F6',
 }
@@ -1093,7 +1093,7 @@ export default function DashboardClient() {
 
       {/* ---- KPIs ---- */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4">
-        <KpiCard label="Total Geral" value={formatBRL(kpis.totalGeral)} sub="consultas + mensalidades + renovações" icon={DollarSign} color="#5BBD9B" highlight />
+        <KpiCard label="Total Geral" value={formatBRL(kpis.totalGeral)} sub="consultas + mensalidades + renovações" icon={DollarSign} color="#6E8570" highlight />
         <KpiCard label="Faturamento Consultas" value={formatBRL(kpis.totalFaturamento)} sub={`${kpis.totalConsultas} realizadas`} icon={Activity} color="#3B82F6" />
         <KpiCard label="Mensalidades" value={formatBRL(kpis.totalMensalidades)} sub={`${kpis.totalEmpresasAtivas} empresas`} icon={Building2} color="#8B5CF6" />
         <KpiCard label="Renovações de Receita" value={formatBRL(kpis.totalGastosRenovacoes)} sub={`${kpis.totalRenovacoes} emitidas`} icon={Receipt} color="#F97316" />
@@ -1109,7 +1109,7 @@ export default function DashboardClient() {
           <ChartCard title="Faturamento por Mês" subtitle="Receita de consultas concluídas">
             <BarChartSVG
               data={data.faturamentoPorMes.map(d => ({ ...d, mes: formatMes(d.mes) }))}
-              labelKey="mes" valueKey="valor" color="#5BBD9B" formatValue={formatBRL}
+              labelKey="mes" valueKey="valor" color="#6E8570" formatValue={formatBRL}
             />
           </ChartCard>
         </div>
@@ -1226,7 +1226,7 @@ export default function DashboardClient() {
           <ChartCard title="Faturamento por Empresa" subtitle="Consultas + Mensalidade no período">
             <HBarChart
               data={data.faturamentoPorEmpresa.map(d => ({ ...d, total: d.valorConsultas + d.mensalidade }))}
-              labelKey="nome" valueKey="total" formatValue={formatBRL} color="#5BBD9B"
+              labelKey="nome" valueKey="total" formatValue={formatBRL} color="#6E8570"
             />
           </ChartCard>
         </div>
@@ -1281,7 +1281,7 @@ export default function DashboardClient() {
             valueKey="funcionarios"
             secondKey="consultas"
             color="#6366F1"
-            secondColor="#5BBD9B"
+            secondColor="#6E8570"
             firstLabel="Funcionários"
             secondLabel="Consultas"
           />
@@ -1290,7 +1290,7 @@ export default function DashboardClient() {
               <span className="w-3 h-3 rounded-sm inline-block" style={{ background: '#6366F1' }} /> Funcionários
             </div>
             <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--txt-2)' }}>
-              <span className="w-3 h-3 rounded-sm inline-block" style={{ background: '#5BBD9B' }} /> Consultas
+              <span className="w-3 h-3 rounded-sm inline-block" style={{ background: '#6E8570' }} /> Consultas
             </div>
           </div>
         </ChartCard>
@@ -1392,7 +1392,7 @@ export default function DashboardClient() {
               slices={(data.distribuicaoRelacaoGlobal ?? []).filter(d => d.cadastros > 0).map(d => ({
                 label: d.categoria,
                 value: d.cadastros,
-                color: d.categoria === 'Funcionário' ? '#5BBD9B' : '#3B82F6',
+                color: d.categoria === 'Funcionário' ? '#6E8570' : '#3B82F6',
               }))}
               formatValue={v => `${v} cadastros`}
               centerLabel={String((data.distribuicaoRelacaoGlobal ?? []).reduce((s, r) => s + r.cadastros, 0))}
@@ -1403,7 +1403,7 @@ export default function DashboardClient() {
               slices={(data.distribuicaoRelacaoGlobal ?? []).filter(d => d.consultas > 0).map(d => ({
                 label: d.categoria,
                 value: d.consultas,
-                color: d.categoria === 'Funcionário' ? '#5BBD9B' : '#3B82F6',
+                color: d.categoria === 'Funcionário' ? '#6E8570' : '#3B82F6',
               }))}
               formatValue={v => `${v} consultas`}
             />
@@ -1417,7 +1417,7 @@ export default function DashboardClient() {
               data={data.consultasRelacaoPorMesGlobal.map(d => ({ ...d, mes: formatMes(d.mes) }))}
               labelKey="mes"
               keys={['funcionarios', 'dependentes']}
-              colors={['#5BBD9B', '#3B82F6']}
+              colors={['#6E8570', '#3B82F6']}
               labels={['Funcionários', 'Dependentes']}
               formatValue={v => `${v} consulta${v !== 1 ? 's' : ''}`}
             />
