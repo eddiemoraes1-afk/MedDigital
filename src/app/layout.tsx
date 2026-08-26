@@ -7,13 +7,13 @@ export const metadata: Metadata = {
   title: 'Aduno — Saúde Ocupacional Digital',
   description: 'Medicina do trabalho, telemedicina ilimitada e conformidade NR-1 em uma única plataforma.',
   applicationName: 'Aduno',
+  // favicon.ico, icon.png e apple-icon.png ficam em src/app/ (convenção do Next).
+  // Aqui só os extras, que não colidem com nenhuma rota.
   icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: '48x48' },
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+    other: [
+      { rel: 'icon', url: '/favicon.svg', type: 'image/svg+xml' },
+      { rel: 'icon', url: '/icon-192.png', type: 'image/png' },
     ],
-    apple: [{ url: '/apple-icon.png', sizes: '180x180' }],
   },
   openGraph: {
     title: 'Aduno — Saúde Ocupacional Digital',
