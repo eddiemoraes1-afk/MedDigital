@@ -4,8 +4,8 @@ import HeartbeatProvider from './HeartbeatProvider'
 import ThemeScript from './ThemeScript'
 
 export const metadata: Metadata = {
-  title: 'Aduno — Saúde Ocupacional Digital',
-  description: 'Medicina do trabalho, telemedicina ilimitada e conformidade NR-1 em uma única plataforma.',
+  title: 'Aduno — Cuidar de quem faz a sua empresa acontecer',
+  description: 'Atendimento médico para o seu time, por vídeo, direto do celular. Sem fila, sem burocracia e sem pagar por consulta.',
   applicationName: 'Aduno',
   // favicon.ico, icon.png e apple-icon.png ficam em src/app/ (convenção do Next).
   // Aqui só os extras, que não colidem com nenhuma rota.
@@ -16,8 +16,8 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: 'Aduno — Saúde Ocupacional Digital',
-    description: 'Medicina do trabalho, telemedicina ilimitada e conformidade NR-1 em uma única plataforma.',
+    title: 'Aduno — Cuidar de quem faz a sua empresa acontecer',
+    description: 'Atendimento médico para o seu time, por vídeo, direto do celular. Sem fila, sem burocracia e sem pagar por consulta.',
     siteName: 'Aduno',
     locale: 'pt_BR',
     type: 'website',
