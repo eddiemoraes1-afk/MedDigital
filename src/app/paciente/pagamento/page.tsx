@@ -1,10 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { lerConfigPagamento } from '@/lib/config-pagamento'
 import PacienteHeader from '../PacienteHeader'
 import PagamentoClient from './PagamentoClient'
-
-/** Valor padrão da consulta avulsa quando a empresa não define um preço. */
-const VALOR_PADRAO = Number(process.env.VALOR_CONSULTA_AVULSA || '89.90')
 
 interface Props {
   searchParams: Promise<{ ref?: string; valor?: string; destino?: string }>
@@ -29,8 +27,12 @@ export default async function PagamentoPage({ searchParams }: Props) {
   // Referência única: impede cobrar duas vezes a mesma consulta.
   const referencia = ref?.trim() || `avulsa:${paciente.id}:${Date.now()}`
 
+  // Preço vem da configuração do painel admin, não do código.
+  const config = await lerConfigPagamento()
   const valorNum = Number(valor)
-  const valorFinal = Number.isFinite(valorNum) && valorNum > 0 ? valorNum : VALOR_PADRAO
+  const valorFinal = Number.isFinite(valorNum) && valorNum > 0
+    ? valorNum
+    : config.valorConsultaAvulsa
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg)' }}>

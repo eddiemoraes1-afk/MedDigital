@@ -58,6 +58,15 @@ export default async function AdminDashboardPage() {
   for (const r of configRows ?? []) configMap[r.chave] = r.valor
   const precoReceitaParticular = parseFloat(configMap['preco_receita_particular'] ?? '0') || 0
 
+  // Configurações de pagamento — banco primeiro, ambiente como reserva
+  const valorConsultaAvulsa = parseFloat(
+    configMap['valor_consulta_avulsa'] ?? process.env.VALOR_CONSULTA_AVULSA ?? '89.90',
+  ) || 89.9
+  const pagamentoValorMaximo = parseFloat(
+    configMap['pagamento_valor_maximo'] ?? process.env.PAGAMENTO_VALOR_MAXIMO ?? '500',
+  ) || 500
+  const pagamentosAtivo = (configMap['pagamentos_ativo'] ?? 'true') !== 'false'
+
   const { data: medicosPendentes } = await adminSupabase
     .from('medicos')
     .select('id, nome, especialidade, crm, crm_uf, criado_em')
@@ -182,7 +191,12 @@ export default async function AdminDashboardPage() {
 
         {/* Configurações globais */}
         <div className="mb-6">
-          <ConfiguracoesSistema precoReceitaParticularAtual={precoReceitaParticular} />
+          <ConfiguracoesSistema
+            precoReceitaParticularAtual={precoReceitaParticular}
+            valorConsultaAvulsaAtual={valorConsultaAvulsa}
+            pagamentoValorMaximoAtual={pagamentoValorMaximo}
+            pagamentosAtivoAtual={pagamentosAtivo}
+          />
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">

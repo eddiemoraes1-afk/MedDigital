@@ -4,6 +4,7 @@ import {
   criarCliente, criarCobranca, obterQrCodePix,
   ASAAS_CONTA, AsaasErro,
 } from '@/lib/asaas'
+import { lerConfigPagamento } from '@/lib/config-pagamento'
 
 /**
  * Cria uma cobrança para o paciente logado.
@@ -96,13 +97,17 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // ── 5. Cria a cobrança ──
+    // ── 5. Cria a cobrança, com os limites vindos do painel admin ──
+    const config = await lerConfigPagamento()
+
     const cobranca = await criarCobranca({
       clienteId,
       valor,
       descricao,
       metodo,
       referenciaExterna: referencia,
+      valorMaximo: config.valorMaximo,
+      ativo: config.ativo,
     })
 
     // ── 6. PIX: busca o QR code ──

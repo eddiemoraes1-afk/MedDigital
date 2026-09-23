@@ -16,11 +16,11 @@ export const ASAAS_BASE = (process.env.ASAAS_BASE_URL || 'https://api.asaas.com/
 /** Rótulo da conta em uso. Vai gravado em cada pagamento para conciliação futura. */
 export const ASAAS_CONTA = process.env.ASAAS_CONTA || 'principal'
 
-/** Chave geral. Com 'false', nenhuma cobrança é criada — use em emergência. */
+/**
+ * Freio de emergência do ambiente. Com 'false' na Vercel, nenhuma cobrança
+ * é criada e o painel admin não consegue religar.
+ */
 export const PAGAMENTOS_ATIVO = process.env.PAGAMENTOS_ATIVO !== 'false'
-
-/** Teto de segurança. Cobrança acima disso é recusada antes de sair daqui. */
-export const VALOR_MAXIMO = Number(process.env.PAGAMENTO_VALOR_MAXIMO || '500')
 
 const API_KEY = process.env.ASAAS_API_KEY || ''
 const USER_AGENT = 'Aduno'
@@ -133,17 +133,21 @@ export async function criarCobranca(dados: {
   metodo: 'pix' | 'cartao'
   referenciaExterna: string
   vencimento?: string          // AAAA-MM-DD; padrão: hoje
+  /** Teto vindo da configuração do painel. */
+  valorMaximo: number
+  /** Chave geral vinda da configuração do painel. */
+  ativo: boolean
 }): Promise<AsaasCobranca> {
   // ── Travas de segurança ──
-  if (!PAGAMENTOS_ATIVO) {
-    throw new AsaasErro('Cobranças estão desativadas (PAGAMENTOS_ATIVO=false)', 503)
+  if (!PAGAMENTOS_ATIVO || !dados.ativo) {
+    throw new AsaasErro('Cobranças estão desativadas na configuração do sistema', 503)
   }
   if (!(dados.valor > 0)) {
     throw new AsaasErro('Valor da cobrança precisa ser maior que zero', 400)
   }
-  if (dados.valor > VALOR_MAXIMO) {
+  if (dados.valor > dados.valorMaximo) {
     throw new AsaasErro(
-      `Valor R$ ${dados.valor.toFixed(2)} acima do teto de segurança de R$ ${VALOR_MAXIMO.toFixed(2)}`,
+      `Valor R$ ${dados.valor.toFixed(2)} acima do teto de segurança de R$ ${dados.valorMaximo.toFixed(2)}`,
       400,
     )
   }
