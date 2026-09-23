@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { consultarCobranca, traduzirStatus } from '@/lib/asaas'
+import { consultarCobranca, traduzirStatus, obterQrCodePix } from '@/lib/asaas'
 
 /**
  * Consulta a situação de um pagamento.
@@ -32,13 +32,51 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
 
   let atual = pagamento
 
-  // Ainda pendente? Confere na fonte antes de responder.
-  if (pagamento.status === 'pendente' && pagamento.asaas_cobranca_id) {
+  // ── QR code do PIX ainda não chegou? Tenta buscar agora. ──
+  // Em contas sem chave PIX cadastrada, o Asaas leva alguns segundos
+  // para disponibilizar o código. A tela consulta de tempos em tempos,
+  // então aqui é onde ele finalmente aparece.
+  if (
+    pagamento.status === 'pendente' &&
+    pagamento.metodo === 'pix' &&
+    !pagamento.pix_copia_cola &&
+    pagamento.asaas_cobranca_id
+  ) {
     try {
-      const cobranca = await consultarCobranca(pagamento.asaas_cobranca_id)
+      const qr = await obterQrCodePix(pagamento.asaas_cobranca_id)
+      if (qr?.payload) {
+        const { data: comQr } = await db
+          .from('pagamentos')
+          .update({
+            pix_copia_cola: qr.payload,
+            pix_qrcode_base64: qr.encodedImage,
+            pix_expira_em: qr.expirationDate ?? null,
+          })
+          .eq('id', pagamento.id)
+          .select('*')
+          .single()
+
+        if (comQr) atual = comQr
+
+        await db.from('pagamentos_eventos').insert({
+          pagamento_id: pagamento.id,
+          origem: 'api',
+          evento: 'qrcode_pix_obtido_na_segunda_tentativa',
+          detalhe: null,
+        })
+      }
+    } catch {
+      // Segue sem o QR. A tela mostra o link da fatura como alternativa.
+    }
+  }
+
+  // Ainda pendente? Confere na fonte antes de responder.
+  if (atual.status === 'pendente' && atual.asaas_cobranca_id) {
+    try {
+      const cobranca = await consultarCobranca(atual.asaas_cobranca_id)
       const novo = traduzirStatus(cobranca.status)
 
-      if (novo !== pagamento.status) {
+      if (novo !== atual.status) {
         const { data: atualizado } = await db
           .from('pagamentos')
           .update({

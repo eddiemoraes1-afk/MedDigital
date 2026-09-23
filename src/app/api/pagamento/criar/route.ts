@@ -116,13 +116,29 @@ export async function POST(req: NextRequest) {
     let pixExpira: string | null = null
 
     if (metodo === 'pix') {
-      try {
-        const qr = await obterQrCodePix(cobranca.id)
-        pixCopiaCola = qr.payload
-        pixQrCode = qr.encodedImage
-        pixExpira = qr.expirationDate ?? null
-      } catch {
-        // Sem QR code o paciente ainda consegue pagar pela fatura do Asaas.
+      // Contas sem chave PIX cadastrada usam uma chave temporária, que leva
+      // alguns instantes para ficar pronta. Tentamos algumas vezes antes de
+      // desistir — e se ainda assim não vier, a tela busca de novo sozinha.
+      for (let tentativa = 1; tentativa <= 3; tentativa++) {
+        try {
+          const qr = await obterQrCodePix(cobranca.id)
+          pixCopiaCola = qr.payload
+          pixQrCode = qr.encodedImage
+          pixExpira = qr.expirationDate ?? null
+          break
+        } catch (e) {
+          if (tentativa === 3) {
+            // Registra o motivo real. Nada de falha silenciosa.
+            await registrar(db, null, 'sistema', 'qrcode_pix_indisponivel', {
+              cobranca_id: cobranca.id,
+              tentativas: tentativa,
+              mensagem: e instanceof Error ? e.message : String(e),
+              dica: 'Verifique se há chave PIX cadastrada na conta do Asaas.',
+            })
+          } else {
+            await new Promise(r => setTimeout(r, 900))
+          }
+        }
       }
     }
 

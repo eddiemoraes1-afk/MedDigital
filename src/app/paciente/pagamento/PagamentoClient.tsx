@@ -72,7 +72,9 @@ export default function PagamentoClient({ valor, descricao, referencia, destino 
       const res = await fetch(`/api/pagamento/${pagamento.id}`)
       if (!res.ok) return
       const json = await res.json()
-      setPagamento(p => (p ? { ...p, status: json.pagamento.status } : p))
+      // Substitui tudo: o QR code do PIX pode chegar só agora, alguns
+      // segundos depois da cobrança ter sido criada.
+      setPagamento(json.pagamento)
     } catch {
       // rede instável: tenta de novo no próximo ciclo
     }
@@ -192,40 +194,62 @@ export default function PagamentoClient({ valor, descricao, referencia, destino 
           <p className="text-sm mt-1" style={{ color: 'var(--txt-2)' }}>{pagamento.descricao}</p>
         </div>
 
-        {pagamento.pix_qrcode_base64 ? (
-          <div className="flex justify-center mb-6">
-            <div className="p-4 rounded-2xl bg-white" style={{ border: '1px solid var(--border)' }}>
-              <img src={`data:image/png;base64,${pagamento.pix_qrcode_base64}`}
-                alt="QR Code para pagamento por PIX" className="w-52 h-52" />
-            </div>
+        {/* O código ainda não chegou — o Asaas leva alguns segundos quando
+            a conta não tem chave PIX cadastrada. */}
+        {!pagamento.pix_copia_cola ? (
+          <div className="py-8 text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" style={{ color: 'var(--brand-2)' }} />
+            <p className="font-medium mb-1.5" style={{ color: 'var(--txt-1)' }}>
+              Gerando seu código PIX
+            </p>
+            <p className="text-sm mb-6" style={{ color: 'var(--txt-2)' }}>
+              Costuma levar poucos segundos. A tela atualiza sozinha.
+            </p>
+
+            {pagamento.link_pagamento && (
+              <a href={pagamento.link_pagamento} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
+                style={{ background: 'var(--surface-2)', border: '1px solid var(--border-2)', color: 'var(--txt-1)' }}>
+                Pagar pela página do Asaas <ExternalLink className="w-4 h-4" />
+              </a>
+            )}
           </div>
         ) : (
-          <p className="text-center text-sm mb-6" style={{ color: 'var(--txt-2)' }}>
-            Use o código abaixo no app do seu banco.
-          </p>
+          <>
+            {pagamento.pix_qrcode_base64 && (
+              <div className="flex justify-center mb-6">
+                <div className="p-4 rounded-2xl bg-white" style={{ border: '1px solid var(--border)' }}>
+                  <img src={`data:image/png;base64,${pagamento.pix_qrcode_base64}`}
+                    alt="QR Code para pagamento por PIX" className="w-52 h-52" />
+                </div>
+              </div>
+            )}
+
+            <p className="text-xs font-semibold mb-2" style={{ color: 'var(--txt-2)' }}>
+              {pagamento.pix_qrcode_base64
+                ? 'Ou copie o código e cole no app do banco'
+                : 'Copie o código e cole no app do seu banco'}
+            </p>
+            <div className="flex gap-2 mb-6">
+              <input readOnly value={pagamento.pix_copia_cola}
+                className="flex-1 px-3 py-2.5 rounded-xl text-xs font-mono truncate"
+                style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--txt-2)' }} />
+              <button onClick={copiar}
+                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-white flex items-center gap-1.5 shrink-0 transition-opacity hover:opacity-90"
+                style={{ background: copiado ? 'var(--success)' : 'var(--brand)' }}>
+                {copiado ? <><Check className="w-3.5 h-3.5" /> Copiado</> : <><Copy className="w-3.5 h-3.5" /> Copiar</>}
+              </button>
+            </div>
+
+            <div className="flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl"
+              style={{ background: 'var(--info-bg)' }}>
+              <Loader2 className="w-4 h-4 animate-spin shrink-0" style={{ color: 'var(--info)' }} />
+              <p className="text-sm" style={{ color: 'var(--info)' }}>
+                Aguardando o pagamento. Assim que cair, seguimos automaticamente.
+              </p>
+            </div>
+          </>
         )}
-
-        <p className="text-xs font-semibold mb-2" style={{ color: 'var(--txt-2)' }}>
-          Ou copie o código e cole no app do banco
-        </p>
-        <div className="flex gap-2 mb-6">
-          <input readOnly value={pagamento.pix_copia_cola ?? ''}
-            className="flex-1 px-3 py-2.5 rounded-xl text-xs font-mono truncate"
-            style={{ background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--txt-2)' }} />
-          <button onClick={copiar}
-            className="px-4 py-2.5 rounded-xl text-xs font-semibold text-white flex items-center gap-1.5 shrink-0 transition-opacity hover:opacity-90"
-            style={{ background: copiado ? 'var(--success)' : 'var(--brand)' }}>
-            {copiado ? <><Check className="w-3.5 h-3.5" /> Copiado</> : <><Copy className="w-3.5 h-3.5" /> Copiar</>}
-          </button>
-        </div>
-
-        <div className="flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl"
-          style={{ background: 'var(--info-bg)' }}>
-          <Loader2 className="w-4 h-4 animate-spin shrink-0" style={{ color: 'var(--info)' }} />
-          <p className="text-sm" style={{ color: 'var(--info)' }}>
-            Aguardando o pagamento. Assim que cair, seguimos automaticamente.
-          </p>
-        </div>
 
         {erro && <p className="text-xs text-center mt-4" style={{ color: 'var(--danger)' }}>{erro}</p>}
 

@@ -1226,6 +1226,18 @@ function TriagemConteudo() {
         body: JSON.stringify({ triagem_id: triagemId }),
       })
       const data = await res.json()
+
+      // Paciente particular: o servidor pede o pagamento antes da fila.
+      // Quem tem vínculo com empresa nunca cai aqui — a empresa paga.
+      if (res.status === 402 && data.pagamentoNecessario) {
+        const destino = encodeURIComponent(`/paciente/entrar-na-fila?triagem=${triagemId ?? ''}`)
+        router.push(
+          `/paciente/pagamento?ref=${encodeURIComponent(data.referencia)}` +
+          `&valor=${data.valor}&destino=${destino}`,
+        )
+        return
+      }
+
       if (data.atendimentoId) {
         router.push(`/paciente/consulta/${data.atendimentoId}`)
       } else {

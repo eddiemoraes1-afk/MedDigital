@@ -1,4 +1,5 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { avaliarCobrancaConsulta } from '@/lib/cobranca-consulta'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
@@ -22,6 +23,19 @@ export async function POST(req: NextRequest) {
       .single()
     if (!novo) return NextResponse.json({ error: 'Paciente não encontrado' }, { status: 404 })
     paciente = novo
+  }
+
+  // ── Portão de cobrança ─────────────────────────────────────────────────────
+  // Paciente de empresa passa direto. Particular paga antes de entrar na fila.
+  // A checagem fica aqui, no servidor, para não ser contornável pelo navegador.
+  const cobranca = await avaliarCobrancaConsulta(paciente.id, triagem_id ?? null)
+
+  if (cobranca.precisaPagar) {
+    return NextResponse.json({
+      pagamentoNecessario: true,
+      referencia: cobranca.referencia,
+      valor: cobranca.valor,
+    }, { status: 402 })   // 402 Payment Required
   }
 
   // Criar sala no Daily.co
