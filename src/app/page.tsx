@@ -5,8 +5,8 @@ import {
   ArrowRight, Check, MessageCircle,
 } from 'lucide-react'
 
-// ⚠️ TROCAR pelo WhatsApp comercial da Aduno (formato: 55 + DDD + número)
-const WHATSAPP = '5548000000000'
+// WhatsApp comercial da Aduno — (47) 99601-8399
+const WHATSAPP = '5547996018399'
 const zap = (texto: string) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(texto)}`
 
 const BRAND = '#19382E'
